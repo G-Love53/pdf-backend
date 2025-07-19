@@ -1,2 +1,11 @@
-console.log("Backend starting...");
-// Add your server code here (PDF filling, emailing, etc.)
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('PDF backend is running!');
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}`);
+});
