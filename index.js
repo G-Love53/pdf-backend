@@ -21,12 +21,12 @@ app.post('/submit', upload.none(), async (req, res) => {
   try {
     // Set up email transporter
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'quote@barinsurancedirect.com',
-        pass: 'ipthsumgewnkxwpm'
-      }
-    });
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS
+  }
+});
 
     // 🔁 Submit to Society form
     await fetch('https://www.webmerge.me/merge/1216545/g9g6t6', {
