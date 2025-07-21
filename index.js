@@ -12,57 +12,43 @@ app.use(express.urlencoded({ extended: true }));
 
 const upload = multer();
 
-// Gmail transporter setup
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'quote@barinsurancedirect.com',
-    pass: 'biuwuyyjryiwerqs' // Replace with your actual App Password
-  }
-});
-
-// Handle Netlify form submission
 app.post('/submit', upload.none(), async (req, res) => {
-  console.log("✅ Form received:", req.body);
+  console.log("📝 Form received:", req.body);
 
+  // Extract fields
   const formData = req.body;
 
-  // Build email message
-  const mailOptions = {
-    from: '"BarInsuranceDirect Submission" <quote@barinsurancedirect.com>',
-    to: 'quote@barinsurancedirect.com',
-    subject: `Bar/Tavern Submission - ${formData.applicant_name || 'No Name'}`,
-    text: `
-📄 New Bar/Tavern Submission Received
-
-Applicant Name: ${formData.applicant_name}
-Premises: ${formData.premises_name}
-Address: ${formData.premises_address}
-Phone: ${formData.business_phone}
-Website: ${formData.premises_website}
-Email: ${formData.contact_email}
-Food Sales: ${formData.food_sales}
-Alcohol Sales: ${formData.alcohol_sales}
-Total Sales: ${formData.total_sales}
-Percent Alcohol: ${formData.percent_alcohol}
-Entertainment: ${formData.entertainment_details}
-
-🔗 PDF merge should now be triggered automatically from Formstack.
-    `,
-  };
-
   try {
-    await transporter.sendMail(mailOptions);
-    console.log("📨 Email sent successfully!");
-    res.json({ status: "Success", received: formData });
+    // Set up transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'YOUR_GMAIL_ADDRESS@gmail.com',     // replace with actual Gmail
+        pass: 'YOUR_APP_PASSWORD'                // from Google App Passwords
+      }
+    });
+
+    // Build the message
+    const mailOptions = {
+      from: '"BarInsuranceDirect Submission" <YOUR_GMAIL_ADDRESS@gmail.com>',
+      to: 'quote@barinsurancedirect.com',
+      subject: 'New Bar/Tavern Submission',
+      text: `You received a new submission.\n\nData:\n${JSON.stringify(formData, null, 2)}`
+    };
+
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Email sent:", info.response);
+
+    res.json({ status: "Email sent!" });
   } catch (error) {
     console.error("❌ Email failed:", error);
-    res.status(500).json({ status: "Email Error", error });
+    res.status(500).json({ error: "Failed to send email." });
   }
 });
 
 app.get("/", (req, res) => {
-  res.send("🟢 Backend is running.");
+  res.send("✅ Backend is running.");
 });
 
 app.use((req, res) => {
