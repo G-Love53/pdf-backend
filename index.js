@@ -36,7 +36,7 @@ app.post('/submit', upload.none(), async (req, res) => {
     });
 
     // Submit to Bar125 form
-await fetch('https://www.webmerge.me/merge/1216553/yd6k9k', {
+await fetch('https://www.webmerge.me/merge/1216553/yd6dk9k', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(formData)
