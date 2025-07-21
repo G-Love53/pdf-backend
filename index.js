@@ -14,37 +14,37 @@ app.use(express.urlencoded({ extended: true }));
 const upload = multer();
 
 app.post('/submit', upload.none(), async (req, res) => {
-  console.log("📩 Form received:", req.body);
+  console.log("📝 Form received:", req.body);
 
   const formData = req.body;
 
   try {
-    // Set up email transporter
+    // 📧 Set up email transporter
     const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS
-  }
-});
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS
+      }
+    });
 
-    // 🔁 Submit to Society form
+    // 📄 Submit to Society form
     await fetch('https://www.webmerge.me/merge/1216545/g9g6t6', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
     });
 
-    // Submit to Bar125 form
-await fetch('https://www.webmerge.me/merge/1216553/yd6dk9k', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(formData)
-});
+    // 📄 Submit to Bar125 form
+    await fetch('https://www.webmerge.me/merge/1216553/y6dk9k', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
 
-    // 🕐 Wait 3 seconds to allow Formstack to finalize the PDFs
-await new Promise(resolve => setTimeout(resolve, 3000));
-    
+    // ⏱️ Wait 3 seconds to allow Formstack to finalize the PDFs
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
     // 📧 Send confirmation email
     const mailOptions = {
       from: '"BarInsuranceDirect Submission" <quote@barinsurancedirect.com>',
@@ -58,15 +58,9 @@ await new Promise(resolve => setTimeout(resolve, 3000));
 
     // ✅ Respond to frontend
     res.json({
-      status:
-        "Thank you for your submission! We value your business. A quote will be sent to your email shortly."
+      status: "Thank you for your submission! We value your business. A quote will be sent to your email shortly."
     });
   } catch (error) {
     console.error("❌ Error:", error);
     res.status(500).json({ error: "Failed to send email or submit PDFs." });
-  }
-});
-
-app.listen(port, () => {
-  console.log(`🚀 PDF backend listening on port ${port}`);
-});
+  }  
