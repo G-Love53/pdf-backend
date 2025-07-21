@@ -35,13 +35,16 @@ app.post('/submit', upload.none(), async (req, res) => {
       body: JSON.stringify(formData)
     });
 
-    // 🔁 Submit to Bar125 form
-    await fetch('https://www.webmerge.me/merge/1216553/yd6k9k', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    });
+    // Submit to Bar125 form
+await fetch('https://www.webmerge.me/merge/1216553/yd6k9k', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(formData)
+});
 
+    // 🕐 Wait 3 seconds to allow Formstack to finalize the PDFs
+await new Promise(resolve => setTimeout(resolve, 3000));
+    
     // 📧 Send confirmation email
     const mailOptions = {
       from: '"BarInsuranceDirect Submission" <quote@barinsurancedirect.com>',
