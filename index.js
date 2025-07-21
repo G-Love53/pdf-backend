@@ -24,7 +24,7 @@ app.post('/submit', upload.none(), async (req, res) => {
       service: 'gmail',
       auth: {
         user: 'quote@barinsurancedirect.com',     // replace with actual Gmail
-        pass: 'biuw uyyj ryiw erqs'                // from Google App Passwords
+        pass: 'biuwuyyjryiwerqs'                // from Google App Passwords
       }
     });
 
