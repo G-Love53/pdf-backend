@@ -4,7 +4,7 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const fs = require('fs').promises; // Node.js built-in file system module for reading files
 const path = require('path'); // For path.join and __dirname
-const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
+const { PDFDocument, rgb, StandardFonts } = require('pdf-lib'); // Import pdf-lib
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -16,43 +16,37 @@ app.use(express.urlencoded({ extended: true }));
 const upload = multer();
 
 // --- PDF Field Mappings ---
-// These are based on your provided information and screenshots.
-
 const societyFieldMappings = {
-    'applicant_name': 'applicant_name', // Looks like the same name from screenshot
-    'premises_address': 'premises_address', // Looks like the same name from screenshot
-    'open_60_days': 'open_60_days', // From screenshot
-    'open_60_days_details': 'open_60_days_details', // From screenshot
-    'ownership_experience': 'ownership_experience', // From screenshot
-    'ownership_experience_details': 'ownership_experience_details', // From screenshot
-    'closing_time': 'closing_time', // From screenshot
-    'square_footage': 'square_footage', // From screenshot
-    'num_employees': 'num_employees', // From screenshot
-    'fine_dining': 'fine_dining', // From screenshot
-    'counter_service': 'counter_service', // From screenshot
-    'alcohol_manufactured': 'alcohol_manufactured', // From screenshot
-    'percent_consumed': 'percent_consumed', // From screenshot
-    'food_sales': 'food_sales', // From screenshot
-    'alcohol_sales': 'alcohol_sales', // From screenshot
-    'total_sales': 'total_sales', // From screenshot
-    'percent_alcohol': 'percent_alcohol', // From screenshot
-    'cooking_level': 'cooking_level', // From screenshot
-    'cannabis_infusion': 'infused_with_cannabis', // From screenshot
-    'solid_fuel': 'solid_fuel', // From screenshot
-    'ul300': 'non_UL300', // From screenshot
-    'other_entertainment': 'entertainment_other', // From screenshot
-    'entertainment_details': 'entertainment_details', // From screenshot
-    'recreation': 'recreational_activities', // From screenshot
-    'recreation_details': 'recreational_details', // From screenshot
-    'security_staff': 'security_present', // From screenshot
-    'delivery': 'delivery_offered', // From screenshot
-
-    // Security Staff sub-questions (Generic Combo Box/TextField names from screenshot)
+    'applicant_name': 'applicant_name',
+    'premises_address': 'premises_address',
+    'open_60_days': 'open_60_days',
+    'open_60_days_details': 'open_60_days_details',
+    'ownership_experience': 'ownership_experience',
+    'ownership_experience_details': 'ownership_experience_details',
+    'closing_time': 'closing_time',
+    'square_footage': 'square_footage',
+    'num_employees': 'num_employees',
+    'fine_dining': 'fine_dining',
+    'counter_service': 'counter_service',
+    'alcohol_manufactured': 'alcohol_manufactured',
+    'percent_consumed': 'percent_consumed',
+    'food_sales': 'food_sales',
+    'alcohol_sales': 'alcohol_sales',
+    'total_sales': 'total_sales',
+    'percent_alcohol': 'percent_alcohol',
+    'cooking_level': 'cooking_level',
+    'cannabis_infusion': 'infused_with_cannabis',
+    'solid_fuel': 'solid_fuel',
+    'ul300': 'non_UL300',
+    'other_entertainment': 'entertainment_other',
+    'entertainment_details': 'entertainment_details',
+    'recreation': 'recreational_activities',
+    'recreation_details': 'recreation_details',
+    'security_staff': 'security_present',
+    'delivery': 'delivery_offered',
     'bouncers_background_checks': 'Combo Box22',
     'bouncers_armed': 'Combo Box23',
     'bouncers_conflict_resolution': 'Combo Box24',
-
-    // Delivery sub-questions (Generic Combo Box/TextField names from screenshot)
     'delivery_insured_autos': 'Combo Box3',
     'delivery_employee_autos': 'Combo Box4',
     'delivery_third_party': 'Combo Box5',
@@ -63,12 +57,8 @@ const societyFieldMappings = {
     'delivery_radius_greater_than_5_miles_details': 'TextField2',
     'delivery_hours_past_10pm': 'Combo Box8',
     'delivery_hours_past_10pm_details': 'TextField3',
-
-    // Auto Coverage sub-questions (Generic Combo Box names from screenshot)
     'shuttle_services': 'Combo Box9',
     'additional_auto_policies': 'Combo Box1',
-
-    // Liquor Law Violations (Names from screenshot)
     'liquor_violations': 'liquor_lapse',
     'liquor_violation_details': 'liquor_claims',
 };
@@ -92,12 +82,11 @@ const bar125FieldMappings = {
 
 
 // Function to fill a PDF using pdf-lib
-async function fillPdfForm(templatePath, formData, fieldMappings) {
-    // Adding diagnostic logs here
-    console.log(`Attempting to read file: ${templatePath}`);
+async function fillPdfForm(fileName, formData, fieldMappings) {
+    console.log(`Attempting to read file: ${fileName}`); // Now using fileName directly
     try {
-        const existingPdfBytes = await fs.readFile(templatePath);
-        console.log(`Successfully read file: ${templatePath}. Size: ${existingPdfBytes.byteLength} bytes`);
+        const existingPdfBytes = await fs.readFile(fileName); // Read from the provided full path
+        console.log(`Successfully read file: ${fileName}. Size: ${existingPdfBytes.byteLength} bytes`);
         const pdfDoc = await PDFDocument.load(existingPdfBytes);
         const form = pdfDoc.getForm();
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -134,7 +123,7 @@ async function fillPdfForm(templatePath, formData, fieldMappings) {
                 }
 
             } catch (error) {
-                console.warn(`⚠️ Warning: PDF field "${pdfFieldName}" (mapped from HTML field "${htmlFieldName}") not found or issue setting value in ${templatePath}. Error: ${error.message}`);
+                console.warn(`⚠️ Warning: PDF field "${pdfFieldName}" (mapped from HTML field "${htmlFieldName}") not found or issue setting value in ${fileName}. Error: ${error.message}`);
             }
         }
 
@@ -143,8 +132,8 @@ async function fillPdfForm(templatePath, formData, fieldMappings) {
         const pdfBytes = await pdfDoc.save();
         return pdfBytes;
     } catch (readError) {
-        console.error(`❌ Failed to read PDF template file "${templatePath}": ${readError.message}`);
-        throw readError; // Re-throw to be caught by the main try/catch
+        console.error(`❌ Failed to read PDF template file "${fileName}": ${readError.message}`);
+        throw readError;
     }
 }
 
@@ -160,8 +149,9 @@ app.post('/submit', upload.none(), async (req, res) => {
         try {
             const filesInRoot = await fs.readdir(process.cwd());
             console.log(`Files in CWD: ${filesInRoot.join(', ')}`);
-            const filesInTemplates = await fs.readdir(path.join(process.cwd(), 'templates'));
-            console.log(`Files in ./templates: ${filesInTemplates.join(', ')}`);
+            // CORRECTED: changed 'templates' to 'template' (singular)
+            const filesInTemplates = await fs.readdir(path.join(process.cwd(), 'template'));
+            console.log(`Files in ./template: ${filesInTemplates.join(', ')}`);
         } catch (dirReadError) {
             console.error(`❌ Error reading directories for diagnostics: ${dirReadError.message}`);
         }
@@ -178,7 +168,8 @@ app.post('/submit', upload.none(), async (req, res) => {
         // --- Generate PDFs using pdf-lib ---
         console.log("🚀 Generating Society PDF with pdf-lib...");
         const societyPdfBuffer = await fillPdfForm(
-            path.join(__dirname, 'templates', 'Society_Mapped_Corrected.pdf'),
+            // CORRECTED: changed 'templates' to 'template' (singular)
+            path.join(__dirname, 'template', 'Society_Mapped_Corrected.pdf'),
             formData,
             societyFieldMappings
         );
@@ -187,7 +178,8 @@ app.post('/submit', upload.none(), async (req, res) => {
 
         console.log("🚀 Generating Bar125 PDF with pdf-lib...");
         const bar125PdfBuffer = await fillPdfForm(
-            path.join(__dirname, 'templates', 'BarAccord-125.pdf'),
+            // CORRECTED: changed 'templates' to 'template' (singular)
+            path.join(__dirname, 'template', 'BarAccord-125.pdf'),
             formData,
             bar125FieldMappings
         );
