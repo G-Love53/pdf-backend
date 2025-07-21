@@ -163,7 +163,7 @@ app.post('/submit', upload.none(), async (req, res) => {
         // Using path.join and __dirname for more robust file location on Render.
         console.log("🚀 Generating Society PDF with pdf-lib...");
         const societyPdfBuffer = await fillPdfForm(
-            path.join(__dirname, 'templates', 'Society_Mapped_Full_Fillable.pdf'), // CORRECTED PATH
+            path.join(__dirname, 'templates', 'Society_Mapped_Corrected.pdf'), // CORRECTED FILENAME
             formData,
             societyFieldMappings
         );
@@ -172,7 +172,7 @@ app.post('/submit', upload.none(), async (req, res) => {
 
         console.log("🚀 Generating Bar125 PDF with pdf-lib...");
         const bar125PdfBuffer = await fillPdfForm(
-            path.join(__dirname, 'templates', 'BarAccord-125.pdf'), // CORRECTED PATH
+            path.join(__dirname, 'templates', 'BarAccord-125.pdf'), // CORRECTED FILENAME
             formData,
             bar125FieldMappings
         );
