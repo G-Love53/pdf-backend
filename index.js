@@ -70,13 +70,14 @@ const mailOptions = {
 
 const info = await transporter.sendMail(mailOptions);
 console.log("📧 Email sent:", info.response);
-      status: "Thank you for your submission! We value your business. A quote will be sent to your email shortly."
-    });
-  } catch (error) {
-    console.error("❌ Error:", error);
-    res.status(500).json({ error: "Failed to send email or submit PDFs." });
-  }  
-
+res.json({
+  status: "Thank you for your submission! We value your business. A quote will be sent to your email shortly."
+});
+}; // ✅ closes the try block
+catch (error) {
+  console.error("❌ Error:", error);
+  res.status(500).json({ error: "Failed to send email or submit PDFs." });
+}
 }); // closes app.post
 
 // 🟢 Start the server
