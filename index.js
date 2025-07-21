@@ -45,19 +45,31 @@ app.post('/submit', upload.none(), async (req, res) => {
     // ⏱️ Wait 3 seconds to allow Formstack to finalize the PDFs
     await new Promise(resolve => setTimeout(resolve, 3000));
 
-    // 📧 Send confirmation email
-    const mailOptions = {
-      from: '"BarInsuranceDirect Submission" <quote@barinsurancedirect.com>',
-      to: 'quote@barinsurancedirect.com',
-      subject: 'New Bar/Tavern Submission',
-      text: `You received a new submission.\n\nData:\n${JSON.stringify(formData, null, 2)}`
-    };
+    // 📥 Download merged PDFs from Formstack
+const headers = {
+  Authorization: `Bearer ${process.env.FORMSTACK_API_KEY}`
+};
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log("✅ Email sent:", info.response);
+const societyPDF = await fetch('https://www.webmerge.me/api/documents/1216545/merged', { headers });
+const bar125PDF = await fetch('https://www.webmerge.me/api/documents/1216553/merged', { headers });
 
-    // ✅ Respond to frontend
-    res.json({
+const societyBuffer = await societyPDF.arrayBuffer();
+const bar125Buffer = await bar125PDF.arrayBuffer();
+
+// 📧 Send confirmation email with PDFs attached
+const mailOptions = {
+  from: '"BarInsuranceDirect Submission" <quote@barinsurancedirect.com>',
+  to: 'quote@barinsurancedirect.com',
+  subject: 'New Bar/Tavern Submission',
+  text: `You received a new submission.\n\nData:\n${JSON.stringify(formData, null, 2)}`,
+  attachments: [
+    { filename: 'Society.pdf', content: Buffer.from(societyBuffer) },
+    { filename: 'Bar125.pdf', content: Buffer.from(bar125Buffer) }
+  ]
+};
+
+const info = await transporter.sendMail(mailOptions);
+console.log("📧 Email sent:", info.response);
       status: "Thank you for your submission! We value your business. A quote will be sent to your email shortly."
     });
   } catch (error) {
