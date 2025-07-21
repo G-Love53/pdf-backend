@@ -3,8 +3,8 @@ const multer = require('multer');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const fs = require('fs').promises; // Node.js built-in file system module for reading files
-const path = require('path'); // ADDED THIS LINE for path.join
-const { PDFDocument, rgb, StandardFonts } = require('pdf-lib'); // Import pdf-lib
+const path = require('path'); // For path.join and __dirname
+const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,7 +17,6 @@ const upload = multer();
 
 // --- PDF Field Mappings ---
 // These are based on your provided information and screenshots.
-// IMPORTANT: Double-check these against your actual blank PDFs if issues arise.
 
 const societyFieldMappings = {
     'applicant_name': 'applicant_name', // Looks like the same name from screenshot
@@ -84,64 +83,69 @@ const bar125FieldMappings = {
     'num_employees': '1# emp 1',
     'food_sales': '1ann rev 1',
     'alcohol_sales': '1ann rev 2',
-    // 'total_sales' and 'percent_alcohol' are calculated in HTML and not directly mapped to PDF fields in Bar125
-    'fine_dining': 'fine_dining', // Assuming this maps to a Yes/No text field or checkbox
-    'shuttle': 'shuttle', // Assuming this maps to a Yes/No text field or checkbox
-    'auto_policy': 'auto_policy', // Assuming this maps to a Yes/No text field or checkbox
+    'fine_dining': 'fine_dining',
+    'shuttle': 'shuttle',
+    'auto_policy': 'auto_policy',
     'liquor_violation_details': 'liquor_violation_details',
-    'additional_insureds': 'additional_insureds', // Assuming this maps to a Paragraph text field
-    // Note: Other fields from your HTML form (e.g., open_60_days, ownership_experience, etc.)
-    // are not present in the Bar125 mapping you provided or screenshots, so they won't be filled in Bar125.
+    'additional_insureds': 'additional_insureds',
 };
 
 
 // Function to fill a PDF using pdf-lib
 async function fillPdfForm(templatePath, formData, fieldMappings) {
-    const existingPdfBytes = await fs.readFile(templatePath);
-    const pdfDoc = await PDFDocument.load(existingPdfBytes);
-    const form = pdfDoc.getForm();
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    // Adding diagnostic logs here
+    console.log(`Attempting to read file: ${templatePath}`);
+    try {
+        const existingPdfBytes = await fs.readFile(templatePath);
+        console.log(`Successfully read file: ${templatePath}. Size: ${existingPdfBytes.byteLength} bytes`);
+        const pdfDoc = await PDFDocument.load(existingPdfBytes);
+        const form = pdfDoc.getForm();
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    for (const htmlFieldName in fieldMappings) {
-        const pdfFieldName = fieldMappings[htmlFieldName];
-        let value = formData[htmlFieldName] || '';
+        for (const htmlFieldName in fieldMappings) {
+            const pdfFieldName = fieldMappings[htmlFieldName];
+            let value = formData[htmlFieldName] || '';
 
-        if (htmlFieldName.includes('_sales') || htmlFieldName === 'total_sales') {
-            value = String(value).replace(/[^0-9.]/g, '');
-        }
-        if (htmlFieldName === 'percent_alcohol') {
-            value = String(value).replace('%', '');
-        }
-        if (typeof value === 'string') {
-            value = value.toLowerCase().trim();
-        }
-
-        try {
-            const field = form.getField(pdfFieldName);
-
-            if (field.constructor.name === 'PDFCheckBox') {
-                if (value === 'yes' || value === 'true' || value === 'on') {
-                    field.check();
-                } else {
-                    field.uncheck();
-                }
-            } else if (field.constructor.name === 'PDFRadioGroup') {
-                field.select(String(value));
-            } else if (field.constructor.name === 'PDFDropdown') {
-                field.select(String(value));
-            } else if (field.constructor.name === 'PDFTextField') {
-                field.setText(String(value));
+            if (htmlFieldName.includes('_sales') || htmlFieldName === 'total_sales') {
+                value = String(value).replace(/[^0-9.]/g, '');
+            }
+            if (htmlFieldName === 'percent_alcohol') {
+                value = String(value).replace('%', '');
+            }
+            if (typeof value === 'string') {
+                value = value.toLowerCase().trim();
             }
 
-        } catch (error) {
-            console.warn(`⚠️ Warning: PDF field "${pdfFieldName}" (mapped from HTML field "${htmlFieldName}") not found or issue setting value in ${templatePath}. Error: ${error.message}`);
+            try {
+                const field = form.getField(pdfFieldName);
+
+                if (field.constructor.name === 'PDFCheckBox') {
+                    if (value === 'yes' || value === 'true' || value === 'on') {
+                        field.check();
+                    } else {
+                        field.uncheck();
+                    }
+                } else if (field.constructor.name === 'PDFRadioGroup') {
+                    field.select(String(value));
+                } else if (field.constructor.name === 'PDFDropdown') {
+                    field.select(String(value));
+                } else if (field.constructor.name === 'PDFTextField') {
+                    field.setText(String(value));
+                }
+
+            } catch (error) {
+                console.warn(`⚠️ Warning: PDF field "${pdfFieldName}" (mapped from HTML field "${htmlFieldName}") not found or issue setting value in ${templatePath}. Error: ${error.message}`);
+            }
         }
+
+        form.flatten();
+
+        const pdfBytes = await pdfDoc.save();
+        return pdfBytes;
+    } catch (readError) {
+        console.error(`❌ Failed to read PDF template file "${templatePath}": ${readError.message}`);
+        throw readError; // Re-throw to be caught by the main try/catch
     }
-
-    form.flatten();
-
-    const pdfBytes = await pdfDoc.save();
-    return pdfBytes;
 }
 
 
@@ -151,6 +155,18 @@ app.post('/submit', upload.none(), async (req, res) => {
     const formData = req.body;
 
     try {
+        // --- Diagnostic: Check current working directory and list files ---
+        console.log(`Current Working Directory (CWD): ${process.cwd()}`);
+        try {
+            const filesInRoot = await fs.readdir(process.cwd());
+            console.log(`Files in CWD: ${filesInRoot.join(', ')}`);
+            const filesInTemplates = await fs.readdir(path.join(process.cwd(), 'templates'));
+            console.log(`Files in ./templates: ${filesInTemplates.join(', ')}`);
+        } catch (dirReadError) {
+            console.error(`❌ Error reading directories for diagnostics: ${dirReadError.message}`);
+        }
+        // --- End Diagnostics ---
+
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -160,10 +176,9 @@ app.post('/submit', upload.none(), async (req, res) => {
         });
 
         // --- Generate PDFs using pdf-lib ---
-        // Using path.join and __dirname for more robust file location on Render.
         console.log("🚀 Generating Society PDF with pdf-lib...");
         const societyPdfBuffer = await fillPdfForm(
-            path.join(__dirname, 'templates', 'Society_Mapped_Corrected.pdf'), // CORRECTED FILENAME
+            path.join(__dirname, 'templates', 'Society_Mapped_Corrected.pdf'),
             formData,
             societyFieldMappings
         );
@@ -172,7 +187,7 @@ app.post('/submit', upload.none(), async (req, res) => {
 
         console.log("🚀 Generating Bar125 PDF with pdf-lib...");
         const bar125PdfBuffer = await fillPdfForm(
-            path.join(__dirname, 'templates', 'BarAccord-125.pdf'), // CORRECTED FILENAME
+            path.join(__dirname, 'templates', 'BarAccord-125.pdf'),
             formData,
             bar125FieldMappings
         );
