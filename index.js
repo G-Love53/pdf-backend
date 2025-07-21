@@ -65,7 +65,9 @@ app.post('/submit', upload.none(), async (req, res) => {
     res.status(500).json({ error: "Failed to send email or submit PDFs." });
   }  
 
-// ✅ Start the server
+}); // closes app.post
+
+// 🟢 Start the server
 app.listen(port, () => {
   console.log("🚀 Server listening on port", port);
 });
