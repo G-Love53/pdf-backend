@@ -1,19 +1,27 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const multer = require('multer');
+const cors = require('cors');
+
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
+app.use(cors());
 
-app.get('/', (req, res) => {
-  res.send('PDF backend is running!');
+const upload = multer();
+
+app.post('/submit', upload.none(), (req, res) => {
+  console.log("✅ Form received:", req.body);
+  res.json({ status: "Received", received: req.body });
 });
 
-app.post('/submit', (req, res) => {
-  console.log('✅ Received form submission:', req.body);
-  res.json({ status: 'Received', received: req.body });
+app.get("/", (req, res) => {
+  res.send("🟢 Backend is running.");
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server is listening on port ${PORT}`);
+app.use((req, res) => {
+  res.status(404).send("Not Found");
+});
+
+app.listen(port, () => {
+  console.log(`🚀 PDF backend listening on port ${port}`);
 });
