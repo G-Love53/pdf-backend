@@ -42,8 +42,8 @@ app.post('/submit', upload.none(), async (req, res) => {
       body: JSON.stringify(formData)
     });
 
-    // ⏱️ Wait 3 seconds to allow Formstack to finalize the PDFs
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // ⏱️ Wait 8 seconds to allow Formstack to finalize the PDFs
+    await new Promise(resolve => setTimeout(resolve, 8000));
 
     // 📥 Download merged PDFs from Formstack
 const headers = {
