@@ -23,14 +23,14 @@ app.post('/submit', upload.none(), async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'YOUR_GMAIL_ADDRESS@gmail.com',     // replace with actual Gmail
-        pass: 'YOUR_APP_PASSWORD'                // from Google App Passwords
+        user: 'quote@barinsurancedirect.com',     // replace with actual Gmail
+        pass: 'biuw uyyj ryiw erqs'                // from Google App Passwords
       }
     });
 
     // Build the message
     const mailOptions = {
-      from: '"BarInsuranceDirect Submission" <YOUR_GMAIL_ADDRESS@gmail.com>',
+      from: '"BarInsuranceDirect Submission" <quote@barinsurancedirect.com',
       to: 'quote@barinsurancedirect.com',
       subject: 'New Bar/Tavern Submission',
       text: `You received a new submission.\n\nData:\n${JSON.stringify(formData, null, 2)}`
