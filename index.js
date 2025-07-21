@@ -3,6 +3,7 @@ const multer = require('multer');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const fs = require('fs').promises; // Node.js built-in file system module for reading files
+const path = require('path'); // ADDED THIS LINE for path.join
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib'); // Import pdf-lib
 
 const app = express();
@@ -73,7 +74,6 @@ const societyFieldMappings = {
     'liquor_violation_details': 'liquor_claims',
 };
 
-// Bar125.pdf field mappings (from your previous list and screenshots)
 const bar125FieldMappings = {
     'applicant_name': 'applicantinfo1',
     'premises_address': 'STREET MAILING1',
@@ -100,24 +100,18 @@ async function fillPdfForm(templatePath, formData, fieldMappings) {
     const existingPdfBytes = await fs.readFile(templatePath);
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     const form = pdfDoc.getForm();
-    // Embedding a font is good practice if you want consistent text appearance
-    // and to avoid issues with non-standard characters.
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
     for (const htmlFieldName in fieldMappings) {
         const pdfFieldName = fieldMappings[htmlFieldName];
-        let value = formData[htmlFieldName] || ''; // Get value from form data, default to empty string if not found
+        let value = formData[htmlFieldName] || '';
 
-        // --- Data Pre-processing for PDF Fields ---
-        // Clean up currency symbols from sales figures
         if (htmlFieldName.includes('_sales') || htmlFieldName === 'total_sales') {
-            value = String(value).replace(/[^0-9.]/g, ''); // Remove non-numeric chars except decimal
+            value = String(value).replace(/[^0-9.]/g, '');
         }
-        // Handle percentages
         if (htmlFieldName === 'percent_alcohol') {
-            value = String(value).replace('%', ''); // Remove '%' symbol
+            value = String(value).replace('%', '');
         }
-        // Standardize Yes/No for easier boolean/selection handling
         if (typeof value === 'string') {
             value = value.toLowerCase().trim();
         }
@@ -125,7 +119,6 @@ async function fillPdfForm(templatePath, formData, fieldMappings) {
         try {
             const field = form.getField(pdfFieldName);
 
-            // Handle different PDF field types
             if (field.constructor.name === 'PDFCheckBox') {
                 if (value === 'yes' || value === 'true' || value === 'on') {
                     field.check();
@@ -133,28 +126,22 @@ async function fillPdfForm(templatePath, formData, fieldMappings) {
                     field.uncheck();
                 }
             } else if (field.constructor.name === 'PDFRadioGroup') {
-                // For radio buttons, the value must match one of the export values of the radio options
-                // (e.g., "Full cooking", "Limited cooking", "No cooking" for 'cooking_level')
                 field.select(String(value));
             } else if (field.constructor.name === 'PDFDropdown') {
-                // For dropdowns, the value must match one of the export values of the dropdown options
                 field.select(String(value));
             } else if (field.constructor.name === 'PDFTextField') {
                 field.setText(String(value));
             }
-            // Add more specific field type handling if needed (e.g., for signatures, images).
 
         } catch (error) {
             console.warn(`⚠️ Warning: PDF field "${pdfFieldName}" (mapped from HTML field "${htmlFieldName}") not found or issue setting value in ${templatePath}. Error: ${error.message}`);
-            // This warning is important for debugging which fields might not be filling.
         }
     }
 
-    // Flatten the form fields to make them static and uneditable
     form.flatten();
 
     const pdfBytes = await pdfDoc.save();
-    return pdfBytes; // Returns a Uint8Array (which can be converted to a Node.js Buffer)
+    return pdfBytes;
 }
 
 
@@ -164,7 +151,6 @@ app.post('/submit', upload.none(), async (req, res) => {
     const formData = req.body;
 
     try {
-        // 📧 Set up email transporter (confirm App Password for Gmail in production)
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -174,10 +160,10 @@ app.post('/submit', upload.none(), async (req, res) => {
         });
 
         // --- Generate PDFs using pdf-lib ---
-        // Ensure the paths match the filenames you uploaded to the 'templates' folder exactly.
+        // Using path.join and __dirname for more robust file location on Render.
         console.log("🚀 Generating Society PDF with pdf-lib...");
         const societyPdfBuffer = await fillPdfForm(
-            './templates/Society_Mapped_Full_Fillable.pdf', // EXACT filename from your GitHub
+            path.join(__dirname, 'templates', 'Society_Mapped_Full_Fillable.pdf'), // Corrected path
             formData,
             societyFieldMappings
         );
@@ -186,7 +172,7 @@ app.post('/submit', upload.none(), async (req, res) => {
 
         console.log("🚀 Generating Bar125 PDF with pdf-lib...");
         const bar125PdfBuffer = await fillPdfForm(
-            './templates/BarAccord-125 (1).pdf', // EXACT filename from your GitHub
+            path.join(__dirname, 'templates', 'BarAccord-125.pdf'), // <--- THIS LINE IS NOW CORRECT
             formData,
             bar125FieldMappings
         );
@@ -195,7 +181,7 @@ app.post('/submit', upload.none(), async (req, res) => {
         // 📧 Send confirmation email with PDFs attached
         const mailOptions = {
             from: '"Commercial Insurance Direct" <quote@barinsurancedirect.com>',
-            to: formData.contact_email, // Send to the applicant's email from the form
+            to: formData.contact_email,
             subject: 'Your Bar/Tavern Quote Application from Commercial Insurance Direct',
             text: `Dear ${formData.applicant_name || 'Applicant'},\n\nThank you for submitting your application. We are processing your request and will be in touch shortly with your quote.\n\nYour submitted data:\n${JSON.stringify(formData, null, 2)}\n\nBest regards,\nCommercial Insurance Direct Team`,
             html: `
