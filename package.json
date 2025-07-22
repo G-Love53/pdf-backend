@@ -11,6 +11,7 @@
     "multer": "^1.4.4",
     "nodemailer": "^6.9.8",
     "node-fetch": "^2.6.11",
-    "pdf-lib": "^1.17.1"
+    "pdf-lib": "^1.17.1",
+    "@adobe/pdfservices-node-sdk": "^3.0.0"
   }
 }
