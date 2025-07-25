@@ -43,83 +43,85 @@ const societyFieldMappings = {
     'food_sales': 'food_sales',
     'alcohol_sales': 'alcohol_sales',
     'total_sales': 'total_sales',
-    'percent_alcohol': 'Percent_Alcohol',
+    'percent_alcohol': 'Percent_Alcohol', // From PDF-Lib detected 'Percent_Alcohol'
     // 'cooking_level_radio' is handled specifically below in fillPdfForm. PDF fields are:
     // 'cooking_level_full', 'cooking_level_limited', 'cooking_level_non'
-    'cannabis_infusion': 'infused_with_cannabis',
-    'solid_fuel': 'solid_fuel',
-    'ul300': 'non_UL300',
+    'cannabis_infusion': 'infused_with_cannabis', // PDF-Lib detected
+    'solid_fuel': 'solid_fuel', // PDF-Lib detected
+    'ul300': 'non_UL300', // PDF-Lib detected 'non_UL300'
 
     // Page 2 Fields (from PDF-LIB DETECTED FIELDS log and index (6).html)
     'other_entertainment': 'entertainment_other',
     'entertainment_details': 'entertainment_details',
-    'recreation': 'recreational_activites',
+    'recreation': 'recreational_activites', // PDF-Lib detected 'recreational_activites'
     'recreation_details': 'recreational_details',
-    'security_staff': 'security_present',
-    'delivery': 'delivery_offered',
+    'security_staff': 'security_present', // PDF-Lib detected 'security_present'
+    'delivery': 'delivery_offered', // PDF-Lib detected 'delivery_offered'
 
     // Security Staff sub-questions (HTML field names match PDF-Lib detected)
-    'bouncers_background_checks': 'ComboBox22',
-    'bouncers_armed': 'ComboBox23',
-    'bouncers_conflict_resolution': 'ComboBox24',
+    'bouncers_background_checks': 'ComboBox22', // PDF-Lib detected 'ComboBox22'
+    'bouncers_armed': 'ComboBox23', // PDF-Lib detected 'ComboBox23'
+    'bouncers_conflict_resolution': 'ComboBox24', // PDF-Lib detected 'ComboBox24'
 
     // Delivery sub-questions (HTML field names match PDF-Lib detected)
-    'delivery_insured_autos': 'ComboBox13',
-    'delivery_employee_autos': 'ComboBox14',
-    'delivery_third_party': 'ComboBox15',
-    'delivery_sales_insured_employee_autos': 'TextField0',
-    'delivery_sales_exceed_20_percent': 'ComboBox16',
-    'delivery_sales_exceed_20_percent_details': 'TextField10',
-    'delivery_radius_greater_than_5_miles': 'ComboBox17',
-    'delivery_radius_greater_than_5_miles_details': 'TextField11',
-    'delivery_hours_past_10pm': 'ComboBox18',
-    'delivery_hours_past_10pm_details': 'TextField12',
+    'delivery_insured_autos': 'ComboBox13', // PDF-Lib detected 'ComboBox13'
+    'delivery_employee_autos': 'ComboBox14', // PDF-Lib detected 'ComboBox14'
+    'delivery_third_party': 'ComboBox15', // PDF-Lib detected 'ComboBox15'
+    'delivery_sales_insured_employee_autos': 'TextField0', // PDF-Lib detected 'TextField0'
+    'delivery_sales_exceed_20_percent': 'ComboBox16', // PDF-Lib detected 'ComboBox16'
+    'delivery_sales_exceed_20_percent_details': 'TextField10', // PDF-Lib detected 'TextField10'
+    'delivery_radius_greater_than_5_miles': 'ComboBox17', // PDF-Lib detected 'ComboBox17'
+    'delivery_radius_greater_than_5_miles_details': 'TextField11', // PDF-Lib detected 'TextField11'
+    'delivery_hours_past_10pm': 'ComboBox18', // PDF-Lib detected 'ComboBox18'
+    'delivery_hours_past_10pm_details': 'TextField12', // PDF-Lib detected 'TextField12'
 
     // Auto Coverage sub-questions (HTML field names match PDF-Lib detected)
-    'shuttle_services': 'ComboBox19',
-    'additional_auto_policies': 'ComboBox1',
+    'shuttle_services': 'ComboBox19', // PDF-Lib detected 'ComboBox19'
+    'additional_auto_policies': 'ComboBox1', // PDF-Lib detected 'ComboBox1'
 
     // Liquor Law Violations (HTML field names match PDF-Lib detected)
-    'liquor_violations': 'liquor_lapse',
-    'liquor_violation_details': 'liquor_claims',
+    'liquor_violations': 'liquor_lapse', // PDF-Lib detected 'liquor_lapse'
+    'liquor_violation_details': 'liquor_claims', // PDF-Lib detected 'liquor_claims'
 
-    'claim_count': 'claim_count',
-    'additional_insureds': 'additional_insureds',
+    'claim_count': 'claim_count', // PDF-Lib detected 'claim_count'
+    'additional_insureds': 'additional_insureds', // PDF-Lib detected
 
     // Payment Plan Checkboxes (HTML field names match PDF-Lib detected)
-    'payment_plan_Monthly': 'Monthly_Checkbox',
-    'payment_plan_Annual': 'Annual_Checkbox',
+    'payment_plan_Monthly': 'Monthly_Checkbox', // PDF-Lib detected 'Monthly_Checkbox'
+    'payment_plan_Annual': 'Annual_Checkbox', // PDF-Lib detected 'Annual_Checkbox'
 
     // Agency Info Fields (PDF-Lib detected names. Hardcoded in fillPdfForm for Society)
-    'agency_name_field': 'TextField16',
-    'agent_name_field': 'TextField17',
-    'agent_email_field': 'TextField18',
-    'agent_phone_number_field': 'TextField19',
+    'agency_name_field': 'TextField16', // PDF-Lib detected 'TextField16'
+    'agent_name_field': 'TextField17', // PDF-Lib detected 'TextField17'
+    'agent_email_field': 'TextField18', // PDF-Lib detected 'TextField18'
+    'agent_phone_number_field': 'TextField19', // PDF-Lib detected 'TextField19'
 };
 
 const bar125FieldMappings = {
     // BarAccord-125 fields (Placeholders from 125Mapping.notepad. Requires its own PDF-Lib detected names for finalization.)
     // These need to be updated after you get the PDF-Lib detected names for BarAccord-125.
-    'applicant_name': 'applicantinfo1',
-    'premises_name': 'applicantinfo1',
-    'premises_address': 'STREET MAILING1',
-    'contact_email': 'agentemail',
-    'business_phone': 'agentphone',
-    'effective_date': 'todaysdate',
-    'square_footage': 'square_footage',
-    'num_employees': '1# emp 1',
-    'food_sales': '1ann rev 1',
-    'alcohol_sales': '1ann rev 2',
-    'fine_dining': 'fine_dining',
-    'shuttle': 'shuttle',
-    'auto_policy': 'auto_policy',
-    'liquor_violation_details': 'liquor_violation_details',
-    'additional_insureds': '6Text151',
+    'applicant_name': 'applicantinfo1', // HTML: applicant_name, XML: applicantinfo1
+    'premises_name': 'applicantinfo1', // HTML premises_name maps to the same PDF field as applicant_name
+    'premises_address': 'STREET MAILING1', // HTML matches PDF
+    'contact_email': 'agentemail', // HTML matches PDF
+    'business_phone': 'agentphone', // HTML matches PDF
+    'effective_date': 'todaysdate', // HTML: effective_date, PDF: todaysdate
+    'square_footage': 'square_footage', // (Assumed, not in notepad, but in general Accord)
+    'num_employees': '1# emp 1', // HTML matches PDF
+    'food_sales': '1ann rev 1', // HTML matches PDF
+    'alcohol_sales': '1ann rev 2', // HTML matches PDF
+
+    'fine_dining': 'fine_dining', // (Assumed)
+    'shuttle': 'shuttle', // (Assumed)
+    'auto_policy': 'auto_policy', // (Assumed)
+    'liquor_violation_details': 'liquor_violation_details', // (Assumed)
+    'additional_insureds': '6Text151', // HTML: additional_insureds, PDF: 6Text151
 
     // Claim Count (HTML names presumed to match PDF names if fields exist)
     'claim_count_zero': 'CheckBox5',
     'claim_count_2orless': 'CheckBox6',
     'claim_count_3ormore': 'CheckBox7',
+    // ... need to verify exact names from renamed BarAccord-125 PDF
 };
 
 
@@ -128,8 +130,9 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
     console.log(`Attempting to read file: ${fileName}`);
     try {
         const existingPdfBytes = await fs.readFile(fileName);
+        // ADDED: ignoreEncryption: true for BarAccord-125 PDF
+        const pdfDoc = await PDFDocument.load(existingPdfBytes, { ignoreEncryption: fileName.includes('BarAcord-125 (1).pdf') }); // Corrected check for BarAcord-125 (1).pdf
         console.log(`Successfully read file: ${fileName}. Size: ${existingPdfBytes.byteLength} bytes`);
-        const pdfDoc = await PDFDocument.load(existingPdfBytes);
         const form = pdfDoc.getForm();
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
@@ -137,7 +140,7 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
         if (fileName.includes('Society_Mapped_Corrected.pdf')) {
             const allPdfFields = form.getFields().map(f => f.getName());
             console.log(`🔎 SOCIETY PDF FIELDS DETECTED BY PDF-LIB: ${JSON.stringify(allPdfFields)}`);
-        } else if (fileName.includes('Acord-125-Fillable.pdf')) { // Corrected BarAccord-125 filename check
+        } else if (fileName.includes('BarAcord-125 (1).pdf')) { // Corrected BarAccord-125 filename check
             const allPdfFields = form.getFields().map(f => f.getName());
             console.log(`🔎 BARACCORD-125 PDF FIELDS DETECTED BY PDF-LIB: ${JSON.stringify(allPdfFields)}`);
         }
@@ -158,7 +161,6 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
             }
 
             // Cooking Level Radio Group (from Section 10)
-            // We use the HTML 'cooking_level_radio' to check the specific PDF radio button
             const cookingLevelValue = formData.cooking_level_radio ? formData.cooking_level_radio.toLowerCase().trim() : ''; // HTML radio name
             try {
                 // Ensure these names EXACTLY match what pdf-lib detects
@@ -170,7 +172,6 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
                 cookingLimitedField?.uncheck();
                 cookingNoneField?.uncheck();
 
-                // Assuming "Yes" is the export value for these radio buttons
                 if (cookingFullField && cookingLevelValue === 'full cooking') {
                     cookingFullField.check();
                 } else if (cookingLimitedField && cookingLevelValue === 'limited cooking') {
@@ -182,15 +183,15 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
                 console.warn(`⚠️ Warning: Issue setting cooking_level radio group: ${cookingError.message}`);
             }
 
-            // Payment Plan Checkboxes (HTML has payment_plan_Monthly/Annual. PDF likely separate fields)
+            // Payment Plan Checkboxes
             // Assuming PDF fields are 'Monthly_Checkbox' and 'Annual_Checkbox'. These need manual verification!
-            if (formData.payment_plan_Monthly) {
+            if (formData.payment_plan_Monthly) { // Check if HTML radio/checkbox for Monthly was checked
                 try {
                     const monthlyCheckbox = form.getCheckBox('Monthly_Checkbox');
                     if (monthlyCheckbox) monthlyCheckbox.check();
                 } catch (err) { console.warn(`⚠️ Warning: Issue with Monthly Payment Checkbox: ${err.message}`); }
             }
-            if (formData.payment_plan_Annual) {
+            if (formData.payment_plan_Annual) { // Check if HTML radio/checkbox for Annual was checked
                 try {
                     const annualCheckbox = form.getCheckBox('Annual_Checkbox');
                     if (annualCheckbox) annualCheckbox.check();
@@ -293,7 +294,7 @@ app.post('/submit', upload.none(), async (req, res) => {
 
         console.log("🚀 Generating Bar125 PDF with pdf-lib...");
         const bar125PdfBuffer = await fillPdfForm(
-            path.join(__dirname, 'template', 'Acord-125-Fillable.pdf'), // Corrected filename for BarAccord-125
+            path.join(__dirname, 'template', 'BarAcord-125 (1).pdf'), // CORRECTED FILENAME for BarAccord-125
             formData,
             bar125FieldMappings
         );
