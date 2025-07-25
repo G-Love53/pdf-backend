@@ -44,7 +44,7 @@ const societyFieldMappings = {
     'alcohol_sales': 'alcohol_sales', // HTML matches XML
     'total_sales': 'total_sales', // HTML matches XML
     'percent_alcohol': 'Percent_Alcohol', // HTML: percent_alcohol, XML: Percent_Alcohol (capital P, A)
-    // Cooking Level: HTML has cooking_level_radio; PDF has separate fields. Handled below in fillPdfForm
+    // Cooking Level: HTML has cooking_level_radio; PDF has separate fields (handled below).
     'cannabis_infusion': 'infused_with_cannabis', // HTML matches XML, default [Please Select]
     'solid_fuel': 'solid_fuel', // HTML matches XML, default [Please Select]
     'ul300': 'non_UL300', // HTML: ul300, XML: non_UL300, default [Please Select]
@@ -82,18 +82,18 @@ const societyFieldMappings = {
     'liquor_violations': 'liquor_lapse', // HTML: liquor_violations, XML: liquor_lapse
     'liquor_violation_details': 'liquor_claims', // HTML: liquor_violation_details, XML: liquor_claims
 
-    // Claim Count (HTML has claim_count, no direct field in Society XML. This is likely only for Bar125).
-    // 'claim_count': 'CLAIM_COUNT_FIELD', // No direct XML match for Society
-
+    'claim_count': 'claim_count', // HTML has claim_count, Society XML doesn't have a direct matching field in the provided segment.
+                               // This field is likely only for Bar125 as per previous discussions.
     'additional_insureds': 'additional_insureds', // HTML matches XML
 
-    // Payment Plan Checkboxes (HTML has payment_plan_Monthly/Annual, XML will be individual fields)
-    'payment_plan_Monthly': 'payment_plan_Monthly_checkbox', // Assuming PDF has individual checkboxes
-    'payment_plan_Annual': 'payment_plan_Annual_checkbox', // Assuming PDF has individual checkboxes
+    // Payment Plan Checkboxes (HTML has payment_plan_Monthly/Annual. XML needs verification of PDF field names)
+    // The XML you provided for Society only had general elements, not the specific checkbox field names for payment plan.
+    // Assuming PDF fields are 'Monthly_Checkbox' and 'Annual_Checkbox' for now, but these need verification.
+    'payment_plan_Monthly': 'Monthly_Checkbox', // ASSUMED PDF field name - NEEDS VERIFICATION!
+    'payment_plan_Annual': 'Annual_Checkbox', // ASSUMED PDF field name - NEEDS VERIFICATION!
 
-    // Agency Info - These are TextFields that are hardcoded in your index.js.
-    // They don't have direct HTML form inputs in index(6).html but are in PDF.
-    // We will hardcode them in fillPdfForm for now.
+    // Agency Info - These are TextFields from XML. HTML does not have inputs for them in index(6).html.
+    // They are hardcoded in fillPdfForm for Society.
     'agency_name_field': 'TextField16', // XML: TextField16
     'agent_name_field': 'TextField17', // XML: TextField17
     'agent_email_field': 'TextField18', // XML: TextField18
@@ -145,17 +145,18 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
             }
 
             // Cooking Level Radio Group (from Section 10)
-            const cookingLevelValue = formData.cooking_level_radio ? formData.cooking_level_radio.toLowerCase().trim() : ''; // Get value from HTML radio group
+            // We use the HTML 'cooking_level_radio' to check the specific PDF radio button
+            const cookingLevelValue = formData.cooking_level_radio ? formData.cooking_level_radio.toLowerCase().trim() : ''; // HTML radio name
             try {
                 const cookingFullField = form.getCheckBox('cooking_level_full'); // Name from XML
                 const cookingLimitedField = form.getCheckBox('cooking_level_limited'); // Name from XML
                 const cookingNoneField = form.getCheckBox('cooking_level_non'); // Name from XML
 
-                // Uncheck all first as pdf-lib's getCheckBox doesn't always reflect initial state
                 cookingFullField?.uncheck();
                 cookingLimitedField?.uncheck();
                 cookingNoneField?.uncheck();
 
+                // Assuming "Yes" is the export value for these radio buttons
                 if (cookingFullField && cookingLevelValue === 'full cooking') {
                     cookingFullField.check();
                 } else if (cookingLimitedField && cookingLevelValue === 'limited cooking') {
@@ -167,20 +168,20 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
                 console.warn(`⚠️ Warning: Issue setting cooking_level radio group: ${cookingError.message}`);
             }
 
-            // Payment Plan Checkboxes (HTML has single name, PDF likely has separate fields)
-            // Assuming PDF fields are like payment_plan_Monthly_checkbox, etc.
-            // XML only showed 'payment_plan_Monthly'/'Annual' as HTML values, not PDF field names.
-            // We need to verify these PDF field names via manual inspection of Society PDF fields for checkboxes.
-            if (formData.payment_plan && Array.isArray(formData.payment_plan)) { // If HTML sends as array of values
+            // Payment Plan Checkboxes (HTML has single name, PDF likely separate fields)
+            // We need to verify these PDF field names (e.g., 'Monthly_Checkbox') via manual inspection of Society PDF.
+            // Assuming PDF fields are 'Monthly_Checkbox' and 'Annual_Checkbox' for now.
+            if (formData.payment_plan_Monthly) { // Check if HTML radio/checkbox for Monthly was checked
                 try {
-                    const monthlyCheckbox = form.getCheckBox('payment_plan_Monthly'); // ASSUMED PDF field name
-                    const annualCheckbox = form.getCheckBox('payment_plan_Annual'); // ASSUMED PDF field name
-
-                    if (monthlyCheckbox) formData.payment_plan.includes('Monthly') ? monthlyCheckbox.check() : monthlyCheckbox.uncheck();
-                    if (annualCheckbox) formData.payment_plan.includes('Annual') ? annualCheckbox.check() : annualCheckbox.uncheck();
-                } catch (paymentError) {
-                    console.warn(`⚠️ Warning: Issue setting payment_plan checkboxes: ${paymentError.message}`);
-                }
+                    const monthlyCheckbox = form.getCheckBox('Monthly_Checkbox'); // ASSUMED PDF field name - NEEDS VERIFICATION!
+                    if (monthlyCheckbox) monthlyCheckbox.check();
+                } catch (err) { console.warn(`⚠️ Warning: Issue with Monthly Payment Checkbox: ${err.message}`); }
+            }
+            if (formData.payment_plan_Annual) { // Check if HTML radio/checkbox for Annual was checked
+                try {
+                    const annualCheckbox = form.getCheckBox('Annual_Checkbox'); // ASSUMED PDF field name - NEEDS VERIFICATION!
+                    if (annualCheckbox) annualCheckbox.check();
+                } catch (err) { console.warn(`⚠️ Warning: Issue with Annual Payment Checkbox: ${err.message}`); }
             }
         }
         // --- End Special Handling ---
@@ -192,39 +193,40 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
             if (htmlFieldName.includes('_sales') || htmlFieldName === 'total_sales') {
                 value = String(value).replace(/[^0-9.]/g, '');
             }
-            if (htmlFieldName === 'percent_alcohol') { // Society XML used "Percent_Alcohol"
+            if (htmlFieldName === 'Percent_Alcohol') { // PDF field name from XML
                 value = String(value).replace('%', '');
             }
             if (typeof value === 'string') {
-                value = value.trim(); // Trim whitespace
-                // Keep original casing for exact dropdown/radio matching unless explicit conversion needed
-            }
-            // Special handling for initial "Select --" option from HTML dropdowns
-            if (value.toLowerCase() === '-- select --' || value === '') {
-                 value = ''; // Ensure empty string for non-selection in PDF
+                value = value.trim();
+                // Standardize common dropdown/checkbox values to 'Yes'/'No' expected by PDF forms.
+                if (value.toLowerCase() === 'yes') value = 'Yes';
+                else if (value.toLowerCase() === 'no') value = 'No';
+                else if (value.toLowerCase() === 'full cooking') value = 'Full cooking'; // For Society Radio
+                else if (value.toLowerCase() === 'limited cooking') value = 'Limited cooking';
+                else if (value.toLowerCase() === 'no cooking') value = 'No cooking';
+                // Add other specific export values if discovered.
             }
 
+            // Special handling for initial "-- Select --" option from HTML dropdowns
+            if (value.toLowerCase() === '-- select --' || value === '') {
+                 value = '';
+            }
 
             try {
                 const field = form.getField(pdfFieldName);
 
                 if (field.constructor.name === 'PDFCheckBox') {
                     // Checkboxes often have 'Yes'/'No' or 'On'/'Off' export values.
-                    // We're assuming 'Yes' maps to 'Yes' in PDF and 'No' maps to 'No'.
-                    if (value.toLowerCase() === 'yes' || value.toLowerCase() === 'true' || value.toLowerCase() === 'on') {
+                    // This uses the standardized 'Yes'/'No' from HTML value.
+                    if (value === 'Yes') { // Standardized value from above
                         field.check();
-                    } else if (value.toLowerCase() === 'no' || value.toLowerCase() === 'false' || value.toLowerCase() === 'off') {
-                         field.uncheck();
+                    } else if (value === 'No') { // Standardized value from above
+                        field.uncheck();
                     }
-                    // If you found other export values (e.g., '1' for Yes, '0' for No),
-                    // you'd need to use field.setValue(String(actualExportValue));
                 } else if (field.constructor.name === 'PDFRadioGroup') {
-                    // Radio groups: value must match one of the export values of the radio options.
-                    // cooking_level handled separately.
-                    field.select(String(value));
+                    field.select(String(value)); // Value must match one of the export values of the radio options.
                 } else if (field.constructor.name === 'PDFDropdown') {
-                    // Dropdowns: value must match one of the export values of the dropdown options.
-                    field.select(String(value));
+                    field.select(String(value)); // Value must match one of the export values of the dropdown options.
                 } else if (field.constructor.name === 'PDFTextField') {
                     field.setText(String(value));
                 }
@@ -241,83 +243,6 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
     } catch (readError) {
         console.error(`❌ Failed to read PDF template file "${fileName}": ${readError.message}`);
         throw readError;
-    }
-}
-
-
-app.post('/submit', upload.none(), async (req, res) => {
-    console.log("📝 Form received:", req.body);
-
-    const formData = req.body;
-
-    try {
-        // --- Diagnostic: Check current working directory and list files ---
-        console.log(`Current Working Directory (CWD): ${process.cwd()}`);
-        try {
-            const filesInRoot = await fs.readdir(process.cwd());
-            console.log(`Files in CWD: ${filesInRoot.join(', ')}`);
-            const filesInTemplates = await fs.readdir(path.join(process.cwd(), 'template'));
-            console.log(`Files in ./template: ${filesInTemplates.join(', ')}`);
-        } catch (dirReadError) {
-            console.error(`❌ Error reading directories for diagnostics: ${dirReadError.message}`);
-        }
-        // --- End Diagnostics ---
-
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.GMAIL_USER,
-                pass: process.env.GMAIL_PASS
-            }
-        });
-
-        // --- Generate PDFs using pdf-lib ---
-        console.log("🚀 Generating Society PDF with pdf-lib...");
-        const societyPdfBuffer = await fillPdfForm(
-            path.join(__dirname, 'template', 'Society_Mapped_Corrected.pdf'),
-            formData,
-            societyFieldMappings
-        );
-        console.log(`Society PDF generated. Size: ${societyPdfBuffer.byteLength} bytes`);
-
-
-        console.log("🚀 Generating Bar125 PDF with pdf-lib...");
-        const bar125PdfBuffer = await fillPdfForm(
-            path.join(__dirname, 'template', 'BarAccord-125.pdf'), // Assuming this is the renamed/modified BarAccord PDF
-            formData,
-            bar125FieldMappings
-        );
-        console.log(`Bar125 PDF generated. Size: ${bar125PdfBuffer.byteLength} bytes`);
-
-        // 📧 Send confirmation email with PDFs attached
-        const mailOptions = {
-            from: '"Commercial Insurance Direct" <quote@barinsurancedirect.com>',
-            to: formData.contact_email,
-            subject: 'Your Bar/Tavern Quote Application from Commercial Insurance Direct',
-            text: `Dear ${formData.applicant_name || 'Applicant'},\n\nThank you for submitting your application. We are processing your request and will be in touch shortly with your quote.\n\nYour submitted data:\n${JSON.stringify(formData, null, 2)}\n\nBest regards,\nCommercial Insurance Direct Team`,
-            html: `
-                <p>Dear ${formData.applicant_name || 'Applicant'},</p>
-                <p>Thank you for submitting your application. We are processing your request and will be in touch shortly with your quote.</p>
-                <p>You can review your submitted data below:</p>
-                <pre>${JSON.stringify(formData, null, 2)}</pre>
-                <p>Best regards,</p>
-                <p><b>Commercial Insurance Direct Team</b></p>
-            `,
-            attachments: [
-                { filename: 'CID_Society_Application.pdf', content: Buffer.from(societyPdfBuffer), contentType: 'application/pdf' },
-                { filename: 'CID_Bar125_Application.pdf', content: Buffer.from(bar125PdfBuffer), contentType: 'application/pdf' }
-            ]
-        };
-
-        console.log("📧 Attempting to send email...");
-        const info = await transporter.sendMail(mailOptions);
-        console.log("📧 Email sent:", info.messageId);
-        res.json({
-            status: "Thank you for your submission! We value your business. A quote will be sent to your email shortly."
-        });
-    } catch (error) {
-        console.error("❌ Error in /submit (pdf-lib generation):", error);
-        res.status(500).json({ error: "Failed to generate or send PDFs. See server logs for details." });
     }
 });
 
