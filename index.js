@@ -16,104 +16,106 @@ app.use(express.urlencoded({ extended: true }));
 const upload = multer();
 
 // --- PDF Field Mappings ---
-// FINALIZED MAPPINGS for Society based on PDF-LIB's OWN DETECTED FIELDS from last log.
+[cite_start]// FINALIZED MAPPINGS for Society based on PDF-LIB's OWN DETECTED FIELDS from last log. [cite: 1]
 // BarAccord-125 mappings are awaiting its XML export or PDF field renaming.
 
 const societyFieldMappings = {
-    // These names are copied DIRECTLY from the "🔎 SOCIETY PDF FIELDS DETECTED BY PDF-LIB:" log output
-    'applicant_name': 'applicant_name',
-    'premises_name': 'premises_name',
-    'premises_address': 'premise_address',
-    'business_phone': 'business_phone',
-    'premises_website': 'premises_website',
-    'contact_email': 'contact_email',
-    'effective_date': 'effective_date',
+    [cite_start]// These names are copied DIRECTLY from the "🔎 SOCIETY PDF FIELDS DETECTED BY PDF-LIB:" log output [cite: 1]
+    [cite_start]'applicant_name': 'applicant_name', // HTML matches PDF-Lib detected [cite: 1, 3]
+    [cite_start]'premises_name': 'premises_name', // HTML name [cite: 3]
+    [cite_start]'premises_address': 'premise_address', // Corrected: PDF-Lib detected 'premise_address' (singular) [cite: 1]
+    [cite_start]'business_phone': 'business_phone', // HTML name [cite: 3]
+    [cite_start]'premises_website': 'premises_website', // HTML name [cite: 3]
+    [cite_start]'contact_email': 'contact_email', // HTML name [cite: 3]
+    [cite_start]'effective_date': 'effective_date', // HTML name [cite: 3]
 
-    'open_60_days': 'open_60_days',
-    'open_60_days_details': 'open_60_days_details',
-    'ownership_experience': 'ownership_experience',
-    'ownership_experience_details': 'ownership_experience_details',
-    'closing_time': 'closing_time',
-    'square_footage': 'square_footage',
-    'num_employees': 'num_employees',
-    'fine_dining': 'fine_dining',
-    'counter_service': 'counter_service',
-    'alcohol_manufactured': 'alcohol_manufactured',
-    'percent_consumed': 'percent_consumed',
-    'food_sales': 'food_sales',
-    'alcohol_sales': 'alcohol_sales',
-    'total_sales': 'total_sales',
-    'percent_alcohol': 'Percent_Alcohol', // From PDF-Lib detected 'Percent_Alcohol'
+    [cite_start]'open_60_days': 'open_60_days', // PDF-Lib detected [cite: 1]
+    [cite_start]'open_60_days_details': 'open_60_days_details', // PDF-Lib detected [cite: 1]
+    [cite_start]'ownership_experience': 'ownership_experience', // PDF-Lib detected [cite: 1]
+    [cite_start]'ownership_experience_details': 'ownership_experience_details', // PDF-Lib detected [cite: 1]
+    [cite_start]'closing_time': 'closing_time', // PDF-Lib detected [cite: 1]
+    [cite_start]'square_footage': 'square_footage', // PDF-Lib detected [cite: 1]
+    [cite_start]'num_employees': 'num_employees', // PDF-Lib detected [cite: 1]
+    [cite_start]'fine_dining': 'fine_dining', // PDF-Lib detected [cite: 1]
+    [cite_start]'counter_service': 'counter_service', // PDF-Lib detected [cite: 1]
+    [cite_start]'alcohol_manufactured': 'alcohol_manufactured', // PDF-Lib detected [cite: 1]
+    [cite_start]'percent_consumed': 'percent_consumed', // PDF-Lib detected [cite: 1]
+    [cite_start]'food_sales': 'food_sales', // PDF-Lib detected [cite: 1]
+    [cite_start]'alcohol_sales': 'alcohol_sales', // PDF-Lib detected [cite: 1]
+    [cite_start]'total_sales': 'total_sales', // PDF-Lib detected [cite: 1]
+    [cite_start]'percent_alcohol': 'Percent_Alcohol', // PDF-Lib detected 'Percent_Alcohol' [cite: 1]
     // 'cooking_level_radio' is handled specifically below in fillPdfForm. PDF fields are:
-    // 'cooking_level_full', 'cooking_level_limited', 'cooking_level_non'
-    'cannabis_infusion': 'infused_with_cannabis',
-    'solid_fuel': 'solid_fuel',
-    'ul300': 'non_UL300', // From PDF-Lib detected 'non_UL300'
+    [cite_start]// 'cooking_level_full', 'cooking_level_limited', 'cooking_level_non' [cite: 1]
+    [cite_start]'cannabis_infusion': 'infused_with_cannabis', // PDF-Lib detected [cite: 1]
+    [cite_start]'solid_fuel': 'solid_fuel', // PDF-Lib detected [cite: 1]
+    [cite_start]'ul300': 'non_UL300', // PDF-Lib detected 'non_UL300' [cite: 1]
 
-    'other_entertainment': 'entertainment_other',
-    'entertainment_details': 'entertainment_details',
-    'recreation': 'recreational_activites', // From PDF-Lib detected 'recreational_activites'
-    'recreation_details': 'recreational_details',
-    'security_staff': 'security_present', // From PDF-Lib detected 'security_present'
-    'delivery': 'delivery_offered', // From PDF-Lib detected 'delivery_offered'
+    [cite_start]// Page 2 Fields (from PDF-LIB DETECTED FIELDS log [cite: 1] and index (6).html)
+    [cite_start]'other_entertainment': 'entertainment_other', // PDF-Lib detected [cite: 1]
+    [cite_start]'entertainment_details': 'entertainment_details', // HTML name [cite: 3]
+    [cite_start]'recreation': 'recreational_activites', // PDF-Lib detected 'recreational_activites' [cite: 1]
+    [cite_start]'recreation_details': 'recreational_details', // PDF-Lib detected [cite: 1]
+    [cite_start]'security_staff': 'security_present', // PDF-Lib detected 'security_present' [cite: 1]
+    [cite_start]'delivery': 'delivery_offered', // PDF-Lib detected 'delivery_offered' [cite: 1]
 
     // Security Staff sub-questions (HTML field names match PDF-Lib detected)
-    'bouncers_background_checks': 'ComboBox22',
-    'bouncers_armed': 'ComboBox23',
-    'bouncers_conflict_resolution': 'ComboBox24',
+    [cite_start]'bouncers_background_checks': 'ComboBox22', // PDF-Lib detected 'ComboBox22' [cite: 1]
+    [cite_start]'bouncers_armed': 'ComboBox23', // PDF-Lib detected 'ComboBox23' [cite: 1]
+    [cite_start]'bouncers_conflict_resolution': 'ComboBox24', // PDF-Lib detected 'ComboBox24' [cite: 1]
 
     // Delivery sub-questions (HTML field names match PDF-Lib detected)
-    'delivery_insured_autos': 'ComboBox13',
-    'delivery_employee_autos': 'ComboBox14',
-    'delivery_third_party': 'ComboBox15',
-    'delivery_sales_insured_employee_autos': 'TextField0',
-    'delivery_sales_exceed_20_percent': 'ComboBox16',
-    'delivery_sales_exceed_20_percent_details': 'TextField10',
-    'delivery_radius_greater_than_5_miles': 'ComboBox17',
-    'delivery_radius_greater_than_5_miles_details': 'TextField11',
-    'delivery_hours_past_10pm': 'ComboBox18',
-    'delivery_hours_past_10pm_details': 'TextField12',
+    [cite_start]'delivery_insured_autos': 'ComboBox13', // PDF-Lib detected 'ComboBox13' [cite: 1]
+    [cite_start]'delivery_employee_autos': 'ComboBox14', // PDF-Lib detected 'ComboBox14' [cite: 1]
+    [cite_start]'delivery_third_party': 'ComboBox15', // PDF-Lib detected 'ComboBox15' [cite: 1]
+    [cite_start]'delivery_sales_insured_employee_autos': 'TextField0', // PDF-Lib detected 'TextField0' [cite: 1]
+    [cite_start]'delivery_sales_exceed_20_percent': 'ComboBox16', // PDF-Lib detected 'ComboBox16' [cite: 1]
+    [cite_start]'delivery_sales_exceed_20_percent_details': 'TextField10', // PDF-Lib detected 'TextField10' [cite: 1]
+    [cite_start]'delivery_radius_greater_than_5_miles': 'ComboBox17', // PDF-Lib detected 'ComboBox17' [cite: 1]
+    [cite_start]'delivery_radius_greater_than_5_miles_details': 'TextField11', // PDF-Lib detected 'TextField11' [cite: 1]
+    [cite_start]'delivery_hours_past_10pm': 'ComboBox18', // PDF-Lib detected 'ComboBox18' [cite: 1]
+    [cite_start]'delivery_hours_past_10pm_details': 'TextField12', // PDF-Lib detected 'TextField12' [cite: 1]
 
     // Auto Coverage sub-questions (HTML field names match PDF-Lib detected)
-    'shuttle_services': 'ComboBox19',
-    'additional_auto_policies': 'ComboBox1',
+    [cite_start]'shuttle_services': 'ComboBox19', // PDF-Lib detected 'ComboBox19' [cite: 1]
+    [cite_start]'additional_auto_policies': 'ComboBox1', // PDF-Lib detected 'ComboBox1' [cite: 1]
 
     // Liquor Law Violations (HTML field names match PDF-Lib detected)
-    'liquor_violations': 'liquor_lapse',
-    'liquor_violation_details': 'liquor_claims',
+    [cite_start]'liquor_violations': 'liquor_lapse', // PDF-Lib detected 'liquor_lapse' [cite: 1]
+    [cite_start]'liquor_violation_details': 'liquor_claims', // PDF-Lib detected 'liquor_claims' [cite: 1]
 
-    'claim_count': 'claim_count', // PDF-Lib detected 'claim_count'
-    'additional_insureds': 'additional_insureds', // PDF-Lib detected
+    [cite_start]'claim_count': 'claim_count', // PDF-Lib detected 'claim_count' [cite: 1]
+    [cite_start]'additional_insureds': 'additional_insureds', // PDF-Lib detected [cite: 1]
 
     // Payment Plan Checkboxes (HTML field names match PDF-Lib detected)
-    'payment_plan_Monthly': 'Monthly_Checkbox',
-    'payment_plan_Annual': 'Annual_Checkbox',
+    [cite_start]'payment_plan_Monthly': 'Monthly_Checkbox', // PDF-Lib detected 'Monthly_Checkbox' [cite: 1]
+    [cite_start]'payment_plan_Annual': 'Annual_Checkbox', // PDF-Lib detected 'Annual_Checkbox' [cite: 1]
 
     // Agency Info Fields (PDF-Lib detected names. Hardcoded in fillPdfForm for Society)
-    'agency_name_field': 'TextField16',
-    'agent_name_field': 'TextField17',
-    'agent_email_field': 'TextField18',
-    'agent_phone_number_field': 'TextField19',
+    [cite_start]'agency_name_field': 'TextField16', // PDF-Lib detected 'TextField16' [cite: 1]
+    [cite_start]'agent_name_field': 'TextField17', // PDF-Lib detected 'TextField17' [cite: 1]
+    [cite_start]'agent_email_field': 'TextField18', // PDF-Lib detected 'TextField18' [cite: 1]
+    [cite_start]'agent_phone_number_field': 'TextField19', // PDF-Lib detected 'TextField19' [cite: 1]
 };
 
 const bar125FieldMappings = {
-    // BarAccord-125 fields (Placeholders from 125Mapping.notepad. Requires its own PDF-Lib detected names for finalization.)
-    'applicant_name': 'applicantinfo1',
-    'premises_name': 'applicantinfo1', // HTML premises_name maps to the same PDF field as applicant_name
-    'premises_address': 'STREET MAILING1', // HTML matches PDF
-    'contact_email': 'agentemail', // HTML matches PDF
-    'business_phone': 'agentphone', // HTML matches PDF
-    'effective_date': 'todaysdate', // HTML: effective_date, PDF: todaysdate
+    [cite_start]// BarAccord-125 fields (Placeholders from 125Mapping.notepad. [cite: 2] Requires its own PDF-Lib detected names for finalization.)
+    // These need to be updated after you get the PDF-Lib detected names for BarAccord-125.
+    [cite_start]'applicant_name': 'applicantinfo1', // HTML: applicant_name, XML: applicantinfo1 [cite: 2]
+    [cite_start]'premises_name': 'applicantinfo1', // HTML premises_name maps to the same PDF field as applicant_name [cite: 2]
+    [cite_start]'premises_address': 'STREET MAILING1', // HTML matches PDF [cite: 2]
+    [cite_start]'contact_email': 'agentemail', // HTML matches PDF [cite: 2]
+    [cite_start]'business_phone': 'agentphone', // HTML matches PDF [cite: 2]
+    [cite_start]'effective_date': 'todaysdate', // HTML: effective_date, PDF: todaysdate [cite: 2]
     'square_footage': 'square_footage', // (Assumed, not in notepad, but in general Accord)
-    'num_employees': '1# emp 1', // HTML matches PDF
-    'food_sales': '1ann rev 1', // HTML matches PDF
-    'alcohol_sales': '1ann rev 2', // HTML matches PDF
+    [cite_start]'num_employees': '1# emp 1', // HTML matches PDF [cite: 2]
+    [cite_start]'food_sales': '1ann rev 1', // HTML matches PDF [cite: 2]
+    [cite_start]'alcohol_sales': '1ann rev 2', // HTML matches PDF [cite: 2]
 
     'fine_dining': 'fine_dining', // (Assumed)
     'shuttle': 'shuttle', // (Assumed)
     'auto_policy': 'auto_policy', // (Assumed)
     'liquor_violation_details': 'liquor_violation_details', // (Assumed)
-    'additional_insureds': '6Text151', // HTML: additional_insureds, PDF: 6Text151
+    [cite_start]'additional_insureds': '6Text151', // HTML: additional_insureds, PDF: 6Text151 [cite: 2]
 
     // Claim Count (HTML names presumed to match PDF names if fields exist)
     'claim_count_zero': 'CheckBox5',
@@ -146,7 +148,7 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
 
         // --- Special Handling for Society PDF Fields ---
         if (fileName.includes('Society_Mapped_Corrected.pdf')) {
-            // Agency Info (hardcoded values into the PDF fields directly)
+            [cite_start]// Agency Info (hardcoded values into the PDF fields directly) [cite: 1]
             try {
                 form.getTextField('TextField16')?.setText("All Access Insurance dba Commercial Insurance Direct, LLC 70025M");
                 form.getTextField('TextField17')?.setText("Rick Cline");
@@ -156,14 +158,14 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
                 console.warn(`⚠️ Warning: Failed to set Agency Info fields (hardcoded): ${agencyError.message}`);
             }
 
-            // Cooking Level Radio Group (from Section 10)
+            [cite_start]// Cooking Level Radio Group (from Section 10) [cite: 3, 1]
             // We use the HTML 'cooking_level_radio' to check the specific PDF radio button
             const cookingLevelValue = formData.cooking_level_radio ? formData.cooking_level_radio.toLowerCase().trim() : ''; // HTML radio name
             try {
-                // Ensure these names EXACTLY match what pdf-lib detects
-                const cookingFullField = form.getCheckBox('cooking_level_full'); // Name from PDF-Lib detected
-                const cookingLimitedField = form.getCheckBox('cooking_level_limited'); // Name from PDF-Lib detected
-                const cookingNoneField = form.getCheckBox('cooking_level_non'); // Name from PDF-Lib detected
+                [cite_start]// Ensure these names EXACTLY match what pdf-lib detects [cite: 1]
+                const cookingFullField = form.getCheckBox('cooking_level_full'); [cite_start]// Name from PDF-Lib detected [cite: 1]
+                const cookingLimitedField = form.getCheckBox('cooking_level_limited'); [cite_start]// Name from PDF-Lib detected [cite: 1]
+                const cookingNoneField = form.getCheckBox('cooking_level_non'); [cite_start]// Name from PDF-Lib detected [cite: 1]
 
                 cookingFullField?.uncheck();
                 cookingLimitedField?.uncheck();
@@ -181,17 +183,17 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
                 console.warn(`⚠️ Warning: Issue setting cooking_level radio group: ${cookingError.message}`);
             }
 
-            // Payment Plan Checkboxes (HTML has payment_plan_Monthly/Annual. PDF likely separate fields)
-            // Assuming PDF fields are 'Monthly_Checkbox' and 'Annual_Checkbox'. These need manual verification!
-            if (formData.payment_plan_Monthly) { // Check if HTML radio/checkbox for Monthly was checked
+            [cite_start]// Payment Plan Checkboxes (HTML has payment_plan_Monthly/Annual. PDF likely separate fields) [cite: 3]
+            // Assuming PDF fields are 'Monthly_Checkbox' and 'Annual_Checkbox'. [cite_start]These need manual verification! [cite: 1]
+            [cite_start]if (formData.payment_plan_Monthly) { // Check if HTML radio/checkbox for Monthly was checked [cite: 3]
                 try {
-                    const monthlyCheckbox = form.getCheckBox('Monthly_Checkbox'); // PDF-Lib detected (or will be)
+                    const monthlyCheckbox = form.getCheckBox('Monthly_Checkbox'); [cite_start]// PDF-Lib detected (or will be) [cite: 1]
                     if (monthlyCheckbox) monthlyCheckbox.check();
                 } catch (err) { console.warn(`⚠️ Warning: Issue with Monthly Payment Checkbox: ${err.message}`); }
             }
-            if (formData.payment_plan_Annual) { // Check if HTML radio/checkbox for Annual was checked
+            [cite_start]if (formData.payment_plan_Annual) { // Check if HTML radio/checkbox for Annual was checked [cite: 3]
                 try {
-                    const annualCheckbox = form.getCheckBox('Annual_Checkbox'); // PDF-Lib detected (or will be)
+                    const annualCheckbox = form.getCheckBox('Annual_Checkbox'); [cite_start]// PDF-Lib detected (or will be) [cite: 1]
                     if (annualCheckbox) annualCheckbox.check();
                 } catch (err) { console.warn(`⚠️ Warning: Issue with Annual Payment Checkbox: ${err.message}`); }
             }
@@ -205,7 +207,7 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
             if (htmlFieldName.includes('_sales') || htmlFieldName === 'total_sales') {
                 value = String(value).replace(/[^0-9.]/g, '');
             }
-            if (htmlFieldName === 'Percent_Alcohol') { // PDF field name from XML
+            [cite_start]if (htmlFieldName === 'Percent_Alcohol') { // PDF field name from XML [cite: 1]
                 value = String(value).replace('%', '');
             }
             if (typeof value === 'string') {
