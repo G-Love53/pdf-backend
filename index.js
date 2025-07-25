@@ -2,9 +2,9 @@ const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
-const fs = require('fs').promises;
-const path = require('path');
-const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
+const fs = require('fs').promises; // Node.js built-in file system module for reading files
+const path = require('path'); // For path.join and __dirname
+const { PDFDocument, rgb, StandardFonts } = require('pdf-lib'); // Import pdf-lib
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,52 +17,52 @@ const upload = multer();
 
 // --- PDF Field Mappings ---
 // FINALIZED MAPPINGS for Society based on Adobe Acrobat XML export.
-// BarAccord-125 mappings are awaiting its XML export.
+// BarAccord-125 mappings are awaiting its XML export or PDF field renaming.
 
 const societyFieldMappings = {
     // Page 1 Fields (from Society XML and index (6).html)
-    'applicant_name': 'applicant_name', // HTML: applicant_name, XML: applicant_name
-    'premises_name': 'premises_name', // HTML matches XML (from old index)
-    'premises_address': 'premise_address', // HTML: premises_address, XML: premise_address (singular)
-    'business_phone': 'business_phone', // HTML matches XML (from old index)
-    'premises_website': 'premises_website', // HTML matches XML (from old index)
-    'contact_email': 'contact_email', // HTML matches XML (from old index)
-    'effective_date': 'effective_date', // HTML matches XML (from old index)
+    'applicant_name': 'applicant_name',
+    'premises_name': 'premises_name',
+    'premises_address': 'premise_address', // Corrected: XML is 'premise_address' (singular)
+    'business_phone': 'business_phone',
+    'premises_website': 'premises_website',
+    'contact_email': 'contact_email',
+    'effective_date': 'effective_date',
 
-    'open_60_days': 'open_60_days', // HTML matches XML, default [Please Select]. Assuming dropdown.
-    'open_60_days_details': 'open_60_days_details', // HTML matches XML
-    'ownership_experience': 'ownership_experience', // HTML matches XML, default [Please Select]
-    'ownership_experience_details': 'ownership_experience_details', // HTML matches XML
-    'closing_time': 'closing_time', // HTML matches XML ([Please Select])
-    'square_footage': 'square_footage', // HTML matches XML
-    'num_employees': 'num_employees', // HTML matches XML
-    'fine_dining': 'fine_dining', // HTML matches XML ([Please Select] or Off)
-    'counter_service': 'counter_service', // HTML matches XML ([Please Select])
-    'alcohol_manufactured': 'alcohol_manufactured', // HTML matches XML ([Please Select])
-    'percent_consumed': 'percent_consumed', // HTML matches XML
-    'food_sales': 'food_sales', // HTML matches XML
-    'alcohol_sales': 'alcohol_sales', // HTML matches XML
-    'total_sales': 'total_sales', // HTML matches XML
-    'percent_alcohol': 'Percent_Alcohol', // HTML: percent_alcohol, XML: Percent_Alcohol (capital P, A)
-    // Cooking Level: HTML has cooking_level_radio; PDF has separate fields (handled below).
-    'cannabis_infusion': 'infused_with_cannabis', // HTML matches XML, default [Please Select]
-    'solid_fuel': 'solid_fuel', // HTML matches XML, default [Please Select]
-    'ul300': 'non_UL300', // HTML: ul300, XML: non_UL300, default [Please Select]
+    'open_60_days': 'open_60_days',
+    'open_60_days_details': 'open_60_days_details',
+    'ownership_experience': 'ownership_experience',
+    'ownership_experience_details': 'ownership_experience_details',
+    'closing_time': 'closing_time',
+    'square_footage': 'square_footage',
+    'num_employees': 'num_employees',
+    'fine_dining': 'fine_dining',
+    'counter_service': 'counter_service',
+    'alcohol_manufactured': 'alcohol_manufactured',
+    'percent_consumed': 'percent_consumed',
+    'food_sales': 'food_sales',
+    'alcohol_sales': 'alcohol_sales',
+    'total_sales': 'total_sales',
+    'percent_alcohol': 'Percent_Alcohol', // Corrected: XML is 'Percent_Alcohol' (capital P, A)
+    // 'cooking_level' handled by specific logic below (cooking_level_radio -> cooking_level_full/limited/non)
+    'cannabis_infusion': 'infused_with_cannabis',
+    'solid_fuel': 'solid_fuel',
+    'ul300': 'non_UL300', // Corrected: XML is 'non_UL300'
 
     // Page 2 Fields (from Society XML and index (6).html)
-    'other_entertainment': 'entertainment_other', // HTML matches XML, default [Please Select]
-    'entertainment_details': 'entertainment_details', // HTML matches XML
-    'recreation': 'recreational_activites', // HTML: recreation, XML: recreational_activites, default [Please Select]
-    'recreation_details': 'recreational_details', // HTML matches XML
-    'security_staff': 'security_present', // HTML: security_staff, XML: security_present, default [Please Select]
-    'delivery': 'delivery_offered', // HTML matches XML, default [Please Select]
+    'other_entertainment': 'entertainment_other',
+    'entertainment_details': 'entertainment_details',
+    'recreation': 'recreational_activites', // Corrected: XML is 'recreational_activites'
+    'recreation_details': 'recreational_details',
+    'security_staff': 'security_present', // Corrected: XML is 'security_present'
+    'delivery': 'delivery_offered', // Corrected: XML is 'delivery_offered'
 
-    // Security Staff sub-questions (HTML matches XML, generic ComboBox names from XML)
+    // Security Staff sub-questions (HTML field names match XML names)
     'bouncers_background_checks': 'ComboBox22',
     'bouncers_armed': 'ComboBox23',
     'bouncers_conflict_resolution': 'ComboBox24',
 
-    // Delivery sub-questions (HTML matches XML, generic ComboBox/TextField names from XML)
+    // Delivery sub-questions (HTML field names match XML names)
     'delivery_insured_autos': 'ComboBox13',
     'delivery_employee_autos': 'ComboBox14',
     'delivery_third_party': 'ComboBox15',
@@ -74,51 +74,51 @@ const societyFieldMappings = {
     'delivery_hours_past_10pm': 'ComboBox18',
     'delivery_hours_past_10pm_details': 'TextField12',
 
-    // Auto Coverage sub-questions (HTML matches XML, generic ComboBox names from XML)
+    // Auto Coverage sub-questions (HTML field names match XML names)
     'shuttle_services': 'ComboBox19',
     'additional_auto_policies': 'ComboBox1',
 
-    // Liquor Law Violations (HTML names from index(6).html, XML names from Society XML)
-    'liquor_violations': 'liquor_lapse', // HTML: liquor_violations, XML: liquor_lapse
-    'liquor_violation_details': 'liquor_claims', // HTML: liquor_violation_details, XML: liquor_claims
+    // Liquor Law Violations (HTML field names match XML names)
+    'liquor_violations': 'liquor_lapse',
+    'liquor_violation_details': 'liquor_claims',
 
-    'claim_count': 'claim_count', // HTML has claim_count, Society XML doesn't have a direct matching field in the provided segment.
-                               // This field is likely only for Bar125 as per previous discussions.
-    'additional_insureds': 'additional_insureds', // HTML matches XML
+    'claim_count': 'claim_count', // HTML has claim_count. No direct match in Society XML provided.
+                               // This field is likely only for Bar125.
 
-    // Payment Plan Checkboxes (HTML has payment_plan_Monthly/Annual. XML needs verification of PDF field names)
-    // The XML you provided for Society only had general elements, not the specific checkbox field names for payment plan.
-    // Assuming PDF fields are 'Monthly_Checkbox' and 'Annual_Checkbox' for now, but these need verification.
-    'payment_plan_Monthly': 'Monthly_Checkbox', // ASSUMED PDF field name - NEEDS VERIFICATION!
-    'payment_plan_Annual': 'Annual_Checkbox', // ASSUMED PDF field name - NEEDS VERIFICATION!
+    'additional_insureds': 'additional_insureds',
 
-    // Agency Info - These are TextFields from XML. HTML does not have inputs for them in index(6).html.
-    // They are hardcoded in fillPdfForm for Society.
-    'agency_name_field': 'TextField16', // XML: TextField16
-    'agent_name_field': 'TextField17', // XML: TextField17
-    'agent_email_field': 'TextField18', // XML: TextField18
-    'agent_phone_number_field': 'TextField19', // XML: TextField19
+    // Payment Plan Checkboxes (HTML field names match assumed PDF field names)
+    // These need manual verification of PDF field names in Society if issues persist.
+    'payment_plan_Monthly': 'Monthly_Checkbox', // ASSUMED PDF field name
+    'payment_plan_Annual': 'Annual_Checkbox', // ASSUMED PDF field name
+
+    // Agency Info - These are TextFields from XML.
+    // They are hardcoded in fillPdfForm for Society, as there are no matching HTML form inputs.
+    'agency_name_field': 'TextField16',
+    'agent_name_field': 'TextField17',
+    'agent_email_field': 'TextField18',
+    'agent_phone_number_field': 'TextField19',
 };
 
 const bar125FieldMappings = {
-    // BarAccord-125 fields (from your previous mapping. XML needs to be provided for confirmation)
-    'applicant_name': 'applicantinfo1', // HTML: applicant_name, XML: applicantinfo1
-    'premises_address': 'STREET MAILING1', // HTML: premises_address, XML: STREET MAILING1
-    'contact_email': 'agentemail', // HTML: contact_email, XML: agentemail
-    'business_phone': 'agentphone', // HTML: business_phone, XML: agentphone
-    'effective_date': 'effectivedate', // HTML: effective_date, XML: effectivedate
-    'square_footage': 'square_footage', // HTML: square_footage, XML: square_footage
-    'num_employees': '1# emp 1', // HTML: num_employees, XML: 1# emp 1
-    'food_sales': '1ann rev 1', // HTML: food_sales, XML: 1ann rev 1
-    'alcohol_sales': '1ann rev 2', // HTML: alcohol_sales, XML: 1ann rev 2
+    // BarAccord-125 fields (Placeholders. Requires XML export from Adobe or PDF field renaming.)
+    'applicant_name': 'applicantinfo1',
+    'premises_address': 'STREET MAILING1',
+    'contact_email': 'agentemail',
+    'business_phone': 'agentphone',
+    'effective_date': 'effectivedate',
+    'square_footage': 'square_footage',
+    'num_employees': '1# emp 1',
+    'food_sales': '1ann rev 1',
+    'alcohol_sales': '1ann rev 2',
     'fine_dining': 'fine_dining',
     'shuttle': 'shuttle',
     'auto_policy': 'auto_policy',
     'liquor_violation_details': 'liquor_violation_details',
     'additional_insureds': 'additional_insureds',
-    'claim_count_zero': 'CheckBox5', // Example placeholder - need to confirm this from BarAccord-125 XML
-    'claim_count_2orless': 'CheckBox6', // Example placeholder
-    'claim_count_3ormore': 'CheckBox7', // Example placeholder
+    'claim_count_zero': 'CheckBox5',
+    'claim_count_2orless': 'CheckBox6',
+    'claim_count_3ormore': 'CheckBox7',
 };
 
 
@@ -168,18 +168,18 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
                 console.warn(`⚠️ Warning: Issue setting cooking_level radio group: ${cookingError.message}`);
             }
 
-            // Payment Plan Checkboxes (HTML has single name, PDF likely separate fields)
-            // We need to verify these PDF field names (e.g., 'Monthly_Checkbox') via manual inspection of Society PDF.
+            // Payment Plan Checkboxes (HTML has payment_plan_Monthly/Annual. XML needs verification of PDF field names)
             // Assuming PDF fields are 'Monthly_Checkbox' and 'Annual_Checkbox' for now.
+            // These need manual verification of Society PDF field names if they don't fill.
             if (formData.payment_plan_Monthly) { // Check if HTML radio/checkbox for Monthly was checked
                 try {
-                    const monthlyCheckbox = form.getCheckBox('Monthly_Checkbox'); // ASSUMED PDF field name - NEEDS VERIFICATION!
+                    const monthlyCheckbox = form.getCheckBox('Monthly_Checkbox'); // ASSUMED PDF field name
                     if (monthlyCheckbox) monthlyCheckbox.check();
                 } catch (err) { console.warn(`⚠️ Warning: Issue with Monthly Payment Checkbox: ${err.message}`); }
             }
             if (formData.payment_plan_Annual) { // Check if HTML radio/checkbox for Annual was checked
                 try {
-                    const annualCheckbox = form.getCheckBox('Annual_Checkbox'); // ASSUMED PDF field name - NEEDS VERIFICATION!
+                    const annualCheckbox = form.getCheckBox('Annual_Checkbox'); // ASSUMED PDF field name
                     if (annualCheckbox) annualCheckbox.check();
                 } catch (err) { console.warn(`⚠️ Warning: Issue with Annual Payment Checkbox: ${err.message}`); }
             }
@@ -243,6 +243,83 @@ async function fillPdfForm(fileName, formData, fieldMappings) {
     } catch (readError) {
         console.error(`❌ Failed to read PDF template file "${fileName}": ${readError.message}`);
         throw readError;
+    }
+}
+
+
+app.post('/submit', upload.none(), async (req, res) => {
+    console.log("📝 Form received:", req.body);
+
+    const formData = req.body;
+
+    try {
+        // --- Diagnostic: Check current working directory and list files ---
+        console.log(`Current Working Directory (CWD): ${process.cwd()}`);
+        try {
+            const filesInRoot = await fs.readdir(process.cwd());
+            console.log(`Files in CWD: ${filesInRoot.join(', ')}`);
+            const filesInTemplates = await fs.readdir(path.join(process.cwd(), 'template'));
+            console.log(`Files in ./template: ${filesInTemplates.join(', ')}`);
+        } catch (dirReadError) {
+            console.error(`❌ Error reading directories for diagnostics: ${dirReadError.message}`);
+        }
+        // --- End Diagnostics ---
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_PASS
+            }
+        });
+
+        // --- Generate PDFs using pdf-lib ---
+        console.log("🚀 Generating Society PDF with pdf-lib...");
+        const societyPdfBuffer = await fillPdfForm(
+            path.join(__dirname, 'template', 'Society_Mapped_Corrected.pdf'),
+            formData,
+            societyFieldMappings
+        );
+        console.log(`Society PDF generated. Size: ${societyPdfBuffer.byteLength} bytes`);
+
+
+        console.log("🚀 Generating Bar125 PDF with pdf-lib...");
+        const bar125PdfBuffer = await fillPdfForm(
+            path.join(__dirname, 'template', 'BarAccord-125.pdf'), // Assuming this is the renamed/modified BarAccord PDF
+            formData,
+            bar125FieldMappings
+        );
+        console.log(`Bar125 PDF generated. Size: ${bar125PdfBuffer.byteLength} bytes`);
+
+        // 📧 Send confirmation email with PDFs attached
+        const mailOptions = {
+            from: '"Commercial Insurance Direct" <quote@barinsurancedirect.com>',
+            to: formData.contact_email,
+            subject: 'Your Bar/Tavern Quote Application from Commercial Insurance Direct',
+            text: `Dear ${formData.applicant_name || 'Applicant'},\n\nThank you for submitting your application. We are processing your request and will be in touch shortly with your quote.\n\nYour submitted data:\n${JSON.stringify(formData, null, 2)}\n\nBest regards,\nCommercial Insurance Direct Team`,
+            html: `
+                <p>Dear ${formData.applicant_name || 'Applicant'},</p>
+                <p>Thank you for submitting your application. We are processing your request and will be in touch shortly with your quote.</p>
+                <p>You can review your submitted data below:</p>
+                <pre>${JSON.stringify(formData, null, 2)}</pre>
+                <p>Best regards,</p>
+                <p><b>Commercial Insurance Direct Team</b></p>
+            `,
+            attachments: [
+                { filename: 'CID_Society_Application.pdf', content: Buffer.from(societyPdfBuffer), contentType: 'application/pdf' },
+                { filename: 'CID_Bar125_Application.pdf', content: Buffer.from(bar125PdfBuffer), contentType: 'application/pdf' }
+            ]
+        };
+
+        console.log("📧 Attempting to send email...");
+        const info = await transporter.sendMail(mailOptions);
+        console.log("📧 Email sent:", info.messageId);
+        res.json({
+            status: "Thank you for your submission! We value your business. A quote will be sent to your email shortly."
+        });
+    } catch (error) {
+        console.error("❌ Error in /submit (pdf-lib generation):", error);
+        res.status(500).json({ error: "Failed to generate or send PDFs. See server logs for details." });
     }
 });
 
