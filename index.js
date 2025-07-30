@@ -173,6 +173,16 @@ const pdfTemplatePath = path.join(__dirname, 'forms', selected.pdf);
         }
     }
 });
+// Ensure uploads folder exists before the server starts
+const uploadsDir = path.join(__dirname, 'uploads');
+fs.mkdir(uploadsDir, { recursive: true }).catch(err => {
+  console.error("Failed to create uploads directory:", err);
+});
+
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Node.js PDF service running on port ${PORT}`);
+});
 
 // Start the server
 app.listen(PORT, () => {
