@@ -183,8 +183,3 @@ fs.mkdir(uploadsDir, { recursive: true }).catch(err => {
 app.listen(PORT, () => {
     console.log(`Node.js PDF service running on port ${PORT}`);
 });
-
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Node.js PDF service running on port ${PORT}`);
-});
