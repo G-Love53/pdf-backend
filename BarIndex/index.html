@@ -355,10 +355,6 @@
         const alcoholInput = document.querySelector('[name="alcohol_sales"]');
         const totalInput = document.querySelector('[name="total_sales"]');
         const percentInput = document.querySelector('[name="Percent_Alcohol"]');
-        const form = document.getElementById("quoteForm");
-        const submitButton = form.querySelector('button[type="submit"]');
-        const api_key = "CID9200$"; // <-- Your API Key here
-
         function strip(value) {
             return parseFloat(value.replace(/[^0-9.-]+/g,"")) || 0;
         }
@@ -380,64 +376,8 @@
             });
             el.addEventListener("input", recalculate);
         });
-
-        // Add event listener for form submission
-        form.addEventListener("submit", async function (event) {
-            event.preventDefault(); // Prevent default form submission
-
-            // Gather all form inputs as a plain object
-            const formData = new FormData(form);
-            const formDataObj = Object.fromEntries(formData.entries());
-
-            // Build the payload
-            const payload = {
-                formData: formDataObj,
-                segments: ["society", "bar125"] // Both forms
-            };
-            
-            // Show loading state
-            submitButton.disabled = true;
-            submitButton.textContent = "Submitting...";
-
-            try {
-                // Post to the /fill-multiple endpoint on Render
-                const res = await fetch("https://cid-pdf-api.onrender.com/fill-multiple", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-API-Key": api_key // Use the API Key here
-                    },
-                    body: JSON.stringify(payload),
-                });
-
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    alert("Error generating PDFs: " + errorText);
-                    return;
-                }
-
-                // Download the zip file
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "filled-apps.zip";
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                URL.revokeObjectURL(url);
-
-                // Redirect to thank you page
-                window.location.href = "thankyou.html";
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert("A network or server error occurred. Please try again.");
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = "Submit";
-            }
-        });
+        const websiteInput = document.querySelector('[name="premises_website"]');
+        if (websiteInput) websiteInput.setAttribute("type", "text");
     });
 </script>
 </body>

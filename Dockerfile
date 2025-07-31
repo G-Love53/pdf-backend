@@ -7,7 +7,9 @@ WORKDIR /app
 # Install system dependencies (including pdftk)
 # We add build-essential for some Node.js packages (like node-gyp for native modules)
 # This command first sets up the repo links, then installs pdftk and build-essential
-RUN apt-get update && \
+RUN sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list && \
+    sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
     pdftk \
     build-essential \
