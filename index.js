@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const app = express();
 
 app.use(cors({
     origin: [
@@ -19,7 +20,6 @@ const path = require('path');
 const { execFile } = require('child_process');
 const os = require('os');
 
-const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware for parsing JSON
