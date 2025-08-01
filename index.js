@@ -1,5 +1,17 @@
 const express = require('express');
 const cors = require('cors');
+
+app.use(cors({
+    origin: [
+        "https://barinsurancedirect.com",
+        "https://barinsurancedirect.netlify.app",
+        "http://localhost:8888"
+    ],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'X-API-Key', 'Origin', 'X-Requested-With', 'Accept'],
+    credentials: true
+}));
+
 const fs = require('fs').promises;
 const fssync = require('fs');
 const archiver = require('archiver');
@@ -13,14 +25,6 @@ const port = process.env.PORT || 3000;
 // Middleware for parsing JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// CORS: Only allow your Netlify site
-app.use(cors({
-  origin: ['https://commercial-insurance-direct.netlify.app', 'http://localhost:3000'],
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'X-API-Key', 'Origin', 'X-Requested-With', 'Accept'],
-  credentials: true
-}));
 
 // API key validation middleware
 const validateApiKey = (req, res, next) => {
