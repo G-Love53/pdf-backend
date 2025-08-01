@@ -137,11 +137,12 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
       }
     });
 
-  } catch (error) {
-    console.error('Server error:', error);
+    } catch (error) {
+    console.error('Detailed error:', error); // This will log the actual error
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Error processing PDFs' });
+      res.status(500).json({ error: error.message || 'Error processing PDFs' });
     }
+  }
   }
 });
 
