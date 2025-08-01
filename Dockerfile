@@ -5,9 +5,7 @@ FROM node:18-slim
 WORKDIR /app
 
 # Install system dependencies (including pdftk)
-RUN sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list && \
-    sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     pdftk \
     build-essential \
