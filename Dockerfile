@@ -5,8 +5,6 @@ FROM node:18-slim
 WORKDIR /app
 
 # Install system dependencies (including pdftk)
-# We add build-essential for some Node.js packages (like node-gyp for native modules)
-# This command first sets up the repo links, then installs pdftk and build-essential
 RUN sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list && \
     sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list && \
     apt-get update && \
@@ -16,12 +14,14 @@ RUN sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list && \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Copy package.json and package-lock.json (if you have it)
-# to install dependencies first, leveraging Docker cache
+# Set NODE_ENV to production for smaller image
+ENV NODE_ENV=production
+
+# Copy package.json and package-lock.json (if present)
 COPY package*.json ./
 
 # Install Node.js dependencies
-RUN npm install --production
+RUN npm install --unsafe-perm
 
 # Copy the rest of your application code
 COPY . .
@@ -30,5 +30,4 @@ COPY . .
 EXPOSE 3000
 
 # Start the Node.js application
-# `node index.js` runs the main server file
 CMD ["node", "index.js"]

@@ -1,444 +1,167 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta charset="utf-8"/>
-<title>Bar, Tavern & Restaurant Insurance Quote</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-        background-color: #f8f8f8;
-        color: #333;
-    }
-    form {
-        max-width: 800px;
-        margin: 20px auto;
-        padding: 30px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-        color: #ff8c00;
-        text-align: center;
-        margin-bottom: 30px;
-        font-size: 2em;
-        font-weight: bold;
-    }
-    label {
-        display: block;
-        margin-top: 18px;
-        margin-bottom: 5px;
-        font-weight: bold;
-        color: #555;
-        font-size: 0.95em;
-    }
-    input[type="text"],
-    input[type="email"],
-    input[type="url"],
-    input[type="date"],
-    select,
-    textarea {
-        width: calc(100% - 16px);
-        padding: 10px 8px;
-        margin-top: 5px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        font-size: 1em;
-        box-sizing: border-box;
-        transition: border-color 0.3s ease;
-    }
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="url"]:focus,
-    input[type="date"]:focus,
-    select:focus,
-    textarea:focus {
-        border-color: #ff8c00;
-        outline: none;
-        box-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
-    }
-    button {
-        margin-top: 30px;
-        padding: 12px 25px;
-        font-size: 1.1em;
-        background-color: #ff8c00;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        width: 100%;
-        transition: background-color 0.3s ease, transform 0.1s ease;
-        font-weight: bold;
-        letter-spacing: 0.5px;
-    }
-    button:hover {
-        background-color: #e67e00;
-        transform: translateY(-2px);
-    }
-    button:active {
-        transform: translateY(0);
-    }
-    .small-text {
-        font-size: 12px;
-        text-align: center;
-        margin-top: 40px;
-        color: #999;
-    }
-    @media (max-width: 600px) {
-        form {
-            padding: 20px;
-            margin: 10px auto;
-        }
-        h1 {
-            font-size: 1.7em;
-        }
-        label {
-            font-size: 0.9em;
-            margin-top: 15px;
-        }
-        input, select, textarea, button {
-            font-size: 0.95em;
-            padding: 10px;
-        }
-    }
-</style>
-</head>
-<body>
-<h1>Bar, Tavern & Restaurant Insurance Quote</h1>
-<form id="quoteForm">
-    <label>Applicant Name:<input name="applicant_name" required="" type="text"/></label>
-    <label>Premises Name:<input name="premises_name" type="text"/></label>
-    <label>Premises Address:<input name="premise_address" required="" type="text"/></label>
-    <label>Business Phone:<input name="business_phone" type="text"/></label>
-    <label>Premises Website:<input name="premises_website" type="text"/></label>
-    <label>Contact Email Address:<input name="contact_email" type="email"/></label>
-    <label>Requested Effective Date:<input name="effective_date" type="date"/></label>
+const express = require('express');
+const cors = require('cors');
+const fs = require('fs').promises;
+const fssync = require('fs');
+const archiver = require('archiver');
+const path = require('path');
+const { execFile } = require('child_process');
+const os = require('os');
 
-    <label>1. Are the insured's operations currently open or will they be open within the next 60 days?
-        <select name="open_60_days">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>If no, please provide details regarding the insured's plans to be open for business:<input name="open_60_days_details" type="text"/></label>
+const app = express();
+const port = process.env.PORT || 3000;
 
-    <label>2. 3+ years of restaurant/bar ownership in past 5 years?
-        <select name="ownership_experience">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>If no, please provide details regarding the insured's prior related experience:<input name="ownership_experience_details" type="text"/></label>
+// Middleware for parsing JSON
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-    <label>3. Business closing time:<input name="closing_time" type="text"/></label>
-    <label>4. Square footage:<input name="square_footage" type="text"/></label>
-    <label>5. Number of employees:<input name="num_employees" type="text"/></label>
+// CORS: Only allow your Netlify site
+app.use(cors({
+  origin: ['https://commercial-insurance-direct.netlify.app', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'X-API-Key', 'Origin', 'X-Requested-With', 'Accept'],
+  credentials: true
+}));
 
-    <label>6. Is this a fine dining restaurant?
-        <select name="fine_dining">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>7. Does the insured offer counter service?
-        <select name="counter_service">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>8. Does the insured manufacture alcohol?
-        <select name="alcohol_manufactured">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>If yes, is &gt;25% consumed on premises?
-        <select name="percent_consumed">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
+// API key validation middleware
+const validateApiKey = (req, res, next) => {
+  const apiKey = req.header('X-API-Key');
+  if (!apiKey || apiKey !== 'CID9200$') {
+    return res.status(401).json({ error: 'Invalid API key' });
+  }
+  next();
+};
 
-    <label>9. Annual Receipts:</label>
-    <input name="food_sales" placeholder="Food Sales" type="text"/>
-    <input name="alcohol_sales" placeholder="Alcohol Sales" type="text"/>
-    <input name="total_sales" placeholder="Total Sales" type="text" readonly/>
-    <input name="Percent_Alcohol" placeholder="% Alcohol" type="text" readonly/>
+// Utility to create FDF for pdftk
+function createFDF(formData, mapping) {
+  let fdf = `%FDF-1.2
+1 0 obj
+<<
+/FDF
+<<
+/Fields [
+`;
+  for (const [formField, pdfField] of Object.entries(mapping)) {
+    const value = formData[formField] || '';
+    fdf += `<< /T (${pdfField}) /V (${value}) >>\n`;
+  }
+  fdf += `]
+>>
+>>
+endobj
+trailer
+<<
+/Root 1 0 R
+>>
+%%EOF
+`;
+  return fdf;
+}
 
-    <label>10. What is the level of cooking on premises?</label>
-    <div>
-        <label><input type="radio" name="cooking_level_radio" value="Full cooking"/> Full cooking - Cooking equipment that can produce grease laden vapors such as deep fryers, grills, flat tops, char-broilers, etc.</label>
-        <label><input type="radio" name="cooking_level_radio" value="Limited cooking"/> Limited cooking - Cooking equipment that does not produce grease laden vapors such as ovens, microwaves, sous vides, panini presses, etc.</label>
-        <label><input type="radio" name="cooking_level_radio" value="No cooking"/> No cooking</label>
-    </div>
-
-    <label>11. Cannabis infusion?
-        <select name="infused_with_cannabis">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>12. Solid fuel cooking structures within 10 feet of the building?
-        <select name="solid_fuel">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>13. Any cooking surfaces not protected by a UL300 fire suppression?
-        <select name="non_UL300">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-
-    <label>14. Any other entertainment besides: Karaoke or Trivia?
-        <select name="entertainment_other">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>If yes, describe:<input name="entertainment_details" type="text"/></label>
-
-    <label>15. Other activities besides, darts, bag toss, pool tables (5 or less), horseshoes, volleyball?
-        <select name="recreational_activites">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>If yes, describe:<input name="recreational_details" type="text"/></label>
-
-    <label>16. Security or bouncers?
-        <select name="security_present">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>Are background checks performed on bouncers and security personnel?
-        <select name="ComboBox22">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>Are the bouncers and security personnel armed?
-        <select name="ComboBox23">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>Are the bouncers and security personnel trained in conflict resolution?
-        <select name="ComboBox24">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-
-    <label>17. Offer delivery?
-        <select name="delivery_offered">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>Are insured owned autos used for delivery?
-        <select name="ComboBox13">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>Are employee owned autos used for delivery?
-        <select name="ComboBox14">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>Are third party delivery services used for delivery?
-        <select name="ComboBox15">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>Delivery Sales Completed Using Insured Owned or Employee Owned Autos: $
-        <input name="TextField0" type="text"/>
-    </label>
-    <label>Do the delivery sales at any one location exceed 20% of the total sales from its/their respective location(s)?
-        <select name="ComboBox16">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>If yes, please explain:<input name="TextField10" type="text"/></label>
-    <label>Is the delivery radius greater than 5 miles?
-        <select name="ComboBox17">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>If yes, please explain:<input name="TextField11" type="text"/></label>
-    <label>Do the delivery hours extend past 10 PM?
-        <select name="ComboBox18">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>If yes, please explain:<input name="TextField12" type="text"/></label>
-
-    <label>18. If auto coverage is rated:</label>
-    <label>Does the insured's business provide shuttle services?
-        <select name="ComboBox19">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>Are there any additional auto policies in force that would provide coverage for the named insured(s)?
-        <select name="ComboBox1">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-
-    <label>19. Liquor law violations?
-        <select name="liquor_lapse">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>If yes, please provide the number of violations and a description of each liquor violation:<input name="liquor_claims" type="text"/></label>
-
-    <label>How many total claims in the last 3 years?
-        <select name="claim_count">
-            <option value="">-- Select --</option>
-            <option value="Zero">Zero</option>
-            <option value="2 or less">2 or less</option>
-            <option value="3 or more">3 or more</option>
-        </select>
-    </label>
-
-    <label>List any Additional Insureds – Name, Address & Contact Info:<textarea name="additional_insureds"></textarea></label>
-
-    <label>Payment Plan:<br/>
-        <label><input type="checkbox" name="payment_plan_Monthly" value="Monthly"/> Monthly</label><br/>
-        <label><input type="checkbox" name="payment_plan_Annual" value="Annual"/> Annual</label>
-    </label>
-
-    <button type="submit">Submit</button>
-</form>
-<div class="small-text">© Commercial Insurance Direct LLC, 2025. All rights reserved.</div>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const foodInput = document.querySelector('[name="food_sales"]');
-        const alcoholInput = document.querySelector('[name="alcohol_sales"]');
-        const totalInput = document.querySelector('[name="total_sales"]');
-        const percentInput = document.querySelector('[name="Percent_Alcohol"]');
-        const form = document.getElementById("quoteForm");
-        const submitButton = form.querySelector('button[type="submit"]');
-        const api_key = "CID9200$"; // <-- Your API Key here
-
-        function strip(value) {
-            return parseFloat(value.replace(/[^0-9.-]+/g,"")) || 0;
-        }
-        function format(value) {
-            return "$" + value.toLocaleString();
-        }
-        function recalculate() {
-            const food = strip(foodInput.value);
-            const alcohol = strip(alcoholInput.value);
-            const total = food + alcohol;
-            const percent = total > 0 ? (alcohol / total) * 100 : 0;
-            totalInput.value = format(total);
-            percentInput.value = percent.toFixed(2) + "%";
-        }
-        [foodInput, alcoholInput].forEach(el => {
-            el.addEventListener("blur", () => {
-                el.value = format(strip(el.value));
-                recalculate();
-            });
-            el.addEventListener("input", recalculate);
-        });
-
-        // Add event listener for form submission
-        form.addEventListener("submit", async function (event) {
-            event.preventDefault(); // Prevent default form submission
-
-            // Gather all form inputs as a plain object
-            const formData = new FormData(form);
-            const formDataObj = Object.fromEntries(formData.entries());
-
-            // Build the payload
-            const payload = {
-                formData: formDataObj,
-                segments: ["society", "bar125"] // Both forms
-            };
-            
-            // Show loading state
-            submitButton.disabled = true;
-            submitButton.textContent = "Submitting...";
-
-            try {
-                // Post to the /fill-multiple endpoint on Render
-                const res = await fetch("https://cid-pdf-api.onrender.com/fill-multiple", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-API-Key": api_key // Use the API Key here
-                    },
-                    body: JSON.stringify(payload),
-                });
-
-                if (!res.ok) {
-                    const errorText = await res.text();
-                    alert("Error generating PDFs: " + errorText);
-                    return;
-                }
-
-                // Download the zip file
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "filled-apps.zip";
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                URL.revokeObjectURL(url);
-
-                // Redirect to thank you page
-                window.location.href = "thankyou.html";
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert("A network or server error occurred. Please try again.");
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = "Submit";
-            }
-        });
+// Function to fill and flatten a PDF using pdftk
+async function fillAndFlattenPDF(pdfTemplate, fdfData, outputPath) {
+  const fdfPath = outputPath.replace(/\.pdf$/, '.fdf');
+  await fs.writeFile(fdfPath, fdfData);
+  return new Promise((resolve, reject) => {
+    execFile('pdftk', [pdfTemplate, 'fill_form', fdfPath, 'output', outputPath, 'flatten'], (err) => {
+      // Always clean up FDF even on error
+      fs.unlink(fdfPath).catch(() => {});
+      if (err) reject(err);
+      else resolve();
     });
-</script>
-</body>
-</html>
+  });
+}
+
+// Endpoint to fill multiple PDFs and return ZIP
+app.post('/fill-multiple', validateApiKey, async (req, res) => {
+  try {
+    const { formData, segments } = req.body;
+    if (!formData || !Array.isArray(segments) || segments.length === 0) {
+      return res.status(400).json({ error: 'Missing formData or segments' });
+    }
+
+    // Create temp dir for this request
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'pdf-filler-'));
+
+    const filesToZip = [];
+    for (const segment of segments) {
+      const templatePath = path.join(__dirname, 'templates', `${segment}.pdf`);
+      const mappingPath = path.join(__dirname, 'mappings', `${segment}.json`);
+      const outputPath = path.join(tempDir, `${segment}-filled.pdf`);
+
+      // Load mapping
+      let mapping;
+      try {
+        mapping = JSON.parse(await fs.readFile(mappingPath, 'utf-8'));
+      } catch (err) {
+        continue; // Skip segment if mapping missing
+      }
+
+      // Create FDF and fill PDF
+      const fdfData = createFDF(formData, mapping);
+      try {
+        await fillAndFlattenPDF(templatePath, fdfData, outputPath);
+        filesToZip.push({ path: outputPath, name: `${segment}-filled.pdf` });
+      } catch (err) {
+        console.error(`Error filling ${segment}:`, err);
+        // Continue to next segment
+      }
+    }
+
+    // Set ZIP response headers
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename=filled-apps.zip');
+
+    // Create ZIP and stream to response
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    archive.pipe(res);
+
+    for (const file of filesToZip) {
+      archive.file(file.path, { name: file.name });
+    }
+    await archive.finalize();
+
+    // Clean up files after response
+    res.on('finish', async () => {
+      try {
+        for (const file of filesToZip) {
+          await fs.unlink(file.path);
+        }
+        await fs.rmdir(tempDir);
+      } catch (err) {
+        // Log but don't block
+        console.error('Cleanup error:', err);
+      }
+    });
+
+  } catch (error) {
+    console.error('Server error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Error processing PDFs' });
+    }
+  }
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something broke!' });
+});
+
+// Start server
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
+
+// Handle unhandled promise rejections and uncaught exceptions
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
