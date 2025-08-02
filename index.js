@@ -88,7 +88,7 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
 
         const filesToZip = [];
         for (const segment of segments) {
-            const templatePath = path.join(__dirname, 'templates', `${segment}.pdf`);
+            const templatePath = path.join(__dirname, 'forms', `${segment}.pdf`);
             const mappingPath = path.join(__dirname, 'mappings', `${segment}.json`);
             const outputPath = path.join(tempDir, `${segment}-filled.pdf`);
 
