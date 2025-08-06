@@ -107,10 +107,11 @@
 </head>
 <body>
 <h1>Bar, Tavern & Restaurant Insurance Quote</h1>
-<form id="quoteForm">
-    <label>Applicant Name:<input name="applicant_name" required="" type="text"/></label>
+<form id="quoteForm" name="bar-restaurant-quote">
+    <!-- Remove hidden Netlify fields -->
+    <label>Applicant Name:<input name="applicant_name" required type="text"/></label>
     <label>Premises Name:<input name="premises_name" type="text"/></label>
-    <label>Premises Address:<input name="premise_address" required="" type="text"/></label>
+    <label>Premises Address:<input name="premise_address" required type="text"/></label>
     <label>Business Phone:<input name="business_phone" type="text"/></label>
     <label>Premises Website:<input name="premises_website" type="text"/></label>
     <label>Contact Email Address:<input name="contact_email" type="email"/></label>
@@ -159,7 +160,7 @@
             <option value="No">No</option>
         </select>
     </label>
-    <label>If yes, is &gt;25% consumed on premises?
+    <label>If yes, is >25% consumed on premises?
         <select name="percent_consumed">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
@@ -175,9 +176,9 @@
 
     <label>10. What is the level of cooking on premises?</label>
     <div>
-        <label><input type="radio" name="cooking_level_radio" value="Full cooking"/> Full cooking - Cooking equipment that can produce grease laden vapors such as deep fryers, grills, flat tops, char-broilers, etc.</label>
-        <label><input type="radio" name="cooking_level_radio" value="Limited cooking"/> Limited cooking - Cooking equipment that does not produce grease laden vapors such as ovens, microwaves, sous vides, panini presses, etc.</label>
-        <label><input type="radio" name="cooking_level_radio" value="No cooking"/> No cooking</label>
+        <label><input type="checkbox" name="cooking_level_full"/> Full cooking - Cooking equipment that can produce grease laden vapors such as deep fryers, grills, flat tops, char-broilers, etc.</label>
+        <label><input type="checkbox" name="cooking_level_limited"/> Limited cooking - Cooking equipment that does not produce grease laden vapors such as ovens, microwaves, sous vides, panini presses, etc.</label>
+        <label><input type="checkbox" name="cooking_level_non"/> No cooking</label>
     </div>
 
     <label>11. Cannabis infusion?
@@ -351,6 +352,7 @@
 <div class="small-text">© Commercial Insurance Direct LLC, 2025. All rights reserved.</div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Calculation logic for receipts/percent alcohol
         const foodInput = document.querySelector('[name="food_sales"]');
         const alcoholInput = document.querySelector('[name="alcohol_sales"]');
         const totalInput = document.querySelector('[name="total_sales"]');
@@ -378,6 +380,66 @@
         });
         const websiteInput = document.querySelector('[name="premises_website"]');
         if (websiteInput) websiteInput.setAttribute("type", "text");
+
+        // --- AJAX FORM SUBMIT SECTION ---
+        const form = document.getElementById("quoteForm");
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+            const formDataObj = Object.fromEntries(formData.entries());
+
+            // Segments: UPDATED TO NEW FILE NAMES
+            const segments = ["Society_FieldNames", "BarAccord125"];
+
+            // API key: update as needed
+            const api_key = "CID9200$";
+
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = "Submitting...";
+
+            try {
+                const response = await fetch("https://cid-pdf-api.onrender.com/fill-multiple", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-API-Key": api_key
+                    },
+                    body: JSON.stringify({
+                        formData: formDataObj,
+                        segments
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    alert("Error: " + errorText);
+                    return;
+                }
+
+                // Download ZIP
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "filled-apps.zip";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+
+                // Redirect to thank you page
+                window.location.href = "thankyou.html";
+
+            } catch (err) {
+                alert("Submission failed: " + err.message);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Submit";
+            }
+        });
+        // --- END AJAX FORM SUBMIT SECTION ---
     });
 </script>
 </body>
