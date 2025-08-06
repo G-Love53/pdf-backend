@@ -1,0 +1,12 @@
+{
+  "applicant_name": "applicant_name",
+  "premises_name": "premises_name",
+  "premise_address": "premise_address", 
+  "business_phone": "business_phone",
+  "contact_email": "contact_email",
+  "effective_date": "effective_date",
+  "total_sales": "total_sales",
+  "square_footage": "square_footage",
+  "num_employees": "num_employees",
+  "additional_insureds": "additional_insureds"
+}
