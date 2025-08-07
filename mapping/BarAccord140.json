@@ -1,8 +1,8 @@
 {
-  "business_personal_property": "Business Personal Property",
-  "construction_type": "CONSTRUCTION TYPE",
-  "square_footage": "TOTAL AREA",
-  "year_built": "YR BUILT",
-  "number_of_stories": "# STORIES",
-  "automatic_sprinkler": "% SPRNK"
+  "business_personal_property": "Business_Personal_Property",
+  "construction_type": "construction_type",
+  "square_footage": "square_footage",
+  "year_built": "year_built",
+  "number_of_stories": "number_of_stories",
+  "automatic_sprinkler": "automatic_sprinker"
 }

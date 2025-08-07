@@ -50,6 +50,7 @@ function createGmailTransporter() {
 // Email sending function
 async function sendQuoteToCarriers(filesToZip, formData) {
     try {
+        console.log('Starting email send process...');
         const transporter = createGmailTransporter();
         
         // Create professional email content
@@ -82,7 +83,7 @@ async function sendQuoteToCarriers(filesToZip, formData) {
 
         const mailOptions = {
             from: process.env.GMAIL_USER || 'quote@barinsurancedirect.com',
-            to: process.env.CARRIER_EMAIL || 'quote@barinsurancedirect.com', // Will be carrier emails
+            to: process.env.CARRIER_EMAIL || 'quote@barinsurancedirect.com',
             subject: `Quote Request - ${formData.applicant_name || 'New Application'} - Bar/Restaurant Insurance`,
             html: emailHtml,
             attachments: filesToZip.map(file => ({
@@ -92,12 +93,20 @@ async function sendQuoteToCarriers(filesToZip, formData) {
             }))
         };
 
+        console.log('Email config:', {
+            from: mailOptions.from,
+            to: mailOptions.to,
+            subject: mailOptions.subject,
+            attachmentCount: mailOptions.attachments.length
+        });
+
         const info = await transporter.sendMail(mailOptions);
         console.log('Email sent successfully:', info.messageId);
         return { success: true, messageId: info.messageId };
         
     } catch (error) {
-        console.error('Email sending failed:', error);
+        console.error('Email sending failed:', error.message);
+        console.error('Full error:', error);
         return { success: false, error: error.message };
     }
 }
@@ -205,8 +214,23 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
 
         // Send email to carriers if PDFs were created successfully (use original formData for email)
         if (filesToZip.length > 0) {
-            const emailResult = await sendQuoteToCarriers(filesToZip, formData);
-            console.log('Email sending result:', emailResult);
+            console.log(`=== EMAIL DEBUG START ===`);
+            console.log(`Attempting to send email with ${filesToZip.length} PDFs`);
+            console.log('PDF files:', filesToZip.map(f => ({ name: f.name, exists: require('fs').existsSync(f.path) })));
+            
+            try {
+                const emailResult = await sendQuoteToCarriers(filesToZip, formData);
+                console.log('Email sending result:', emailResult);
+                
+                if (!emailResult.success) {
+                    console.error('EMAIL FAILED:', emailResult.error);
+                }
+            } catch (emailError) {
+                console.error('EMAIL EXCEPTION:', emailError);
+            }
+            console.log(`=== EMAIL DEBUG END ===`);
+        } else {
+            console.log('No PDFs generated, skipping email');
         }
 
         // Set ZIP response headers
