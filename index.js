@@ -38,7 +38,7 @@ const validateApiKey = (req, res, next) => {
 
 // Gmail transporter setup
 function createGmailTransporter() {
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
         service: 'gmail',
         auth: {
             user: process.env.GMAIL_USER || 'quote@barinsurancedirect.com',
