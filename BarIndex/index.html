@@ -86,6 +86,33 @@
         margin-top: 40px;
         color: #999;
     }
+    
+    /* Conditional sections styling */
+    .conditional-section {
+        display: none;
+        background-color: #f9f9f9;
+        border-left: 4px solid #ff8c00;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 4px;
+        animation: slideIn 0.3s ease-in-out;
+    }
+    
+    .conditional-section.show {
+        display: block;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
     @media (max-width: 600px) {
         form {
             padding: 20px;
@@ -108,94 +135,137 @@
 <body>
 <h1>Bar, Tavern & Restaurant Insurance Quote</h1>
 <form id="quoteForm" name="bar-restaurant-quote">
-    <!-- Remove hidden Netlify fields -->
+    <!-- Basic Information -->
     <label>Applicant Name:<input name="applicant_name" required type="text"/></label>
     <label>Premises Name:<input name="premises_name" type="text"/></label>
     <label>Premises Address:<input name="premise_address" required type="text"/></label>
+    
+    <!-- NEW: Type of Organization -->
+    <label>Type of Organization:</label>
+    <div>
+        <label><input type="checkbox" name="org_type_corporation" value="Yes"/> Corporation</label>
+        <label><input type="checkbox" name="org_type_llc" value="Yes"/> LLC</label>
+        <label><input type="checkbox" name="org_type_individual" value="Yes"/> Individual</label>
+    </div>
+    
     <label>Business Phone:<input name="business_phone" type="text"/></label>
     <label>Premises Website:<input name="premises_website" type="text"/></label>
     <label>Contact Email Address:<input name="contact_email" type="email"/></label>
     <label>Requested Effective Date:<input name="effective_date" type="date"/></label>
 
+    <!-- Question 1 -->
     <label>1. Are the insured's operations currently open or will they be open within the next 60 days?
-        <select name="open_60_days">
+        <select name="open_60_days" data-conditional="open_60_days">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
-    <label>If no, please provide details regarding the insured's plans to be open for business:<input name="open_60_days_details" type="text"/></label>
+    <div class="conditional-section" data-show-when="open_60_days=No">
+        <label>Please provide details regarding the insured's plans to be open for business:<input name="open_60_days_details" type="text"/></label>
+    </div>
 
+    <!-- Question 2 -->
     <label>2. 3+ years of restaurant/bar ownership in past 5 years?
-        <select name="ownership_experience">
+        <select name="ownership_experience" data-conditional="ownership_experience">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
-    <label>If no, please provide details regarding the insured's prior related experience:<input name="ownership_experience_details" type="text"/></label>
+    <div class="conditional-section" data-show-when="ownership_experience=No">
+        <label>Please provide details regarding the insured's prior related experience:<input name="ownership_experience_details" type="text"/></label>
+    </div>
 
+    <!-- Basic Operations -->
     <label>3. Business closing time:<input name="closing_time" type="text"/></label>
     <label>4. Square footage:<input name="square_footage" type="text"/></label>
-    <label>5. Number of employees:<input name="num_employees" type="text"/></label>
+    
+    <!-- NEW QUESTIONS 5-9 for BarAccord140 -->
+    <label>5. Business Personal Property in $ (movable items owned, equipment, inventory, furniture):<input name="business_personal_property" type="text" placeholder="$"/></label>
+    
+    <label>6. Construction Type:</label>
+    <div>
+        <label><input type="checkbox" name="construction_frame" value="Yes"/> Frame</label>
+        <label><input type="checkbox" name="construction_joist_masonry" value="Yes"/> Joist Masonry</label>
+        <label><input type="checkbox" name="construction_masonry" value="Yes"/> Masonry</label>
+    </div>
+    
+    <label>7. Year Built:<input name="year_built" type="text"/></label>
+    <label>8. Number of Stories:<input name="number_of_stories" type="text"/></label>
+    <label>9. Automatic Sprinkler:
+        <select name="automatic_sprinkler">
+            <option value="">-- Select --</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select>
+    </label>
+    
+    <label>10. Number of employees:<input name="num_employees" type="text"/></label>
 
-    <label>6. Is this a fine dining restaurant?
+    <!-- Questions 6-8 renumbered to 11-13 -->
+    <label>11. Is this a fine dining restaurant?
         <select name="fine_dining">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
-    <label>7. Does the insured offer counter service?
+    <label>12. Does the insured offer counter service?
         <select name="counter_service">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
-    <label>8. Does the insured manufacture alcohol?
-        <select name="alcohol_manufactured">
+    <label>13. Does the insured manufacture alcohol?
+        <select name="alcohol_manufactured" data-conditional="alcohol_manufactured">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
-    <label>If yes, is >25% consumed on premises?
-        <select name="percent_consumed">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
+    <div class="conditional-section" data-show-when="alcohol_manufactured=Yes">
+        <label>Is >25% consumed on premises?
+            <select name="percent_consumed">
+                <option value="">-- Select --</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </label>
+    </div>
 
-    <label>9. Annual Receipts:</label>
+    <!-- Question 9 renumbered to 14 - Annual Receipts -->
+    <label>14. Annual Receipts:</label>
     <input name="food_sales" placeholder="Food Sales" type="text"/>
     <input name="alcohol_sales" placeholder="Alcohol Sales" type="text"/>
     <input name="total_sales" placeholder="Total Sales" type="text" readonly/>
     <input name="Percent_Alcohol" placeholder="% Alcohol" type="text" readonly/>
 
-    <label>10. What is the level of cooking on premises?</label>
+    <!-- Question 10 renumbered to 15 - Cooking Level -->
+    <label>15. What is the level of cooking on premises?</label>
     <div>
-        <label><input type="checkbox" name="cooking_level_full"/> Full cooking - Cooking equipment that can produce grease laden vapors such as deep fryers, grills, flat tops, char-broilers, etc.</label>
-        <label><input type="checkbox" name="cooking_level_limited"/> Limited cooking - Cooking equipment that does not produce grease laden vapors such as ovens, microwaves, sous vides, panini presses, etc.</label>
-        <label><input type="checkbox" name="cooking_level_non"/> No cooking</label>
+        <label><input type="checkbox" name="cooking_level_full" value="Yes"/> Full cooking - Cooking equipment that can produce grease laden vapors such as deep fryers, grills, flat tops, char-broilers, etc.</label>
+        <label><input type="checkbox" name="cooking_level_limited" value="Yes"/> Limited cooking - Cooking equipment that does not produce grease laden vapors such as ovens, microwaves, sous vides, panini presses, etc.</label>
+        <label><input type="checkbox" name="cooking_level_non" value="Yes"/> No cooking</label>
     </div>
 
-    <label>11. Cannabis infusion?
+    <!-- Questions 11-13 renumbered to 16-18 -->
+    <label>16. Cannabis infusion?
         <select name="infused_with_cannabis">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
-    <label>12. Solid fuel cooking structures within 10 feet of the building?
+    <label>17. Solid fuel cooking structures within 10 feet of the building?
         <select name="solid_fuel">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
-    <label>13. Any cooking surfaces not protected by a UL300 fire suppression?
+    <label>18. Any cooking surfaces not protected by a UL300 fire suppression?
         <select name="non_UL300">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
@@ -203,110 +273,129 @@
         </select>
     </label>
 
-    <label>14. Any other entertainment besides: Karaoke or Trivia?
-        <select name="entertainment_other">
+    <!-- Question 14 renumbered to 19 - Entertainment -->
+    <label>19. Any other entertainment besides: Karaoke or Trivia?
+        <select name="entertainment_other" data-conditional="entertainment_other">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
-    <label>If yes, describe:<input name="entertainment_details" type="text"/></label>
+    <div class="conditional-section" data-show-when="entertainment_other=Yes">
+        <label>Describe the entertainment:<input name="entertainment_details" type="text"/></label>
+    </div>
 
-    <label>15. Other activities besides, darts, bag toss, pool tables (5 or less), horseshoes, volleyball?
-        <select name="recreational_activites">
+    <!-- Question 15 renumbered to 20 - Recreational Activities -->
+    <label>20. Other activities besides, darts, bag toss, pool tables (5 or less), horseshoes, volleyball?
+        <select name="recreational_activites" data-conditional="recreational_activites">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
-    <label>If yes, describe:<input name="recreational_details" type="text"/></label>
+    <div class="conditional-section" data-show-when="recreational_activites=Yes">
+        <label>Describe the activities:<input name="recreational_details" type="text"/></label>
+    </div>
 
-    <label>16. Security or bouncers?
-        <select name="security_present">
+    <!-- Question 16 renumbered to 21 - Security -->
+    <label>21. Security or bouncers?
+        <select name="security_present" data-conditional="security_present">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
-    <label>Are background checks performed on bouncers and security personnel?
-        <select name="ComboBox22">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>Are the bouncers and security personnel armed?
-        <select name="ComboBox23">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>Are the bouncers and security personnel trained in conflict resolution?
-        <select name="ComboBox24">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
+    <div class="conditional-section" data-show-when="security_present=Yes">
+        <label>Are background checks performed on bouncers and security personnel?
+            <select name="ComboBox22">
+                <option value="">-- Select --</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </label>
+        <label>Are the bouncers and security personnel armed?
+            <select name="ComboBox23">
+                <option value="">-- Select --</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </label>
+        <label>Are the bouncers and security personnel trained in conflict resolution?
+            <select name="ComboBox24">
+                <option value="">-- Select --</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </label>
+    </div>
 
-    <label>17. Offer delivery?
-        <select name="delivery_offered">
+    <!-- Question 17 renumbered to 22 - DELIVERY SECTION -->
+    <label>22. Offer delivery?
+        <select name="delivery_offered" data-conditional="delivery_offered">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
-    <label>Are insured owned autos used for delivery?
-        <select name="ComboBox13">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>Are employee owned autos used for delivery?
-        <select name="ComboBox14">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>Are third party delivery services used for delivery?
-        <select name="ComboBox15">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>Delivery Sales Completed Using Insured Owned or Employee Owned Autos: $
-        <input name="TextField0" type="text"/>
-    </label>
-    <label>Do the delivery sales at any one location exceed 20% of the total sales from its/their respective location(s)?
-        <select name="ComboBox16">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>If yes, please explain:<input name="TextField10" type="text"/></label>
-    <label>Is the delivery radius greater than 5 miles?
-        <select name="ComboBox17">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>If yes, please explain:<input name="TextField11" type="text"/></label>
-    <label>Do the delivery hours extend past 10 PM?
-        <select name="ComboBox18">
-            <option value="">-- Select --</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-        </select>
-    </label>
-    <label>If yes, please explain:<input name="TextField12" type="text"/></label>
+    <div class="conditional-section" data-show-when="delivery_offered=Yes">
+        <label>Are insured owned autos used for delivery?
+            <select name="ComboBox13">
+                <option value="">-- Select --</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </label>
+        <label>Are employee owned autos used for delivery?
+            <select name="ComboBox14">
+                <option value="">-- Select --</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </label>
+        <label>Are third party delivery services used for delivery?
+            <select name="ComboBox15">
+                <option value="">-- Select --</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </label>
+        <label>Delivery Sales Completed Using Insured Owned or Employee Owned Autos: $
+            <input name="TextField0" type="text"/>
+        </label>
+        <label>Do the delivery sales at any one location exceed 20% of the total sales from its/their respective location(s)?
+            <select name="ComboBox16" data-conditional="ComboBox16">
+                <option value="">-- Select --</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </label>
+        <div class="conditional-section" data-show-when="ComboBox16=Yes">
+            <label>Please explain:<input name="TextField10" type="text"/></label>
+        </div>
+        <label>Is the delivery radius greater than 5 miles?
+            <select name="ComboBox17" data-conditional="ComboBox17">
+                <option value="">-- Select --</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </label>
+        <div class="conditional-section" data-show-when="ComboBox17=Yes">
+            <label>Please explain:<input name="TextField11" type="text"/></label>
+        </div>
+        <label>Do the delivery hours extend past 10 PM?
+            <select name="ComboBox18" data-conditional="ComboBox18">
+                <option value="">-- Select --</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </label>
+        <div class="conditional-section" data-show-when="ComboBox18=Yes">
+            <label>Please explain:<input name="TextField12" type="text"/></label>
+        </div>
+    </div>
 
-    <label>18. If auto coverage is rated:</label>
+    <!-- Question 18 renumbered to 23 - Auto Coverage -->
+    <label>23. If auto coverage is rated:</label>
     <label>Does the insured's business provide shuttle services?
         <select name="ComboBox19">
             <option value="">-- Select --</option>
@@ -322,29 +411,40 @@
         </select>
     </label>
 
-    <label>19. Liquor law violations?
-        <select name="liquor_lapse">
+    <!-- Question 19 renumbered to 24 - Liquor Violations -->
+    <label>24. Liquor law violations?
+        <select name="liquor_lapse" data-conditional="liquor_lapse">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
-    <label>If yes, please provide the number of violations and a description of each liquor violation:<input name="liquor_claims" type="text"/></label>
+    <div class="conditional-section" data-show-when="liquor_lapse=Yes">
+        <label>Please provide the number of violations and a description of each liquor violation:<input name="liquor_claims" type="text"/></label>
+    </div>
 
+    <!-- Claims History with NEW conditional logic -->
     <label>How many total claims in the last 3 years?
-        <select name="claim_count">
+        <select name="claim_count" data-conditional="claim_count">
             <option value="">-- Select --</option>
             <option value="Zero">Zero</option>
             <option value="2 or less">2 or less</option>
             <option value="3 or more">3 or more</option>
         </select>
     </label>
+    <div class="conditional-section" data-show-when="claim_count=2 or less">
+        <label>Please describe the claim and include the date and amount paid:<textarea name="claims_details_2_or_less"></textarea></label>
+    </div>
+    <div class="conditional-section" data-show-when="claim_count=3 or more">
+        <label>Please describe the claim and include the date and amount paid:<textarea name="claims_details_3_or_more"></textarea></label>
+    </div>
 
+    <!-- Additional Info -->
     <label>List any Additional Insureds – Name, Address & Contact Info:<textarea name="additional_insureds"></textarea></label>
 
     <label>Payment Plan:<br/>
-        <label><input type="checkbox" name="payment_plan_Monthly" value="Monthly"/> Monthly</label><br/>
-        <label><input type="checkbox" name="payment_plan_Annual" value="Annual"/> Annual</label>
+        <label><input type="checkbox" name="payment_plan_Monthly" value="Yes"/> Monthly</label><br/>
+        <label><input type="checkbox" name="payment_plan_Annual" value="Yes"/> Annual</label>
     </label>
 
     <button type="submit">Submit</button>
@@ -352,11 +452,51 @@
 <div class="small-text">© Commercial Insurance Direct LLC, 2025. All rights reserved.</div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // CONDITIONAL LOGIC SYSTEM
+        function setupConditionalLogic() {
+            const conditionalElements = document.querySelectorAll('[data-conditional]');
+            const conditionalSections = document.querySelectorAll('.conditional-section[data-show-when]');
+            
+            conditionalElements.forEach(element => {
+                element.addEventListener('change', function() {
+                    const triggerName = element.getAttribute('data-conditional');
+                    const selectedValue = element.value;
+                    
+                    // Find all sections that should show/hide based on this trigger
+                    conditionalSections.forEach(section => {
+                        const showWhen = section.getAttribute('data-show-when');
+                        const [conditionName, conditionValue] = showWhen.split('=');
+                        
+                        if (conditionName === triggerName) {
+                            if (selectedValue === conditionValue) {
+                                section.classList.add('show');
+                            } else {
+                                section.classList.remove('show');
+                                // Clear values in hidden sections
+                                const inputs = section.querySelectorAll('input, select, textarea');
+                                inputs.forEach(input => {
+                                    if (input.type === 'checkbox' || input.type === 'radio') {
+                                        input.checked = false;
+                                    } else {
+                                        input.value = '';
+                                    }
+                                });
+                            }
+                        }
+                    });
+                });
+            });
+        }
+        
+        // Initialize conditional logic
+        setupConditionalLogic();
+
         // Calculation logic for receipts/percent alcohol
         const foodInput = document.querySelector('[name="food_sales"]');
         const alcoholInput = document.querySelector('[name="alcohol_sales"]');
         const totalInput = document.querySelector('[name="total_sales"]');
         const percentInput = document.querySelector('[name="Percent_Alcohol"]');
+        
         function strip(value) {
             return parseFloat(value.replace(/[^0-9.-]+/g,"")) || 0;
         }
@@ -378,6 +518,7 @@
             });
             el.addEventListener("input", recalculate);
         });
+
         const websiteInput = document.querySelector('[name="premises_website"]');
         if (websiteInput) websiteInput.setAttribute("type", "text");
 
@@ -389,8 +530,8 @@
             const formData = new FormData(form);
             const formDataObj = Object.fromEntries(formData.entries());
 
-            // Segments: UPDATED TO NEW FILE NAMES
-            const segments = ["Society_FieldNames", "BarAccord125"];
+            // Segments: UPDATED TO INCLUDE BarAccord140
+            const segments = ["Society_FieldNames", "BarAccord125", "BarAccord140"];
 
             // API key: update as needed
             const api_key = "CID9200$";

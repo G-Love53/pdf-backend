@@ -38,7 +38,7 @@ const validateApiKey = (req, res, next) => {
 
 // Gmail transporter setup
 function createGmailTransporter() {
-    return nodemailer.createTransport({
+    return nodemailer.createTransporter({
         service: 'gmail',
         auth: {
             user: process.env.GMAIL_USER || 'quote@barinsurancedirect.com',
@@ -67,7 +67,7 @@ async function sendQuoteToCarriers(filesToZip, formData) {
                     <p><strong>Effective Date:</strong> ${formData.effective_date || 'N/A'}</p>
                     <p><strong>Square Footage:</strong> ${formData.square_footage || 'N/A'}</p>
                     <p><strong>Employees:</strong> ${formData.num_employees || 'N/A'}</p>
-                    ${formData.total_sales ? `<p><strong>Total Sales:</strong> $${formData.total_sales}</p>` : ''}
+                    ${formData.total_sales ? `<p><strong>Total Sales:</strong> ${formData.total_sales}</p>` : ''}
                 </div>
                 
                 <p>Please find the completed application forms attached. We look forward to your competitive quote.</p>
@@ -100,6 +100,27 @@ async function sendQuoteToCarriers(filesToZip, formData) {
         console.error('Email sending failed:', error);
         return { success: false, error: error.message };
     }
+}
+
+// Function to process form data and combine checkbox fields
+function processFormData(formData) {
+    const processed = { ...formData };
+    
+    // Combine Organization Type checkboxes into single field
+    const orgTypes = [];
+    if (formData.org_type_corporation === "Yes") orgTypes.push("Corporation");
+    if (formData.org_type_llc === "Yes") orgTypes.push("LLC");
+    if (formData.org_type_individual === "Yes") orgTypes.push("Individual");
+    processed.organization_type = orgTypes.join(", ");
+    
+    // Combine Construction Type checkboxes into single field
+    const constructionTypes = [];
+    if (formData.construction_frame === "Yes") constructionTypes.push("Frame");
+    if (formData.construction_joist_masonry === "Yes") constructionTypes.push("Joist Masonry");
+    if (formData.construction_masonry === "Yes") constructionTypes.push("Masonry");
+    processed.construction_type = constructionTypes.join(", ");
+    
+    return processed;
 }
 
 // Utility to create FDF for pdftk
@@ -150,6 +171,9 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
             return res.status(400).json({ error: 'Missing formData or segments' });
         }
 
+        // Process form data to combine checkbox fields
+        const processedFormData = processFormData(formData);
+
         // Create temp dir for this request
         const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'pdf-filler-'));
 
@@ -168,8 +192,8 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
                 continue; // Skip segment if mapping missing
             }
 
-            // Create FDF and fill PDF
-            const fdfData = createFDF(formData, mapping);
+            // Create FDF and fill PDF using PROCESSED form data
+            const fdfData = createFDF(processedFormData, mapping);
             try {
                 await fillAndFlattenPDF(templatePath, fdfData, outputPath);
                 filesToZip.push({ path: outputPath, name: `${segment}-filled.pdf` });
@@ -179,7 +203,7 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
             }
         }
 
-        // Send email to carriers if PDFs were created successfully
+        // Send email to carriers if PDFs were created successfully (use original formData for email)
         if (filesToZip.length > 0) {
             const emailResult = await sendQuoteToCarriers(filesToZip, formData);
             console.log('Email sending result:', emailResult);
@@ -227,6 +251,9 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
             return res.status(400).json({ error: 'Missing formData or segments' });
         }
 
+        // Process form data to combine checkbox fields
+        const processedFormData = processFormData(formData);
+
         // Create temp dir for this request
         const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'pdf-filler-'));
 
@@ -245,8 +272,8 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
                 continue;
             }
 
-            // Create FDF and fill PDF
-            const fdfData = createFDF(formData, mapping);
+            // Create FDF and fill PDF using PROCESSED form data
+            const fdfData = createFDF(processedFormData, mapping);
             try {
                 await fillAndFlattenPDF(templatePath, fdfData, outputPath);
                 filesToZip.push({ path: outputPath, name: `${segment}-filled.pdf` });
