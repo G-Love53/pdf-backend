@@ -182,7 +182,7 @@
     <label>4. Square footage:<input name="square_footage" type="text"/></label>
     
     <!-- NEW QUESTIONS 5-9 for BarAccord140 -->
-    <label>5. Business Personal Property in $ (movable items owned, equipment, inventory, furniture):<input name="business_personal_property" type="text" placeholder="$"/></label>
+    <label>5. Business Personal Property in $ (movable items owned, equipment, inventory, furniture):<input name="business_personal_property" type="text" placeholder="Enter amount"/></label>
     
     <label>6. Construction Type:</label>
     <div>
@@ -359,8 +359,8 @@
                 <option value="No">No</option>
             </select>
         </label>
-        <label>Delivery Sales Completed Using Insured Owned or Employee Owned Autos: $
-            <input name="TextField0" type="text"/>
+        <label>Delivery Sales Completed Using Insured Owned or Employee Owned Autos:
+            <input name="TextField0" type="text" placeholder="Enter amount"/>
         </label>
         <label>Do the delivery sales at any one location exceed 20% of the total sales from its/their respective location(s)?
             <select name="ComboBox16" data-conditional="ComboBox16">
@@ -397,12 +397,15 @@
     <!-- Question 18 renumbered to 23 - Auto Coverage -->
     <label>23. If auto coverage is rated:</label>
     <label>Does the insured's business provide shuttle services?
-        <select name="ComboBox19">
+        <select name="ComboBox19" data-conditional="ComboBox19">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
+    <div class="conditional-section" data-show-when="ComboBox19=Yes">
+        <label>If Yes, please explain:<input name="shuttle_explanation" type="text"/></label>
+    </div>
     <label>Are there any additional auto policies in force that would provide coverage for the named insured(s)?
         <select name="ComboBox1">
             <option value="">-- Select --</option>
@@ -497,6 +500,10 @@
         const totalInput = document.querySelector('[name="total_sales"]');
         const percentInput = document.querySelector('[name="Percent_Alcohol"]');
         
+        // NEW: Business Personal Property formatting
+        const bppInput = document.querySelector('[name="business_personal_property"]');
+        const deliveryInput = document.querySelector('[name="TextField0"]');
+        
         function strip(value) {
             return parseFloat(value.replace(/[^0-9.-]+/g,"")) || 0;
         }
@@ -511,6 +518,8 @@
             totalInput.value = format(total);
             percentInput.value = percent.toFixed(2) + "%";
         }
+        
+        // Format food/alcohol sales
         [foodInput, alcoholInput].forEach(el => {
             el.addEventListener("blur", () => {
                 el.value = format(strip(el.value));
@@ -518,6 +527,20 @@
             });
             el.addEventListener("input", recalculate);
         });
+        
+        // Format Business Personal Property
+        if (bppInput) {
+            bppInput.addEventListener("blur", () => {
+                bppInput.value = format(strip(bppInput.value));
+            });
+        }
+        
+        // Format Delivery Sales
+        if (deliveryInput) {
+            deliveryInput.addEventListener("blur", () => {
+                deliveryInput.value = format(strip(deliveryInput.value));
+            });
+        }
 
         const websiteInput = document.querySelector('[name="premises_website"]');
         if (websiteInput) websiteInput.setAttribute("type", "text");
@@ -526,6 +549,7 @@
         const form = document.getElementById("quoteForm");
         form.addEventListener("submit", async function (event) {
             event.preventDefault();
+            event.stopPropagation();
 
             const formData = new FormData(form);
             const formDataObj = Object.fromEntries(formData.entries());
@@ -537,6 +561,12 @@
             const api_key = "CID9200$";
 
             const submitButton = form.querySelector('button[type="submit"]');
+            
+            // Prevent multiple submissions
+            if (submitButton.disabled) {
+                return;
+            }
+            
             submitButton.disabled = true;
             submitButton.textContent = "Submitting...";
 
