@@ -267,7 +267,7 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
     }
 });
 
-// New endpoint to send email only (without ZIP download)
+// Email-only endpoint (no ZIP download)
 app.post('/submit-quote', validateApiKey, async (req, res) => {
     try {
         const { formData, segments } = req.body;
@@ -311,6 +311,9 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
         }
 
         // Send email to carriers
+        console.log(`=== EMAIL ONLY SUBMISSION ===`);
+        console.log(`Sending ${filesToZip.length} PDFs via email only`);
+        
         const emailResult = await sendQuoteToCarriers(filesToZip, formData);
 
         // Clean up files
@@ -326,7 +329,7 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
         if (emailResult.success) {
             res.json({ 
                 success: true, 
-                message: 'Quote submitted successfully',
+                message: 'Quote submitted successfully - email sent to carriers',
                 messageId: emailResult.messageId,
                 pdfsGenerated: filesToZip.length
             });
