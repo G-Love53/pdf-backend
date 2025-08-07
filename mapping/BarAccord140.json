@@ -1,8 +1,8 @@
 {
-  "business_personal_property": "Business_Personal_Property",
+  "business_personal_property": "business_personal_property",
   "construction_type": "construction_type",
   "square_footage": "square_footage",
   "year_built": "year_built",
   "number_of_stories": "number_of_stories",
-  "automatic_sprinkler": "automatic_sprinker"
+  "automatic_sprinkler": "automatic_sprinkler"
 }
