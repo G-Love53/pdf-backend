@@ -348,7 +348,7 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
         }));
         
         const mailOptions = {
-            from: process.env.EMAIL_USER || 'quote@barinsurancedirect.com',
+            from: process.env.GMAIL_USER || 'quote@barinsurancedirect.com',
             to: 'quote@barinsurancedirect.com',
             subject: `Quote Request - ${applicantName} - Bar/Restaurant Insurance`,
             html: emailHtml,
