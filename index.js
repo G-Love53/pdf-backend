@@ -287,8 +287,8 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
                 continue;
             }
             
-            // FIX: Use relative path that works in all environments
-            const templatePath = path.join(__dirname, 'pdf_templates', `${segment}.pdf`);
+            // FIX: Use correct forms folder path where PDFs actually exist
+            const templatePath = path.join(__dirname, 'forms', `${segment}.pdf`);
             const outputPath = `${outputDir}/${segment}-filled.pdf`;
             
             try {
