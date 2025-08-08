@@ -80,6 +80,11 @@
     button:active {
         transform: translateY(0);
     }
+    button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+        transform: none;
+    }
     .small-text {
         font-size: 12px;
         text-align: center;
@@ -455,6 +460,11 @@
 <div class="small-text">© Commercial Insurance Direct LLC, 2025. All rights reserved.</div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // ROBUST GHOST SUBMIT PREVENTION
+        let isSubmitting = false;
+        let lastSubmitTime = 0;
+        const MIN_SUBMIT_INTERVAL = 2000; // 2 seconds between submissions
+        
         // CONDITIONAL LOGIC SYSTEM
         function setupConditionalLogic() {
             const conditionalElements = document.querySelectorAll('[data-conditional]');
@@ -519,58 +529,113 @@
             percentInput.value = percent.toFixed(2) + "%";
         }
         
-        // Format food/alcohol sales
+        // Format food/alcohol sales with debouncing to prevent ghost submits
+        let formatTimeout;
         [foodInput, alcoholInput].forEach(el => {
             el.addEventListener("blur", () => {
-                el.value = format(strip(el.value));
-                recalculate();
+                clearTimeout(formatTimeout);
+                formatTimeout = setTimeout(() => {
+                    el.value = format(strip(el.value));
+                    recalculate();
+                }, 100);
             });
-            el.addEventListener("input", recalculate);
+            el.addEventListener("input", () => {
+                clearTimeout(formatTimeout);
+                formatTimeout = setTimeout(() => {
+                    recalculate();
+                }, 300);
+            });
+            // Prevent Enter key from submitting on these fields
+            el.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    el.blur();
+                }
+            });
         });
         
         // Format Business Personal Property
         if (bppInput) {
             bppInput.addEventListener("blur", () => {
-                bppInput.value = format(strip(bppInput.value));
+                clearTimeout(formatTimeout);
+                formatTimeout = setTimeout(() => {
+                    bppInput.value = format(strip(bppInput.value));
+                }, 100);
+            });
+            bppInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    bppInput.blur();
+                }
             });
         }
         
         // Format Delivery Sales
         if (deliveryInput) {
             deliveryInput.addEventListener("blur", () => {
-                deliveryInput.value = format(strip(deliveryInput.value));
+                clearTimeout(formatTimeout);
+                formatTimeout = setTimeout(() => {
+                    deliveryInput.value = format(strip(deliveryInput.value));
+                }, 100);
+            });
+            deliveryInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    deliveryInput.blur();
+                }
             });
         }
 
         const websiteInput = document.querySelector('[name="premises_website"]');
         if (websiteInput) websiteInput.setAttribute("type", "text");
 
-        // --- AJAX FORM SUBMIT SECTION ---
+        // PREVENT ENTER KEY SUBMITS ON ALL INPUTS
+        document.querySelectorAll('input, select, textarea').forEach(input => {
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && input.type !== 'submit') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            });
+        });
+
+        // --- ROBUST AJAX FORM SUBMIT SECTION ---
         const form = document.getElementById("quoteForm");
+        const submitButton = form.querySelector('button[type="submit"]');
+        
         form.addEventListener("submit", async function (event) {
             event.preventDefault();
             event.stopPropagation();
+            event.stopImmediatePropagation();
 
-            const formData = new FormData(form);
-            const formDataObj = Object.fromEntries(formData.entries());
-
-            // Segments: UPDATED TO INCLUDE BarAccord140
-            const segments = ["Society_FieldNames", "BarAccord125", "BarAccord140"];
-
-            // API key: update as needed
-            const api_key = "CID9200$";
-
-            const submitButton = form.querySelector('button[type="submit"]');
+            const currentTime = Date.now();
             
-            // Prevent multiple submissions
-            if (submitButton.disabled) {
-                return;
+            // Check if we're already submitting or too soon since last submit
+            if (isSubmitting || (currentTime - lastSubmitTime) < MIN_SUBMIT_INTERVAL) {
+                console.log("Duplicate submit blocked");
+                return false;
             }
             
+            // Set submission state
+            isSubmitting = true;
+            lastSubmitTime = currentTime;
             submitButton.disabled = true;
             submitButton.textContent = "Submitting...";
 
             try {
+                const formData = new FormData(form);
+                const formDataObj = Object.fromEntries(formData.entries());
+
+                // Segments: UPDATED TO INCLUDE BarAccord140
+                const segments = ["Society_FieldNames", "BarAccord125", "BarAccord140"];
+
+                // API key: update as needed
+                const api_key = "CID9200$";
+
                 const response = await fetch("https://cid-pdf-api.onrender.com/submit-quote", {
                     method: "POST",
                     headers: {
@@ -592,9 +657,14 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    alert("Quote submitted successfully! We'll be in touch soon.");
-                    // Redirect to thank you page
-                    window.location.href = "thankyou.html";
+                    // Disable form completely before redirect
+                    form.style.pointerEvents = 'none';
+                    submitButton.textContent = "Redirecting...";
+                    
+                    // Brief delay to prevent rapid clicks
+                    setTimeout(() => {
+                        window.location.href = "thankyou.html";
+                    }, 500);
                 } else {
                     alert("Error: " + (result.error || "Unknown error occurred"));
                 }
@@ -602,11 +672,28 @@
             } catch (err) {
                 alert("Submission failed: " + err.message);
             } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = "Submit";
+                // Reset submission state only if we're not redirecting
+                setTimeout(() => {
+                    isSubmitting = false;
+                    submitButton.disabled = false;
+                    submitButton.textContent = "Submit";
+                }, 3000);
             }
+            
+            return false;
         });
-        // --- END AJAX FORM SUBMIT SECTION ---
+        
+        // Block any programmatic submissions
+        form.addEventListener("submit", function(e) {
+            if (isSubmitting) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
+            }
+        }, true);
+        
+        // --- END ROBUST AJAX FORM SUBMIT SECTION ---
     });
 </script>
 </body>
