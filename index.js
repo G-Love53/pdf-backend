@@ -88,8 +88,8 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: process.env.EMAIL_USER || 'quote@barinsurancedirect.com',
-        pass: process.env.EMAIL_PASS || 'vamo bryx gjvo ngco'
+        user: process.env.GMAIL_USER || 'quote@barinsurancedirect.com',
+        pass: process.env.GMAIL_APP_PASSWORD || 'vamo bryx gjvo ngco'
     }
 });
 
