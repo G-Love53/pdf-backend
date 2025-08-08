@@ -88,8 +88,8 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: process.env.EMAIL_USER || 'your-email@gmail.com',
-        pass: process.env.EMAIL_PASS || 'your-app-password'
+        user: process.env.EMAIL_USER || 'quote@barinsurancedirect.com',
+        pass: process.env.EMAIL_PASS || 'vamo bryx gjvo ngco'
     }
 });
 
@@ -348,7 +348,7 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
         }));
         
         const mailOptions = {
-            from: process.env.EMAIL_USER || 'noreply@barinsurancedirect.com',
+            from: process.env.EMAIL_USER || 'quote@barinsurancedirect.com',
             to: 'quote@barinsurancedirect.com',
             subject: `Quote Request - ${applicantName} - Bar/Restaurant Insurance`,
             html: emailHtml,
