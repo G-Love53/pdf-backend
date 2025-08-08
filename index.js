@@ -24,64 +24,6 @@ function validateApiKey(req, res, next) {
     next();
 }
 
-// CHARACTER ENCODING SANITIZATION FUNCTION
-function sanitizeText(text) {
-    if (!text || typeof text !== 'string') return text;
-    
-    return text
-        // Fix smart quotes and apostrophes
-        .replace(/['']/g, "'")
-        .replace(/[""]/g, '"')
-        .replace(/[""]/g, '"')
-        
-        // Fix dashes
-        .replace(/[—–]/g, '-')
-        
-        // Fix common problematic characters
-        .replace(/…/g, '...')
-        .replace(/©/g, '(c)')
-        .replace(/®/g, '(R)')
-        .replace(/™/g, '(TM)')
-        
-        // Normalize Unicode and remove combining characters
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        
-        // Remove any remaining non-ASCII characters that might cause issues
-        .replace(/[^\x00-\x7F]/g, function(char) {
-            // Keep common characters, replace others with safe equivalents
-            const charCode = char.charCodeAt(0);
-            if (charCode === 160) return ' '; // Non-breaking space
-            if (charCode >= 8192 && charCode <= 8303) return ' '; // Various spaces
-            return ''; // Remove other problematic characters
-        })
-        
-        // Clean up multiple spaces
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
-// COMPREHENSIVE FORM DATA SANITIZATION
-function sanitizeFormData(formData) {
-    const sanitized = {};
-    
-    Object.keys(formData).forEach(key => {
-        const value = formData[key];
-        
-        if (typeof value === 'string') {
-            sanitized[key] = sanitizeText(value);
-        } else if (Array.isArray(value)) {
-            sanitized[key] = value.map(item => 
-                typeof item === 'string' ? sanitizeText(item) : item
-            );
-        } else {
-            sanitized[key] = value;
-        }
-    });
-    
-    return sanitized;
-}
-
 // Email configuration
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -93,7 +35,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// PDF Field Mappings (unchanged)
+// PDF Field Mappings
 const pdfMappings = {
     Society_FieldNames: {
         "Text1": "applicant_name",
@@ -191,7 +133,7 @@ const pdfMappings = {
     }
 };
 
-// Fill PDF function (unchanged except for error handling)
+// Fill PDF function
 async function fillPDF(templatePath, outputPath, fieldMappings, formData) {
     return new Promise((resolve, reject) => {
         const fdfData = Object.entries(fieldMappings)
@@ -255,22 +197,11 @@ trailer
 // Main quote submission endpoint
 app.post('/submit-quote', validateApiKey, async (req, res) => {
     try {
-        const { formData: rawFormData, segments } = req.body;
+        const { formData, segments } = req.body;
         
-        if (!rawFormData || !segments || !Array.isArray(segments)) {
+        if (!formData || !segments || !Array.isArray(segments)) {
             return res.status(400).json({ error: 'Missing formData or segments' });
         }
-
-        // SANITIZE ALL FORM DATA FOR CHARACTER ENCODING
-        console.log('Sanitizing form data for character encoding...');
-        const formData = sanitizeFormData(rawFormData);
-        
-        // Log the sanitization results for debugging
-        Object.keys(rawFormData).forEach(key => {
-            if (rawFormData[key] !== formData[key]) {
-                console.log(`Sanitized ${key}: "${rawFormData[key]}" -> "${formData[key]}"`);
-            }
-        });
 
         const applicantName = formData.applicant_name || 'Unknown';
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -287,7 +218,6 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
                 continue;
             }
             
-            // FIX: Use correct forms folder path where PDFs actually exist
             const templatePath = path.join(__dirname, 'forms', `${segment}.pdf`);
             const outputPath = `${outputDir}/${segment}-filled.pdf`;
             
@@ -371,8 +301,7 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
         res.json({ 
             success: true, 
             message: 'Quote submitted successfully',
-            generatedSegments: segments,
-            sanitizedFields: Object.keys(rawFormData).filter(key => rawFormData[key] !== formData[key])
+            generatedSegments: segments
         });
         
     } catch (error) {
@@ -389,7 +318,7 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'ok', 
         timestamp: new Date().toISOString(),
-        version: '2.1.0-encoding-fixed'
+        version: '2.0.0-clean'
     });
 });
 
@@ -397,7 +326,7 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
     res.json({ 
         message: 'Commercial Insurance Direct - PDF API Server',
-        version: '2.1.0-encoding-fixed',
+        version: '2.0.0-clean',
         endpoints: ['/submit-quote', '/health']
     });
 });
@@ -414,7 +343,6 @@ app.use((error, req, res, next) => {
 // Start server
 app.listen(PORT, () => {
     console.log(`🚀 CID PDF API Server running on port ${PORT}`);
-    console.log(`📧 Character encoding sanitization enabled`);
     console.log(`🔑 API Key validation: ${VALID_API_KEY ? 'ENABLED' : 'DISABLED'}`);
 });
 
