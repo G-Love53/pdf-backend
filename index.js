@@ -36,194 +36,24 @@ const validateApiKey = (req, res, next) => {
     next();
 };
 
-// CLEAN EMAIL LABEL SYSTEM
-const LABELS = {
-    applicant_name: "Applicant Name",
-    premises_name: "Premises Name", 
-    premise_address: "Address",
-    business_phone: "Phone",
-    contact_email: "Email",
-    effective_date: "Effective Date",
-    square_footage: "Square Footage",
-    num_employees: "Employees",
-    total_sales: "Total Sales",
-    Percent_Alcohol: "% Alcohol",
-};
-
-// Helper to format key/value into rows
-function toRows(formData) {
-    const rows = [];
-    for (const [key, value] of Object.entries(formData)) {
-        if (!value) continue;
-        if (!LABELS[key]) continue; // only include the fields we want
-        rows.push({ label: LABELS[key], value: String(value) });
-    }
-    return rows;
-}
-
-// Build subject + HTML body
-function buildEmail(formData) {
-    const name = formData.applicant_name || formData.premises_name || "New Applicant";
-    const subject = `Commercial Insurance Quote Request — ${name}`;
-    const rows = toRows(formData)
-        .map(r => `<tr><td style="padding:6px 10px;font-weight:600;">${r.label}</td><td style="padding:6px 10px;">${r.value}</td></tr>`)
-        .join("");
-    const html = `
-        <div style="font-family:Arial,Helvetica,sans-serif;">
-            <h2 style="color:#ff8c00;">Commercial Insurance Quote Request</h2>
-            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border:1px solid #eee;border-radius:8px;">
-                ${rows}
-            </table>
-            <p style="margin-top:16px;color:#333;">Please find the completed application forms attached.</p>
-            <div style="margin-top:20px;color:#666;font-size:12px;">
-                © Commercial Insurance Direct LLC • quote@barinsurancedirect.com
-            </div>
-        </div>`;
-    return { subject, html };
-}
-
-// BREVO INTEGRATION FUNCTIONS
-async function addContactToBrevo(formData, segments) {
-    try {
-        // Only add to Brevo if this is a Bar submission
-        const isBarSubmission = segments.some(segment => 
-            ['Society_FieldNames', 'BarAccord125', 'BarAccord140'].includes(segment)
-        );
-
-        if (!isBarSubmission) {
-            console.log('Not a bar submission, skipping Brevo');
-            return { success: true, message: 'Not a bar submission' };
-        }
-
-        const brevoData = {
-            email: formData.contact_email,
-            attributes: {
-                FIRSTNAME: formData.applicant_name?.split(' ')[0] || '',
-                LASTNAME: formData.applicant_name?.split(' ').slice(1).join(' ') || '',
-                BUSINESS_NAME: formData.applicant_name || '',
-                PREMISES_NAME: formData.premises_name || '',
-                ADDRESS: formData.premise_address || '',
-                PHONE: formData.business_phone || '',
-                SQUARE_FOOTAGE: formData.square_footage || '',
-                EMPLOYEES: formData.num_employees || '',
-                TOTAL_SALES: formData.total_sales || '',
-                EFFECTIVE_DATE: formData.effective_date || '',
-                SUBMISSION_DATE: new Date().toISOString()
-            },
-            listIds: [3], // Your test list ID
-            updateEnabled: true
-        };
-
-        const response = await fetch('https://api.brevo.com/v3/contacts', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'api-key': process.env.BREVO_API_KEY
-            },
-            body: JSON.stringify(brevoData)
-        });
-
-        if (response.ok) {
-            const result = await response.json();
-            console.log('✅ Contact added to Brevo:', formData.contact_email);
-            return { success: true, contactId: result.id };
-        } else {
-            const error = await response.text();
-            console.error('❌ Brevo API error:', error);
-            return { success: false, error: error };
-        }
-
-    } catch (error) {
-        console.error('❌ Brevo integration error:', error.message);
-        return { success: false, error: error.message };
-    }
-}
-
-async function sendBrevoEmail(filesToZip, formData) {
-    try {
-        // Only send Brevo email for Bar submissions
-        const isBarSubmission = filesToZip.some(file => 
-            file.name.includes('Society') || file.name.includes('BarAccord')
-        );
-
-        if (!isBarSubmission) {
-            console.log('Not a bar submission, using Gmail');
-            return await sendGmailEmail(filesToZip, formData);
-        }
-
-        // Convert file attachments to base64 for Brevo
-        const attachments = [];
-        for (const file of filesToZip) {
-            const fileContent = await fs.readFile(file.path);
-            attachments.push({
-                name: file.name,
-                content: fileContent.toString('base64')
-            });
-        }
-
-        // Clean email generation using your label system
-        const { subject, html } = buildEmail(formData);
-
-        const emailData = {
-            sender: {
-                name: "Commercial Insurance Direct",
-                email: "quote@barinsurancedirect.com"
-            },
-            to: [
-                {
-                    email: process.env.CARRIER_EMAIL || 'quote@barinsurancedirect.com',
-                    name: "Quote Department"
-                }
-            ],
-            subject: subject,
-            htmlContent: html,
-            attachment: attachments
-        };
-
-        const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'api-key': process.env.BREVO_API_KEY
-            },
-            body: JSON.stringify(emailData)
-        });
-
-        if (response.ok) {
-            const result = await response.json();
-            console.log('✅ Email sent via Brevo:', result.messageId);
-            return { success: true, messageId: result.messageId, provider: 'Brevo' };
-        } else {
-            const error = await response.text();
-            console.error('❌ Brevo email failed, falling back to Gmail:', error);
-            // Fallback to Gmail if Brevo fails
-            return await sendGmailEmail(filesToZip, formData);
-        }
-
-    } catch (error) {
-        console.error('❌ Brevo email error, falling back to Gmail:', error.message);
-        // Fallback to Gmail if Brevo fails
-        return await sendGmailEmail(filesToZip, formData);
-    }
-}
-
-// Gmail transporter setup (FALLBACK)
+// Gmail transporter setup
 function createGmailTransporter() {
     return nodemailer.createTransport({
         service: 'gmail',
         auth: {
             user: process.env.GMAIL_USER || 'quote@barinsurancedirect.com',
-            pass: process.env.GMAIL_APP_PASSWORD
+            pass: process.env.GMAIL_APP_PASSWORD // Gmail App Password
         }
     });
 }
 
-// Gmail email function (FALLBACK)
-async function sendGmailEmail(filesToZip, formData) {
+// Email sending function
+async function sendQuoteToCarriers(filesToZip, formData) {
     try {
-        console.log('📧 Sending via Gmail fallback...');
+        console.log('Starting email send process...');
         const transporter = createGmailTransporter();
         
+        // Create professional email content
         const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #ff8c00;">Commercial Insurance Quote Request</h2>
@@ -263,29 +93,20 @@ async function sendGmailEmail(filesToZip, formData) {
             }))
         };
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log('✅ Email sent via Gmail:', info.messageId);
-        return { success: true, messageId: info.messageId, provider: 'Gmail' };
-        
-    } catch (error) {
-        console.error('❌ Gmail email failed:', error.message);
-        return { success: false, error: error.message };
-    }
-}
+        console.log('Email config:', {
+            from: mailOptions.from,
+            to: mailOptions.to,
+            subject: mailOptions.subject,
+            attachmentCount: mailOptions.attachments.length
+        });
 
-// MAIN EMAIL FUNCTION - Routes to Brevo or Gmail
-async function sendQuoteToCarriers(filesToZip, formData) {
-    try {
-        console.log('🚀 Starting email send process...');
-        
-        // Try Brevo first for Bar submissions, Gmail for others
-        const emailResult = await sendBrevoEmail(filesToZip, formData);
-        
-        console.log(`📧 Email sent via ${emailResult.provider || 'Unknown'}:`, emailResult.messageId);
-        return emailResult;
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Email sent successfully:', info.messageId);
+        return { success: true, messageId: info.messageId };
         
     } catch (error) {
-        console.error('❌ Email sending failed:', error.message);
+        console.error('Email sending failed:', error.message);
+        console.error('Full error:', error);
         return { success: false, error: error.message };
     }
 }
@@ -377,7 +198,7 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
                 mapping = JSON.parse(await fs.readFile(mappingPath, 'utf-8'));
             } catch (err) {
                 console.error(`Mapping not found for ${segment}:`, err);
-                continue;
+                continue; // Skip segment if mapping missing
             }
 
             // Create FDF and fill PDF using PROCESSED form data
@@ -387,25 +208,29 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
                 filesToZip.push({ path: outputPath, name: `${segment}-filled.pdf` });
             } catch (err) {
                 console.error(`Error filling ${segment}:`, err);
+                // Continue to next segment
             }
         }
 
-        // Send email to carriers if PDFs were created successfully
+        // Send email to carriers if PDFs were created successfully (use original formData for email)
         if (filesToZip.length > 0) {
-            console.log(`🎯 Processing ${segments.join(', ')} submission`);
+            console.log(`=== EMAIL DEBUG START ===`);
+            console.log(`Attempting to send email with ${filesToZip.length} PDFs`);
+            console.log('PDF files:', filesToZip.map(f => ({ name: f.name, exists: require('fs').existsSync(f.path) })));
             
             try {
                 const emailResult = await sendQuoteToCarriers(filesToZip, formData);
-                console.log('📧 Email result:', emailResult);
+                console.log('Email sending result:', emailResult);
                 
                 if (!emailResult.success) {
-                    console.error('❌ EMAIL FAILED:', emailResult.error);
+                    console.error('EMAIL FAILED:', emailResult.error);
                 }
             } catch (emailError) {
-                console.error('❌ EMAIL EXCEPTION:', emailError);
+                console.error('EMAIL EXCEPTION:', emailError);
             }
+            console.log(`=== EMAIL DEBUG END ===`);
         } else {
-            console.log('❌ No PDFs generated, skipping email');
+            console.log('No PDFs generated, skipping email');
         }
 
         // Set ZIP response headers
@@ -429,6 +254,7 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
                 }
                 await fs.rmdir(tempDir);
             } catch (err) {
+                // Log but don't block
                 console.error('Cleanup error:', err);
             }
         });
@@ -441,15 +267,13 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
     }
 });
 
-// Email-only endpoint (no ZIP download) - ENHANCED WITH BREVO
+// New endpoint to send email only (without ZIP download)
 app.post('/submit-quote', validateApiKey, async (req, res) => {
     try {
         const { formData, segments } = req.body;
         if (!formData || !Array.isArray(segments) || segments.length === 0) {
             return res.status(400).json({ error: 'Missing formData or segments' });
         }
-
-        console.log(`🎯 Processing quote submission: ${segments.join(', ')}`);
 
         // Process form data to combine checkbox fields
         const processedFormData = processFormData(formData);
@@ -486,13 +310,7 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
             return res.status(400).json({ error: 'No PDFs were generated successfully' });
         }
 
-        // BREVO INTEGRATION: Add contact to Brevo list
-        console.log('📝 Adding contact to Brevo...');
-        const brevoContactResult = await addContactToBrevo(formData, segments);
-        console.log('📝 Brevo contact result:', brevoContactResult);
-
         // Send email to carriers
-        console.log('📧 Sending email to carriers...');
         const emailResult = await sendQuoteToCarriers(filesToZip, formData);
 
         // Clean up files
@@ -510,15 +328,12 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
                 success: true, 
                 message: 'Quote submitted successfully',
                 messageId: emailResult.messageId,
-                emailProvider: emailResult.provider,
-                pdfsGenerated: filesToZip.length,
-                brevoContact: brevoContactResult.success ? 'Added' : 'Failed'
+                pdfsGenerated: filesToZip.length
             });
         } else {
             res.status(500).json({ 
                 error: 'PDFs generated but email failed', 
-                emailError: emailResult.error,
-                brevoContact: brevoContactResult.success ? 'Added' : 'Failed'
+                emailError: emailResult.error 
             });
         }
 
@@ -541,8 +356,7 @@ app.use((err, req, res, next) => {
 
 // Start server
 app.listen(port, () => {
-    console.log(`🚀 Server running on port ${port}`);
-    console.log(`📧 Brevo integration: ${process.env.BREVO_API_KEY ? 'ENABLED' : 'DISABLED'}`);
+    console.log(`Server running on port ${port}`);
 });
 
 // Handle unhandled promise rejections and uncaught exceptions
