@@ -110,23 +110,39 @@ async function sendQuoteToCarriers(filesToZip, formData) {
         return { success: false, error: error.message };
     }
 }
-
+// Function to sanitize apostrophe encoding issues
+function sanitizeFormData(formData) {
+    const sanitized = { ...formData };
+    
+    for (const [key, value] of Object.entries(sanitized)) {
+        if (typeof value === 'string') {
+            // ONLY fix apostrophe encoding issues
+            sanitized[key] = value
+                .replace(/['']/g, "'")        // Smart quotes to regular apostrophe
+                .replace(/â•Ž/g, "'");        // Fix the specific encoding you're seeing
+        }
+    }
+    
+    return sanitized;
+}
 // Function to process form data and combine checkbox fields
 function processFormData(formData) {
-    const processed = { ...formData };
+    // First sanitize apostrophes, then process
+const sanitized = sanitizeFormData(formData);
+const processed = { ...sanitized };
     
     // Combine Organization Type checkboxes into single field
     const orgTypes = [];
-    if (formData.org_type_corporation === "Yes") orgTypes.push("Corporation");
-    if (formData.org_type_llc === "Yes") orgTypes.push("LLC");
-    if (formData.org_type_individual === "Yes") orgTypes.push("Individual");
+    if (processed.org_type_corporation === "Yes") orgTypes.push("Corporation");
+    if (processed.org_type_llc === "Yes") orgTypes.push("LLC");
+    if (processed.org_type_individual === "Yes") orgTypes.push("Individual");
     processed.organization_type = orgTypes.join(", ");
     
     // Combine Construction Type checkboxes into single field
     const constructionTypes = [];
-    if (formData.construction_frame === "Yes") constructionTypes.push("Frame");
-    if (formData.construction_joist_masonry === "Yes") constructionTypes.push("Joist Masonry");
-    if (formData.construction_masonry === "Yes") constructionTypes.push("Masonry");
+    if (processed.construction_frame === "Yes") constructionTypes.push("Frame");
+    if (processed.construction_joist_masonry === "Yes") constructionTypes.push("Joist Masonry");
+    if (processed.construction_masonry === "Yes") constructionTypes.push("Masonry");
     processed.construction_type = constructionTypes.join(", ");
     
     return processed;
