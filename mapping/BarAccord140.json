@@ -4,5 +4,6 @@
   "square_footage": "square_footage",
   "year_built": "year_built",
   "number_of_stories": "number_of_stories",
-  "automatic_sprinkler": "automatic_sprinkler"
+  "automatic_sprinkler": "automatic_sprinkler",
+  "effective_date": "effective_date"
 }

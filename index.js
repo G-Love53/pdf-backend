@@ -152,21 +152,27 @@ const processed = { ...sanitized };
 function createFDF(formData, mapping) {
     let fdf = `%FDF-1.2
 1 0 obj
-<<
+
 /FDF
-<<
+
 /Fields [
 `;
-    for (const [formField, pdfField] of Object.entries(mapping)) {
+    for (const [formField, pdfFields] of Object.entries(mapping)) {
         const value = formData[formField] || '';
-        fdf += `<< /T (${pdfField}) /V (${value}) >>\n`;
+        
+        // Handle both single field and array of fields
+        const fieldsToFill = Array.isArray(pdfFields) ? pdfFields : [pdfFields];
+        
+        fieldsToFill.forEach(pdfField => {
+            fdf += `<< /T (${pdfField}) /V (${value}) >>\n`;
+        });
     }
     fdf += `]
 >>
 >>
 endobj
 trailer
-<<
+
 /Root 1 0 R
 >>
 %%EOF
