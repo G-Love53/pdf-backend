@@ -148,13 +148,13 @@ const processed = { ...sanitized };
     return processed;
 }
 
-// Utility to create FDF for pdftk
+// Fixed createFDF function with proper array handling
 function createFDF(formData, mapping) {
     let fdf = `%FDF-1.2
 1 0 obj
-
+<<
 /FDF
-
+<<
 /Fields [
 `;
     for (const [formField, pdfFields] of Object.entries(mapping)) {
@@ -164,7 +164,15 @@ function createFDF(formData, mapping) {
         const fieldsToFill = Array.isArray(pdfFields) ? pdfFields : [pdfFields];
         
         fieldsToFill.forEach(pdfField => {
-            fdf += `<< /T (${pdfField}) /V (${value}) >>\n`;
+            // Escape special characters in values that could break FDF syntax
+            const escapedValue = value.toString()
+                .replace(/\\/g, '\\\\')    // Escape backslashes
+                .replace(/\(/g, '\\(')     // Escape opening parentheses
+                .replace(/\)/g, '\\)')     // Escape closing parentheses
+                .replace(/\r/g, '')        // Remove carriage returns
+                .replace(/\n/g, ' ');      // Replace newlines with spaces
+            
+            fdf += `<< /T (${pdfField}) /V (${escapedValue}) >>\n`;
         });
     }
     fdf += `]
@@ -172,7 +180,7 @@ function createFDF(formData, mapping) {
 >>
 endobj
 trailer
-
+<<
 /Root 1 0 R
 >>
 %%EOF
