@@ -16,6 +16,7 @@ app.use(cors({
     origin: [
         "https://barinsurancedirect.com",
         "https://barinsurancedirect.netlify.app",
+        "https://roofingcontractorinsurancedirect.com",
         "http://localhost:8888"
     ],
     methods: ['GET', 'POST', 'OPTIONS'],
