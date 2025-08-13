@@ -23,7 +23,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'X-API-Key', 'Origin', 'X-Requested-With', 'Accept'],
     credentials: true
 }));
-// EMAIL CONFIG - Add this after your imports in the actual server.js file
+
+// EMAIL CONFIG - Segment-specific email settings
 const EMAIL_CONFIG = {
     'roofing-supplemental': {
         from: 'quote@roofingcontractorinsurancedirect.com',
@@ -41,7 +42,6 @@ const EMAIL_CONFIG = {
         from: 'quote@barinsurancedirect.com',
         subject: 'Quote Request - {applicant_name} - Bar/Restaurant Insurance'
     },
-    // Future segments ready:
     'trucking': {
         from: 'quote@truckinginsurancedirect.com',
         subject: 'Quote Request - {applicant_name} - Trucking Insurance'
@@ -54,31 +54,42 @@ const EMAIL_CONFIG = {
 
 // Function to get email config based on segments
 function getEmailConfig(segments) {
-    // Find the first segment that has email config
     for (const segment of segments) {
         if (EMAIL_CONFIG[segment]) {
             return EMAIL_CONFIG[segment];
         }
     }
-    // Default fallback
     return {
         from: 'quote@barinsurancedirect.com',
         subject: 'Quote Request - {applicant_name} - Commercial Insurance'
     };
 }
 
-// Updated Gmail transporter to accept dynamic email
+// Middleware for parsing JSON
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// API key validation middleware
+const validateApiKey = (req, res, next) => {
+    const apiKey = req.header('X-API-Key');
+    if (!apiKey || apiKey !== 'CID9200$') {
+        return res.status(401).json({ error: 'Invalid API key' });
+    }
+    next();
+};
+
+// Gmail transporter setup with dynamic email
 function createGmailTransporter(fromEmail) {
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
         service: 'gmail',
         auth: {
             user: fromEmail,
-            pass: process.env.GMAIL_APP_PASSWORD // Same app password works for all
+            pass: process.env.GMAIL_APP_PASSWORD
         }
     });
 }
 
-// Updated email sending function with segment-specific logic
+// Email sending function with segment-specific logic
 async function sendQuoteToCarriers(filesToZip, formData, segments) {
     try {
         console.log('Starting email send process...');
@@ -90,7 +101,7 @@ async function sendQuoteToCarriers(filesToZip, formData, segments) {
         // Replace placeholder in subject
         const subject = emailConfig.subject.replace('{applicant_name}', formData.applicant_name || 'New Application');
         
-        // Create professional email content (same as before)
+        // Create professional email content
         const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #ff8c00;">Commercial Insurance Quote Request</h2>
@@ -120,7 +131,7 @@ async function sendQuoteToCarriers(filesToZip, formData, segments) {
 
         const mailOptions = {
             from: emailConfig.from,
-            to: process.env.CARRIER_EMAIL || emailConfig.from, // Send to carriers or self for testing
+            to: process.env.CARRIER_EMAIL || emailConfig.from,
             subject: subject,
             html: emailHtml,
             attachments: filesToZip.map(file => ({
@@ -149,125 +160,25 @@ async function sendQuoteToCarriers(filesToZip, formData, segments) {
     }
 }
 
-// Update both endpoints to pass segments to email function:
-
-// In /fill-multiple endpoint, change this line:
-// FROM: const emailResult = await sendQuoteToCarriers(filesToZip, formData);
-// TO:
-const emailResult = await sendQuoteToCarriers(filesToZip, formData, segments);
-
-// In /submit-quote endpoint, change this line:
-// FROM: const emailResult = await sendQuoteToCarriers(filesToZip, formData);
-// TO:
-const emailResult = await sendQuoteToCarriers(filesToZip, formData, segments);
-
-// Middleware for parsing JSON
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// API key validation middleware
-const validateApiKey = (req, res, next) => {
-    const apiKey = req.header('X-API-Key');
-    if (!apiKey || apiKey !== 'CID9200$') {
-        return res.status(401).json({ error: 'Invalid API key' });
-    }
-    next();
-};
-
-// Gmail transporter setup
-function createGmailTransporter() {
-    return nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.GMAIL_USER || 'quote@barinsurancedirect.com',
-            pass: process.env.GMAIL_APP_PASSWORD // Gmail App Password
-        }
-    });
-}
-
-// Email sending function
-async function sendQuoteToCarriers(filesToZip, formData) {
-    try {
-        console.log('Starting email send process...');
-        const transporter = createGmailTransporter();
-        
-        // Create professional email content
-        const emailHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #ff8c00;">Commercial Insurance Quote Request</h2>
-                
-                <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
-                    <h3 style="margin-top: 0; color: #333;">Applicant Information:</h3>
-                    <p><strong>Business Name:</strong> ${formData.applicant_name || 'N/A'}</p>
-                    <p><strong>Premises Name:</strong> ${formData.premises_name || 'N/A'}</p>
-                    <p><strong>Address:</strong> ${formData.premise_address || 'N/A'}</p>
-                    <p><strong>Phone:</strong> ${formData.business_phone || 'N/A'}</p>
-                    <p><strong>Email:</strong> ${formData.contact_email || 'N/A'}</p>
-                    <p><strong>Effective Date:</strong> ${formData.effective_date || 'N/A'}</p>
-                    <p><strong>Square Footage:</strong> ${formData.square_footage || 'N/A'}</p>
-                    <p><strong>Employees:</strong> ${formData.num_employees || 'N/A'}</p>
-                    ${formData.total_sales ? `<p><strong>Total Sales:</strong> ${formData.total_sales}</p>` : ''}
-                </div>
-                
-                <p>Please find the completed application forms attached. We look forward to your competitive quote.</p>
-                
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-                    <p><strong>Commercial Insurance Direct LLC</strong><br>
-                    Phone: (303) 932-1700<br>
-                    Email: quote@barinsurancedirect.com</p>
-                </div>
-            </div>
-        `;
-
-        const mailOptions = {
-            from: process.env.GMAIL_USER || 'quote@barinsurancedirect.com',
-            to: process.env.CARRIER_EMAIL || 'quote@barinsurancedirect.com',
-            subject: `Quote Request - ${formData.applicant_name || 'New Application'} - Bar/Restaurant Insurance`,
-            html: emailHtml,
-            attachments: filesToZip.map(file => ({
-                filename: file.name,
-                path: file.path,
-                contentType: 'application/pdf'
-            }))
-        };
-
-        console.log('Email config:', {
-            from: mailOptions.from,
-            to: mailOptions.to,
-            subject: mailOptions.subject,
-            attachmentCount: mailOptions.attachments.length
-        });
-
-        const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent successfully:', info.messageId);
-        return { success: true, messageId: info.messageId };
-        
-    } catch (error) {
-        console.error('Email sending failed:', error.message);
-        console.error('Full error:', error);
-        return { success: false, error: error.message };
-    }
-}
 // Function to sanitize apostrophe encoding issues
 function sanitizeFormData(formData) {
     const sanitized = { ...formData };
     
     for (const [key, value] of Object.entries(sanitized)) {
         if (typeof value === 'string') {
-            // ONLY fix apostrophe encoding issues
             sanitized[key] = value
-                .replace(/['']/g, "'")        // Smart quotes to regular apostrophe
-                .replace(/â•Ž/g, "'");        // Fix the specific encoding you're seeing
+                .replace(/['']/g, "'")
+                .replace(/â•Ž/g, "'");
         }
     }
     
     return sanitized;
 }
+
 // Function to process form data and combine checkbox fields
 function processFormData(formData) {
-    // First sanitize apostrophes, then process
-const sanitized = sanitizeFormData(formData);
-const processed = { ...sanitized };
+    const sanitized = sanitizeFormData(formData);
+    const processed = { ...sanitized };
     
     // Combine Organization Type checkboxes into single field
     const orgTypes = [];
@@ -298,17 +209,15 @@ function createFDF(formData, mapping) {
     for (const [formField, pdfFields] of Object.entries(mapping)) {
         const value = formData[formField] || '';
         
-        // Handle both single field and array of fields
         const fieldsToFill = Array.isArray(pdfFields) ? pdfFields : [pdfFields];
         
         fieldsToFill.forEach(pdfField => {
-            // Escape special characters in values that could break FDF syntax
             const escapedValue = value.toString()
-                .replace(/\\/g, '\\\\')    // Escape backslashes
-                .replace(/\(/g, '\\(')     // Escape opening parentheses
-                .replace(/\)/g, '\\)')     // Escape closing parentheses
-                .replace(/\r/g, '')        // Remove carriage returns
-                .replace(/\n/g, ' ');      // Replace newlines with spaces
+                .replace(/\\/g, '\\\\')
+                .replace(/\(/g, '\\(')
+                .replace(/\)/g, '\\)')
+                .replace(/\r/g, '')
+                .replace(/\n/g, ' ');
             
             fdf += `<< /T (${pdfField}) /V (${escapedValue}) >>\n`;
         });
@@ -332,7 +241,6 @@ async function fillAndFlattenPDF(pdfTemplate, fdfData, outputPath) {
     await fs.writeFile(fdfPath, fdfData);
     return new Promise((resolve, reject) => {
         execFile('pdftk', [pdfTemplate, 'fill_form', fdfPath, 'output', outputPath, 'flatten'], (err) => {
-            // Always clean up FDF even on error
             fs.unlink(fdfPath).catch(() => {});
             if (err) reject(err);
             else resolve();
@@ -348,10 +256,7 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
             return res.status(400).json({ error: 'Missing formData or segments' });
         }
 
-        // Process form data to combine checkbox fields
         const processedFormData = processFormData(formData);
-
-        // Create temp dir for this request
         const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'pdf-filler-'));
 
         const filesToZip = [];
@@ -360,34 +265,26 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
             const mappingPath = path.join(__dirname, 'mapping', `${segment}.json`);
             const outputPath = path.join(tempDir, `${segment}-filled.pdf`);
 
-            // Load mapping
             let mapping;
             try {
                 mapping = JSON.parse(await fs.readFile(mappingPath, 'utf-8'));
             } catch (err) {
                 console.error(`Mapping not found for ${segment}:`, err);
-                continue; // Skip segment if mapping missing
+                continue;
             }
 
-            // Create FDF and fill PDF using PROCESSED form data
             const fdfData = createFDF(processedFormData, mapping);
             try {
                 await fillAndFlattenPDF(templatePath, fdfData, outputPath);
                 filesToZip.push({ path: outputPath, name: `${segment}-filled.pdf` });
             } catch (err) {
                 console.error(`Error filling ${segment}:`, err);
-                // Continue to next segment
             }
         }
 
-        // Send email to carriers if PDFs were created successfully (use original formData for email)
         if (filesToZip.length > 0) {
-            console.log(`=== EMAIL DEBUG START ===`);
-            console.log(`Attempting to send email with ${filesToZip.length} PDFs`);
-            console.log('PDF files:', filesToZip.map(f => ({ name: f.name, exists: require('fs').existsSync(f.path) })));
-            
             try {
-                const emailResult = await sendQuoteToCarriers(filesToZip, formData);
+                const emailResult = await sendQuoteToCarriers(filesToZip, formData, segments);
                 console.log('Email sending result:', emailResult);
                 
                 if (!emailResult.success) {
@@ -396,16 +293,11 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
             } catch (emailError) {
                 console.error('EMAIL EXCEPTION:', emailError);
             }
-            console.log(`=== EMAIL DEBUG END ===`);
-        } else {
-            console.log('No PDFs generated, skipping email');
         }
 
-        // Set ZIP response headers
         res.setHeader('Content-Type', 'application/zip');
         res.setHeader('Content-Disposition', 'attachment; filename=filled-apps.zip');
 
-        // Create ZIP and stream to response
         const archive = archiver('zip', { zlib: { level: 9 } });
         archive.pipe(res);
 
@@ -414,7 +306,6 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
         }
         await archive.finalize();
 
-        // Clean up files after response
         res.on('finish', async () => {
             try {
                 for (const file of filesToZip) {
@@ -422,7 +313,6 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
                 }
                 await fs.rmdir(tempDir);
             } catch (err) {
-                // Log but don't block
                 console.error('Cleanup error:', err);
             }
         });
@@ -443,10 +333,7 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
             return res.status(400).json({ error: 'Missing formData or segments' });
         }
 
-        // Process form data to combine checkbox fields
         const processedFormData = processFormData(formData);
-
-        // Create temp dir for this request
         const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'pdf-filler-'));
 
         const filesToZip = [];
@@ -455,7 +342,6 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
             const mappingPath = path.join(__dirname, 'mapping', `${segment}.json`);
             const outputPath = path.join(tempDir, `${segment}-filled.pdf`);
 
-            // Load mapping
             let mapping;
             try {
                 mapping = JSON.parse(await fs.readFile(mappingPath, 'utf-8'));
@@ -464,7 +350,6 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
                 continue;
             }
 
-            // Create FDF and fill PDF using PROCESSED form data
             const fdfData = createFDF(processedFormData, mapping);
             try {
                 await fillAndFlattenPDF(templatePath, fdfData, outputPath);
@@ -478,10 +363,8 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
             return res.status(400).json({ error: 'No PDFs were generated successfully' });
         }
 
-        // Send email to carriers
-        const emailResult = await sendQuoteToCarriers(filesToZip, formData);
+        const emailResult = await sendQuoteToCarriers(filesToZip, formData, segments);
 
-        // Clean up files
         try {
             for (const file of filesToZip) {
                 await fs.unlink(file.path);
