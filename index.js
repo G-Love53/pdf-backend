@@ -27,22 +27,29 @@ app.use(cors({
 // EMAIL CONFIG - Segment-specific email settings
 const EMAIL_CONFIG = {
     'roofing-supplemental': {
-        from: 'quotes@roofingcontractorinsurancedirect.com',
+        from: process.env.GMAIL_USER_ROOFING || 'quotes@roofingcontractorinsurancedirect.com',
+        to: [
+            process.env.CARRIER_EMAIL_ROOFING || 'quotes@roofingcontractorinsurancedirect.com',
+            process.env.UW_EMAIL_ROOFING || 'gtjoneshome@gmail.com'
+        ].filter(Boolean), // Remove any empty emails
         subject: 'Quote Request - {applicant_name} - Roofing Contractor Insurance'
     },
     'BarAccord125': {
-        from: 'quote@barinsurancedirect.com', 
+        from: process.env.GMAIL_USER || 'quote@barinsurancedirect.com',
+        to: [process.env.CARRIER_EMAIL || 'quote@barinsurancedirect.com'],
         subject: 'Quote Request - {applicant_name} - Bar/Restaurant Insurance'
     },
     'BarAccord140': {
-        from: 'quote@barinsurancedirect.com',
+        from: process.env.GMAIL_USER || 'quote@barinsurancedirect.com',
+        to: [process.env.CARRIER_EMAIL || 'quote@barinsurancedirect.com'],
         subject: 'Quote Request - {applicant_name} - Bar/Restaurant Insurance'
     },
     'Society_FieldNames': {
-        from: 'quote@barinsurancedirect.com',
+        from: process.env.GMAIL_USER || 'quote@barinsurancedirect.com',
+        to: [process.env.CARRIER_EMAIL || 'quote@barinsurancedirect.com'],
         subject: 'Quote Request - {applicant_name} - Bar/Restaurant Insurance'
     }
-};            
+};
 
 // Function to get email config based on segments
 function getEmailConfig(segments) {
@@ -52,7 +59,8 @@ function getEmailConfig(segments) {
         }
     }
     return {
-        from: 'quote@barinsurancedirect.com',
+        from: process.env.GMAIL_USER || 'quote@barinsurancedirect.com',
+        to: [process.env.CARRIER_EMAIL || 'quote@barinsurancedirect.com'],
         subject: 'Quote Request - {applicant_name} - Commercial Insurance'
     };
 }
