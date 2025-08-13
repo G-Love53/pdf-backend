@@ -75,7 +75,7 @@ function createGmailTransporter(fromEmail) {
     return nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: fromEmail,
+            user: process.env.GMAIL_USER,
             pass: process.env.GMAIL_APP_PASSWORD
         }
     });
