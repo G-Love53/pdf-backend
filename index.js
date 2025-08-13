@@ -23,6 +23,143 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'X-API-Key', 'Origin', 'X-Requested-With', 'Accept'],
     credentials: true
 }));
+// EMAIL CONFIG - Add this after your imports in the actual server.js file
+const EMAIL_CONFIG = {
+    'roofing-supplemental': {
+        from: 'quote@roofingcontractorinsurancedirect.com',
+        subject: 'Quote Request - {applicant_name} - Roofing Contractor Insurance'
+    },
+    'BarAccord125': {
+        from: 'quote@barinsurancedirect.com', 
+        subject: 'Quote Request - {applicant_name} - Bar/Restaurant Insurance'
+    },
+    'BarAccord140': {
+        from: 'quote@barinsurancedirect.com',
+        subject: 'Quote Request - {applicant_name} - Bar/Restaurant Insurance'
+    },
+    'Society_FieldNames': {
+        from: 'quote@barinsurancedirect.com',
+        subject: 'Quote Request - {applicant_name} - Bar/Restaurant Insurance'
+    },
+    // Future segments ready:
+    'trucking': {
+        from: 'quote@truckinginsurancedirect.com',
+        subject: 'Quote Request - {applicant_name} - Trucking Insurance'
+    },
+    'contractors': {
+        from: 'quote@contractorinsurancedirect.com', 
+        subject: 'Quote Request - {applicant_name} - Contractor Insurance'
+    }
+};
+
+// Function to get email config based on segments
+function getEmailConfig(segments) {
+    // Find the first segment that has email config
+    for (const segment of segments) {
+        if (EMAIL_CONFIG[segment]) {
+            return EMAIL_CONFIG[segment];
+        }
+    }
+    // Default fallback
+    return {
+        from: 'quote@barinsurancedirect.com',
+        subject: 'Quote Request - {applicant_name} - Commercial Insurance'
+    };
+}
+
+// Updated Gmail transporter to accept dynamic email
+function createGmailTransporter(fromEmail) {
+    return nodemailer.createTransporter({
+        service: 'gmail',
+        auth: {
+            user: fromEmail,
+            pass: process.env.GMAIL_APP_PASSWORD // Same app password works for all
+        }
+    });
+}
+
+// Updated email sending function with segment-specific logic
+async function sendQuoteToCarriers(filesToZip, formData, segments) {
+    try {
+        console.log('Starting email send process...');
+        
+        // Get segment-specific email config
+        const emailConfig = getEmailConfig(segments);
+        const transporter = createGmailTransporter(emailConfig.from);
+        
+        // Replace placeholder in subject
+        const subject = emailConfig.subject.replace('{applicant_name}', formData.applicant_name || 'New Application');
+        
+        // Create professional email content (same as before)
+        const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #ff8c00;">Commercial Insurance Quote Request</h2>
+                
+                <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                    <h3 style="margin-top: 0; color: #333;">Applicant Information:</h3>
+                    <p><strong>Business Name:</strong> ${formData.applicant_name || 'N/A'}</p>
+                    <p><strong>Premises Name:</strong> ${formData.premises_name || 'N/A'}</p>
+                    <p><strong>Address:</strong> ${formData.premise_address || 'N/A'}</p>
+                    <p><strong>Phone:</strong> ${formData.business_phone || 'N/A'}</p>
+                    <p><strong>Email:</strong> ${formData.contact_email || 'N/A'}</p>
+                    <p><strong>Effective Date:</strong> ${formData.effective_date || 'N/A'}</p>
+                    <p><strong>Square Footage:</strong> ${formData.square_footage || 'N/A'}</p>
+                    <p><strong>Employees:</strong> ${formData.num_employees || 'N/A'}</p>
+                    ${formData.total_sales ? `<p><strong>Total Sales:</strong> ${formData.total_sales}</p>` : ''}
+                </div>
+                
+                <p>Please find the completed application forms attached. We look forward to your competitive quote.</p>
+                
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
+                    <p><strong>Commercial Insurance Direct LLC</strong><br>
+                    Phone: (303) 932-1700<br>
+                    Email: ${emailConfig.from}</p>
+                </div>
+            </div>
+        `;
+
+        const mailOptions = {
+            from: emailConfig.from,
+            to: process.env.CARRIER_EMAIL || emailConfig.from, // Send to carriers or self for testing
+            subject: subject,
+            html: emailHtml,
+            attachments: filesToZip.map(file => ({
+                filename: file.name,
+                path: file.path,
+                contentType: 'application/pdf'
+            }))
+        };
+
+        console.log('Email config:', {
+            from: mailOptions.from,
+            to: mailOptions.to,
+            subject: mailOptions.subject,
+            attachmentCount: mailOptions.attachments.length,
+            segments: segments
+        });
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Email sent successfully:', info.messageId);
+        return { success: true, messageId: info.messageId };
+        
+    } catch (error) {
+        console.error('Email sending failed:', error.message);
+        console.error('Full error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// Update both endpoints to pass segments to email function:
+
+// In /fill-multiple endpoint, change this line:
+// FROM: const emailResult = await sendQuoteToCarriers(filesToZip, formData);
+// TO:
+const emailResult = await sendQuoteToCarriers(filesToZip, formData, segments);
+
+// In /submit-quote endpoint, change this line:
+// FROM: const emailResult = await sendQuoteToCarriers(filesToZip, formData);
+// TO:
+const emailResult = await sendQuoteToCarriers(filesToZip, formData, segments);
 
 // Middleware for parsing JSON
 app.use(express.json());
