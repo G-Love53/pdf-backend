@@ -41,7 +41,6 @@ const EMAIL_CONFIG = {
     'Society_FieldNames': {
         from: 'quote@barinsurancedirect.com',
         subject: 'Quote Request - {applicant_name} - Bar/Restaurant Insurance'
-};
 
 // Function to get email config based on segments
 function getEmailConfig(segments) {
@@ -71,7 +70,7 @@ const validateApiKey = (req, res, next) => {
 
 // Gmail transporter setup with dynamic email
 function createGmailTransporter(fromEmail) {
-    return nodemailer.createTransport({
+    return nodemailer.createTransporter({
         service: 'gmail',
         auth: {
             user: fromEmail,
