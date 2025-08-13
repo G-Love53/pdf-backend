@@ -27,7 +27,7 @@ app.use(cors({
 // EMAIL CONFIG - Segment-specific email settings
 const EMAIL_CONFIG = {
     'roofing-supplemental': {
-        from: 'quote@roofingcontractorinsurancedirect.com',
+        from: 'quotes@roofingcontractorinsurancedirect.com',
         subject: 'Quote Request - {applicant_name} - Roofing Contractor Insurance'
     },
     'BarAccord125': {
