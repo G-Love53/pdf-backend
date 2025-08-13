@@ -41,6 +41,8 @@ const EMAIL_CONFIG = {
     'Society_FieldNames': {
         from: 'quote@barinsurancedirect.com',
         subject: 'Quote Request - {applicant_name} - Bar/Restaurant Insurance'
+    }
+};            
 
 // Function to get email config based on segments
 function getEmailConfig(segments) {
