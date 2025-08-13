@@ -72,7 +72,7 @@ const validateApiKey = (req, res, next) => {
 
 // Gmail transporter setup with dynamic email
 function createGmailTransporter(fromEmail) {
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
         service: 'gmail',
         auth: {
             user: fromEmail,
