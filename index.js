@@ -131,7 +131,7 @@ async function sendQuoteToCarriers(filesToZip, formData, segments) {
 
         const mailOptions = {
             from: emailConfig.from,
-            to: process.env.CARRIER_EMAIL || emailConfig.from,
+            to: emailConfig.to,
             subject: subject,
             html: emailHtml,
             attachments: filesToZip.map(file => ({
