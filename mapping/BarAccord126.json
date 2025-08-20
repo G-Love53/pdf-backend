@@ -1,0 +1,15 @@
+{
+    "applicant_name": "applicant_name",
+    "total_sales": "total_sales",
+    "alcohol_sales": "alcohol_sales",
+    "square_footage": "square_footage",
+    "ai_additional_insured": "ai_additional_insured",
+    "ai_loss_payee": "ai_loss_payee",
+    "ai_mortgagee": "ai_mortgagee",
+    "ai_lienholder": "ai_lienholder",
+    "ai_name_1": "ai_name_1",
+    "ai_address_1": "ai_address_1",
+    "ai_city_1": "ai_city_1",
+    "ai_state_1": "ai_state_1",
+    "ai_zip_1": "ai_zip_1"
+}
