@@ -124,8 +124,8 @@ async function sendQuoteToCarriers(filesToZip, formData, segments) {
                     <p><strong>Phone:</strong> ${formData.business_phone || 'N/A'}</p>
                     <p><strong>Email:</strong> ${formData.contact_email || 'N/A'}</p>
                     <p><strong>Effective Date:</strong> ${formData.effective_date || 'N/A'}</p>
-                    <p><strong>Square Footage:</strong> ${formData.building_quote || 'N/A'}</p>
-                    <p><strong>Employees:</strong> ${formData.workers_comp_quote || 'N/A'}</p>
+                    <p><strong>Would Like A Building Quote:</strong> ${formData.building_quote || 'N/A'}</p>
+                    <p><strong>Workers Comp Quote:</strong> ${formData.workers_comp_quote || 'N/A'}</p>
                     ${formData.total_sales ? `<p><strong>Total Sales:</strong> ${formData.total_sales}</p>` : ''}
                 </div>
                 
