@@ -1,0 +1,15 @@
+{
+    "applicant_name": "applicant_name",
+    "business_phone": "business_phone",
+    "contact_email": "contact_email",
+    "premises_website": "premises_website",
+    "premise_address": "premise_address",
+    "premise_city": "premise_city",
+    "premise_state": "premise_state",
+    "premise_zip": "premise_zip",
+    "wc_bar_tavern": "wc_bar_tavern",
+    "wc_employees_ft": "wc_employees_ft",
+    "wc_annual_payroll": "wc_annual_payroll",
+    "wc_restaurant": "wc_restaurant",
+    "wc_employees_pt": "wc_employees_pt"
+}
