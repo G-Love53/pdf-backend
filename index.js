@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
-const { PDFDocument, PDFForm } = require('pdf-lib');
 const fs = require('fs').promises;
 const fssync = require('fs');
 const archiver = require('archiver');
@@ -199,20 +198,6 @@ function createGmailTransporter(fromEmail) {
     });
 }
 
-// NEW: Function to fill PDF using pdf-lib (for new 5-PDF system)
-async function fillPDFWithLib(segment, formData) {
-    try {
-        const pdfPath = path.join(__dirname, 'forms', `${segment}.pdf`);
-        const existingPdfBytes = await fs.readFile(pdfPath);
-        const pdfDoc = await PDFDocument.load(existingPdfBytes);
-        const form = pdfDoc.getForm();
-        
-        const fieldMappings = pdfMappings[segment];
-        if (!fieldMappings) {
-            console.warn(`No mappings found for segment: ${segment}`);
-            return null;
-        }
-        
         Object.entries(fieldMappings).forEach(([formFieldName, pdfFieldName]) => {
             const value = formData[formFieldName];
             if (value && value !== '') {
