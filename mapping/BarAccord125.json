@@ -6,6 +6,9 @@
     "premise_state": "premise_state",
     "premise_zip": "premise_zip",
     "business_phone": "business_phone",
+    "org_type_corporation": "org_type_corporation",
+    "org_type_llc": "org_type_llc",
+    "org_type_individual": "org_type_individual"
     "contact_email": "contact_email",
     "effective_date": "effective_date",
     "square_footage": "square_footage",
