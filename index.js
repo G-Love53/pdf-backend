@@ -187,22 +187,32 @@ function sanitizeFormData(formData) {
 
 // Function to process form data and combine checkbox fields
 function processFormData(formData) {
-    const sanitized = sanitizeFormData(formData);
-    const processed = { ...sanitized };
+    const processed = { ...formData };
+
+    // Copy business_phone to multiple fields
+    if (formData.business_phone) {
+        processed.phone1 = formData.business_phone;
+        processed.phone2 = formData.business_phone;
+        processed.contact_phone = formData.business_phone;
+    }
     
-    // Combine Organization Type checkboxes into single field
+    // Combine organization types for BarAccord125
     const orgTypes = [];
-    if (processed.org_type_corporation === "Yes") orgTypes.push("Corporation");
-    if (processed.org_type_llc === "Yes") orgTypes.push("LLC");
-    if (processed.org_type_individual === "Yes") orgTypes.push("Individual");
-    processed.organization_type = orgTypes.join(", ");
+    if (formData.org_type_corporation === 'Yes') orgTypes.push('Corporation');
+    if (formData.org_type_llc === 'Yes') orgTypes.push('LLC');
+    if (formData.org_type_individual === 'Yes') orgTypes.push('Individual');
+    if (orgTypes.length > 0) {
+        processed.organization_type = orgTypes.join(', ');
+    }
     
-    // Combine Construction Type checkboxes into single field
+    // Combine construction types for BarAccord140
     const constructionTypes = [];
-    if (processed.construction_frame === "Yes") constructionTypes.push("Frame");
-    if (processed.construction_joist_masonry === "Yes") constructionTypes.push("Joist Masonry");
-    if (processed.construction_masonry === "Yes") constructionTypes.push("Masonry");
-    processed.construction_type = constructionTypes.join(", ");
+    if (formData.construction_frame === 'Yes') constructionTypes.push('Frame');
+    if (formData.construction_joist_masonry === 'Yes') constructionTypes.push('Joisted Masonry');
+    if (formData.construction_masonry === 'Yes') constructionTypes.push('Masonry');
+    if (constructionTypes.length > 0) {
+        processed.construction_type = constructionTypes.join(', ');
+    }
     
     return processed;
 }
