@@ -3,7 +3,7 @@
     "premises_name": "premises_name",
     "premise_address": "premise_address",
     "business_personal_property": "business_personal_property",
-    "construction_frame": "construction_frame",
+    "construction_type": "construction_type",
     "year_built": "year_built",
     "number_of_stories": "number_of_stories",
     "automatic_sprinkler": "automatic_sprinkler",
