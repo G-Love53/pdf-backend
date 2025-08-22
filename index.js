@@ -195,6 +195,13 @@ function processFormData(formData) {
         processed.phone2 = formData.business_phone;
         processed.contact_phone = formData.business_phone;
     }
+
+    // Combine ownership experience details
+   if (processed.ownership_experience_details_yes) {
+    processed.ownership_experience_details = processed.ownership_experience_details_yes;
+   } else if (processed.ownership_experience_details_no) {
+    processed.ownership_experience_details = processed.ownership_experience_details_no;
+}
     
     // Combine organization types for BarAccord125
     const orgTypes = [];
