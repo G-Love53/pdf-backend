@@ -264,13 +264,68 @@
 </head>
 <body>
 <h1>Roofing Contractor Insurance Quote</h1>
-<form id="quoteForm" name="roofing-contractor-quote">
+<form id="quoteForm" name="roofing-contractor-quote" method="POST" data-netlify="true">
+    <input type="hidden" name="form-name" value="roofing-contractor-quote" />
     
     <h2>Basic Information</h2>
     <label>Applicant's Name:<input name="Applicants_Name" required type="text"/></label>
     <label>Applicant Mailing Address:<input name="Applicant_Mailing_Address" required type="text"/></label>
     <div class="two-column">
-    <label>State:<input name="Applicant_State" type="text" maxlength="2"/></label>
+    <label>State:
+    <select name="Applicant_State" required>
+        <option value="">-- Select State --</option>
+        <option value="AL">Alabama</option>
+        <option value="AK">Alaska</option>
+        <option value="AZ">Arizona</option>
+        <option value="AR">Arkansas</option>
+        <option value="CA">California</option>
+        <option value="CO">Colorado</option>
+        <option value="CT">Connecticut</option>
+        <option value="DE">Delaware</option>
+        <option value="FL">Florida</option>
+        <option value="GA">Georgia</option>
+        <option value="HI">Hawaii</option>
+        <option value="ID">Idaho</option>
+        <option value="IL">Illinois</option>
+        <option value="IN">Indiana</option>
+        <option value="IA">Iowa</option>
+        <option value="KS">Kansas</option>
+        <option value="KY">Kentucky</option>
+        <option value="LA">Louisiana</option>
+        <option value="ME">Maine</option>
+        <option value="MD">Maryland</option>
+        <option value="MA">Massachusetts</option>
+        <option value="MI">Michigan</option>
+        <option value="MN">Minnesota</option>
+        <option value="MS">Mississippi</option>
+        <option value="MO">Missouri</option>
+        <option value="MT">Montana</option>
+        <option value="NE">Nebraska</option>
+        <option value="NV">Nevada</option>
+        <option value="NH">New Hampshire</option>
+        <option value="NJ">New Jersey</option>
+        <option value="NM">New Mexico</option>
+        <option value="NY">New York</option>
+        <option value="NC">North Carolina</option>
+        <option value="ND">North Dakota</option>
+        <option value="OH">Ohio</option>
+        <option value="OK">Oklahoma</option>
+        <option value="OR">Oregon</option>
+        <option value="PA">Pennsylvania</option>
+        <option value="RI">Rhode Island</option>
+        <option value="SC">South Carolina</option>
+        <option value="SD">South Dakota</option>
+        <option value="TN">Tennessee</option>
+        <option value="TX">Texas</option>
+        <option value="UT">Utah</option>
+        <option value="VT">Vermont</option>
+        <option value="VA">Virginia</option>
+        <option value="WA">Washington</option>
+        <option value="WV">West Virginia</option>
+        <option value="WI">Wisconsin</option>
+        <option value="WY">Wyoming</option>
+    </select>
+</label>
     <label>Zip Code:<input name="Applicant_Zip" type="text" pattern="[0-9]{5}" maxlength="5"/></label>
 </div> 
     
@@ -849,17 +904,6 @@
         </select>
     </label>
     <div class="conditional-section" data-show-when="work_restricted_states=Yes">
-        <label>Which states? (Check all that apply)</label>
-        <div class="checkbox-group">
-            <label><input type="checkbox" name="State_AZ" value="Yes"/> Arizona</label>
-            <label><input type="checkbox" name="State_CA" value="Yes"/> California</label>
-            <label><input type="checkbox" name="State_CO" value="Yes"/> Colorado</label>
-            <label><input type="checkbox" name="State_NV" value="Yes"/> Nevada</label>
-            <label><input type="checkbox" name="State_NY" value="Yes"/> New York</label>
-            <label><input type="checkbox" name="State_OR" value="Yes"/> Oregon</label>
-            <label><input type="checkbox" name="State_UT" value="Yes"/> Utah</label>
-            <label><input type="checkbox" name="State_WA" value="Yes"/> Washington</label>
-        </div>
         <label>Please describe work in these states:<textarea name="Restricted_States_Details"></textarea></label>
     </div>
     
@@ -1170,7 +1214,7 @@
                 });
             });
             
-            // Special handling for hot tar and torch down - Updated to trigger at 10% or more
+            // Special handling for hot tar and torch down
             const hotTar = document.querySelector('[name="Hot_Tar"]');
             const torchDown = document.querySelector('[name="Torch_Down"]');
             const hotProcessSection = document.getElementById('hotProcessSection');
@@ -1179,7 +1223,6 @@
                 const hotTarValue = parseInt(hotTar?.value) || 0;
                 const torchDownValue = parseInt(torchDown?.value) || 0;
                 
-                // Changed from > 0 to >= 10 for Hot Tar
                 if (hotTarValue >= 10 || torchDownValue > 0) {
                     hotProcessSection.style.display = 'block';
                     hotProcessSection.classList.add('show');
@@ -1267,11 +1310,11 @@
             });
         }
         
-        // Initialize conditional logic
+        // Initialize functions
         setupConditionalLogic();
         setupPercentageValidation();
 
-        // Format currency inputs - updated with new field names
+        // Format currency inputs
         const currencyInputs = [
             'Owner_Partner_Payroll', 'Subcontractor_Cost', 'Uninsured_Subcontractor_Payroll',
             'Employee_Payroll', 'Leased_Employees_Payroll', 'Total_Gross_Sales', 'Wrap_Up_Cost',
@@ -1425,6 +1468,4 @@
             }
         });
     });
-</script>
-</body>
-</html>
+</script>  
