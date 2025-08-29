@@ -1,6 +1,8 @@
 {
   "applicant_name": "Applicants Name",
-  "applicant_address": "undefined",
+  "applicant_address": "applicant_address",
+  "applicant_state": "applicant_state",
+  "applicant_zip": "applicant_zip"
   "applicant_phone": "Applicants Phone Number",
   "web_address": "Web Address",
   "inspection_contact": "Inspection Contact",
