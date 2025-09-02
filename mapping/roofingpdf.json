@@ -13,6 +13,7 @@
   "entity_type_partnership": "entity_type_partnership",
   "entity_type_corporation": "entity_type_corporation",
   "entity_type_joint_venture": "entity_type_joint_venture",
+  "entity_type_llc": "entity_type_llc",
   "entity_type_other": "entity_type_other",
   "location_1": "location_1",
   "location_2": "location_2",
