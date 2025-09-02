@@ -1,0 +1,14 @@
+{
+  "formType": "Roofing126",
+  "fields": {
+    "policy_period_from": "policy_period_from",
+    "total_gross_sales": "total_gross_sales",
+    "subcontractor_cost": "subcontractor_cost",
+    "employee_payroll": "employee_payroll",
+    "Certificate_Recipients_Name_1": "Certificate_Recipients_Name_1",
+    "Additional_Insured_Type_1": "Additional_Insured_Type_1",
+    "Lienholder_1": "Lienholder_1",
+    "Loss_Payee_1": "Loss_Payee_1",
+    "Mortgagee_1": "Mortgagee_1"
+  }
+}
