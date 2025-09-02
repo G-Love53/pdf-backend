@@ -1,0 +1,29 @@
+{
+  "formType": "Roofing125",
+  "fields": {
+    "applicant_name": "applicant_name",
+    "applicant_address": "applicant_address",
+    "applicant_state": "applicant_state",
+    "applicant_zip": "applicant_zip",
+    "applicant_phone": "applicant_phone",
+    "web_address": "web_address",
+    "inspection_contact": "inspection_contact",
+    "inspection_phone": "inspection_phone",
+    "entity_type_corporation": "entity_type_corporation",
+    "entity_type_individual": "entity_type_individual",
+    "Spraying_Flammable_Liquids": "Spraying_Flammable_Liquids",
+    "Perform_Fire_Watch": "Perform_Fire_Watch",
+    "Heat_Application_Experience_Years": "Heat_Application_Experience_Years",
+    "CERTA_Certified_Employees": "CERTA_Certified_Employees",
+    "OSHA_Fire_Prevention_Compliance": "OSHA_Fire_Prevention_Compliance",
+    "Fire_Extinguishers_All_Sites": "Fire_Extinguishers_All_Sites",
+    "Fire_Prevention_Processes": "Fire_Prevention_Processes",
+    "Heat_Safety_Inspection_Procedures": "Heat_Safety_Inspection_Procedures",
+    "Fire_Watch_Duration": "Fire_Watch_Duration",
+    "Additional_Insured_Type_1": "Additional_Insured_Type_1",
+    "Lienholder_1": "Lienholder_1",
+    "Loss_Payee_1": "Loss_Payee_1",
+    "Mortgagee_1": "Mortgagee_1",
+    "Certificate_Recipients_Name_1": "Certificate_Recipients_Name_1"
+  }
+}
