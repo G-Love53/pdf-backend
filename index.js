@@ -26,12 +26,28 @@ app.use(cors({
 
 // EMAIL CONFIG - Segment-specific email settings
 const EMAIL_CONFIG = {
-    'roofing-supplemental': {
+    'RoofingForm': {  // Change from 'roofing-supplemental'
         from: process.env.GMAIL_USER_ROOFING || 'quotes@roofingcontractorinsurancedirect.com',
         to: [
             process.env.CARRIER_EMAIL_ROOFING || 'quotes@roofingcontractorinsurancedirect.com',
             process.env.UW_EMAIL_ROOFING || 'gtjoneshome@gmail.com'
-        ].filter(Boolean), // Remove any empty emails
+        ].filter(Boolean),
+        subject: 'Quote Request - {applicant_name} - Roofing Contractor Insurance'
+    },
+    'Roofing125': {  // ADD THIS
+        from: process.env.GMAIL_USER_ROOFING || 'quotes@roofingcontractorinsurancedirect.com',
+        to: [
+            process.env.CARRIER_EMAIL_ROOFING || 'quotes@roofingcontractorinsurancedirect.com',
+            process.env.UW_EMAIL_ROOFING || 'gtjoneshome@gmail.com'
+        ].filter(Boolean),
+        subject: 'Quote Request - {applicant_name} - Roofing Contractor Insurance'
+    },
+    'Roofing126': {  // ADD THIS
+        from: process.env.GMAIL_USER_ROOFING || 'quotes@roofingcontractorinsurancedirect.com',
+        to: [
+            process.env.CARRIER_EMAIL_ROOFING || 'quotes@roofingcontractorinsurancedirect.com',
+            process.env.UW_EMAIL_ROOFING || 'gtjoneshome@gmail.com'
+        ].filter(Boolean),
         subject: 'Quote Request - {applicant_name} - Roofing Contractor Insurance'
     },
     'BarAccord125': {
@@ -112,32 +128,59 @@ async function sendQuoteToCarriers(filesToZip, formData, segments) {
         const subject = emailConfig.subject.replace('{applicant_name}', formData.applicant_name || 'New Application');
         
         // Create professional email content
-        const emailHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #ff8c00;">Commercial Insurance Quote Request</h2>
-                
-                <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
-                    <h3 style="margin-top: 0; color: #333;">Applicant Information:</h3>
-                    <p><strong>Business Name:</strong> ${formData.applicant_name || 'N/A'}</p>
-                    <p><strong>Premises Name:</strong> ${formData.premises_name || 'N/A'}</p>
-                    <p><strong>Address:</strong> ${formData.premise_address || 'N/A'}</p>
-                    <p><strong>Phone:</strong> ${formData.business_phone || 'N/A'}</p>
-                    <p><strong>Email:</strong> ${formData.contact_email || 'N/A'}</p>
-                    <p><strong>Effective Date:</strong> ${formData.effective_date || 'N/A'}</p>
-                    <p><strong>Would Like A Building Quote:</strong> ${formData.building_quote || 'N/A'}</p>
-                    <p><strong>Workers Comp Quote:</strong> ${formData.workers_comp_quote || 'N/A'}</p>
-                    ${formData.total_sales ? `<p><strong>Total Sales:</strong> ${formData.total_sales}</p>` : ''}
-                </div>
-                
-                <p>Please find the completed application forms attached. We look forward to your competitive quote.</p>
-                
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-                    <p><strong>Commercial Insurance Direct LLC</strong><br>
-                    Phone: (303) 932-1700<br>
-                    Email: ${emailConfig.from}</p>
-                </div>
-            </div>
-        `;
+// Determine if this is roofing or bar/restaurant
+const isRoofing = segments.some(s => s.startsWith('Roofing'));
+
+const emailHtml = isRoofing ? `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #ff8c00;">Roofing Contractor Insurance Quote Request</h2>
+        
+        <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #333;">Applicant Information:</h3>
+            <p><strong>Company Name:</strong> ${formData.applicant_name || 'N/A'}</p>
+            <p><strong>Address:</strong> ${formData.applicant_address || 'N/A'}</p>
+            <p><strong>Phone:</strong> ${formData.applicant_phone || 'N/A'}</p>
+            <p><strong>Web Address:</strong> ${formData.web_address || 'N/A'}</p>
+            <p><strong>Years in Business:</strong> ${formData.years_in_business || 'N/A'}</p>
+            <p><strong>Years Experience:</strong> ${formData.years_experience || 'N/A'}</p>
+            <p><strong>Employees:</strong> ${formData.num_employees || 'N/A'}</p>
+            ${formData.total_gross_sales ? `<p><strong>Gross Sales:</strong> ${formData.total_gross_sales}</p>` : ''}
+        </div>
+        
+        <p>Please find the completed roofing contractor application forms attached. We look forward to your competitive quote.</p>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
+            <p><strong>Commercial Insurance Direct LLC</strong><br>
+            Phone: (303) 932-1700<br>
+            Email: ${emailConfig.from}</p>
+        </div>
+    </div>
+` : `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #ff8c00;">Commercial Insurance Quote Request</h2>
+        
+        <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #333;">Applicant Information:</h3>
+            <p><strong>Business Name:</strong> ${formData.applicant_name || 'N/A'}</p>
+            <p><strong>Premises Name:</strong> ${formData.premises_name || 'N/A'}</p>
+            <p><strong>Address:</strong> ${formData.premise_address || 'N/A'}</p>
+            <p><strong>Phone:</strong> ${formData.business_phone || 'N/A'}</p>
+            <p><strong>Email:</strong> ${formData.contact_email || 'N/A'}</p>
+            <p><strong>Effective Date:</strong> ${formData.effective_date || 'N/A'}</p>
+            <p><strong>Would Like A Building Quote:</strong> ${formData.building_quote || 'N/A'}</p>
+            <p><strong>Workers Comp Quote:</strong> ${formData.workers_comp_quote || 'N/A'}</p>
+            ${formData.total_sales ? `<p><strong>Total Sales:</strong> ${formData.total_sales}</p>` : ''}
+        </div>
+        
+        <p>Please find the completed application forms attached. We look forward to your competitive quote.</p>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
+            <p><strong>Commercial Insurance Direct LLC</strong><br>
+            Phone: (303) 932-1700<br>
+            Email: ${emailConfig.from}</p>
+        </div>
+    </div>
+`;
 
         const mailOptions = {
             from: emailConfig.from,
@@ -195,7 +238,35 @@ function processFormData(formData) {
         processed.phone2 = formData.business_phone;
         processed.contact_phone = formData.business_phone;
     }
-
+// ADD ROOFING-SPECIFIC PROCESSING:
+    // Copy applicant_phone to multiple fields for roofing forms
+    if (formData.applicant_phone) {
+        processed.phone1 = formData.applicant_phone;
+        processed.phone2 = formData.applicant_phone;
+        processed.business_phone = formData.applicant_phone;
+    }
+    
+    // Handle entity types for roofing
+    const roofingEntityTypes = [];
+    if (formData.entity_type_individual === 'Yes') roofingEntityTypes.push('Individual');
+    if (formData.entity_type_partnership === 'Yes') roofingEntityTypes.push('Partnership');
+    if (formData.entity_type_corporation === 'Yes') roofingEntityTypes.push('Corporation');
+    if (formData.entity_type_joint_venture === 'Yes') roofingEntityTypes.push('Joint Venture');
+    if (formData.entity_type_llc === 'Yes') roofingEntityTypes.push('LLC');
+    if (formData.entity_type_other === 'Yes') roofingEntityTypes.push('Other');
+    if (roofingEntityTypes.length > 0) {
+        processed.entity_type_combined = roofingEntityTypes.join(', ');
+    }
+    
+    // Handle fall protection for roofing
+    const fallProtection = [];
+    if (formData.fall_protection_guardrail === 'Yes') fallProtection.push('Guardrail');
+    if (formData.fall_protection_safety_net === 'Yes') fallProtection.push('Safety Net');
+    if (formData.fall_protection_personal === 'Yes') fallProtection.push('Personal Fall Arrest');
+    if (fallProtection.length > 0) {
+        processed.fall_protection_combined = fallProtection.join(', ');
+    }
+    
     // Combine ownership experience details
    if (processed.ownership_experience_details_yes) {
     processed.ownership_experience_details = processed.ownership_experience_details_yes;
@@ -293,12 +364,15 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
             const outputPath = path.join(tempDir, `${segment}-filled.pdf`);
 
             let mapping;
-            try {
-                mapping = JSON.parse(await fs.readFile(mappingPath, 'utf-8'));
-            } catch (err) {
-                console.error(`Mapping not found for ${segment}:`, err);
-                continue;
-            }
+        try {
+            const mappingData = await fs.readFile(mappingPath, 'utf-8');
+            mapping = JSON.parse(mappingData);
+            console.log(`Successfully loaded mapping for ${segment}`);
+        } catch (err) {
+            console.error(`Mapping error for ${segment}:`, err.message);
+            console.error(`Failed segment: ${segment}, Path: ${mappingPath}`);
+            continue;
+        }
 
             const fdfData = createFDF(processedFormData, mapping);
             try {
