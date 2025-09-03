@@ -80,8 +80,8 @@
   "crane_size_tons": "Tons",
   "crane_boom_length": "Boom Length",
   "crane_barriers": "Check Box26#1",
-  "cranes_owned_rented_owned": "Owned",
-  "cranes_owned_rented_rented": "Rented",
+  "cranes_owned": "Owned",
+  "cranes_rented": "Rented",
   "crane_maintenance": "Check Box27#0",
   "crane_training": "Check Box28#1",
   
