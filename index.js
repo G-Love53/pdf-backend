@@ -228,71 +228,17 @@ function sanitizeFormData(formData) {
     return sanitized;
 }
 
-// Function to process form data and combine checkbox fields
 function processFormData(formData) {
-    const processed = { ...formData };
-
-    // Copy business_phone to multiple fields
-    if (formData.business_phone) {
-        processed.phone1 = formData.business_phone;
-        processed.phone2 = formData.business_phone;
-        processed.contact_phone = formData.business_phone;
-    }
-// ADD ROOFING-SPECIFIC PROCESSING:
-    // Copy applicant_phone to multiple fields for roofing forms
-    if (formData.applicant_phone) {
-        processed.phone1 = formData.applicant_phone;
-        processed.phone2 = formData.applicant_phone;
-        processed.business_phone = formData.applicant_phone;
-    }
+    console.log('=== START processFormData ===');
+    console.log('Incoming formData keys:', Object.keys(formData));
+    console.log('Sample values:', {
+        applicant_name: formData.applicant_name,
+        applicant_address: formData.applicant_address,
+        applicant_email: formData.applicant_email
+    });
     
-    // Handle entity types for roofing
-    const roofingEntityTypes = [];
-    if (formData.entity_type_individual === 'Yes') roofingEntityTypes.push('Individual');
-    if (formData.entity_type_partnership === 'Yes') roofingEntityTypes.push('Partnership');
-    if (formData.entity_type_corporation === 'Yes') roofingEntityTypes.push('Corporation');
-    if (formData.entity_type_joint_venture === 'Yes') roofingEntityTypes.push('Joint Venture');
-    if (formData.entity_type_llc === 'Yes') roofingEntityTypes.push('LLC');
-    if (formData.entity_type_other === 'Yes') roofingEntityTypes.push('Other');
-    if (roofingEntityTypes.length > 0) {
-        processed.entity_type_combined = roofingEntityTypes.join(', ');
-    }
-    
-    // Handle fall protection for roofing
-    const fallProtection = [];
-    if (formData.fall_protection_guardrail === 'Yes') fallProtection.push('Guardrail');
-    if (formData.fall_protection_safety_net === 'Yes') fallProtection.push('Safety Net');
-    if (formData.fall_protection_personal === 'Yes') fallProtection.push('Personal Fall Arrest');
-    if (fallProtection.length > 0) {
-        processed.fall_protection_combined = fallProtection.join(', ');
-    }
-    
-    // Combine ownership experience details
-   if (processed.ownership_experience_details_yes) {
-    processed.ownership_experience_details = processed.ownership_experience_details_yes;
-   } else if (processed.ownership_experience_details_no) {
-    processed.ownership_experience_details = processed.ownership_experience_details_no;
-}
-    
-    // Combine organization types for BarAccord125
-    const orgTypes = [];
-    if (formData.org_type_corporation === 'Yes') orgTypes.push('Corporation');
-    if (formData.org_type_llc === 'Yes') orgTypes.push('LLC');
-    if (formData.org_type_individual === 'Yes') orgTypes.push('Individual');
-    if (orgTypes.length > 0) {
-        processed.organization_type = orgTypes.join(', ');
-    }
-    
-    // Combine construction types for BarAccord140
-    const constructionTypes = [];
-    if (formData.construction_frame === 'Yes') constructionTypes.push('Frame');
-    if (formData.construction_joist_masonry === 'Yes') constructionTypes.push('Joisted Masonry');
-    if (formData.construction_masonry === 'Yes') constructionTypes.push('Masonry');
-    if (constructionTypes.length > 0) {
-        processed.construction_type = constructionTypes.join(', ');
-    }
-    
-    return processed;
+    console.log('=== END processFormData - Returning UNMODIFIED data ===');
+    return formData;
 }
 
 // Fixed createFDF function with proper array handling
@@ -437,6 +383,8 @@ app.post('/submit-quote', validateApiKey, async (req, res) => {
         }
 
         const processedFormData = processFormData(formData);
+        console.log('DATA BEING SENT TO PDF:', JSON.stringify(processedFormData).substring(0, 500));
+        console.log('Number of fields:', Object.keys(processedFormData).length);
         const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'pdf-filler-'));
 
         const filesToZip = [];
