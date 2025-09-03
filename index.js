@@ -367,13 +367,15 @@ app.post('/fill-multiple', validateApiKey, async (req, res) => {
         try {
             const mappingData = await fs.readFile(mappingPath, 'utf-8');
             mapping = JSON.parse(mappingData);
+            console.log('DATA CHECK:', { name: formData.applicant_name, addr: formData.applicant_address, segments: segments });
             console.log(`Successfully loaded mapping for ${segment}`);
         } catch (err) {
             console.error(`Mapping error for ${segment}:`, err.message);
             console.error(`Failed segment: ${segment}, Path: ${mappingPath}`);
             continue;
         }
-
+            const processedFormData = processFormData(formData);
+            console.log('ACTUAL DATA:', JSON.stringify(processedFormData).substring(0, 500));
             const fdfData = createFDF(processedFormData, mapping);
             try {
                 await fillAndFlattenPDF(templatePath, fdfData, outputPath);
