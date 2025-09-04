@@ -13,6 +13,12 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+# --- put this BEFORE the install step ---
+ENV PUPPETEER_CACHE_DIR=/root/.cache/puppeteer
+
+# Install the exact Chrome version Puppeteer expects
+RUN npx @puppeteer/browsers install chrome@123.0.6312.122
+
 COPY package*.json ./
 # Use lockfile if present; fall back if not
 RUN npm ci --omit=dev || npm install --omit=dev
