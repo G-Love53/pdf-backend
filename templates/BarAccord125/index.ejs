@@ -1,7 +1,28 @@
-<!doctype html><html><head>
-<meta charset="utf-8"/><title>Bar125</title>
-<style><%= styles %></style></head><body>
-<h1>Bar125 Supplemental</h1>
-<p>Named Insured: <strong><%= data.namedInsured || "" %></strong></p>
-</body></html>
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>ACORD 125 – Applicant Information</title>
+  <style><%= styles %></style>
+</head>
+<body>
+  <h1>ACORD 125 – Applicant Information</h1>
+
+  <h2>Applicant</h2>
+  <p><strong>Name:</strong> <%= data.applicant_name || "" %></p>
+  <p><strong>Phone:</strong> <%= data.business_phone || "" %> |
+     <strong>Email:</strong> <%= data.contact_email || "" %></p>
+
+  <h2>Premises</h2>
+  <p><strong>Address:</strong>
+    <%= [data.premise_address, data.premise_city, data.premise_state, data.premise_zip]
+       .filter(Boolean).join(", ") %>
+  </p>
+
+  <h2>Business</h2>
+  <p><strong>FEIN:</strong> <%= data.fein || data.tax_id || "" %> |
+     <strong>Years in Business:</strong> <%= data.years_in_business || "" %></p>
+</body>
+</html>
+
 
