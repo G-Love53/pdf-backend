@@ -70,7 +70,9 @@ async function renderBundleAndRespond({ templates, email }, res) {
       const cssPath = path.join(TPL_DIR, name, "styles.css");
       const data = await maybeMapData(name, t.data || {});
       const buffer = await renderPdf({ htmlPath, cssPath, data });
-      return { filename: t.filename || `${name}.pdf`, buffer };
+      const prettyName = FILENAME_MAP[name] || t.filename || `${name}.pdf`;
+      return { filename: prettyName, buffer };
+
     })
   );
 
