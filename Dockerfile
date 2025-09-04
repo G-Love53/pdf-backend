@@ -9,7 +9,7 @@ WORKDIR /app
 
 # Install deps from lockfile for reproducible builds
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev || npm install --omit=dev
 
 # Copy runtime code only
 COPY src ./src
