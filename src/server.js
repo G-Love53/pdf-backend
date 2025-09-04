@@ -6,20 +6,34 @@ import { fileURLToPath } from "url";
 import { renderPdf } from "./pdf.js";
 import { sendWithGmail } from "./email.js";
 
+const FILENAME_MAP = {
+  Society_FieldNames: "Society-Supplement.pdf",
+  BarAccord125: "ACORD-125.pdf",
+  BarAccord126: "ACORD-126.pdf",
+  BarAccord140: "ACORD-140.pdf",
+  WCBarform: "WC-Application.pdf",
+
+  Roofing125: "ACORD-125.pdf",
+  Roofing126: "ACORD-126.pdf",
+  Roofing140: "ACORD-140.pdf",
+  WCRoofingForm: "WC-Application.pdf"
+};
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const APP = express();
 APP.use(express.json({ limit: "20mb" }));
 
-// --- CORS (so Netlify forms / browser can POST directly) ---
+// replace the existing CORS block with:
 APP.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
+
 
 // --- Directories ---
 const TPL_DIR = path.join(__dirname, "..", "templates");
@@ -65,7 +79,8 @@ async function renderBundleAndRespond({ templates, email }, res) {
     console.error("RENDER_FAILURES", failures.map(f => String(f.reason)));
     return res
       .status(500)
-      .json({ ok: false, error: "ONE_OR_MORE_ATTACHMENTS_FAILED", failedCount: failures.length });
+      .json({ ok: false, success: false, error: "ONE_OR_MORE_ATTACHMENTS_FAILED", failedCount: failures.length });
+
   }
 
   const attachments = results.map(r => r.value);
@@ -77,7 +92,7 @@ async function renderBundleAndRespond({ templates, email }, res) {
       html: email.bodyHtml || "<p>Attachments included.</p>",
       attachments
     });
-    return res.json({ ok: true, sent: true, count: attachments.length });
+    return res.json({ ok: true, success: true, sent: true, count: attachments.length });
   }
 
   // Non-email test path: stream first PDF
@@ -103,17 +118,32 @@ APP.post("/render-bundle", async (req, res) => {
 APP.post("/submit-quote", async (req, res) => {
   try {
     const { formData = {}, segments = [], email } = req.body || {};
+
+    // Build templates directly from HTML's segments (must match folder names)
     const templates = (segments || []).map((name) => ({
-      name,                   // must match templates/<name>/ folder
+      name,
       filename: `${name}.pdf`,
       data: formData
     }));
-    await renderBundleAndRespond({ templates, email }, res);
+    if (templates.length === 0) {
+      return res.status(400).json({ ok: false, success: false, error: "NO_VALID_SEGMENTS" });
+    }
+
+    // Always send email for this route so the client gets JSON (not a PDF stream)
+    const defaultTo = process.env.CARRIER_EMAIL || process.env.GMAIL_USER;
+    const emailBlock = email?.to?.length ? email : {
+      to: [defaultTo].filter(Boolean),
+      subject: `New Bar/Tavern Submission – ${formData.applicant_name || ""}`,
+      bodyHtml: "<p>Quote packet attached.</p>"
+    };
+
+    await renderBundleAndRespond({ templates, email: emailBlock }, res);
   } catch (e) {
     console.error(e);
-    res.status(500).json({ ok: false, error: e.message });
+    res.status(500).json({ ok: false, success: false, error: e.message });
   }
 });
+
 
 // --- Start server ---
 const PORT = process.env.PORT || 8080;
