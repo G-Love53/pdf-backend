@@ -1,1 +1,21 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Society Application</title>
+  <style><%= styles %></style>
+</head>
+<body>
+  <h1>Society Insurance – Application</h1>
+  <p>Named Insured: <strong><%= data.namedInsured || "" %></strong></p>
+  <table class="table">
+    <tr><th>Liquor %</th><th>Food %</th><th>Other %</th></tr>
+    <tr>
+      <td><%= data.percentLiquor || 0 %>%</td>
+      <td><%= data.percentFood || 0 %>%</td>
+      <td><%= data.percentOther || 0 %>%</td>
+    </tr>
+  </table>
+</body>
+</html>
 
