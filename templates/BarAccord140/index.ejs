@@ -1,1 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>ACORD 140 – Property Section (Bar/Tavern)</title>
+  <style><%= styles %></style>
+</head>
+<body>
+  <h1>ACORD 140 – Property Section (Bar/Tavern)</h1>
+
+  <h2>Applicant</h2>
+  <p><strong>Name:</strong> <%= data.applicant_name || "" %></p>
+
+  <h2>Location</h2>
+  <p>
+    <%= [data.location_address, data.location_city, data.location_state, data.location_zip]
+         .filter(Boolean).join(", ") %>
+  </p>
+
+  <h2>Building Details</h2>
+  <table class="table">
+    <tr>
+      <th>Year Built</th><th># Stories</th><th>Total Area (sq ft)</th>
+      <th>Construction</th><th>Protection Class</th>
+    </tr>
+    <tr>
+      <td><%= data.year_built || "" %></td>
+      <td><%= data.number_of_stories || "" %></td>
+      <td><%= data.total_area_sqft || data.square_footage || "" %></td>
+      <td><%= data.construction_type || data.construction_frame || "" %></td>
+      <td><%= data.protection_class || "" %></td>
+    </tr>
+  </table>
+
+  <h2>Protective Devices</h2>
+  <table class="table">
+    <tr><th>Sprinklered</th><th>Central Station Alarm</th><th>Burglar Alarm</th></tr>
+    <tr>
+      <td><%= (data.sprinklered ? "Yes" : (data.sprinklered === false ? "No" : "")) %></td>
+      <td><%= (data.central_station_alarm ? "Yes" : (data.central_station_alarm === false ? "No" : "")) %></td>
+      <td><%= (data.burglar_alarm ? "Yes" : (data.burglar_alarm === false ? "No" : "")) %></td>
+    </tr>
+  </table>
+
+  <h2>Coverages & Limits</h2>
+  <table class="table">
+    <tr><th>Building</th><th>Business Personal Property</th><th>Business Income</th></tr>
+    <tr>
+      <td><%= data.building_limit || "" %></td>
+      <td><%= data.bpp_limit || data.business_personal_property_limit || "" %></td>
+      <td><%= data.business_income_limit || data.bi_limit || "" %></td>
+    </tr>
+    <tr><th>Cause of Loss</th><th>Deductible</th><th>Coinsurance</th></tr>
+    <tr>
+      <td><%= data.cause_of_loss || "" %></td>
+      <td><%= data.deductible || "" %></td>
+      <td><%= data.coinsurance || "" %></td>
+    </tr>
+  </table>
+
+  <h2>Prior Losses (3–5 Years)</h2>
+  <p style="min-height: 60px;">
+    <%= data.prior_losses || data.loss_history || "" %>
+  </p>
+</body>
+</html>
 
