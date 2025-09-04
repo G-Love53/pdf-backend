@@ -23,7 +23,7 @@ RUN npx puppeteer browsers install chrome
 
 COPY src ./src
 COPY templates ./templates
-COPY mapping ./mapping  # keep only if this folder exists
+COPY mapping ./mapping  
 
 ENV NODE_ENV=production
 # Speeds up launches & keeps cache inside the image
