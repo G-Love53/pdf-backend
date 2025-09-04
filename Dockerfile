@@ -27,6 +27,7 @@ COPY templates ./templates
 COPY mapping ./mapping
 
 ENV NODE_ENV=production
+ENV PUPPETEER_EXECUTABLE_PATH=/app/chrome/linux-123.0.6312.122/chrome-linux64/chrome
 
 EXPOSE 8080
 CMD ["npm","start"]
