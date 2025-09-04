@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>ACORD 126 – CGL (Bar)</title>
+  <style><%= styles %></style>
+</head>
+<body>
+  <h1>ACORD 126 – Commercial General Liability (Bar/Tavern)</h1>
+
+  <h2>Applicant</h2>
+  <p><strong>Name:</strong> <%= data.applicant_name || "" %></p>
+
+  <h2>Exposures</h2>
+  <table class="table">
+    <tr><th>Total Sales</th><th>Alcohol Sales</th><th>Square Footage</th></tr>
+    <tr>
+      <td><%= data.total_sales || "" %></td>
+      <td><%= data.alcohol_sales || "" %></td>
+      <td><%= data.square_footage || "" %></td>
+    </tr>
+  </table>
+
+  <h2>Additional Interests</h2>
+  <p>
+    <strong>Type:</strong>
+    <%= (data.ai_additional_insured && "Additional Insured") ||
+        (data.ai_loss_payee && "Loss Payee") ||
+        (data.ai_mortgagee && "Mortgagee") ||
+        (data.ai_lienholder && "Lienholder") || "" %>
+  </p>
+  <p>
+    <%= [data.ai_name_1, data.ai_address_1, data.ai_city_1, data.ai_state_1, data.ai_zip_1]
+        .filter(Boolean).join(", ") %>
+  </p>
+</body>
+</html>
