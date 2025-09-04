@@ -1,6 +1,0 @@
-@page { size: Letter; margin: 0.5in; }
-body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color:#000; }
-h1 { font-size: 16px; margin: 0 0 10px; }
-.table { width:100%; border-collapse: collapse; margin-top: 6px; }
-.table th, .table td { border:1px solid #000; padding:4px 6px; }
-
