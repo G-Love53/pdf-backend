@@ -1,1 +1,45 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Workers’ Comp – Bar/Tavern</title>
+  <style><%= styles %></style>
+</head>
+<body>
+  <h1>Workers’ Compensation – Bar/Tavern</h1>
+
+  <h2>Applicant</h2>
+  <p><strong>Business name:</strong> <%= data.applicant_name || "" %></p>
+  <p><strong>Phone:</strong> <%= data.business_phone || "" %></p>
+  <p><strong>Email:</strong> <%= data.contact_email || "" %></p>
+  <p><strong>Website:</strong> <%= data.premises_website || "" %></p>
+
+  <h2>Premises</h2>
+  <p>
+    <%= (data.premise_address || "") %>,
+    <%= (data.premise_city || "") %>,
+    <%= (data.premise_state || "") %>
+    <%= (data.premise_zip || "") %>
+  </p>
+
+  <h2>Classification</h2>
+  <table class="table">
+    <tr><th>Bar/Tavern</th><th>Restaurant</th></tr>
+    <tr>
+      <td><%= data.wc_bar_tavern || "" %></td>
+      <td><%= data.wc_restaurant || "" %></td>
+    </tr>
+  </table>
+
+  <h2>Employees & Payroll</h2>
+  <table class="table">
+    <tr><th>Full-time</th><th>Part-time</th><th>Annual Payroll</th></tr>
+    <tr>
+      <td><%= data.wc_employees_ft || "" %></td>
+      <td><%= data.wc_employees_pt || "" %></td>
+      <td><%= data.wc_annual_payroll || "" %></td>
+    </tr>
+  </table>
+</body>
+</html>
 
