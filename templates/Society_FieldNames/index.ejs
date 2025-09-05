@@ -2,46 +2,115 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>Society – Supplemental Application</title>
+  <title>Society – Supplemental Application (Bar/Tavern)</title>
   <style><%= styles %></style>
 </head>
 <body>
-  <h1>Society – Supplemental Application (Bar/Tavern)</h1>
+  <div class="page">
+    <div class="carrierbar">
+      <div class="brand">SOCIETY INSURANCE</div>
+      <div class="title">SUPPLEMENTAL APPLICATION</div>
+    </div>
 
-  <h2>Applicant</h2>
-  <p><strong>Business Name:</strong> <%= data.applicant_name || data.namedInsured || "" %></p>
-  <p><strong>Location:</strong>
-    <%= [data.premise_address || data.location_address,
-          data.premise_city || data.location_city,
-          data.premise_state || data.location_state,
-          data.premise_zip || data.location_zip].filter(Boolean).join(", ") %>
-  </p>
-  <p><strong>Phone:</strong> <%= data.business_phone || data.phone || "" %> |
-     <strong>Email:</strong> <%= data.contact_email || data.email || "" %></p>
+    <!-- Applicant -->
+    <div class="subbar">APPLICANT</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w25">BUSINESS NAME</div>
+        <div class="cell w75"><%= data.applicant_name || data.namedInsured || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w25">LOCATION</div>
+        <div class="cell w75">
+          <%= [data.premise_address, data.premise_city, data.premise_state, data.premise_zip].filter(Boolean).join(", ") %>
+        </div>
+      </div>
+      <div class="row">
+        <div class="cell label w25">PHONE / EMAIL</div>
+        <div class="cell w75"><%= [data.business_phone, data.contact_email].filter(Boolean).join(" / ") %></div>
+      </div>
+    </div>
 
-  <h2>Operations Mix</h2>
-  <table class="table">
-    <tr><th>Liquor %</th><th>Food %</th><th>Other %</th></tr>
-    <tr>
-      <td><%= data.liquor_percent || data.percentLiquor || "" %></td>
-      <td><%= data.food_percent || data.percentFood || "" %></td>
-      <td><%= data.other_percent || data.percentOther || "" %></td>
-    </tr>
-  </table>
+    <!-- Ops Mix -->
+    <div class="subbar">OPERATIONS MIX</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w20">LIQUOR %</div>
+        <div class="cell w10 right"><%= data.liquor_percent || data.percentLiquor || "" %></div>
+        <div class="cell label w20">FOOD %</div>
+        <div class="cell w10 right"><%= data.food_percent || data.percentFood || "" %></div>
+        <div class="cell label w20">OTHER %</div>
+        <div class="cell w20 right"><%= data.other_percent || data.percentOther || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w25">HOURS / DAYS</div>
+        <div class="cell w35"><%= [data.hours_of_operation, data.days_open].filter(Boolean).join(" / ") %></div>
+        <div class="cell label w20">SEATING</div>
+        <div class="cell w20 right"><%= data.number_of_seats || "" %></div>
+      </div>
+    </div>
 
-  <h2>Hours & Entertainment</h2>
-  <p><strong>Hours:</strong> <%= data.hours_of_operation || "" %></p>
-  <p><strong>Entertainment:</strong> <%= data.entertainment_description || data.entertainment || "" %></p>
+    <!-- Security / Controls -->
+    <div class="subbar">SECURITY & CONTROLS</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w25">SECURITY STAFF</div>
+        <div class="cell w25"><span class="check"><%= yn(data.security_staff)==="Yes" ? "✓" : "" %></span> Yes</div>
+        <div class="cell label w25">ID CHECK AT DOOR</div>
+        <div class="cell w25"><span class="check"><%= yn(data.id_checking)==="Yes" ? "✓" : "" %></span> Yes</div>
+      </div>
+      <div class="row">
+        <div class="cell label w25">TIPS/SERVSAFE</div>
+        <div class="cell w25"><span class="check"><%= yn(data.tips_training || data.servsafe)==="Yes" ? "✓" : "" %></span> Yes</div>
+        <div class="cell label w25">INCIDENT LOG</div>
+        <div class="cell w25"><span class="check"><%= yn(data.incident_log)==="Yes" ? "✓" : "" %></span> Yes</div>
+      </div>
+      <div class="row">
+        <div class="cell label w25">ENTERTAINMENT</div>
+        <div class="cell w75"><%= data.entertainment_description || data.entertainment || "" %></div>
+      </div>
+    </div>
 
-  <h2>Security & Controls</h2>
-  <p><strong>Security Staff:</strong> <%= (data.security_staff ? "Yes" : (data.security_staff===false ? "No" : "")) %></p>
-  <p><strong>ID Check at Door:</strong> <%= (data.id_checking ? "Yes" : (data.id_checking===false ? "No" : "")) %></p>
-  <p><strong>TIPS/ServSafe:</strong> <%= (data.tips_training || data.servsafe) ? "Yes" : "" %></p>
-
-  <h2>Loss History</h2>
-  <div style="min-height:60px;border:1px solid #000;padding:6px;">
-    <%= data.loss_history || data.prior_losses || "" %>
+    <!-- Losses -->
+    <div class="subbar">LOSS HISTORY</div>
+    <div class="block">
+      <div class="row"><div class="cell w100" style="min-height:70pt;"><%= data.loss_history || data.prior_losses || "" %></div></div>
+    </div>
   </div>
+
+  <!-- Signature -->
+  <div class="page pagebreak">
+    <div class="carrierbar">
+      <div class="brand">SOCIETY INSURANCE</div>
+      <div class="title">SUPPLEMENTAL APPLICATION</div>
+    </div>
+
+    <div class="subbar">SIGNATURE</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w30">APPLICANT’S SIGNATURE</div>
+        <div class="cell w70">&nbsp;</div>
+      </div>
+      <div class="row">
+        <div class="cell label w30">TITLE</div>
+        <div class="cell w30">&nbsp;</div>
+        <div class="cell label w20">DATE</div>
+        <div class="cell w20">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="subbar">LEGAL NOTICE</div>
+    <div class="block">
+      <div class="row"><div class="cell w100"><div class="legal">
+        The applicant affirms the accuracy and completeness of the information provided…
+      </div></div></div>
+    </div>
+  </div>
+
+  <script>
+    function yn(v){ if(v===true||v==="true"||v==="Yes"||v==="yes"||v===1||v==="1") return "Yes";
+                    if(v===false||v==="false"||v==="No"||v==="no"||v===0||v==="0") return "No"; return ""; }
+  </script>
 </body>
 </html>
 
