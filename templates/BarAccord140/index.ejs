@@ -6,43 +6,111 @@
   <style><%= styles %></style>
 </head>
 <body>
-  <h1>ACORD 140 – Property Section</h1>
+  <div class="page">
+    <div class="headerbar">
+      <div class="acord">ACORD</div>
+      <div class="title">PROPERTY SECTION</div>
+      <div class="formno">140</div>
+    </div>
 
-  <h2>Location</h2>
-  <p><strong>Address:</strong>
-    <%= [data.location_address || data.premise_address,
-          data.location_city || data.premise_city,
-          data.location_state || data.premise_state,
-          data.location_zip || data.premise_zip].filter(Boolean).join(", ") %>
-  </p>
+    <!-- Location -->
+    <div class="subbar">LOCATION</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w25">ADDRESS</div>
+        <div class="cell w75">
+          <%= [data.location_address || data.premise_address,
+                data.location_city || data.premise_city,
+                data.location_state || data.premise_state,
+                data.location_zip || data.premise_zip].filter(Boolean).join(", ") %>
+        </div>
+      </div>
+    </div>
 
-  <h2>Building Details</h2>
-  <table class="table">
-    <tr><th>Year Built</th><th># Stories</th><th>Sq Ft</th><th>Construction</th><th>Protection Class</th></tr>
-    <tr>
-      <td><%= data.year_built || "" %></td>
-      <td><%= data.number_of_stories || "" %></td>
-      <td><%= data.square_footage || data.total_area_sqft || "" %></td>
-      <td><%= data.construction_type || "" %></td>
-      <td><%= data.protection_class || "" %></td>
-    </tr>
-  </table>
+    <!-- Building -->
+    <div class="subbar">BUILDING</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w20">YEAR BUILT</div>
+        <div class="cell w15"><%= data.year_built || "" %></div>
+        <div class="cell label w20"># STORIES</div>
+        <div class="cell w15"><%= data.number_of_stories || "" %></div>
+        <div class="cell label w15">SQ FT</div>
+        <div class="cell w15 right"><%= data.square_footage || data.total_area_sqft || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w20">CONSTRUCTION</div>
+        <div class="cell w30"><%= data.construction_type || "" %></div>
+        <div class="cell label w20">PROTECTION CLASS</div>
+        <div class="cell w30"><%= data.protection_class || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w25">SPRINKLERED</div>
+        <div class="cell w25"><span class="check"><%= yn(data.sprinklered)==="Yes" ? "✓" : "" %></span> Yes</div>
+        <div class="cell label w25">CENTRAL STATION ALARM</div>
+        <div class="cell w25"><span class="check"><%= yn(data.central_station_alarm)==="Yes" ? "✓" : "" %></span> Yes</div>
+      </div>
+    </div>
 
-  <h2>Coverages & Limits</h2>
-  <table class="table">
-    <tr><th>Building</th><th>BPP</th><th>Business Income</th><th>Cause of Loss</th><th>Deductible</th></tr>
-    <tr>
-      <td><%= data.building_limit || "" %></td>
-      <td><%= data.business_personal_property || data.bpp_limit || "" %></td>
-      <td><%= data.business_income_limit || data.bi_limit || "" %></td>
-      <td><%= data.cause_of_loss || "" %></td>
-      <td><%= data.deductible || "" %></td>
-    </tr>
-  </table>
+    <!-- Coverages -->
+    <div class="subbar">COVERAGES & LIMITS</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w20">BUILDING</div>
+        <div class="cell w30 right"><%= money(data.building_limit) %></div>
+        <div class="cell label w20">BPP</div>
+        <div class="cell w30 right"><%= money(data.business_personal_property || data.bpp_limit) %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w20">BUSINESS INCOME</div>
+        <div class="cell w30 right"><%= money(data.business_income_limit || data.bi_limit) %></div>
+        <div class="cell label w20">CAUSE OF LOSS</div>
+        <div class="cell w30"><%= data.cause_of_loss || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w20">DEDUCTIBLE</div>
+        <div class="cell w30"><%= data.deductible || "" %></div>
+        <div class="cell label w20">COINSURANCE</div>
+        <div class="cell w30"><%= data.coinsurance || "" %></div>
+      </div>
+    </div>
+  </div>
 
-  <h2>Protection</h2>
-  <p><strong>Sprinklered:</strong> <%= (data.sprinklered ? "Yes" : (data.sprinklered===false ? "No" : "")) %> |
-     <strong>Central Station Alarm:</strong> <%= (data.central_station_alarm ? "Yes" : (data.central_station_alarm===false ? "No" : "")) %></p>
+  <!-- Signature / Legal -->
+  <div class="page pagebreak">
+    <div class="headerbar">
+      <div class="acord">ACORD</div>
+      <div class="title">PROPERTY SECTION</div>
+      <div class="formno">140</div>
+    </div>
+
+    <div class="subbar">SIGNATURE</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w30">APPLICANT’S SIGNATURE</div>
+        <div class="cell w70">&nbsp;</div>
+      </div>
+      <div class="row">
+        <div class="cell label w30">TITLE</div>
+        <div class="cell w30">&nbsp;</div>
+        <div class="cell label w20">DATE</div>
+        <div class="cell w20">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="subbar">LEGAL NOTICE</div>
+    <div class="block">
+      <div class="row"><div class="cell w100"><div class="legal">
+        Statements herein are true and complete to the best of the applicant’s knowledge…
+      </div></div></div>
+    </div>
+  </div>
+
+  <script>
+    function yn(v){ if(v===true||v==="true"||v==="Yes"||v==="yes"||v===1||v==="1") return "Yes";
+                    if(v===false||v==="false"||v==="No"||v==="no"||v===0||v==="0") return "No"; return ""; }
+    function money(v){ if(v==null||v==="") return ""; const n=Number(String(v).replace(/[^0-9.-]/g,""));
+                       return isNaN(n) ? String(v) : n.toLocaleString("en-US",{style:"currency",currency:"USD"}); }
+  </script>
 </body>
 </html>
-
