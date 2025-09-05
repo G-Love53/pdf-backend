@@ -1,38 +1,56 @@
 // src/pdf.js
-import ejs from "ejs";
 import fs from "fs/promises";
-import puppeteer from "puppeteer";
+import path from "path";
+import ejs from "ejs";
+import puppeteer from "puppeteer-core";
+import { fileURLToPath } from "url";
 
-export async function renderPdf({ htmlPath, cssPath, data }) {
-  let styles = "";
-  try {
-    styles = await fs.readFile(cssPath, "utf8");
-  } catch {
-    // If no CSS file exists for this template, continue with empty styles
-  }
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  // Render the HTML with EJS, injecting styles into the template
-  const html = await ejs.renderFile(
-    htmlPath,
-    { ...data, styles },
-    { async: true }
+// Render a single PDF from one template folder
+//   htmlPath: .../templates/<name>/index.ejs
+//   cssPath:  .../templates/<name>/styles.css (optional)
+//   data:     object with template variables
+export async function renderPdf({ htmlPath, cssPath, data = {} }) {
+  // Load template + css (css optional)
+  const [templateStr, cssStr] = await Promise.all([
+    fs.readFile(htmlPath, "utf8"),
+    fs.readFile(cssPath, "utf8").catch(() => "")
+  ]);
+
+  // Render HTML, exposing `styles` to the EJS template
+  const html = await ejs.render(
+    templateStr,
+    { ...data, styles: cssStr },
+    { async: true, filename: htmlPath } // filename helps EJS error messages show the correct file/line
   );
 
-  // Launch Puppeteer in container-friendly mode
+  // Launch Chrome that we installed via @puppeteer/browsers (Dockerfile)
   const browser = await puppeteer.launch({
     headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    executablePath:
+      process.env.PUPPETEER_EXECUTABLE_PATH ||
+      "/app/chrome/linux-123.0.6312.122/chrome-linux64/chrome",
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--font-render-hinting=none",
+      "--disable-dev-shm-usage"
+    ]
   });
 
-  const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: "networkidle0" });
-
-  const pdfBuffer = await page.pdf({
-    format: "A4",
-    printBackground: true,
-  });
-
-  await browser.close();
-  return pdfBuffer;
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+    const pdfBuffer = await page.pdf({
+      format: "Letter",
+      printBackground: true,
+      margin: { top: "0.5in", right: "0.5in", bottom: "0.5in", left: "0.5in" }
+    });
+    return pdfBuffer;
+  } finally {
+    await browser.close();
+  }
 }
 
