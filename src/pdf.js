@@ -22,7 +22,7 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
   // Render HTML, exposing `styles` to the EJS template
   const html = await ejs.render(
     templateStr,
-    { ...data, styles: cssStr },
+    { ...data, data, styles: cssStr },
     { async: true, filename: htmlPath } // filename helps EJS error messages show the correct file/line
   );
 
