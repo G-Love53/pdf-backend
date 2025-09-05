@@ -2,25 +2,219 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>ACORD 125 – Applicant Information</title>
+  <title>ACORD 125 – Commercial Insurance Application</title>
   <style><%= styles %></style>
 </head>
 <body>
-  <h1>ACORD 125 – Applicant Information</h1>
+  <div class="page">
 
-  <h2>Applicant</h2>
-  <p><strong>Name:</strong> <%= data.applicant_name || "" %></p>
-  <p><strong>Phone:</strong> <%= data.business_phone || "" %> |
-     <strong>Email:</strong> <%= data.contact_email || "" %></p>
+    <!-- ACORD Header Bar -->
+    <div class="headerbar">
+      <div class="acord">ACORD</div>
+      <div class="title">COMMERCIAL INSURANCE APPLICATION</div>
+      <div class="formno">125</div>
+    </div>
 
-  <h2>Premises</h2>
-  <p><strong>Address:</strong>
-    <%= [data.premise_address, data.premise_city, data.premise_state, data.premise_zip]
-       .filter(Boolean).join(", ") %>
-  </p>
+    <!-- 1) Applicant / Mailing -->
+    <div class="subbar">APPLICANT INFORMATION</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w25">APPLICANT NAME</div>
+        <div class="cell w75"><%= data.applicant_name || data.namedInsured || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w25">MAILING ADDRESS</div>
+        <div class="cell w45">
+          <%= [data.mailing_address || data.premise_address, data.mailing_address_2].filter(Boolean).join(", ") %>
+        </div>
+        <div class="cell label w10">CITY</div>
+        <div class="cell w20"><%= data.mailing_city || data.premise_city || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w10">STATE</div>
+        <div class="cell w15"><%= data.mailing_state || data.premise_state || "" %></div>
+        <div class="cell label w10">ZIP</div>
+        <div class="cell w15"><%= data.mailing_zip || data.premise_zip || "" %></div>
+        <div class="cell label w10">FEIN</div>
+        <div class="cell w15"><%= data.fein || data.tax_id || "" %></div>
+        <div class="cell label w10">PHONE</div>
+        <div class="cell w15"><%= data.business_phone || data.phone || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w15">EMAIL</div>
+        <div class="cell w35"><%= data.contact_email || data.email || "" %></div>
+        <div class="cell label w15">WEBSITE</div>
+        <div class="cell w35"><%= data.website || data.premises_website || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w15">APPLICANT TYPE</div>
+        <div class="cell w85">
+          <span class="check"><%= ck(data.applicant_type,"Individual") %></span> Individual
+          <span class="check"><%= ck(data.applicant_type,"Partnership") %></span> Partnership
+          <span class="check"><%= ck(data.applicant_type,"Corporation") %></span> Corporation
+          <span class="check"><%= ck(data.applicant_type,"LLC") %></span> LLC
+          <span class="check"><%= ck(data.applicant_type,"Other") %></span> Other
+        </div>
+      </div>
+    </div>
 
-  <h2>Business</h2>
-  <p><strong>FEIN:</strong> <%= data.fein || data.tax_id || "" %> |
-     <strong>Years in Business:</strong> <%= data.years_in_business || "" %></p>
+    <!-- 2) Business Details -->
+    <div class="subbar">BUSINESS INFORMATION</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w20">YEARS IN BUSINESS</div>
+        <div class="cell w15"><%= data.years_in_business || "" %></div>
+        <div class="cell label w20">DESCRIPTION OF OPERATIONS</div>
+        <div class="cell w45"><%= data.description_of_operations || data.nature_of_business || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w20">ANNUAL SALES</div>
+        <div class="cell w15 right"><%= money(data.total_sales || data.gross_receipts) %></div>
+        <div class="cell label w20">ALCOHOL SALES</div>
+        <div class="cell w15 right"><%= money(data.alcohol_sales) %></div>
+        <div class="cell label w15">SQUARE FOOTAGE</div>
+        <div class="cell w15 right"><%= data.square_footage || data.total_area_sqft || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w20">OCCUPANCY / SEATS</div>
+        <div class="cell w30"><%= [data.occupancy || data.max_occupancy, data.number_of_seats].filter(Boolean).join(" / ") %></div>
+        <div class="cell label w20">HOURS / DAYS</div>
+        <div class="cell w30"><%= [data.hours_of_operation, data.days_open].filter(Boolean).join(" / ") %></div>
+      </div>
+    </div>
+
+    <!-- 3) Locations (Primary) -->
+    <div class="subbar">PRIMARY LOCATION</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w20">LOCATION ADDRESS</div>
+        <div class="cell w80">
+          <%= [data.location_address || data.premise_address,
+                data.location_city || data.premise_city,
+                data.location_state || data.premise_state,
+                data.location_zip || data.premise_zip].filter(Boolean).join(", ") %>
+        </div>
+      </div>
+      <div class="row">
+        <div class="cell label w20">YEARS AT LOCATION</div>
+        <div class="cell w15"><%= data.years_at_location || "" %></div>
+        <div class="cell label w20">ANY PRIOR LOSSES (3–5 YRS)</div>
+        <div class="cell w15"><%= yn(data.losses_prior) %></div>
+        <div class="cell label w15">LOSS DESCRIPTION</div>
+        <div class="cell w15"><%= data.loss_history || data.prior_losses || "" %></div>
+      </div>
+    </div>
+
+    <!-- 4) Contacts -->
+    <div class="subbar">CONTACTS</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w20">ACCTING / AUDIT CONTACT</div>
+        <div class="cell w30"><%= data.audit_contact_name || "" %></div>
+        <div class="cell label w20">PHONE / EMAIL</div>
+        <div class="cell w30"><%= [data.audit_contact_phone, data.audit_contact_email].filter(Boolean).join(" / ") %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w20">INSURANCE CONTACT</div>
+        <div class="cell w30"><%= data.insurance_contact_name || "" %></div>
+        <div class="cell label w20">PHONE / EMAIL</div>
+        <div class="cell w30"><%= [data.insurance_contact_phone, data.insurance_contact_email].filter(Boolean).join(" / ") %></div>
+      </div>
+    </div>
+
+    <!-- 5) Additional Interests (first) -->
+    <div class="subbar">ADDITIONAL INTEREST</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w20">NAME</div>
+        <div class="cell w40"><%= data.ai_name_1 || "" %></div>
+        <div class="cell label w10">TYPE</div>
+        <div class="cell w30">
+          <span class="check"><%= yn(data.ai_additional_insured)==="Yes" ? "✓" : "" %></span> Addl Insured
+          <span class="check"><%= yn(data.ai_loss_payee)==="Yes" ? "✓" : "" %></span> Loss Payee
+          <span class="check"><%= yn(data.ai_mortgagee)==="Yes" ? "✓" : "" %></span> Mortgagee
+        </div>
+      </div>
+      <div class="row">
+        <div class="cell label w20">ADDRESS</div>
+        <div class="cell w80">
+          <%= [data.ai_address_1, data.ai_city_1, data.ai_state_1, data.ai_zip_1].filter(Boolean).join(", ") %>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6) Remarks -->
+    <div class="subbar">REMARKS</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell w100" style="min-height:70pt;"><%= data.remarks || "" %></div>
+      </div>
+    </div>
+
+  </div> <!-- /.page -->
+
+  <!-- Page 2: Signature & Legal -->
+  <div class="page pagebreak">
+
+    <div class="headerbar">
+      <div class="acord">ACORD</div>
+      <div class="title">COMMERCIAL INSURANCE APPLICATION</div>
+      <div class="formno">125</div>
+    </div>
+
+    <div class="subbar">SIGNATURE</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w30">APPLICANT’S SIGNATURE</div>
+        <div class="cell w70">&nbsp;</div>
+      </div>
+      <div class="row">
+        <div class="cell label w30">TITLE</div>
+        <div class="cell w30">&nbsp;</div>
+        <div class="cell label w20">DATE</div>
+        <div class="cell w20">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="subbar">LEGAL NOTICE</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell w100">
+          <div class="legal">
+            The undersigned authorized representative of the applicant declares to the best of their
+            knowledge and belief that all statements set forth herein are true. This application does
+            not bind the applicant to accept insurance nor the carrier to issue a policy. Any person
+            who knowingly and with intent to defraud any insurance company or another person files an
+            application for insurance containing materially false information, or conceals for the
+            purpose of misleading information concerning any fact material thereto, commits a
+            fraudulent insurance act, which is a crime and may subject such person to criminal and
+            civil penalties.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footnote">
+      Generated by CID • <%= new Date().toLocaleDateString() %>
+    </div>
+
+  </div>
+
+  <!-- Helpers -->
+  <script>
+    function yn(v){
+      if(v===true||v==="true"||v==="Yes"||v==="yes"||v===1||v==="1") return "Yes";
+      if(v===false||v==="false"||v==="No"||v==="no"||v===0||v==="0") return "No";
+      return "";
+    }
+    function ck(v,target){
+      return (String(v||"").toLowerCase()===String(target).toLowerCase()) ? "✓" : "";
+    }
+    function money(v){
+      if(v==null||v==="") return "";
+      const n=Number(String(v).replace(/[^0-9.-]/g,""));
+      return isNaN(n) ? String(v) : n.toLocaleString("en-US",{style:"currency",currency:"USD"});
+    }
+  </script>
 </body>
 </html>
