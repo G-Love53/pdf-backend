@@ -2,36 +2,118 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>ACORD 126 – CGL (Bar)</title>
+  <title>ACORD 126 – Commercial General Liability</title>
   <style><%= styles %></style>
 </head>
 <body>
-  <h1>ACORD 126 – Commercial General Liability (Bar/Tavern)</h1>
+  <div class="page">
+    <div class="headerbar">
+      <div class="acord">ACORD</div>
+      <div class="title">COMMERCIAL GENERAL LIABILITY SECTION</div>
+      <div class="formno">126</div>
+    </div>
 
-  <h2>Applicant</h2>
-  <p><strong>Name:</strong> <%= data.applicant_name || "" %></p>
+    <!-- Applicant -->
+    <div class="subbar">APPLICANT</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w25">NAME</div>
+        <div class="cell w75"><%= data.applicant_name || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w25">PREMISES</div>
+        <div class="cell w75">
+          <%= [data.premise_address, data.premise_city, data.premise_state, data.premise_zip].filter(Boolean).join(", ") %>
+        </div>
+      </div>
+    </div>
 
-  <h2>Exposures</h2>
-  <table class="table">
-    <tr><th>Total Sales</th><th>Alcohol Sales</th><th>Square Footage</th></tr>
-    <tr>
-      <td><%= data.total_sales || "" %></td>
-      <td><%= data.alcohol_sales || "" %></td>
-      <td><%= data.square_footage || "" %></td>
-    </tr>
-  </table>
+    <!-- Exposures (mapped handful) -->
+    <div class="subbar">EXPOSURES</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w25">TOTAL SALES</div>
+        <div class="cell w25 right"><%= money(data.total_sales) %></div>
+        <div class="cell label w25">ALCOHOL SALES</div>
+        <div class="cell w25 right"><%= money(data.alcohol_sales) %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w25">SQUARE FOOTAGE</div>
+        <div class="cell w25 right"><%= data.square_footage || "" %></div>
+        <div class="cell label w25">OCCUPANCY</div>
+        <div class="cell w25"><%= data.occupancy || data.max_occupancy || "" %></div>
+      </div>
+    </div>
 
-  <h2>Additional Interests</h2>
-  <p>
-    <strong>Type:</strong>
-    <%= (data.ai_additional_insured && "Additional Insured") ||
-        (data.ai_loss_payee && "Loss Payee") ||
-        (data.ai_mortgagee && "Mortgagee") ||
-        (data.ai_lienholder && "Lienholder") || "" %>
-  </p>
-  <p>
-    <%= [data.ai_name_1, data.ai_address_1, data.ai_city_1, data.ai_state_1, data.ai_zip_1]
-        .filter(Boolean).join(", ") %>
-  </p>
+    <!-- Additional Interest (single) -->
+    <div class="subbar">ADDITIONAL INTEREST</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w20">NAME</div>
+        <div class="cell w40"><%= data.ai_name_1 || "" %></div>
+        <div class="cell label w10">TYPE</div>
+        <div class="cell w30">
+          <span class="check"><%= yn(data.ai_additional_insured)==="Yes" ? "✓" : "" %></span> Addl Insured
+          <span class="check"><%= yn(data.ai_loss_payee)==="Yes" ? "✓" : "" %></span> Loss Payee
+          <span class="check"><%= yn(data.ai_mortgagee)==="Yes" ? "✓" : "" %></span> Mortgagee
+        </div>
+      </div>
+      <div class="row">
+        <div class="cell label w20">ADDRESS</div>
+        <div class="cell w80">
+          <%= [data.ai_address_1, data.ai_city_1, data.ai_state_1, data.ai_zip_1].filter(Boolean).join(", ") %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Remarks -->
+    <div class="subbar">REMARKS</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell w100" style="min-height:60pt;"><%= data.remarks || "" %></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signature / Legal -->
+  <div class="page pagebreak">
+    <div class="headerbar">
+      <div class="acord">ACORD</div>
+      <div class="title">COMMERCIAL GENERAL LIABILITY SECTION</div>
+      <div class="formno">126</div>
+    </div>
+
+    <div class="subbar">SIGNATURE</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w30">APPLICANT’S SIGNATURE</div>
+        <div class="cell w70">&nbsp;</div>
+      </div>
+      <div class="row">
+        <div class="cell label w30">TITLE</div>
+        <div class="cell w30">&nbsp;</div>
+        <div class="cell label w20">DATE</div>
+        <div class="cell w20">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="subbar">LEGAL NOTICE</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell w100">
+          <div class="legal">
+            The undersigned authorized representative of the applicant declares that all statements are true and complete…
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function yn(v){ if(v===true||v==="true"||v==="Yes"||v==="yes"||v===1||v==="1") return "Yes";
+                    if(v===false||v==="false"||v==="No"||v==="no"||v===0||v==="0") return "No"; return ""; }
+    function money(v){ if(v==null||v==="") return ""; const n=Number(String(v).replace(/[^0-9.-]/g,""));
+                       return isNaN(n) ? String(v) : n.toLocaleString("en-US",{style:"currency",currency:"USD"}); }
+  </script>
 </body>
 </html>
