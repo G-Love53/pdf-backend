@@ -1,6 +1,41 @@
 @page { size: Letter; margin: 0.5in; }
-body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color:#000; }
-h1 { font-size: 16px; margin: 0 0 10px; }
-.table { width:100%; border-collapse: collapse; margin-top: 6px; }
-.table th, .table td { border:1px solid #000; padding:4px 6px; }
+* { box-sizing: border-box; }
+body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 10.5pt; line-height: 1.25; }
+.page { width: 7.5in; margin: 0 auto; }
 
+/* Header bars */
+.headerbar { display: grid; grid-template-columns: 0.9in 1fr 0.6in; align-items: center;
+             border: 1pt solid #000; margin-bottom: 6pt; }
+.headerbar .acord { font-weight: 700; font-size: 14pt; text-align: center; border-right: 1pt solid #000; padding: 4pt 0; }
+.headerbar .title { font-weight: 700; letter-spacing: .2pt; text-align: center; }
+.headerbar .formno { font-weight: 700; font-size: 16pt; text-align: center; border-left: 1pt solid #000; }
+
+.carrierbar { display: grid; grid-template-columns: 1fr 1fr; align-items: center; border: 1pt solid #000; margin-bottom: 6pt; }
+.carrierbar .brand { font-weight: 800; padding: 4pt 6pt; border-right: 1pt solid #000; }
+.carrierbar .title { font-weight: 700; text-align: center; }
+
+/* Section bar */
+.subbar { background: #eee; border: 1pt solid #000; padding: 3pt 6pt; font-weight: 700; margin-top: 8pt; }
+
+/* Boxed grids */
+.block { border: 1pt solid #000; border-top: none; }
+.block .row { display: grid; grid-template-columns: repeat(20, 1fr); border-top: 1pt solid #000; }
+.block .row:first-child { border-top: none; }
+.cell { padding: 3pt 5pt; border-left: 1pt solid #000; }
+.cell:first-child { border-left: none; }
+.label { background: #f6f6f6; font-weight: 700; }
+
+/* Width utils (20-col grid) */
+.w10 { grid-column: span 2; }  .w15 { grid-column: span 3; }  .w20 { grid-column: span 4; }
+.w25 { grid-column: span 5; }  .w30 { grid-column: span 6; }  .w35 { grid-column: span 7; }
+.w40 { grid-column: span 8; }  .w45 { grid-column: span 9; }  .w50 { grid-column: span 10; }
+.w60 { grid-column: span 12; } .w70 { grid-column: span 14; } .w75 { grid-column: span 15; }
+.w80 { grid-column: span 16; } .w85 { grid-column: span 17; } .w90 { grid-column: span 18; }
+.w100 { grid-column: span 20; }
+
+.right { text-align: right; }
+.check { display:inline-block; width: 10pt; height: 10pt; border:1pt solid #000; margin: 0 4pt 0 10pt;
+         text-align:center; line-height:10pt; font-weight:700; font-size: 9pt; vertical-align:middle; }
+.legal { font-size: 9pt; line-height: 1.25; padding: 6pt 4pt; color:#111; }
+
+.pagebreak { break-before: page; }
