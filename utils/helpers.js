@@ -1,5 +1,5 @@
 // utils/helpers.js
-module.exports = {
+export default {
   // Checkbox helper - returns 'X' or empty
   ck: (value) => {
     if (typeof value === 'boolean') return value ? 'X' : '';
