@@ -1,5 +1,6 @@
 // src/server.js
 import express from "express";
+import { normalizeBar125 } from "../mapping/normalizeBar125.js";
 import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
@@ -68,8 +69,18 @@ async function renderBundleAndRespond({ templates, email }, res) {
       const name = t.name;
       const htmlPath = path.join(TPL_DIR, name, "index.ejs");
       const cssPath = path.join(TPL_DIR, name, "styles.css");
-      const data = await maybeMapData(name, t.data || {});
-      const buffer = await renderPdf({ htmlPath, cssPath, data });
+      let unified;
+      if (name === "BarAccord125") {
+     // ✅ New path: use the schema normalizer
+     unified = normalizeBar125(rawData);
+} else {
+  // 🔁 Existing path: JSON mapping file (no change for other templates)
+  unified = await maybeApplyMapping(name, rawData);
+}
+
+// now render with unified data
+const buffer = await renderPDF(tplPath, cssPath, name, unified);
+
       const prettyName = FILENAME_MAP[name] || t.filename || `${name}.pdf`;
       return { filename: prettyName, buffer };
 
