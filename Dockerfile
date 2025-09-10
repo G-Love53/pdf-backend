@@ -15,23 +15,23 @@ WORKDIR /app
 # Use ONE cache path consistently for install + runtime
 ENV PUPPETEER_CACHE_DIR=/app/.cache/puppeteer
 
-# Install the exact Chrome version Puppeteer expects (from your logs)
-  executablePath:
-  process.env.PUPPETEER_EXECUTABLE_PATH ||
-  "/app/.cache/puppeteer/chrome/linux-123.0.6312.122/chrome-linux64/chrome",
-  
+# Install the exact Chrome version Puppeteer expects
+RUN npx @puppeteer/browsers install chrome@123.0.6312.122
+
+# Copy and install dependencies
 COPY package*.json ./
 RUN npm ci --omit=dev || npm install --omit=dev
 
+# Copy application files
 COPY src ./src
 COPY templates ./templates
 COPY mapping ./mapping
-COPY utils/ ./utils/   
+COPY utils ./utils
 
-# IMPORTANT: point to where @puppeteer/browsers actually put Chrome
-# (since we set PUPPETEER_CACHE_DIR, Chrome lives under /app/.cache/puppeteer)
+# Set environment variables
 ENV NODE_ENV=production
 ENV PUPPETEER_EXECUTABLE_PATH=/app/.cache/puppeteer/chrome/linux-123.0.6312.122/chrome-linux64/chrome
 
 EXPOSE 8080
-CMD ["npm","start"]
+
+CMD ["npm", "start"]
