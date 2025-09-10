@@ -6,30 +6,83 @@
   <style><%= styles %></style>
 </head>
 <body>
-  <h1>Workers’ Compensation – Bar/Tavern</h1>
+  <!-- PAGE 1 -->
+  <div class="page">
+    <div class="headerbar">
+      <div class="acord">CID</div>
+      <div class="title">WORKERS’ COMPENSATION</div>
+      <div class="formno">WC</div>
+    </div>
 
-  <h2>Applicant</h2>
-  <p><strong>Business name:</strong> <%= data.applicant_name || "" %></p>
-  <p><strong>Phone:</strong> <%= data.business_phone || "" %> |
-     <strong>Email:</strong> <%= data.contact_email || "" %></p>
+    <!-- Applicant -->
+    <div class="subbar">APPLICANT</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w25">BUSINESS NAME</div>
+        <div class="cell w75"><%= data.applicant_name || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w25">PHONE</div>
+        <div class="cell w25"><%= data.business_phone || "" %></div>
+        <div class="cell label w25">EMAIL</div>
+        <div class="cell w25"><%= data.contact_email || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w25">WEBSITE</div>
+        <div class="cell w75"><%= data.premises_website || "" %></div>
+      </div>
+    </div>
 
-  <h2>Classification</h2>
-  <table class="table">
-    <tr><th>Bar/Tavern</th><th>Restaurant</th></tr>
-    <tr>
-      <td><%= data.wc_bar_tavern || "" %></td>
-      <td><%= data.wc_restaurant || "" %></td>
-    </tr>
-  </table>
+    <!-- Location -->
+    <div class="subbar">LOCATION</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w25">ADDRESS</div>
+        <div class="cell w75">
+          <%= [
+            data.premise_address,
+            [data.premise_city, data.premise_state, data.premise_zip].filter(Boolean).join(", ")
+          ].filter(Boolean).join(", ") %>
+        </div>
+      </div>
+    </div>
 
-  <h2>Employees & Payroll</h2>
-  <table class="table">
-    <tr><th>Full-time</th><th>Part-time</th><th>Annual Payroll</th></tr>
-    <tr>
-      <td><%= data.wc_employees_ft || "" %></td>
-      <td><%= data.wc_employees_pt || "" %></td>
-      <td><%= data.wc_annual_payroll || "" %></td>
-    </tr>
-  </table>
+    <!-- Classification -->
+    <div class="subbar">CLASSIFICATION</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w25">BAR / TAVERN</div>
+        <div class="cell w25"><%= data.wc_bar_tavern || "" %></div>
+        <div class="cell label w25">RESTAURANT</div>
+        <div class="cell w25"><%= data.wc_restaurant || "" %></div>
+      </div>
+    </div>
+
+    <!-- Employees & Payroll -->
+    <div class="subbar">EMPLOYEES & PAYROLL</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w25">FULL-TIME EMPLOYEES</div>
+        <div class="cell w25"><%= data.wc_employees_ft || "" %></div>
+        <div class="cell label w25">PART-TIME EMPLOYEES</div>
+        <div class="cell w25"><%= data.wc_employees_pt || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w25">EST. ANNUAL PAYROLL</div>
+        <div class="cell w25 right"><%= helpers.money(data.wc_annual_payroll || "") %></div>
+        <div class="cell label w25">&nbsp;</div>
+        <div class="cell w25">&nbsp;</div>
+      </div>
+    </div>
+
+    <!-- Notes (optional, future-ready) -->
+    <div class="subbar">NOTES</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell w100" style="min-height:64px;"></div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
+
