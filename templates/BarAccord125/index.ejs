@@ -1,3 +1,32 @@
+<%
+// Import helpers from our utils file
+const { ck, yn, money, formatDate } = require('../utils/helpers');
+
+// Establish defaults for agency information
+const defaults = {
+  // Agency Information (pre-filled)
+  producerName: "Rick P Cline Agency Inc, dba All Access Insurance, LLC",
+  producerCode: "RICK CLINE",
+  producerPhone: "(555) 123-4567",
+  producerFax: "(555) 123-4568",
+  producerEmail: "rick@allaccessins.com",
+  
+  // Default dates
+  date: formatDate(),
+  effectiveDate: formatDate(),
+  
+  // Default all risk questions to 'N'
+  losses_prior: false,
+  ai_additional_insured: false,
+  ai_loss_payee: false,
+  ai_mortgagee: false
+};
+
+// Merge user data with defaults (user data overrides defaults)
+const data = Object.assign({}, defaults, formData || {});
+
+// Define styles as variable for compatibility with your existing template
+
 <!doctype html>
 <html>
 <head>
@@ -200,21 +229,5 @@
 
   </div>
 
-  <!-- Helpers -->
-  <script>
-    function yn(v){
-      if(v===true||v==="true"||v==="Yes"||v==="yes"||v===1||v==="1") return "Yes";
-      if(v===false||v==="false"||v==="No"||v==="no"||v===0||v==="0") return "No";
-      return "";
-    }
-    function ck(v,target){
-      return (String(v||"").toLowerCase()===String(target).toLowerCase()) ? "✓" : "";
-    }
-    function money(v){
-      if(v==null||v==="") return "";
-      const n=Number(String(v).replace(/[^0-9.-]/g,""));
-      return isNaN(n) ? String(v) : n.toLocaleString("en-US",{style:"currency",currency:"USD"});
-    }
-  </script>
 </body>
 </html>
