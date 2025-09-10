@@ -1,40 +1,162 @@
-@page { size: Letter; margin: 0.5in; }
-* { box-sizing: border-box; }
-body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 10.5pt; line-height: 1.25; }
-.page { width: 7.5in; margin: 0 auto; }
+/* ===== ACORD 125 Print-Fidelity Styles (Drop-in) ===== */
 
-/* ACORD header */
-.headerbar { display: grid; grid-template-columns: 0.9in 1fr 0.6in; align-items: center;
-             border: 1pt solid #000; margin-bottom: 6pt; }
-.headerbar .acord { font-weight: 700; font-size: 14pt; text-align: center; border-right: 1pt solid #000; padding: 4pt 0; }
-.headerbar .title { font-weight: 700; letter-spacing: .2pt; text-align: center; }
-.headerbar .formno { font-weight: 700; font-size: 16pt; text-align: center; border-left: 1pt solid #000; }
+/* Adjust this to 0.5in if your printer clips borders */
+@page { size: Letter; margin: 0.3in; }
 
-/* Section title bar */
-.subbar { background: #eee; border: 1pt solid #000; padding: 3pt 6pt; font-weight: 700; margin-top: 8pt; }
+* {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
 
-/* Boxed block (table-like, pixel-ish) */
-.block { border: 1pt solid #000; border-top: none; }
-.block .row { display: grid; grid-template-columns: repeat(20, 1fr); border-top: 1pt solid #000; }
-.block .row:first-child { border-top: none; }
-.cell { padding: 3pt 5pt; border-left: 1pt solid #000; }
-.cell:first-child { border-left: none; }
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #000;
+  font-size: 8pt;          /* Dense ACORD look */
+  line-height: 1.15;
+  margin: 0;
+}
 
-/* Label cells */
-.label { background: #f6f6f6; font-weight: 700; }
+.page {
+  width: 7.9in;            /* Fills page inside margins */
+  min-height: 10.6in;      /* Prevents last row clipping */
+  margin: 0 auto;
+  padding: 0.05in;         /* Tiny inner padding for border safety */
+}
 
-/* Width utilities (20-column grid for finer control) */
-.w10 { grid-column: span 2; }  .w15 { grid-column: span 3; }  .w20 { grid-column: span 4; }
-.w25 { grid-column: span 5; }  .w30 { grid-column: span 6; }  .w35 { grid-column: span 7; }
-.w40 { grid-column: span 8; }  .w45 { grid-column: span 9; }  .w50 { grid-column: span 10; }
-.w60 { grid-column: span 12; } .w70 { grid-column: span 14; } .w75 { grid-column: span 15; }
-.w80 { grid-column: span 16; } .w85 { grid-column: span 17; } .w90 { grid-column: span 18; }
-.w100 { grid-column: span 20; }
+/* ===== ACORD header ===== */
+.headerbar {
+  display: grid;
+  grid-template-columns: 0.9in 1fr 0.6in;
+  align-items: center;
+  border: 2pt solid #000;  /* Strong, ACORD-like frame */
+  margin-bottom: 6pt;
+}
 
+.headerbar .acord {
+  font-weight: 800;
+  font-size: 12pt;
+  text-align: center;
+  border-right: 1pt solid #000;
+  padding: 4pt 0;
+}
+
+.headerbar .title {
+  font-weight: 700;
+  letter-spacing: 0.3pt;
+  text-align: center;
+  font-size: 11pt;
+}
+
+.headerbar .formno {
+  font-weight: 700;
+  font-size: 11pt;
+  text-align: center;
+  border-left: 1pt solid #000;
+  padding: 2pt 0;
+}
+
+/* ===== Section title bar ===== */
+.subbar {
+  background: #e6e6e6;     /* Holds up in print/scan */
+  border: 1pt solid #000;
+  padding: 3pt 6pt;
+  font-weight: 700;
+  font-size: 8pt;
+  margin-top: 8pt;
+}
+
+/* ===== Boxed blocks (table/grid) ===== */
+.block {
+  border: 1pt solid #000;
+  border-top: none;
+}
+
+.block .row {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);  /* 20-column micro-grid */
+  border-top: 1pt solid #000;              /* Solid black row rules */
+}
+
+.block .row:first-child {
+  border-top: none;
+}
+
+.cell {
+  padding: 2pt 4pt;                        /* Tight ACORD spacing */
+  border-left: 1pt solid #000;             /* Solid black column rules */
+  min-height: 14pt;                        /* Keeps rows consistent */
+  display: flex;
+  align-items: center;
+}
+
+.cell:first-child {
+  border-left: none;
+}
+
+/* ===== Labels ===== */
+.label {
+  background: #f5f5f5;     /* Slightly lighter than subbar */
+  font-weight: 700;
+  font-size: 7pt;
+  letter-spacing: 0.2pt;
+  text-transform: uppercase; /* ACORD-style captions */
+}
+
+/* ===== Utilities ===== */
 .right { text-align: right; }
-.check { display:inline-block; width: 10pt; height: 10pt; border:1pt solid #000; margin: 0 4pt 0 10pt;
-         text-align:center; line-height:10pt; font-weight:700; font-size: 9pt; vertical-align:middle; }
-.legal { font-size: 9pt; line-height: 1.25; padding: 6pt 4pt; }
-.footnote { margin-top: 10pt; font-size: 9pt; color:#444; text-align: right; }
+.center { text-align: center; }
+.nowrap { white-space: nowrap; }
 
+/* Width utilities mapped to 20-column grid */
+.w5  { grid-column: span 1; }
+.w10 { grid-column: span 2; }
+.w15 { grid-column: span 3; }
+.w20 { grid-column: span 4; }
+.w25 { grid-column: span 5; }
+.w30 { grid-column: span 6; }
+.w35 { grid-column: span 7; }
+.w40 { grid-column: span 8; }
+.w45 { grid-column: span 9; }
+.w50 { grid-column: span 10; }
+.w55 { grid-column: span 11; }
+.w60 { grid-column: span 12; }
+.w65 { grid-column: span 13; }
+.w70 { grid-column: span 14; }
+.w75 { grid-column: span 15; }
+.w80 { grid-column: span 16; }
+.w85 { grid-column: span 17; }
+.w90 { grid-column: span 18; }
+.w95 { grid-column: span 19; }
+.w100{ grid-column: span 20; }
+
+/* ===== Checkboxes (square, legible X) ===== */
+.check {
+  display: inline-block;
+  width: 10pt;
+  height: 10pt;
+  border: 1pt solid #000;
+  margin: 0 4pt 0 8pt;       /* Slight left spacing before label text */
+  text-align: center;
+  line-height: 10pt;
+  font-weight: 700;
+  font-size: 8pt;
+  vertical-align: middle;
+}
+
+/* ===== Legal/footer ===== */
+.legal {
+  font-size: 7pt;
+  line-height: 1.2;
+  padding: 4pt 3pt;
+}
+
+.footnote {
+  margin-top: 8pt;
+  font-size: 7pt;
+  color: #000;
+  text-align: center;        /* ACORD-style centered footer */
+}
+
+/* Page break helper for multipage output */
 .pagebreak { break-before: page; }
