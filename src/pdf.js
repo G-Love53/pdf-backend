@@ -4,7 +4,8 @@ import path from "path";
 import ejs from "ejs";
 import puppeteer from "puppeteer-core";
 import { fileURLToPath } from "url";
-import helpers from "../utils/helpers.js"; // ✅ centralized helpers (yn, ck, money, etc.)
+import helpers from "../utils/helpers.js";
+const { ck, yn, money, formatDate } = helpers;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
