@@ -63,27 +63,32 @@ async function renderBundleAndRespond({ templates, email }, res) {
   const results = await Promise.allSettled(
     templates.map(async (t) => {
       const name = t.name;
-      const htmlPath = path.join(TPL_DIR, name, "index.ejs");
-      const cssPath  = path.join(TPL_DIR, name, "styles.css");
+const htmlPath = path.join(TPL_DIR, name, "index.ejs");
+const cssPath  = path.join(TPL_DIR, name, "styles.css");
 
-      // Source data from request
-      const rawData = t.data || {};
+// Source data from request
+const rawData = t.data || {};
 
-      // Normalize/mapping per template
-      let unified;
-      if (name === "BarAccord125") {
-        // 125 uses a schema normalizer
-        unified = normalizeBar125(rawData);
-      } else {
-        // others may optionally have mapping/<name>.json
-        unified = await maybeMapData(name, rawData);
-      }
+// Normalize/mapping per template
+let unified;
+if (name === "BarAccord125") {
+  unified = normalizeBar125(rawData);
+} else {
+  unified = await maybeMapData(name, rawData);
+}
 
-      // Render (pass helpers so templates can call helpers.yn / helpers.money)
-      const buffer = await renderPdf(htmlPath, cssPath, name, { data: unified, helpers });
+// ---- FIXED RENDER CALL (object form) ----
+const buffer = await renderPdf({
+  htmlPath,
+  cssPath,
+  templateName: name,
+  locals: { data: unified, helpers }
+});
+// -----------------------------------------
 
-      const prettyName = FILENAME_MAP[name] || t.filename || `${name}.pdf`;
-      return { filename: prettyName, buffer };
+const prettyName = FILENAME_MAP[name] || t.filename || `${name}.pdf`;
+return { filename: prettyName, buffer };
+
     })
   );
 
