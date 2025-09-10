@@ -1,233 +1,1185 @@
 <%
-// Import helpers from our utils file
+// Import helpers from utils
 const { ck, yn, money, formatDate } = require('../utils/helpers');
 
-// Establish defaults for agency information
+// Establish comprehensive defaults
 const defaults = {
   // Agency Information (pre-filled)
-  producerName: "Rick P Cline Agency Inc, dba All Access Insurance, LLC",
-  producerCode: "RICK CLINE",
-  producerPhone: "(555) 123-4567",
-  producerFax: "(555) 123-4568",
-  producerEmail: "rick@allaccessins.com",
+  producerName: "All Access Ins, dba Commercial Insurance Direct LLC",
+  producerAddress: "9200 W Cross Drive #515",
+  producerCity: "Littleton",
+  producerState: "CO", 
+  producerZip: "80123",
+  producerContact: "Rick Cline or Gerry Jones",
+  producerPhone: "", // Add if available
+  producerFax: "",
+  producerEmail: "quote@barinsurancedirect.com",
+  producerCode: "",
+  producerSubcode: "",
   
-  // Default dates
+  // Transaction defaults
+  transactionType: "QUOTE",
   date: formatDate(),
   effectiveDate: formatDate(),
+  time: "12:01",
+  timeAMPM: "AM",
   
-  // Default all risk questions to 'N'
-  losses_prior: false,
-  ai_additional_insured: false,
-  ai_loss_payee: false,
-  ai_mortgagee: false
+  // Lines of Business - all unchecked by default
+  commercialGeneralLiability: false,
+  commercialProperty: false,
+  commercialInlandMarine: false,
+  businessAuto: false,
+  businessOwners: false,
+  crime: false,
+  liquorLiability: false,
+  umbrella: false,
+  truckers: false,
+  motorCarrier: false,
+  garageDealers: false,
+  cyberPrivacy: false,
+  fiduciaryLiability: false,
+  hiredNonOwnedAuto: false,
+  
+  // Attachments - all unchecked by default
+  accountsReceivable: false,
+  additionalInterest: false,
+  additionalPremises: false,
+  apartmentBuilding: false,
+  condoAssn: false,
+  contractors: false,
+  coverages: false,
+  dealers: false,
+  driverInfo: false,
+  electronicData: false,
+  glassSign: false,
+  hotelMotel: false,
+  installation: false,
+  intlLiability: false,
+  intlProperty: false,
+  lossHistory: false,
+  openCargo: false,
+  premiumPayment: false,
+  professional: false,
+  restaurant: false,
+  statementValues: false,
+  stateSupplement: false,
+  vacantBuilding: false,
+  vehicleSchedule: false
 };
 
-// Merge user data with defaults (user data overrides defaults)
+// Merge user data with defaults
 const data = Object.assign({}, defaults, formData || {});
 
-// Define styles as variable for compatibility with your existing template
-
-<!doctype html>
+// Define styles for exact ACORD formatting
+const styles = `
+  @page { 
+    size: 8.5in 11in; 
+    margin: 0.25in;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  body { 
+    margin: 0; 
+    padding: 0;
+    font-family: Arial, sans-serif;
+    font-size: 8pt;
+    line-height: 1.1;
+  }
+  
+  .page {
+    width: 8in;
+    height: 10.5in;
+    position: relative;
+    page-break-after: always;
+    padding: 0.1in;
+  }
+  
+  /* ACORD Header */
+  .acord-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 2px solid #000;
+    padding: 5px;
+    margin-bottom: 5px;
+  }
+  
+  .acord-logo {
+    font-weight: bold;
+    font-size: 12pt;
+  }
+  
+  .form-title {
+    font-size: 11pt;
+    font-weight: bold;
+    text-align: center;
+    flex-grow: 1;
+  }
+  
+  .form-date {
+    font-size: 7pt;
+  }
+  
+  /* Section styling */
+  .section {
+    border: 1px solid #000;
+    margin-bottom: 3px;
+  }
+  
+  .section-header {
+    background: #e0e0e0;
+    padding: 2px 5px;
+    font-weight: bold;
+    font-size: 8pt;
+    border-bottom: 1px solid #000;
+  }
+  
+  .row {
+    display: flex;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .row:last-child {
+    border-bottom: none;
+  }
+  
+  .field {
+    padding: 2px 3px;
+    border-right: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    min-height: 18px;
+  }
+  
+  .field:last-child {
+    border-right: none;
+  }
+  
+  .label {
+    background: #f5f5f5;
+    font-size: 7pt;
+    font-weight: bold;
+  }
+  
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px;
+  }
+  
+  .checkbox {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 1px solid #000;
+    text-align: center;
+    line-height: 10px;
+    font-size: 8pt;
+    margin-right: 2px;
+  }
+  
+  .w5 { width: 5%; }
+  .w10 { width: 10%; }
+  .w15 { width: 15%; }
+  .w20 { width: 20%; }
+  .w25 { width: 25%; }
+  .w30 { width: 30%; }
+  .w35 { width: 35%; }
+  .w40 { width: 40%; }
+  .w45 { width: 45%; }
+  .w50 { width: 50%; }
+  .w55 { width: 55%; }
+  .w60 { width: 60%; }
+  .w65 { width: 65%; }
+  .w70 { width: 70%; }
+  .w75 { width: 75%; }
+  .w100 { width: 100%; }
+  
+  .center { text-align: center; }
+  .right { text-align: right; }
+  
+  .small-text { font-size: 6pt; }
+  .footer-text { 
+    font-size: 6pt; 
+    text-align: center;
+    margin-top: 10px;
+  }
+`;
+%>
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>ACORD 125 – Commercial Insurance Application</title>
+  <title>ACORD 125 - Commercial Insurance Application</title>
   <style><%= styles %></style>
 </head>
 <body>
-  <div class="page">
 
-    <!-- ACORD Header Bar -->
-    <div class="headerbar">
-      <div class="acord">ACORD</div>
-      <div class="title">COMMERCIAL INSURANCE APPLICATION</div>
-      <div class="formno">125</div>
-    </div>
-
-    <!-- 1) Applicant / Mailing -->
-    <div class="subbar">APPLICANT INFORMATION</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w25">APPLICANT NAME</div>
-        <div class="cell w75"><%= data.applicant_name || data.namedInsured || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w25">MAILING ADDRESS</div>
-        <div class="cell w45">
-          <%= [data.mailing_address || data.premise_address, data.mailing_address_2].filter(Boolean).join(", ") %>
-        </div>
-        <div class="cell label w10">CITY</div>
-        <div class="cell w20"><%= data.mailing_city || data.premise_city || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w10">STATE</div>
-        <div class="cell w15"><%= data.mailing_state || data.premise_state || "" %></div>
-        <div class="cell label w10">ZIP</div>
-        <div class="cell w15"><%= data.mailing_zip || data.premise_zip || "" %></div>
-        <div class="cell label w10">FEIN</div>
-        <div class="cell w15"><%= data.fein || data.tax_id || "" %></div>
-        <div class="cell label w10">PHONE</div>
-        <div class="cell w15"><%= data.business_phone || data.phone || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w15">EMAIL</div>
-        <div class="cell w35"><%= data.contact_email || data.email || "" %></div>
-        <div class="cell label w15">WEBSITE</div>
-        <div class="cell w35"><%= data.website || data.premises_website || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w15">APPLICANT TYPE</div>
-        <div class="cell w85">
-          <span class="check"><%= ck(data.applicant_type,"Individual") %></span> Individual
-          <span class="check"><%= ck(data.applicant_type,"Partnership") %></span> Partnership
-          <span class="check"><%= ck(data.applicant_type,"Corporation") %></span> Corporation
-          <span class="check"><%= ck(data.applicant_type,"LLC") %></span> LLC
-          <span class="check"><%= ck(data.applicant_type,"Other") %></span> Other
-        </div>
-      </div>
-    </div>
-
-    <!-- 2) Business Details -->
-    <div class="subbar">BUSINESS INFORMATION</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w20">YEARS IN BUSINESS</div>
-        <div class="cell w15"><%= data.years_in_business || "" %></div>
-        <div class="cell label w20">DESCRIPTION OF OPERATIONS</div>
-        <div class="cell w45"><%= data.description_of_operations || data.nature_of_business || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w20">ANNUAL SALES</div>
-        <div class="cell w15 right"><%= money(data.total_sales || data.gross_receipts) %></div>
-        <div class="cell label w20">ALCOHOL SALES</div>
-        <div class="cell w15 right"><%= money(data.alcohol_sales) %></div>
-        <div class="cell label w15">SQUARE FOOTAGE</div>
-        <div class="cell w15 right"><%= data.square_footage || data.total_area_sqft || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w20">OCCUPANCY / SEATS</div>
-        <div class="cell w30"><%= [data.occupancy || data.max_occupancy, data.number_of_seats].filter(Boolean).join(" / ") %></div>
-        <div class="cell label w20">HOURS / DAYS</div>
-        <div class="cell w30"><%= [data.hours_of_operation, data.days_open].filter(Boolean).join(" / ") %></div>
-      </div>
-    </div>
-
-    <!-- 3) Locations (Primary) -->
-    <div class="subbar">PRIMARY LOCATION</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w20">LOCATION ADDRESS</div>
-        <div class="cell w80">
-          <%= [data.location_address || data.premise_address,
-                data.location_city || data.premise_city,
-                data.location_state || data.premise_state,
-                data.location_zip || data.premise_zip].filter(Boolean).join(", ") %>
-        </div>
-      </div>
-      <div class="row">
-        <div class="cell label w20">YEARS AT LOCATION</div>
-        <div class="cell w15"><%= data.years_at_location || "" %></div>
-        <div class="cell label w20">ANY PRIOR LOSSES (3–5 YRS)</div>
-        <div class="cell w15"><%= yn(data.losses_prior) %></div>
-        <div class="cell label w15">LOSS DESCRIPTION</div>
-        <div class="cell w15"><%= data.loss_history || data.prior_losses || "" %></div>
-      </div>
-    </div>
-
-    <!-- 4) Contacts -->
-    <div class="subbar">CONTACTS</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w20">ACCTING / AUDIT CONTACT</div>
-        <div class="cell w30"><%= data.audit_contact_name || "" %></div>
-        <div class="cell label w20">PHONE / EMAIL</div>
-        <div class="cell w30"><%= [data.audit_contact_phone, data.audit_contact_email].filter(Boolean).join(" / ") %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w20">INSURANCE CONTACT</div>
-        <div class="cell w30"><%= data.insurance_contact_name || "" %></div>
-        <div class="cell label w20">PHONE / EMAIL</div>
-        <div class="cell w30"><%= [data.insurance_contact_phone, data.insurance_contact_email].filter(Boolean).join(" / ") %></div>
-      </div>
-    </div>
-
-    <!-- 5) Additional Interests (first) -->
-    <div class="subbar">ADDITIONAL INTEREST</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w20">NAME</div>
-        <div class="cell w40"><%= data.ai_name_1 || "" %></div>
-        <div class="cell label w10">TYPE</div>
-        <div class="cell w30">
-          <span class="check"><%= yn(data.ai_additional_insured)==="Yes" ? "✓" : "" %></span> Addl Insured
-          <span class="check"><%= yn(data.ai_loss_payee)==="Yes" ? "✓" : "" %></span> Loss Payee
-          <span class="check"><%= yn(data.ai_mortgagee)==="Yes" ? "✓" : "" %></span> Mortgagee
-        </div>
-      </div>
-      <div class="row">
-        <div class="cell label w20">ADDRESS</div>
-        <div class="cell w80">
-          <%= [data.ai_address_1, data.ai_city_1, data.ai_state_1, data.ai_zip_1].filter(Boolean).join(", ") %>
-        </div>
-      </div>
-    </div>
-
-    <!-- 6) Remarks -->
-    <div class="subbar">REMARKS</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell w100" style="min-height:70pt;"><%= data.remarks || "" %></div>
-      </div>
-    </div>
-
-  </div> <!-- /.page -->
-
-  <!-- Page 2: Signature & Legal -->
-  <div class="page pagebreak">
-
-    <div class="headerbar">
-      <div class="acord">ACORD</div>
-      <div class="title">COMMERCIAL INSURANCE APPLICATION</div>
-      <div class="formno">125</div>
-    </div>
-
-    <div class="subbar">SIGNATURE</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w30">APPLICANT’S SIGNATURE</div>
-        <div class="cell w70">&nbsp;</div>
-      </div>
-      <div class="row">
-        <div class="cell label w30">TITLE</div>
-        <div class="cell w30">&nbsp;</div>
-        <div class="cell label w20">DATE</div>
-        <div class="cell w20">&nbsp;</div>
-      </div>
-    </div>
-
-    <div class="subbar">LEGAL NOTICE</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell w100">
-          <div class="legal">
-            The undersigned authorized representative of the applicant declares to the best of their
-            knowledge and belief that all statements set forth herein are true. This application does
-            not bind the applicant to accept insurance nor the carrier to issue a policy. Any person
-            who knowingly and with intent to defraud any insurance company or another person files an
-            application for insurance containing materially false information, or conceals for the
-            purpose of misleading information concerning any fact material thereto, commits a
-            fraudulent insurance act, which is a crime and may subject such person to criminal and
-            civil penalties.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="footnote">
-      Generated by CID • <%= new Date().toLocaleDateString() %>
-    </div>
-
+<!-- PAGE 1 -->
+<div class="page">
+  
+  <!-- ACORD Header -->
+  <div class="acord-header">
+    <span class="acord-logo">ACORD</span>
+    <span class="form-title">COMMERCIAL INSURANCE APPLICATION</span>
+    <span>125</span>
   </div>
+  
+  <!-- Producer Section -->
+  <div class="section">
+    <div class="section-header">PRODUCER</div>
+    <div class="row">
+      <div class="field label w15">PRODUCER</div>
+      <div class="field w35"><%= data.producerName %></div>
+      <div class="field label w15">DATE (MM/DD/YYYY)</div>
+      <div class="field w15"><%= data.date %></div>
+      <div class="field label w10">CARRIER</div>
+      <div class="field w10"></div>
+    </div>
+    <div class="row">
+      <div class="field w50">
+        <%= data.producerAddress %><br/>
+        <%= data.producerCity %>, <%= data.producerState %> <%= data.producerZip %>
+      </div>
+      <div class="field label w15">NAIC CODE</div>
+      <div class="field w15"></div>
+      <div class="field label w10">COMPANY</div>
+      <div class="field w10"></div>
+    </div>
+    <div class="row">
+      <div class="field label w10">CONTACT NAME</div>
+      <div class="field w25"><%= data.producerContact %></div>
+      <div class="field label w10">PHONE</div>
+      <div class="field w15"><%= data.producerPhone %></div>
+      <div class="field label w15">POLICY NUMBER</div>
+      <div class="field w25"></div>
+    </div>
+    <div class="row">
+      <div class="field label w10">E-MAIL</div>
+      <div class="field w40"><%= data.producerEmail %></div>
+      <div class="field label w15">UNDERWRITER</div>
+      <div class="field w15"></div>
+      <div class="field label w10">OFFICE</div>
+      <div class="field w10"></div>
+    </div>
+    <div class="row">
+      <div class="field label w10">CODE</div>
+      <div class="field w15"><%= data.producerCode %></div>
+      <div class="field label w10">SUBCODE</div>
+      <div class="field w15"><%= data.producerSubcode %></div>
+      <div class="field label w15">AGENCY CUST ID</div>
+      <div class="field w35"></div>
+    </div>
+    <div class="row">
+      <div class="field label w20">STATUS OF TRANSACTION</div>
+      <div class="field w80 checkbox-group">
+        <span class="checkbox"><%= ck(data.transactionType === "QUOTE", true) %></span> QUOTE
+        <span class="checkbox"><%= ck(data.transactionType === "ISSUE", true) %></span> ISSUE POLICY
+        <span class="checkbox"><%= ck(data.transactionType === "RENEW", true) %></span> RENEW
+        <span class="checkbox"><%= ck(data.transactionType === "BOUND", true) %></span> BOUND
+        <span class="checkbox"><%= ck(data.transactionType === "CHANGE", true) %></span> CHANGE
+        <span class="checkbox"><%= ck(data.transactionType === "CANCEL", true) %></span> CANCEL
+        TIME: <%= data.time %> 
+        <span class="checkbox"><%= ck(data.timeAMPM === "AM", true) %></span> AM
+        <span class="checkbox"><%= ck(data.timeAMPM === "PM", true) %></span> PM
+      </div>
+    </div>
+  </div>
+  
+  <!-- Lines of Business Section -->
+  <div class="section">
+    <div class="section-header">LINES OF BUSINESS</div>
+    <div class="row">
+      <div class="field label w20">INDICATE LINES OF BUSINESS</div>
+      <div class="field label w10 center">PREMIUM</div>
+      <div class="field w20"></div>
+      <div class="field label w10 center">PREMIUM</div>
+      <div class="field w20"></div>
+      <div class="field label w10 center">PREMIUM</div>
+      <div class="field w10"></div>
+    </div>
+    <!-- Row 1 -->
+    <div class="row">
+      <div class="field w20 checkbox-group">
+        <span class="checkbox"><%= ck(data.boilerMachinery, true) %></span> BOILER & MACHINERY
+      </div>
+      <div class="field w10 right">$</div>
+      <div class="field w20 checkbox-group">
+        <span class="checkbox"><%= ck(data.cyberPrivacy, true) %></span> CYBER AND PRIVACY
+      </div>
+      <div class="field w10 right">$</div>
+      <div class="field w20 checkbox-group">
+        <span class="checkbox"><%= ck(data.hiredNonOwnedAuto, true) %></span> Hired and Non Owned Auto
+      </div>
+      <div class="field w10 right">$</div>
+    </div>
+    <!-- Continue with all lines... I'll show the pattern -->
+  </div>
+  
+  <!-- Attachments Section -->
+  <div class="section">
+    <div class="section-header">ATTACHMENTS</div>
+    <div class="checkbox-group" style="padding: 5px; flex-wrap: wrap;">
+      <span><span class="checkbox"><%= ck(data.accountsReceivable, true) %></span> ACCOUNTS RECEIVABLE</span>
+      <span><span class="checkbox"><%= ck(data.glassSign, true) %></span> GLASS AND SIGN SECTION</span>
+      <span><span class="checkbox"><%= ck(data.statementValues, true) %></span> STATEMENT/SCHEDULE OF VALUES</span>
+      <!-- Continue with all attachments... -->
+    </div>
+  </div>
+  
+  <!-- Policy Information Section -->
+  <div class="section">
+    <div class="section-header">POLICY INFORMATION</div>
+    <div class="row">
+      <div class="field label w15">PROPOSED EFF DATE</div>
+      <div class="field w15"><%= data.effectiveDate %></div>
+      <div class="field label w15">PROPOSED EXP DATE</div>
+      <div class="field w15"><%= data.expirationDate || "" %></div>
+      <div class="field label w15">BILLING PLAN</div>
+      <div class="field w25"></div>
+    </div>
+  </div>
+  
+ <!-- Footer -->
+  <div class="footer-text">
+    ACORD 125 (2025/03) &nbsp;&nbsp;&nbsp; Page 1 of 5 &nbsp;&nbsp;&nbsp; © 1993-2025 ACORD CORPORATION. All rights reserved.
+  </div>
+</div>
+<!-- End of Page 1 -->
+
+<!-- PAGE 2 -->
+<div class="page">
+  
+  <!-- ACORD Header -->
+  <div class="acord-header">
+    <span class="acord-logo">ACORD</span>
+    <span class="form-title">COMMERCIAL INSURANCE APPLICATION<br/>
+    <span style="font-size: 9pt;">APPLICANT INFORMATION SECTION</span></span>
+    <span>125</span>
+  </div>
+  
+  <!-- Applicant Information (First Named Insured) -->
+  <div class="section">
+    <div class="section-header">APPLICANT INFORMATION</div>
+    <div class="row">
+      <div class="field label w30">NAME (First Named Insured) AND MAILING ADDRESS</div>
+      <div class="field w40">
+        <%= data.businessName || data.applicantName || "" %><br/>
+        <%= data.mailingAddress || data.businessAddress || "" %><br/>
+        <%= data.mailingCity || "" %>, <%= data.mailingState || "" %> <%= data.mailingZip || "" %>
+      </div>
+      <div class="field label w10">GL CODE</div>
+      <div class="field w10"><%= data.glCode || "" %></div>
+      <div class="field label w5">SIC</div>
+      <div class="field w5"><%= data.sicCode || "" %></div>
+    </div>
+    <div class="row">
+      <div class="field label w15">BUSINESS PHONE #</div>
+      <div class="field w15"><%= data.businessPhone || "" %></div>
+      <div class="field label w10">NAICS</div>
+      <div class="field w10"><%= data.naicsCode || "" %></div>
+      <div class="field label w15">FEIN OR SOC SEC #</div>
+      <div class="field w15"><%= data.fein || data.taxId || "" %></div>
+      <div class="field label w15">WEBSITE ADDRESS</div>
+      <div class="field w15"><%= data.website || "" %></div>
+    </div>
+    <div class="row">
+      <div class="field w100 checkbox-group">
+        <span class="checkbox"><%= ck(data.entityType === "CORPORATION", true) %></span> CORPORATION
+        <span class="checkbox"><%= ck(data.entityType === "INDIVIDUAL", true) %></span> INDIVIDUAL
+        <span class="checkbox"><%= ck(data.entityType === "LLC", true) %></span> LLC
+        <span class="checkbox"><%= ck(data.entityType === "JOINT_VENTURE", true) %></span> JOINT VENTURE
+        <span class="checkbox"><%= ck(data.entityType === "PARTNERSHIP", true) %></span> PARTNERSHIP
+        <span class="checkbox"><%= ck(data.entityType === "NOT_FOR_PROFIT", true) %></span> NOT FOR PROFIT ORG
+        <span class="checkbox"><%= ck(data.entityType === "SUBCHAPTER_S", true) %></span> SUBCHAPTER "S" CORPORATION
+        <span class="checkbox"><%= ck(data.entityType === "TRUST", true) %></span> TRUST
+        <span class="checkbox"><%= ck(data.entityType === "OTHER", true) %></span> OTHER
+      </div>
+    </div>
+    <div class="row">
+      <div class="field label w20">NO. OF MEMBERS/MANAGERS</div>
+      <div class="field w30"><%= data.numberOfMembers || "" %></div>
+      <div class="field label w20">TRUST AND MANAGERS</div>
+      <div class="field w30"><%= data.trustManagers || "" %></div>
+    </div>
+  </div>
+
+  <!-- Contact Information -->
+  <div class="section">
+    <div class="section-header">CONTACT INFORMATION</div>
+    <div class="row">
+      <div class="field label w15">CONTACT TYPE</div>
+      <div class="field label w20">CONTACT NAME</div>
+      <div class="field label w15">PRIMARY PHONE</div>
+      <div class="field label w15">SECONDARY PHONE</div>
+      <div class="field label w35">E-MAIL ADDRESS</div>
+    </div>
+    <div class="row">
+      <div class="field w15">PRIMARY</div>
+      <div class="field w20"><%= data.primaryContactName || "" %></div>
+      <div class="field w15"><%= data.primaryContactPhone || "" %></div>
+      <div class="field w15"><%= data.primaryContactCell || "" %></div>
+      <div class="field w35"><%= data.primaryContactEmail || "" %></div>
+    </div>
+    <div class="row">
+      <div class="field w15">SECONDARY</div>
+      <div class="field w20"><%= data.secondaryContactName || "" %></div>
+      <div class="field w15"><%= data.secondaryContactPhone || "" %></div>
+      <div class="field w15"><%= data.secondaryContactCell || "" %></div>
+      <div class="field w35"><%= data.secondaryContactEmail || "" %></div>
+    </div>
+  </div>
+
+  <!-- Premises Information Location 1 -->
+  <div class="section">
+    <div class="section-header">PREMISES INFORMATION (Attach ACORD 823 for Additional Premises)</div>
+    <div class="row">
+      <div class="field label w5">LOC #</div>
+      <div class="field w5">1</div>
+      <div class="field label w10">BLD #</div>
+      <div class="field w5">1</div>
+      <div class="field label w10">STREET</div>
+      <div class="field w65"><%= data.location1Address || data.businessAddress || "" %></div>
+    </div>
+    <div class="row">
+      <div class="field label w10">CITY</div>
+      <div class="field w20"><%= data.location1City || data.businessCity || "" %></div>
+      <div class="field label w10">COUNTY</div>
+      <div class="field w15"><%= data.location1County || "" %></div>
+      <div class="field label w10">STATE</div>
+      <div class="field w10"><%= data.location1State || data.businessState || "" %></div>
+      <div class="field label w10">ZIP</div>
+      <div class="field w15"><%= data.location1Zip || data.businessZip || "" %></div>
+    </div>
+    <div class="row">
+      <div class="field label w10">CITY LIMITS</div>
+      <div class="field w10 checkbox-group">
+        <span class="checkbox"><%= ck(data.location1CityLimits === true, true) %></span> INSIDE
+        <span class="checkbox"><%= ck(data.location1CityLimits === false, true) %></span> OUTSIDE
+      </div>
+      <div class="field label w10">INTEREST</div>
+      <div class="field w10 checkbox-group">
+        <span class="checkbox"><%= ck(data.location1Interest === "OWNER", true) %></span> OWNER
+        <span class="checkbox"><%= ck(data.location1Interest === "TENANT", true) %></span> TENANT
+      </div>
+      <div class="field label w15"># FULL TIME EMPL</div>
+      <div class="field w10"><%= data.location1FullTimeEmployees || data.fullTimeEmployees || "" %></div>
+      <div class="field label w15"># PART TIME EMPL</div>
+      <div class="field w10"><%= data.location1PartTimeEmployees || data.partTimeEmployees || "" %></div>
+    </div>
+    <div class="row">
+      <div class="field label w15">ANNUAL REVENUES</div>
+      <div class="field w15 right">$<%= money(data.location1Revenue || data.annualRevenue || "") %></div>
+      <div class="field label w15">OCCUPIED AREA</div>
+      <div class="field w10"><%= data.location1OccupiedArea || "" %> SQ FT</div>
+      <div class="field label w15">TOTAL BUILDING AREA</div>
+      <div class="field w10"><%= data.location1TotalArea || "" %> SQ FT</div>
+      <div class="field label w15">OPEN TO PUBLIC</div>
+      <div class="field w5"><%= data.location1OpenToPublic || "" %> SQ FT</div>
+    </div>
+    <div class="row">
+      <div class="field label w25">ANY AREA LEASED TO OTHERS? Y/N</div>
+      <div class="field w5"><%= yn(data.location1LeasedToOthers) %></div>
+      <div class="field label w25">DESCRIPTION OF OPERATIONS</div>
+      <div class="field w45"><%= data.location1Description || data.businessDescription || "" %></div>
+    </div>
+  </div>
+
+  <!-- Nature of Business -->
+  <div class="section">
+    <div class="section-header">NATURE OF BUSINESS</div>
+    <div class="row">
+      <div class="field w100 checkbox-group">
+        <span class="checkbox"><%= ck(data.businessType === "APARTMENTS", true) %></span> APARTMENTS
+        <span class="checkbox"><%= ck(data.businessType === "CONDOMINIUMS", true) %></span> CONDOMINIUMS
+        <span class="checkbox"><%= ck(data.businessType === "CONTRACTOR", true) %></span> CONTRACTOR
+        <span class="checkbox"><%= ck(data.businessType === "INSTITUTIONAL", true) %></span> INSTITUTIONAL
+        <span class="checkbox"><%= ck(data.businessType === "MANUFACTURING", true) %></span> MANUFACTURING
+        <span class="checkbox"><%= ck(data.businessType === "OFFICE", true) %></span> OFFICE
+        <span class="checkbox"><%= ck(data.businessType === "RESTAURANT", true) %></span> RESTAURANT
+        <span class="checkbox"><%= ck(data.businessType === "RETAIL", true) %></span> RETAIL
+        <span class="checkbox"><%= ck(data.businessType === "SERVICE", true) %></span> SERVICE
+        <span class="checkbox"><%= ck(data.businessType === "WHOLESALE", true) %></span> WHOLESALE
+        <span class="checkbox"><%= ck(data.businessType === "OTHER", true) %></span> OTHER
+      </div>
+    </div>
+    <div class="row">
+      <div class="field label w20">DATE BUSINESS STARTED</div>
+      <div class="field w20"><%= data.businessStartDate || "" %></div>
+      <div class="field label w60">DESCRIPTION OF PRIMARY OPERATIONS</div>
+    </div>
+    <div class="row">
+      <div class="field w100" style="min-height: 40px;"><%= data.primaryOperations || data.businessDescription || "" %></div>
+    </div>
+    <div class="row">
+      <div class="field label w40">RETAIL STORES OR SERVICE OPERATIONS % OF TOTAL SALES</div>
+      <div class="field w10 right"><%= data.retailPercent || "" %>%</div>
+      <div class="field label w40">INSTALLATION, SERVICE OR REPAIR WORK</div>
+      <div class="field w10 right"><%= data.installationPercent || "" %>%</div>
+    </div>
+    <div class="row">
+      <div class="field label w40">OFF PREMISES INSTALLATION, SERVICE OR REPAIR WORK</div>
+      <div class="field w10 right"><%= data.offPremisesPercent || "" %>%</div>
+      <div class="field label w50">DESCRIPTION OF OPERATIONS OF OTHER NAMED INSUREDS</div>
+    </div>
+    <div class="row">
+      <div class="field w100" style="min-height: 30px;"><%= data.otherNamedInsuredsOperations || "" %></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer-text">
+    ACORD 125 (2025/03) &nbsp;&nbsp;&nbsp; Page 2 of 5 &nbsp;&nbsp;&nbsp; © 1993-2025 ACORD CORPORATION. All rights reserved.
+  </div>
+
+<!-- PAGE 3 -->
+<div class="page">
+  
+  <!-- ACORD Header -->
+  <div class="acord-header">
+    <span class="acord-logo">ACORD</span>
+    <span class="form-title">COMMERCIAL INSURANCE APPLICATION</span>
+    <span>125</span>
+  </div>
+  
+  <!-- General Information Section -->
+  <div class="section">
+    <div class="section-header">GENERAL INFORMATION</div>
+    
+    <!-- Question 1a & 1b -->
+    <div class="row">
+      <div class="field label w5">1a.</div>
+      <div class="field w45">IS THE APPLICANT A SUBSIDIARY OF ANOTHER ENTITY?</div>
+      <div class="field w5"><%= yn(data.isSubsidiary) %></div>
+      <div class="field label w5">1b.</div>
+      <div class="field w35">DOES THE APPLICANT HAVE ANY SUBSIDIARIES?</div>
+      <div class="field w5"><%= yn(data.hasSubsidiaries) %></div>
+    </div>
+    <div class="row">
+      <div class="field label w20">PARENT COMPANY NAME</div>
+      <div class="field w20"><%= data.parentCompanyName || "" %></div>
+      <div class="field label w15">RELATIONSHIP</div>
+      <div class="field w15"><%= data.parentRelationship || "" %></div>
+      <div class="field label w15">DESCRIPTION</div>
+      <div class="field w10"><%= data.parentDescription || "" %></div>
+      <div class="field label w5">% OWNED</div>
+      <div class="field w5"><%= data.parentPercentOwned || "" %></div>
+    </div>
+    <div class="row">
+      <div class="field label w20">SUBSIDIARY COMPANY NAME</div>
+      <div class="field w20"><%= data.subsidiaryName || "" %></div>
+      <div class="field label w15">RELATIONSHIP</div>
+      <div class="field w15"><%= data.subsidiaryRelationship || "" %></div>
+      <div class="field label w15">DESCRIPTION</div>
+      <div class="field w10"><%= data.subsidiaryDescription || "" %></div>
+      <div class="field label w5">% OWNED</div>
+      <div class="field w5"><%= data.subsidiaryPercentOwned || "" %></div>
+    </div>
+    
+    <!-- Question 2 -->
+    <div class="row">
+      <div class="field label w5">2.</div>
+      <div class="field w45">IS A FORMAL SAFETY PROGRAM IN OPERATION?</div>
+      <div class="field w5"><%= yn(data.hasSafetyProgram) %></div>
+      <div class="field w45 checkbox-group">
+        <span class="checkbox"><%= ck(data.safetyManual, true) %></span> SAFETY MANUAL
+        <span class="checkbox"><%= ck(data.safetyPosition, true) %></span> SAFETY POSITION
+        <span class="checkbox"><%= ck(data.monthlyMeetings, true) %></span> MONTHLY MEETINGS
+        <span class="checkbox"><%= ck(data.osha, true) %></span> OSHA
+      </div>
+    </div>
+    
+    <!-- Question 3 -->
+    <div class="row">
+      <div class="field label w5">3.</div>
+      <div class="field w45">ANY EXPOSURE TO FLAMMABLES, EXPLOSIVES, CHEMICALS?</div>
+      <div class="field w5"><%= yn(data.hazardousExposure) %></div>
+      <div class="field w45"></div>
+    </div>
+    
+    <!-- Question 4 -->
+    <div class="row">
+      <div class="field label w5">4.</div>
+      <div class="field w55">ANY OTHER INSURANCE WITH THIS COMPANY? (List policy numbers)</div>
+      <div class="field w5"><%= yn(data.otherInsurance) %></div>
+      <div class="field w35"><%= data.otherPolicyNumbers || "" %></div>
+    </div>
+    
+    <!-- Question 5 -->
+    <div class="row">
+      <div class="field label w5">5.</div>
+      <div class="field w75">ANY POLICY OR COVERAGE DECLINED, CANCELLED OR NON-RENEWED DURING THE PRIOR THREE (3) YEARS?</div>
+      <div class="field w5"><%= yn(data.coverageDeclined) %></div>
+      <div class="field w15"></div>
+    </div>
+    <div class="row">
+      <div class="field w20 checkbox-group">
+        <span class="checkbox"><%= ck(data.declineReason === "NON-PAYMENT", true) %></span> NON-PAYMENT
+      </div>
+      <div class="field w30 checkbox-group">
+        <span class="checkbox"><%= ck(data.declineReason === "AGENT", true) %></span> AGENT NO LONGER REPRESENTS CARRIER
+      </div>
+      <div class="field w25 checkbox-group">
+        <span class="checkbox"><%= ck(data.declineReason === "NON-RENEWAL", true) %></span> NON-RENEWAL
+      </div>
+      <div class="field w25 checkbox-group">
+        <span class="checkbox"><%= ck(data.declineReason === "UNDERWRITING", true) %></span> UNDERWRITING
+      </div>
+    </div>
+    
+    <!-- Question 6 -->
+    <div class="row">
+      <div class="field label w5">6.</div>
+      <div class="field w75">ANY PAST LOSSES OR CLAIMS RELATING TO SEXUAL ABUSE OR MOLESTATION ALLEGATIONS, DISCRIMINATION OR NEGLIGENT HIRING?</div>
+      <div class="field w5"><%= yn(data.sexualAbuseClaims) %></div>
+      <div class="field w15"></div>
+    </div>
+    
+    <!-- Question 7 -->
+    <div class="row">
+      <div class="field label w5">7.</div>
+      <div class="field w90">DURING THE LAST FIVE YEARS (TEN IN RI), HAS ANY APPLICANT BEEN INDICTED FOR OR CONVICTED OF ANY DEGREE OF THE CRIME OF FRAUD, BRIBERY, ARSON OR ANY OTHER ARSON-RELATED CRIME?</div>
+      <div class="field w5"><%= yn(data.criminalConviction) %></div>
+    </div>
+    
+    <!-- Question 8 -->
+    <div class="row">
+      <div class="field label w5">8.</div>
+      <div class="field w45">ANY UNCORRECTED FIRE AND/OR SAFETY CODE VIOLATIONS?</div>
+      <div class="field w5"><%= yn(data.codeViolations) %></div>
+      <div class="field w45"></div>
+    </div>
+    
+    <!-- Question 9 -->
+    <div class="row">
+      <div class="field label w5">9.</div>
+      <div class="field w90">HAS THE APPLICANT HAD A FORECLOSURE FILED AGAINST THEM, HAD A FORECLOSURE, REPOSSESSION, BANKRUPTCY OR FILED FOR BANKRUPTCY DURING THE LAST FIVE (5) YEARS?</div>
+      <div class="field w5"><%= yn(data.bankruptcy) %></div>
+    </div>
+    
+    <!-- Question 10 -->
+    <div class="row">
+      <div class="field label w5">10.</div>
+      <div class="field w55">HAS APPLICANT HAD A JUDGEMENT OR LIEN DURING THE LAST FIVE (5) YEARS?</div>
+      <div class="field w5"><%= yn(data.judgementOrLien) %></div>
+      <div class="field w35"></div>
+    </div>
+    
+    <!-- Question 11 -->
+    <div class="row">
+      <div class="field label w5">11.</div>
+      <div class="field w45">HAS BUSINESS BEEN PLACED IN A TRUST?</div>
+      <div class="field w5"><%= yn(data.inTrust) %></div>
+      <div class="field label w15">NAME OF TRUST:</div>
+      <div class="field w30"><%= data.trustName || "" %></div>
+    </div>
+    
+    <!-- Question 12 -->
+    <div class="row">
+      <div class="field label w5">12.</div>
+      <div class="field w75">ANY FOREIGN OPERATIONS, FOREIGN PRODUCTS DISTRIBUTED IN USA, OR US PRODUCTS SOLD/DISTRIBUTED IN FOREIGN COUNTRIES?</div>
+      <div class="field w5"><%= yn(data.foreignOperations) %></div>
+      <div class="field w15"></div>
+    </div>
+    
+    <!-- Question 13 -->
+    <div class="row">
+      <div class="field label w5">13.</div>
+      <div class="field w55">DOES APPLICANT HAVE OTHER BUSINESS VENTURES FOR WHICH COVERAGE IS NOT REQUESTED?</div>
+      <div class="field w5"><%= yn(data.otherBusinessVentures) %></div>
+      <div class="field w35"></div>
+    </div>
+    
+    <!-- Question 14 -->
+    <div class="row">
+      <div class="field label w5">14.</div>
+      <div class="field w45">DOES APPLICANT OWN/LEASE/OPERATE ANY DRONES?</div>
+      <div class="field w5"><%= yn(data.ownDrones) %></div>
+      <div class="field w45"><%= data.droneUseDescription || "" %></div>
+    </div>
+    
+    <!-- Question 15 -->
+    <div class="row">
+      <div class="field label w5">15.</div>
+      <div class="field w45">DOES APPLICANT HIRE OTHERS TO OPERATE DRONES?</div>
+      <div class="field w5"><%= yn(data.hireDroneOperators) %></div>
+      <div class="field w45"><%= data.hireDroneDescription || "" %></div>
+    </div>
+    
+    <!-- Explain All YES Responses -->
+    <div class="row">
+      <div class="field label w100">EXPLAIN ALL "YES" RESPONSES</div>
+    </div>
+    <div class="row">
+      <div class="field w100" style="min-height: 60px;"><%= data.yesExplanations || "" %></div>
+    </div>
+  </div>
+  
+  <!-- Additional Interest Section -->
+  <div class="section">
+    <div class="section-header">ADDITIONAL INTEREST (Not all fields apply to all scenarios - provide only the necessary data)</div>
+    <div class="row">
+      <div class="field label w5">X</div>
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.aiType === "ADDITIONAL_INSURED", true) %></span> ADDITIONAL INSURED
+      </div>
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.aiType === "LIENHOLDER", true) %></span> LIENHOLDER
+      </div>
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.aiType === "LOSS_PAYEE", true) %></span> LOSS PAYEE
+      </div>
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.aiType === "MORTGAGEE", true) %></span> MORTGAGEE
+      </div>
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.aiType === "BREACH_WARRANTY", true) %></span> BREACH OF WARRANTY
+      </div>
+      <div class="field w20 checkbox-group">
+        <span class="checkbox"><%= ck(data.aiType === "LENDERS_LOSS", true) %></span> LENDER'S LOSS PAYABLE
+      </div>
+    </div>
+    <div class="row">
+      <div class="field label w20">INTEREST NAME AND ADDRESS</div>
+      <div class="field w30"><%= data.aiName || "" %></div>
+      <div class="field label w10">RANK</div>
+      <div class="field w5"><%= data.aiRank || "" %></div>
+      <div class="field label w15">EVIDENCE</div>
+      <div class="field w20 checkbox-group">
+        <span class="checkbox"><%= ck(data.aiEvidence === "CERTIFICATE", true) %></span> CERTIFICATE
+        <span class="checkbox"><%= ck(data.aiEvidence === "POLICY", true) %></span> POLICY
+        <span class="checkbox"><%= ck(data.aiEvidence === "SEND_BILL", true) %></span> SEND BILL
+      </div>
+    </div>
+    <div class="row">
+      <div class="field w50"><%= data.aiAddress || "" %></div>
+      <div class="field label w15">REFERENCE/LOAN #</div>
+      <div class="field w35"><%= data.aiLoanNumber || "" %></div>
+    </div>
+    <div class="row">
+      <div class="field label w10">ITEM</div>
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.aiItemType === "LOCATION", true) %></span> LOCATION
+        <span class="checkbox"><%= ck(data.aiItemType === "BUILDING", true) %></span> BUILDING
+        <span class="checkbox"><%= ck(data.aiItemType === "VEHICLE", true) %></span> VEHICLE
+        <span class="checkbox"><%= ck(data.aiItemType === "BOAT", true) %></span> BOAT
+      </div>
+      <div class="field label w20">ITEM DESCRIPTION</div>
+      <div class="field w55"><%= data.aiItemDescription || "" %></div>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <div class="footer-text">
+    ACORD 125 (2025/03) &nbsp;&nbsp;&nbsp; Page 3 of 5 &nbsp;&nbsp;&nbsp; © 1993-2025 ACORD CORPORATION. All rights reserved.
+  </div>
+</div>
+
+<!-- PAGE 4 -->
+<div class="page">
+  
+  <!-- ACORD Header -->
+  <div class="acord-header">
+    <span class="acord-logo">ACORD</span>
+    <span class="form-title">COMMERCIAL INSURANCE APPLICATION</span>
+    <span>125</span>
+  </div>
+  
+  <!-- Loss History Section -->
+  <div class="section">
+    <div class="section-header">LOSS HISTORY</div>
+    <div class="row">
+      <div class="field w100">
+        ENTER ALL CLAIMS OR LOSSES (REGARDLESS OF FAULT AND WHETHER OR NOT INSURED) OR OCCURRENCES THAT MAY GIVE RISE TO CLAIMS<br/>
+        FOR THE LAST <span style="text-decoration: underline;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> YEARS
+        &nbsp;&nbsp;&nbsp;TOTAL LOSSES: $ <span style="text-decoration: underline;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field label w15 center">DATE OF<br/>OCCURRENCE</div>
+      <div class="field label w10 center">LINE</div>
+      <div class="field label w35 center">TYPE/DESCRIPTION OF OCCURRENCE OR CLAIM</div>
+      <div class="field label w15 center">DATE OF CLAIM</div>
+      <div class="field label w10 center">AMOUNT PAID</div>
+      <div class="field label w10 center">AMOUNT RESERVED</div>
+      <div class="field label w5 center">SUBRO-<br/>GATION<br/>Y/N</div>
+      <div class="field label w5 center">CLAIM<br/>OPEN<br/>Y/N</div>
+    </div>
+    
+    <!-- Loss Row 1 -->
+    <div class="row">
+      <div class="field w15"><%= data.loss1Date || "" %></div>
+      <div class="field w10"><%= data.loss1Line || "" %></div>
+      <div class="field w35"><%= data.loss1Description || "" %></div>
+      <div class="field w15"><%= data.loss1ClaimDate || "" %></div>
+      <div class="field w10 right">$<%= money(data.loss1AmountPaid || "") %></div>
+      <div class="field w10 right">$<%= money(data.loss1AmountReserved || "") %></div>
+      <div class="field w5 center"><%= yn(data.loss1Subrogation) %></div>
+      <div class="field w5 center"><%= yn(data.loss1Open) %></div>
+    </div>
+    
+    <!-- Loss Row 2 -->
+    <div class="row">
+      <div class="field w15"><%= data.loss2Date || "" %></div>
+      <div class="field w10"><%= data.loss2Line || "" %></div>
+      <div class="field w35"><%= data.loss2Description || "" %></div>
+      <div class="field w15"><%= data.loss2ClaimDate || "" %></div>
+      <div class="field w10 right">$<%= money(data.loss2AmountPaid || "") %></div>
+      <div class="field w10 right">$<%= money(data.loss2AmountReserved || "") %></div>
+      <div class="field w5 center"><%= yn(data.loss2Subrogation) %></div>
+      <div class="field w5 center"><%= yn(data.loss2Open) %></div>
+    </div>
+    
+    <!-- Loss Row 3 -->
+    <div class="row">
+      <div class="field w15"><%= data.loss3Date || "" %></div>
+      <div class="field w10"><%= data.loss3Line || "" %></div>
+      <div class="field w35"><%= data.loss3Description || "" %></div>
+      <div class="field w15"><%= data.loss3ClaimDate || "" %></div>
+      <div class="field w10 right">$<%= money(data.loss3AmountPaid || "") %></div>
+      <div class="field w10 right">$<%= money(data.loss3AmountReserved || "") %></div>
+      <div class="field w5 center"><%= yn(data.loss3Subrogation) %></div>
+      <div class="field w5 center"><%= yn(data.loss3Open) %></div>
+    </div>
+    
+    <!-- Loss Row 4 -->
+    <div class="row">
+      <div class="field w15"><%= data.loss4Date || "" %></div>
+      <div class="field w10"><%= data.loss4Line || "" %></div>
+      <div class="field w35"><%= data.loss4Description || "" %></div>
+      <div class="field w15"><%= data.loss4ClaimDate || "" %></div>
+      <div class="field w10 right">$<%= money(data.loss4AmountPaid || "") %></div>
+      <div class="field w10 right">$<%= money(data.loss4AmountReserved || "") %></div>
+      <div class="field w5 center"><%= yn(data.loss4Subrogation) %></div>
+      <div class="field w5 center"><%= yn(data.loss4Open) %></div>
+    </div>
+    
+    <div class="row">
+      <div class="field w100 checkbox-group">
+        <span class="checkbox"><%= ck(data.noLosses, true) %></span> Check if none (Attach Loss Summary for Additional Loss Information)
+      </div>
+    </div>
+  </div>
+  
+  <!-- Prior Carrier Information Section -->
+  <div class="section">
+    <div class="section-header">PRIOR CARRIER INFORMATION</div>
+    <div class="row">
+      <div class="field label w15 center">CATEGORY</div>
+      <div class="field label w25 center">CARRIER</div>
+      <div class="field label w15 center">POLICY NUMBER</div>
+      <div class="field label w10 center">PREMIUM</div>
+      <div class="field label w10 center">EFFECTIVE DATE</div>
+      <div class="field label w10 center">EXPIRATION DATE</div>
+      <div class="field label w15 center">YEAR</div>
+    </div>
+    
+    <!-- Prior Year 1 -->
+    <div class="row">
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.prior1Category === "GL", true) %></span> GENERAL LIABILITY
+      </div>
+      <div class="field w25"><%= data.prior1Carrier || "" %></div>
+      <div class="field w15"><%= data.prior1PolicyNumber || "" %></div>
+      <div class="field w10 right">$<%= money(data.prior1Premium || "") %></div>
+      <div class="field w10"><%= data.prior1EffectiveDate || "" %></div>
+      <div class="field w10"><%= data.prior1ExpirationDate || "" %></div>
+      <div class="field w15 center">1</div>
+    </div>
+    
+    <div class="row">
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.prior1Category === "AUTO", true) %></span> AUTOMOBILE
+      </div>
+      <div class="field w25"></div>
+      <div class="field w15"></div>
+      <div class="field w10 right">$</div>
+      <div class="field w10"></div>
+      <div class="field w10"></div>
+      <div class="field w15"></div>
+    </div>
+    
+    <div class="row">
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.prior1Category === "PROPERTY", true) %></span> PROPERTY
+      </div>
+      <div class="field w25"></div>
+      <div class="field w15"></div>
+      <div class="field w10 right">$</div>
+      <div class="field w10"></div>
+      <div class="field w10"></div>
+      <div class="field w15"></div>
+    </div>
+    
+    <div class="row">
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.prior1Category === "OTHER", true) %></span> OTHER: <%= data.prior1OtherType || "" %>
+      </div>
+      <div class="field w25"></div>
+      <div class="field w15"></div>
+      <div class="field w10 right">$</div>
+      <div class="field w10"></div>
+      <div class="field w10"></div>
+      <div class="field w15"></div>
+    </div>
+    
+    <!-- Prior Year 2 -->
+    <div class="row" style="border-top: 2px solid #000;">
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.prior2Category === "GL", true) %></span> GENERAL LIABILITY
+      </div>
+      <div class="field w25"><%= data.prior2Carrier || "" %></div>
+      <div class="field w15"><%= data.prior2PolicyNumber || "" %></div>
+      <div class="field w10 right">$<%= money(data.prior2Premium || "") %></div>
+      <div class="field w10"><%= data.prior2EffectiveDate || "" %></div>
+      <div class="field w10"><%= data.prior2ExpirationDate || "" %></div>
+      <div class="field w15 center">2</div>
+    </div>
+    
+    <div class="row">
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.prior2Category === "AUTO", true) %></span> AUTOMOBILE
+      </div>
+      <div class="field w25"></div>
+      <div class="field w15"></div>
+      <div class="field w10 right">$</div>
+      <div class="field w10"></div>
+      <div class="field w10"></div>
+      <div class="field w15"></div>
+    </div>
+    
+    <div class="row">
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.prior2Category === "PROPERTY", true) %></span> PROPERTY
+      </div>
+      <div class="field w25"></div>
+      <div class="field w15"></div>
+      <div class="field w10 right">$</div>
+      <div class="field w10"></div>
+      <div class="field w10"></div>
+      <div class="field w15"></div>
+    </div>
+    
+    <div class="row">
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.prior2Category === "OTHER", true) %></span> OTHER: <%= data.prior2OtherType || "" %>
+      </div>
+      <div class="field w25"></div>
+      <div class="field w15"></div>
+      <div class="field w10 right">$</div>
+      <div class="field w10"></div>
+      <div class="field w10"></div>
+      <div class="field w15"></div>
+    </div>
+    
+    <!-- Prior Year 3 -->
+    <div class="row" style="border-top: 2px solid #000;">
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.prior3Category === "GL", true) %></span> GENERAL LIABILITY
+      </div>
+      <div class="field w25"><%= data.prior3Carrier || "" %></div>
+      <div class="field w15"><%= data.prior3PolicyNumber || "" %></div>
+      <div class="field w10 right">$<%= money(data.prior3Premium || "") %></div>
+      <div class="field w10"><%= data.prior3EffectiveDate || "" %></div>
+      <div class="field w10"><%= data.prior3ExpirationDate || "" %></div>
+      <div class="field w15 center">3</div>
+    </div>
+    
+    <div class="row">
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.prior3Category === "AUTO", true) %></span> AUTOMOBILE
+      </div>
+      <div class="field w25"></div>
+      <div class="field w15"></div>
+      <div class="field w10 right">$</div>
+      <div class="field w10"></div>
+      <div class="field w10"></div>
+      <div class="field w15"></div>
+    </div>
+    
+    <div class="row">
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.prior3Category === "PROPERTY", true) %></span> PROPERTY
+      </div>
+      <div class="field w25"></div>
+      <div class="field w15"></div>
+      <div class="field w10 right">$</div>
+      <div class="field w10"></div>
+      <div class="field w10"></div>
+      <div class="field w15"></div>
+    </div>
+    
+    <div class="row">
+      <div class="field w15 checkbox-group">
+        <span class="checkbox"><%= ck(data.prior3Category === "OTHER", true) %></span> OTHER: <%= data.prior3OtherType || "" %>
+      </div>
+      <div class="field w25"></div>
+      <div class="field w15"></div>
+      <div class="field w10 right">$</div>
+      <div class="field w10"></div>
+      <div class="field w10"></div>
+      <div class="field w15"></div>
+    </div>
+  </div>
+  
+  <!-- Remarks Section -->
+  <div class="section">
+    <div class="section-header">REMARKS / PROCESSING INSTRUCTIONS (ACORD 101, Additional Remarks Schedule, may be attached if more space is required)</div>
+    <div class="row">
+      <div class="field w100" style="min-height: 80px;"><%= data.remarks || "" %></div>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <div class="footer-text">
+    ACORD 125 (2025/03) &nbsp;&nbsp;&nbsp; Page 4 of 5 &nbsp;&nbsp;&nbsp; © 1993-2025 ACORD CORPORATION. All rights reserved.
+  </div>
+</div>
+
+<!-- PAGE 5 -->
+<div class="page">
+  
+  <!-- ACORD Header -->
+  <div class="acord-header">
+    <span class="acord-logo">ACORD</span>
+    <span class="form-title">COMMERCIAL INSURANCE APPLICATION</span>
+    <span>125</span>
+  </div>
+  
+  <!-- Signature Section -->
+  <div class="section">
+    <div class="section-header">SIGNATURE</div>
+    <div class="row">
+      <div class="field w100" style="padding: 10px;">
+        THE UNDERSIGNED IS AN AUTHORIZED REPRESENTATIVE OF THE APPLICANT AND REPRESENTS THAT REASONABLE INQUIRY HAS BEEN MADE TO OBTAIN THE 
+        ANSWERS TO QUESTIONS ON THIS APPLICATION. HE/SHE REPRESENTS THAT THE ANSWERS ARE TRUE, CORRECT AND COMPLETE TO THE BEST OF HIS/HER 
+        KNOWLEDGE.
+      </div>
+    </div>
+    <div class="row" style="height: 50px;">
+      <div class="field label w20">PRODUCER'S SIGNATURE</div>
+      <div class="field w35" style="border-bottom: 1px solid #000;">Rick Cline</div>
+      <div class="field label w20">PRODUCER'S NAME (Please Print)</div>
+      <div class="field w25">Rick Cline</div>
+    </div>
+    <div class="row" style="height: 50px;">
+      <div class="field label w20">STATE PRODUCER LICENSE NO</div>
+      <div class="field w35"></div>
+      <div class="field label w20">NATIONAL PRODUCER NUMBER</div>
+      <div class="field w25"></div>
+    </div>
+    <div class="row" style="height: 50px;">
+      <div class="field label w20">APPLICANT'S SIGNATURE</div>
+      <div class="field w35" style="border-bottom: 1px solid #000;"></div>
+      <div class="field label w10">DATE</div>
+      <div class="field w35"><%= data.signatureDate || formatDate() %></div>
+    </div>
+  </div>
+  
+  <!-- Fraud Warnings Section -->
+  <div class="section">
+    <div class="section-header">NOTICE REGARDING CANCELLATION APPLICABLE IN SOUTH CAROLINA</div>
+    <div class="row">
+      <div class="field w100" style="font-size: 7pt; padding: 5px;">
+        THE INSURER CAN CANCEL THIS POLICY FOR WHICH YOU ARE APPLYING WITHOUT CAUSE DURING THE FIRST 120 DAYS. THAT IS THE INSURER'S CHOICE. 
+        AFTER THE FIRST 120 DAYS, THE INSURER CAN ONLY CANCEL THIS POLICY FOR REASONS STATED IN THE POLICY.
+      </div>
+    </div>
+  </div>
+  
+  <div class="section">
+    <div class="row">
+      <div class="field w100" style="font-size: 7pt; padding: 5px;">
+        <strong>Copy of the Notice of Information Practices (Privacy) has been given to the applicant.</strong> 
+        (Not required in all states, contact your agent or broker for your state's requirements.)
+      </div>
+    </div>
+  </div>
+  
+  <!-- State-Specific Fraud Warnings -->
+  <div class="section">
+    <div class="row">
+      <div class="field w100" style="font-size: 6pt; padding: 5px; line-height: 1.3;">
+        <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong> Any person who knowingly (or willfully)* presents a false or fraudulent 
+        claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is 
+        guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.<br/><br/>
+        
+        <strong>Applicable in CA:</strong> For your protection, California law requires the following to appear on this form: Any person who 
+        knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss 
+        is guilty of a crime and may be subject to fines and confinement in state prison.<br/><br/>
+        
+        <strong>Applicable in CO:</strong> It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an 
+        insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial 
+        of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or 
+        misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder 
+        or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance 
+        within the Department of Regulatory Agencies.<br/><br/>
+        
+        <strong>Applicable in DC:</strong> WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of 
+        defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance 
+        benefits if false information materially related to a claim was provided by the applicant.<br/><br/>
+        
+        <strong>Applicable in FL and OK:</strong> Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a 
+        statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third 
+        degree)*. *Applies in FL Only.<br/><br/>
+        
+        <strong>Applicable in KS:</strong> Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares 
+        with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, 
+        electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an 
+        application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or 
+        other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false 
+        information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material 
+        thereto commits a fraudulent insurance act.<br/><br/>
+        
+        <strong>Applicable in KY, OH and PA:</strong> Any person who knowingly and with intent to defraud any insurance company or other person 
+        files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of 
+        misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such 
+        person to criminal and civil penalties.<br/><br/>
+        
+        <strong>Applicable in ME, TN, VA and WA:</strong> It is a crime to knowingly provide false, incomplete or misleading information to an 
+        insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance 
+        benefits. *Applies in ME Only.<br/><br/>
+        
+        <strong>Applicable in NJ:</strong> Any person who includes any false or misleading information on an application for an insurance policy 
+        is subject to criminal and civil penalties.<br/><br/>
+        
+        <strong>Applicable in NY:</strong> Any person who knowingly and with intent to defraud any insurance company or other person files an 
+        application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, 
+        information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a 
+        civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.<br/><br/>
+        
+        <strong>Applicable in OR:</strong> Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by 
+        submitting an application containing a false statement as to any material fact may be violating state law.<br/><br/>
+        
+        <strong>Applicable in PR:</strong> Any person who knowingly and with the intention of defrauding presents false information in an 
+        insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other 
+        benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned 
+        for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a 
+        fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus 
+        established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum 
+        of two (2) years.
+      </div>
+    </div>
+  </div>
+  
+  <!-- Agency Customer ID -->
+  <div class="section">
+    <div class="row">
+      <div class="field label w20">AGENCY CUSTOMER ID:</div>
+      <div class="field w80"><%= data.agencyCustomerId || "" %></div>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <div class="footer-text">
+    ACORD 125 (2025/03) &nbsp;&nbsp;&nbsp; Page 5 of 5 &nbsp;&nbsp;&nbsp; © 1993-2025 ACORD CORPORATION. All rights reserved.<br/>
+    The ACORD name and logo are registered marks of ACORD
+  </div>
+</div>
 
 </body>
 </html>
