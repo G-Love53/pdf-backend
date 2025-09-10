@@ -1,70 +1,35 @@
 // src/pdf.js
 import fs from "fs/promises";
+import path from "path";
 import ejs from "ejs";
 import puppeteer from "puppeteer-core";
 import { fileURLToPath } from "url";
-import path from "path";
+import helpers from "../utils/helpers.js"; // ✅ centralized helpers (yn, ck, money, etc.)
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Helpers available in EJS templates
-const helpers = {
-  yn(v) {
-    const s = String(v ?? "").trim().toLowerCase();
-    if (v === true || s === "true" || s === "yes" || s === "y" || s === "1") return "Yes";
-    if (v === false || s === "false" || s === "no" || s === "n" || s === "0") return "No";
-    // fallback: non-empty string => Yes, empty => ""
-    return s ? "Yes" : "";
-  },
-
-  ck(v, target) {
-    const want = String(target ?? "").trim().toLowerCase();
-    if (Array.isArray(v)) {
-      return v.some(x => String(x ?? "").trim().toLowerCase() === want) ? "✓" : "";
-    }
-    return String(v ?? "").trim().toLowerCase() === want ? "✓" : "";
-  },
-
-  money(v, { decimals = 0 } = {}) {
-    if (v == null || v === "") return "";
-    const n = Number(String(v).replace(/[^0-9.-]/g, ""));
-    if (!isFinite(n)) return String(v);
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    }).format(n);
-  }
-};
-
-// Render a single PDF from one template folder
-//   htmlPath: .../templates/<name>/index.ejs
-//   cssPath:  .../templates/<name>/styles.css (optional)
-//   data:     object with template variables
+/**
+ * Render a single PDF from one template folder
+ *  - htmlPath: .../templates/<name>/index.ejs
+ *  - cssPath:  .../templates/<name>/styles.css (optional)
+ *  - data:     object with template variables
+ */
 export async function renderPdf({ htmlPath, cssPath, data = {} }) {
-  // Load template + css (css is optional)
+  // Load EJS template + optional CSS
   const [templateStr, cssStr] = await Promise.all([
     fs.readFile(htmlPath, "utf8"),
     fs.readFile(cssPath, "utf8").catch(() => "")
   ]);
 
-  // Render HTML with helpers injected; expose both flattened keys and `data`
-  let html;
-  try {
-    html = await ejs.render(
-      templateStr,
-      { ...data, data, styles: cssStr, ...helpers },
-      { async: true, filename: htmlPath } // improves EJS error line numbers
-    );
-  } catch (err) {
-    // Bubble up a concise error that includes which template failed
-    const short = `${path.basename(path.dirname(htmlPath))}/index.ejs: ${err.message}`;
-    throw new Error(short);
-  }
+  // Render HTML (expose both flattened keys and `data`, plus helpers + inline CSS)
+  const html = await ejs.render(
+    templateStr,
+    { ...data, data, styles: cssStr, ...helpers },
+    { async: true, filename: htmlPath }
+  );
 
-  // Launch the Chrome we installed via @puppeteer/browsers (Dockerfile)
+  // Launch the Chrome we install in Docker via @puppeteer/browsers
   const browser = await puppeteer.launch({
     headless: "new",
     executablePath:
@@ -91,6 +56,3 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
     await browser.close();
   }
 }
-
-
-
