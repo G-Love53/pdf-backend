@@ -1,6 +1,6 @@
 FROM node:20-bullseye
 
-# System libs Chrome/Chromium needs + fonts + extract utils
+# Install Chrome dependencies
 RUN apt-get update && apt-get install -y \
     fonts-noto fonts-noto-cjk fonts-noto-color-emoji \
     libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 \
@@ -12,15 +12,19 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Use ONE cache path consistently for install + runtime
-ENV PUPPETEER_CACHE_DIR=/app/.cache/puppeteer
-
-# Install the exact Chrome version Puppeteer expects
-RUN npx @puppeteer/browsers install chrome@123.0.6312.122
-
-# Copy and install dependencies
+# Copy package files first
 COPY package*.json ./
+
+# Install dependencies INCLUDING puppeteer
 RUN npm ci --omit=dev || npm install --omit=dev
+
+# Install Chrome directly in a known location
+RUN mkdir -p /app/chrome && \
+    cd /app/chrome && \
+    wget -q https://storage.googleapis.com/chrome-for-testing-public/123.0.6312.122/linux64/chrome-linux64.zip && \
+    unzip chrome-linux64.zip && \
+    rm chrome-linux64.zip && \
+    chmod +x chrome-linux64/chrome
 
 # Copy application files
 COPY src ./src
@@ -30,8 +34,9 @@ COPY utils ./utils
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PUPPETEER_EXECUTABLE_PATH=/app/.cache/puppeteer/chrome/linux-123.0.6312.122/chrome-linux64/chrome
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/app/chrome/chrome-linux64/chrome
 
-EXPOSE 8080
+EXPOSE 10000
 
 CMD ["npm", "start"]
