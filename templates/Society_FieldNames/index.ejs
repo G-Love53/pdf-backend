@@ -2,115 +2,355 @@
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>Society – Supplemental Application (Bar/Tavern)</title>
-  <style><%= styles %></style>
+  <title>Society – Special Program Supplemental Application</title>
+  <style>
+    /* Embedded print-like styling (similar to your 125 look) */
+    @page { size: Letter; margin: 36pt; }
+    body { font-family: Arial, Helvetica, sans-serif; color:#111; }
+    .page { page-break-inside: avoid; }
+    .pagebreak { page-break-before: always; }
+    .carrierbar {
+      display:flex; align-items:center; justify-content:space-between;
+      border: 2px solid #000; padding:10pt 12pt; margin-bottom:10pt;
+      background:#f5f5f5;
+    }
+    .carrierbar .brand { font-weight:700; letter-spacing:0.5pt; }
+    .carrierbar .title { font-weight:700; }
+    .subbar {
+      background:#000; color:#fff; font-weight:700; padding:6pt 8pt;
+      margin:14pt 0 6pt; letter-spacing:0.2pt;
+    }
+    .block { border:1px solid #000; padding:8pt; }
+    .row { display:flex; flex-wrap:wrap; border-bottom:1px solid #ddd; }
+    .row:last-child { border-bottom:none; }
+    .cell { padding:6pt 6pt; box-sizing:border-box; }
+    .label { font-weight:700; background:#fafafa; border-right:1px solid #eee; }
+    .w10{width:10%}.w15{width:15%}.w20{width:20%}.w25{width:25%}.w30{width:30%}
+    .w35{width:35%}.w40{width:40%}.w50{width:50%}.w60{width:60%}.w70{width:70%}
+    .w75{width:75%}.w80{width:80%}.w90{width:90%}.w100{width:100%}
+    .right { text-align:right; }
+    .check {
+      display:inline-block; min-width:14pt; text-align:center; border:1px solid #000; margin-right:6pt; font-weight:700;
+      width:14pt; height:14pt; line-height:12pt; vertical-align:middle; font-size:10pt;
+    }
+    .muted { color:#666; }
+    .legal { font-size:10pt; line-height:1.3; }
+  </style>
 </head>
 <body>
-  <div class="page">
-    <div class="carrierbar">
-      <div class="brand">SOCIETY INSURANCE</div>
-      <div class="title">SUPPLEMENTAL APPLICATION</div>
-    </div>
+<%
+  // --- Helpers (embedded) ---
+  function yn(v) {
+    const s = String(v ?? "").trim().toLowerCase();
+    if (v === true || ["true","yes","y","1"].includes(s)) return "Yes";
+    if (v === false || ["false","no","n","0"].includes(s)) return "No";
+    return "";
+  }
+  function isYes(v){ return yn(v)==="Yes"; }
+  function fmtMoney(n){
+    const v = typeof n==="number" ? n : parseFloat(String(n||"").replace(/[^0-9.-]/g,""));
+    if (!isFinite(v)) return "";
+    return "$" + v.toLocaleString(undefined,{maximumFractionDigits:0});
+  }
+%>
 
-    <!-- Applicant -->
-    <div class="subbar">APPLICANT</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w25">BUSINESS NAME</div>
-        <div class="cell w75"><%= data.applicant_name || data.namedInsured || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w25">LOCATION</div>
-        <div class="cell w75">
-          <%= [data.premise_address, data.premise_city, data.premise_state, data.premise_zip].filter(Boolean).join(", ") %>
-        </div>
-      </div>
-      <div class="row">
-        <div class="cell label w25">PHONE / EMAIL</div>
-        <div class="cell w75"><%= [data.business_phone, data.contact_email].filter(Boolean).join(" / ") %></div>
-      </div>
-    </div>
+<!-- ===== PAGE 1 ===== -->
+<div class="page">
+  <div class="carrierbar">
+    <div class="brand">SOCIETY INSURANCE</div>
+    <div class="title">SPECIAL PROGRAM SUPPLEMENTAL APPLICATION</div>
+  </div>
 
-    <!-- Ops Mix -->
-    <div class="subbar">OPERATIONS MIX</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w20">LIQUOR %</div>
-        <div class="cell w10 right"><%= data.liquor_percent || data.percentLiquor || "" %></div>
-        <div class="cell label w20">FOOD %</div>
-        <div class="cell w10 right"><%= data.food_percent || data.percentFood || "" %></div>
-        <div class="cell label w20">OTHER %</div>
-        <div class="cell w20 right"><%= data.other_percent || data.percentOther || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w25">HOURS / DAYS</div>
-        <div class="cell w35"><%= [data.hours_of_operation, data.days_open].filter(Boolean).join(" / ") %></div>
-        <div class="cell label w20">SEATING</div>
-        <div class="cell w20 right"><%= data.number_of_seats || "" %></div>
+  <!-- APPLICANT -->
+  <div class="subbar">APPLICANT</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w25">BUSINESS NAME</div>
+      <div class="cell w75"><%= data.applicant_name || data.premises_name || "" %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">LOCATION</div>
+      <div class="cell w75">
+        <%= [data.premise_address, data.premise_city, data.premise_state, data.premise_zip].filter(Boolean).join(", ") %>
       </div>
     </div>
-
-    <!-- Security / Controls -->
-    <div class="subbar">SECURITY & CONTROLS</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w25">SECURITY STAFF</div>
-        <div class="cell w25"><span class="check"><%= yn(data.security_staff)==="Yes" ? "✓" : "" %></span> Yes</div>
-        <div class="cell label w25">ID CHECK AT DOOR</div>
-        <div class="cell w25"><span class="check"><%= yn(data.id_checking)==="Yes" ? "✓" : "" %></span> Yes</div>
-      </div>
-      <div class="row">
-        <div class="cell label w25">TIPS/SERVSAFE</div>
-        <div class="cell w25"><span class="check"><%= yn(data.tips_training || data.servsafe)==="Yes" ? "✓" : "" %></span> Yes</div>
-        <div class="cell label w25">INCIDENT LOG</div>
-        <div class="cell w25"><span class="check"><%= yn(data.incident_log)==="Yes" ? "✓" : "" %></span> Yes</div>
-      </div>
-      <div class="row">
-        <div class="cell label w25">ENTERTAINMENT</div>
-        <div class="cell w75"><%= data.entertainment_description || data.entertainment || "" %></div>
-      </div>
+    <div class="row">
+      <div class="cell label w25">PHONE / EMAIL</div>
+      <div class="cell w75"><%= [data.business_phone, data.contact_email].filter(Boolean).join(" / ") %></div>
     </div>
-
-    <!-- Losses -->
-    <div class="subbar">LOSS HISTORY</div>
-    <div class="block">
-      <div class="row"><div class="cell w100" style="min-height:70pt;"><%= data.loss_history || data.prior_losses || "" %></div></div>
+    <div class="row">
+      <div class="cell label w25">EFFECTIVE DATE</div>
+      <div class="cell w25"><%= data.effective_date || "" %></div>
+      <div class="cell label w25">ORGANIZATION TYPE</div>
+      <div class="cell w25"><%= data.organization_type || "" %></div>
     </div>
   </div>
 
-  <!-- Signature -->
-  <div class="page pagebreak">
-    <div class="carrierbar">
-      <div class="brand">SOCIETY INSURANCE</div>
-      <div class="title">SUPPLEMENTAL APPLICATION</div>
+  <!-- ELIGIBILITY / EXPERIENCE -->
+  <div class="subbar">ELIGIBILITY</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w60">1. Open now or within 60 days?</div>
+      <div class="cell w40"><span class="check"><%= isYes(data.open_60_days) ? "✓" : "" %></span> Yes</div>
     </div>
+    <% if (!isYes(data.open_60_days) && data.open_60_days_details) { %>
+    <div class="row"><div class="cell w100"><em class="muted">If No, details:</em> <%= data.open_60_days_details %></div></div>
+    <% } %>
 
-    <div class="subbar">SIGNATURE</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w30">APPLICANT’S SIGNATURE</div>
-        <div class="cell w70">&nbsp;</div>
-      </div>
-      <div class="row">
-        <div class="cell label w30">TITLE</div>
-        <div class="cell w30">&nbsp;</div>
-        <div class="cell label w20">DATE</div>
-        <div class="cell w20">&nbsp;</div>
+    <div class="row">
+      <div class="cell label w60">2. 3+ yrs restaurant/bar ownership experience in past 5 yrs?</div>
+      <div class="cell w40"><span class="check"><%= isYes(data.ownership_experience) ? "✓" : "" %></span> Yes</div>
+    </div>
+    <% if (data.ownership_experience_details || data.ownership_experience_details_yes || data.ownership_experience_details_no) { %>
+    <div class="row">
+      <div class="cell w100">
+        <em class="muted">Experience details:</em>
+        <%= data.ownership_experience_details 
+            || (isYes(data.ownership_experience) ? data.ownership_experience_details_yes : data.ownership_experience_details_no) 
+            || "" %>
       </div>
     </div>
+    <% } %>
+  </div>
 
-    <div class="subbar">LEGAL NOTICE</div>
-    <div class="block">
-      <div class="row"><div class="cell w100"><div class="legal">
-        The applicant affirms the accuracy and completeness of the information provided…
-      </div></div></div>
+  <!-- OPERATIONS -->
+  <div class="subbar">OPERATIONS</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w25">3. Closing time</div>
+      <div class="cell w25"><%= data.closing_time || "" %></div>
+      <div class="cell label w25">4. Square footage</div>
+      <div class="cell w25"><%= data.square_footage || "" %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">5. # of employees</div>
+      <div class="cell w25"><%= data.num_employees || "" %></div>
+      <div class="cell label w25">6. Fine dining?</div>
+      <div class="cell w25"><span class="check"><%= isYes(data.fine_dining) ? "✓" : "" %></span> Yes</div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">7. Counter service?</div>
+      <div class="cell w25"><span class="check"><%= isYes(data.counter_service) ? "✓" : "" %></span> Yes</div>
+      <div class="cell label w25">Automatic sprinkler</div>
+      <div class="cell w25"><%= yn(data.automatic_sprinkler) %></div>
     </div>
   </div>
 
-  <script>
-    function yn(v){ if(v===true||v==="true"||v==="Yes"||v==="yes"||v===1||v==="1") return "Yes";
-                    if(v===false||v==="false"||v==="No"||v==="no"||v===0||v==="0") return "No"; return ""; }
-  </script>
+  <!-- ALCOHOL & RECEIPTS -->
+  <div class="subbar">ALCOHOL & RECEIPTS</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w40">8. Manufacture alcohol?</div>
+      <div class="cell w10"><span class="check"><%= isYes(data.alcohol_manufactured) ? "✓" : "" %></span> Yes</div>
+      <div class="cell label w35">If yes, >25% consumed on premises?</div>
+      <div class="cell w15"><%= yn(data.percent_consumed) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">Food Sales</div>
+      <div class="cell w25"><%= fmtMoney(data.food_sales) %></div>
+      <div class="cell label w25">Alcohol Sales</div>
+      <div class="cell w25"><%= fmtMoney(data.alcohol_sales) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">Total Sales</div>
+      <div class="cell w25"><%= fmtMoney(data.total_sales) %></div>
+      <div class="cell label w25">% Alcohol</div>
+      <div class="cell w25"><%= data.Percent_Alcohol || "" %></div>
+    </div>
+  </div>
+
+  <!-- COOKING & FIRE CONTROLS -->
+  <div class="subbar">COOKING & FIRE CONTROLS</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w30">10. Level of cooking</div>
+      <div class="cell w70">
+        <span class="check"><%= isYes(data.cooking_level_full) ? "✓" : "" %></span> Full
+        &nbsp;&nbsp;
+        <span class="check"><%= (!isYes(data.cooking_level_full) && isYes(data.cooking_level_limited)) ? "✓" : "" %></span> Limited
+        &nbsp;&nbsp;
+        <span class="check"><%= (!isYes(data.cooking_level_full) && !isYes(data.cooking_level_limited) && isYes(data.cooking_level_non)) ? "✓" : "" %></span> None
+      </div>
+    </div>
+    <div class="row">
+      <div class="cell label w30">11. Cannabis infusion?</div>
+      <div class="cell w20"><%= yn(data.infused_with_cannabis) %></div>
+      <div class="cell label w30">12. Solid fuel within 10 ft?</div>
+      <div class="cell w20"><%= yn(data.solid_fuel) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w60">13. Any surfaces NOT protected by UL300 suppression?</div>
+      <div class="cell w40"><%= yn(data.non_UL300) %></div>
+    </div>
+  </div>
+
+  <!-- ENTERTAINMENT & RECREATION -->
+  <div class="subbar">ENTERTAINMENT & RECREATION</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w35">14. Entertainment other than ambience/background, karaoke, trivia?</div>
+      <div class="cell w15"><%= yn(data.entertainment_other) %></div>
+      <div class="cell label w15">Details</div>
+      <div class="cell w35"><%= data.entertainment_details || "" %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w35">15. Recreational activities (besides darts, bag toss, ≤5 pool, horseshoes, volleyball)?</div>
+      <div class="cell w15"><%= yn(data.recreational_activites) %></div>
+      <div class="cell label w15">Details</div>
+      <div class="cell w35"><%= data.recreational_details || "" %></div>
+    </div>
+  </div>
+
+  <!-- SECURITY -->
+  <div class="subbar">SECURITY</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w25">16. Bouncers / security present?</div>
+      <div class="cell w25"><%= yn(data.security_present) %></div>
+      <div class="cell label w25">Background checks?</div>
+      <div class="cell w25"><%= yn(data.ComboBox22) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">Armed?</div>
+      <div class="cell w25"><%= yn(data.ComboBox23) %></div>
+      <div class="cell label w25">Conflict-resolution trained?</div>
+      <div class="cell w25"><%= yn(data.ComboBox24) %></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE 2 ===== -->
+<div class="page pagebreak">
+  <div class="carrierbar">
+    <div class="brand">SOCIETY INSURANCE</div>
+    <div class="title">SPECIAL PROGRAM SUPPLEMENTAL APPLICATION</div>
+  </div>
+
+  <!-- DELIVERY -->
+  <div class="subbar">DELIVERY</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w25">17. Delivery offered?</div>
+      <div class="cell w25"><%= yn(data.delivery_offered) %></div>
+      <div class="cell label w25">Owned autos?</div>
+      <div class="cell w25"><%= yn(data.ComboBox13) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">Employee autos?</div>
+      <div class="cell w25"><%= yn(data.ComboBox14) %></div>
+      <div class="cell label w25">3rd-party services?</div>
+      <div class="cell w25"><%= yn(data.ComboBox15) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w40">Delivery sales (owned or employee autos)</div>
+      <div class="cell w20"><%= fmtMoney(data.TextField0) %></div>
+      <div class="cell label w25">>20% at any one location?</div>
+      <div class="cell w15"><%= yn(data.ComboBox16) %></div>
+    </div>
+    <% if (isYes(data.ComboBox16) && data.TextField12) { %>
+    <div class="row"><div class="cell w100"><em class="muted">Explain >20% at a location:</em> <%= data.TextField12 %></div></div>
+    <% } %>
+    <div class="row">
+      <div class="cell label w25">Radius > 5 miles?</div>
+      <div class="cell w25"><%= yn(data.ComboBox17) %></div>
+      <div class="cell label w25">Hours past 10 PM?</div>
+      <div class="cell w25"><%= yn(data.ComboBox18) %></div>
+    </div>
+    <% if (isYes(data.ComboBox17) && data.TextField11) { %>
+    <div class="row"><div class="cell w100"><em class="muted">Radius explanation:</em> <%= data.TextField11 %></div></div>
+    <% } %>
+    <% if (isYes(data.ComboBox18) && data.TextField13) { %>
+    <div class="row"><div class="cell w100"><em class="muted">After-10 PM explanation:</em> <%= data.TextField13 %></div></div>
+    <% } %>
+  </div>
+
+  <!-- AUTO / SHUTTLE -->
+  <div class="subbar">AUTO / SHUTTLE</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w40">18. If auto rated, does business provide shuttle?</div>
+      <div class="cell w20"><%= yn(data.ComboBox19) %></div>
+      <div class="cell label w15">Details</div>
+      <div class="cell w25"><%= data.shuttle_explanation || "" %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w60">Other auto policies in force for the named insured(s)?</div>
+      <div class="cell w40"><%= yn(data.ComboBox1) %></div>
+    </div>
+  </div>
+
+  <!-- VIOLATIONS & CLAIMS -->
+  <div class="subbar">LIQUOR VIOLATIONS & CLAIMS (Last 3 Years)</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w40">19. Liquor law violations?</div>
+      <div class="cell w20"><%= yn(data.liquor_lapse) %></div>
+      <div class="cell w40"><%= data.liquor_claims || "" %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w30">Total claims</div>
+      <div class="cell w20"><%= data.claim_count || "" %></div>
+      <div class="cell w50">
+        <% if (data.claim_count==="2_or_less" && data.claims_details_2_or_less) { %>
+          <%= data.claims_details_2_or_less %>
+        <% } else if (data.claim_count==="3_or_more" && data.claims_details_3_or_more) { %>
+          <%= data.claims_details_3_or_more %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYMENT PLAN -->
+  <div class="subbar">PAYMENT PLAN</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell w50"><span class="check"><%= isYes(data.payment_plan_Monthly) ? "✓" : "" %></span> Monthly</div>
+      <div class="cell w50"><span class="check"><%= isYes(data.payment_plan_Annual) ? "✓" : "" %></span> Annual</div>
+    </div>
+  </div>
+
+  <!-- AGENCY FOOTER -->
+  <div class="subbar">AGENCY</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w25">Agency</div>
+      <div class="cell w75"><%= data.TextField16 || "All Access Insurance dba Commercial Insurance Direct, LLC 70025M" %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">Agent</div>
+      <div class="cell w25"><%= data.TextField17 || "Rick Cline" %></div>
+      <div class="cell label w25">Agent Email</div>
+      <div class="cell w25"><%= data.TextField18 || "quote@barinsurancedirect.com" %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">Agent Phone</div>
+      <div class="cell w25"><%= data.TextField19 || "303-932-1700" %></div>
+      <div class="cell label w25">Date</div>
+      <div class="cell w25"><%= data.Date || "" %></div>
+    </div>
+  </div>
+
+  <!-- SIGNATURE -->
+  <div class="subbar">SIGNATURE</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w30">Applicant’s Signature</div>
+      <div class="cell w70">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="cell label w30">Title</div>
+      <div class="cell w30">&nbsp;</div>
+      <div class="cell label w20">Date</div>
+      <div class="cell w20"><%= data.Date || "" %></div>
+    </div>
+    <div class="row">
+      <div class="cell w100">
+        <div class="legal">The applicant affirms the accuracy and completeness of the information provided…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
 
