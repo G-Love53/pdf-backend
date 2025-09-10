@@ -6,6 +6,7 @@
   <style><%= styles %></style>
 </head>
 <body>
+  <!-- PAGE 1 -->
   <div class="page">
     <div class="headerbar">
       <div class="acord">ACORD</div>
@@ -17,12 +18,22 @@
     <div class="subbar">LOCATION</div>
     <div class="block">
       <div class="row">
+        <div class="cell label w25">APPLICANT</div>
+        <div class="cell w75"><%= data.applicant_name || data.named_insured || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w25">PREMISES / DBA</div>
+        <div class="cell w75"><%= data.premises_name || "" %></div>
+      </div>
+      <div class="row">
         <div class="cell label w25">ADDRESS</div>
         <div class="cell w75">
-          <%= [data.location_address || data.premise_address,
-                data.location_city || data.premise_city,
-                data.location_state || data.premise_state,
-                data.location_zip || data.premise_zip].filter(Boolean).join(", ") %>
+          <%= [
+                data.premise_address || data.location_address,
+                data.premise_city   || data.location_city,
+                data.premise_state  || data.location_state,
+                data.premise_zip    || data.location_zip
+              ].filter(Boolean).join(", ") %>
         </div>
       </div>
     </div>
@@ -45,25 +56,29 @@
         <div class="cell w30"><%= data.protection_class || "" %></div>
       </div>
       <div class="row">
-        <div class="cell label w25">SPRINKLERED</div>
-        <div class="cell w25"><span class="check"><%= yn(data.sprinklered)==="Yes" ? "✓" : "" %></span> Yes</div>
+        <div class="cell label w25">AUTOMATIC SPRINKLER</div>
+        <div class="cell w25">
+          <span class="check"><%= helpers.yn(data.automatic_sprinkler)==="Yes" ? "✓" : "" %></span> Yes
+        </div>
         <div class="cell label w25">CENTRAL STATION ALARM</div>
-        <div class="cell w25"><span class="check"><%= yn(data.central_station_alarm)==="Yes" ? "✓" : "" %></span> Yes</div>
+        <div class="cell w25">
+          <span class="check"><%= helpers.yn(data.central_station_alarm)==="Yes" ? "✓" : "" %></span> Yes
+        </div>
       </div>
     </div>
 
-    <!-- Coverages -->
+    <!-- Coverages & Limits -->
     <div class="subbar">COVERAGES & LIMITS</div>
     <div class="block">
       <div class="row">
         <div class="cell label w20">BUILDING</div>
-        <div class="cell w30 right"><%= money(data.building_limit) %></div>
+        <div class="cell w30 right"><%= helpers.money(data.building_limit) %></div>
         <div class="cell label w20">BPP</div>
-        <div class="cell w30 right"><%= money(data.business_personal_property || data.bpp_limit) %></div>
+        <div class="cell w30 right"><%= helpers.money(data.business_personal_property || data.bpp_limit) %></div>
       </div>
       <div class="row">
         <div class="cell label w20">BUSINESS INCOME</div>
-        <div class="cell w30 right"><%= money(data.business_income_limit || data.bi_limit) %></div>
+        <div class="cell w30 right"><%= helpers.money(data.business_income_limit || data.bi_limit) %></div>
         <div class="cell label w20">CAUSE OF LOSS</div>
         <div class="cell w30"><%= data.cause_of_loss || "" %></div>
       </div>
@@ -74,9 +89,48 @@
         <div class="cell w30"><%= data.coinsurance || "" %></div>
       </div>
     </div>
+
+    <!-- Solid Fuel / Grill Q&A -->
+    <div class="subbar">SOLID FUEL / SMOKER – WITHIN 10 FT OF BUILDING</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w55">Do you have a non-gas Smoker/Grill (wood, pellets, etc) within 10 feet of the building?</div>
+        <div class="cell w45"><%= helpers.yn(data.solid_fuel) %></div>
+      </div>
+
+      <% if (helpers.yn(data.solid_fuel)==="Yes") { %>
+      <div class="row">
+        <div class="cell label w40">• Professionally installed?</div>
+        <div class="cell w10"><%= helpers.yn(data.professionally_installed) %></div>
+        <div class="cell label w35">• Regularly maintained?</div>
+        <div class="cell w15"><%= helpers.yn(data.regularly_maintained) %></div>
+      </div>
+
+      <div class="row">
+        <div class="cell label w33">• Cleaned & scraped weekly</div>
+        <div class="cell w10"><span class="check"><%= helpers.yn(data.cleaned_scraped_weekly)==="Yes" ? "✓" : "" %></span></div>
+        <div class="cell label w33">• Vent/exhaust cleaned monthly</div>
+        <div class="cell w10"><span class="check"><%= helpers.yn(data.vent_cleaned_monthly)==="Yes" ? "✓" : "" %></span></div>
+        <div class="cell label w13">• Ashes removed daily</div>
+        <div class="cell w10"><span class="check"><%= helpers.yn(data.ashes_removed_daily)==="Yes" ? "✓" : "" %></span></div>
+      </div>
+
+      <div class="row">
+        <div class="cell label w55">Other than the day’s supply, is fuel (wood/pellets) stored more than 10 ft from the cooker?</div>
+        <div class="cell w45"><%= helpers.yn(data.storage_10_feet) %></div>
+      </div>
+
+      <div class="row">
+        <div class="cell label w40">Hood system + UL 300 extinguishing system present?</div>
+        <div class="cell w15"><%= helpers.yn(data.hood_ul300) %></div>
+        <div class="cell label w35">Class K or 2A extinguisher within 20 ft?</div>
+        <div class="cell w10"><%= helpers.yn(data.fire_extinguisher_20_feet) %></div>
+      </div>
+      <% } %>
+    </div>
   </div>
 
-  <!-- Signature / Legal -->
+  <!-- PAGE 2 -->
   <div class="page pagebreak">
     <div class="headerbar">
       <div class="acord">ACORD</div>
@@ -84,6 +138,28 @@
       <div class="formno">140</div>
     </div>
 
+    <!-- Additional Interests (future-ready; minimal for Bars today) -->
+    <div class="subbar">ADDITIONAL INTERESTS / LENDER’S LOSS PAYABLE</div>
+    <div class="block">
+      <div class="row">
+        <div class="cell label w20">INTEREST</div>
+        <div class="cell w20"><%= data.ai_interest_type || "" %></div>
+        <div class="cell label w20">NAME</div>
+        <div class="cell w40"><%= data.ai_name_1 || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w20">ADDRESS</div>
+        <div class="cell w80">
+          <%= [
+            data.ai_address_1,
+            [data.ai_city_1, data.ai_state_1, data.ai_zip_1].filter(Boolean).join(", ")
+          ].filter(Boolean).join(", ") %>
+        </div>
+      </div>
+      <!-- Duplicate block(s) as needed for additional names -->
+    </div>
+
+    <!-- Signature / Fraud warnings (short form) -->
     <div class="subbar">SIGNATURE</div>
     <div class="block">
       <div class="row">
@@ -100,17 +176,14 @@
 
     <div class="subbar">LEGAL NOTICE</div>
     <div class="block">
-      <div class="row"><div class="cell w100"><div class="legal">
-        Statements herein are true and complete to the best of the applicant’s knowledge…
-      </div></div></div>
+      <div class="row"><div class="cell w100">
+        <div class="legal">
+          The undersigned represents that reasonable inquiry has been made and that the answers are true and complete to the best of their knowledge.
+          State-specific fraud notices apply (see ACORD 101 if attached).
+        </div>
+      </div></div>
     </div>
   </div>
-
-  <script>
-    function yn(v){ if(v===true||v==="true"||v==="Yes"||v==="yes"||v===1||v==="1") return "Yes";
-                    if(v===false||v==="false"||v==="No"||v==="no"||v===0||v==="0") return "No"; return ""; }
-    function money(v){ if(v==null||v==="") return ""; const n=Number(String(v).replace(/[^0-9.-]/g,""));
-                       return isNaN(n) ? String(v) : n.toLocaleString("en-US",{style:"currency",currency:"USD"}); }
-  </script>
 </body>
 </html>
+
