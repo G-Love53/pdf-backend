@@ -40,19 +40,27 @@ const MAP_DIR = path.join(__dirname, "..", "mapping");
 APP.get("/healthz", (_req, res) => res.status(200).send("ok"));
 
 // --- Optional: apply mapping/<template>.json if present ---
+// --- Optional: apply mapping/<template>.json if present (NON-DESTRUCTIVE) ---
 async function maybeMapData(templateName, rawData) {
   try {
     const mapPath = path.join(MAP_DIR, `${templateName}.json`);
     const mapping = JSON.parse(await fs.readFile(mapPath, "utf8"));
-    const out = {};
+
+    // Build only the mapped keys...
+    const mapped = {};
     for (const [tplKey, formKey] of Object.entries(mapping)) {
-      out[tplKey] = rawData?.[formKey] ?? "";
+      mapped[tplKey] = rawData?.[formKey] ?? "";
     }
-    return out;
+
+    // ...then merge over the original data so NOTHING gets dropped.
+    // Templates can use either the original field names or the mapped aliases.
+    return { ...rawData, ...mapped };
   } catch {
-    return rawData; // no mapping file -> pass-through
+    // No mapping file? Just pass the raw form data through.
+    return rawData;
   }
 }
+
 
 // --- Core: render all PDFs (strict) and optionally email ---
 async function renderBundleAndRespond({ templates, email }, res) {
