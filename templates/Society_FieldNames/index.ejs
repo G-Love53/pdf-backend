@@ -38,21 +38,7 @@
   </style>
 </head>
 <body>
-<%
-  // --- Helpers (embedded) ---
-  function yn(v) {
-    const s = String(v ?? "").trim().toLowerCase();
-    if (v === true || ["true","yes","y","1"].includes(s)) return "Yes";
-    if (v === false || ["false","no","n","0"].includes(s)) return "No";
-    return "";
-  }
-  function isYes(v){ return yn(v)==="Yes"; }
-  function fmtMoney(n){
-    const v = typeof n==="number" ? n : parseFloat(String(n||"").replace(/[^0-9.-]/g,""));
-    if (!isFinite(v)) return "";
-    return "$" + v.toLocaleString(undefined,{maximumFractionDigits:0});
-  }
-%>
+<% const { isYes, yesno, yn, money, moneyUSD, formatDate, join, calcAlcoholPercent } = helpers; %>
 
 <!-- ===== PAGE 1 ===== -->
 <div class="page">
@@ -71,12 +57,12 @@
     <div class="row">
       <div class="cell label w25">LOCATION</div>
       <div class="cell w75">
-        <%= [data.premise_address, data.premise_city, data.premise_state, data.premise_zip].filter(Boolean).join(", ") %>
+        <%= join([data.premise_address, data.premise_city, data.premise_state, data.premise_zip]) %>
       </div>
     </div>
     <div class="row">
       <div class="cell label w25">PHONE / EMAIL</div>
-      <div class="cell w75"><%= [data.business_phone, data.contact_email].filter(Boolean).join(" / ") %></div>
+      <div class="cell w75"><%= join([data.business_phone, data.contact_email], " / ") %></div>
     </div>
     <div class="row">
       <div class="cell label w25">EFFECTIVE DATE</div>
@@ -86,7 +72,7 @@
     </div>
   </div>
 
-  <!-- ELIGIBILITY / EXPERIENCE -->
+  <!-- ELIGIBILITY -->
   <div class="subbar">ELIGIBILITY</div>
   <div class="block">
     <div class="row">
@@ -94,7 +80,10 @@
       <div class="cell w40"><span class="check"><%= isYes(data.open_60_days) ? "✓" : "" %></span> Yes</div>
     </div>
     <% if (!isYes(data.open_60_days) && data.open_60_days_details) { %>
-    <div class="row"><div class="cell w100"><em class="muted">If No, details:</em> <%= data.open_60_days_details %></div></div>
+      <div class="row">
+        <div class="cell label w30">If No, details</div>
+        <div class="cell w70"><%= data.open_60_days_details %></div>
+      </div>
     <% } %>
 
     <div class="row">
@@ -102,14 +91,14 @@
       <div class="cell w40"><span class="check"><%= isYes(data.ownership_experience) ? "✓" : "" %></span> Yes</div>
     </div>
     <% if (data.ownership_experience_details || data.ownership_experience_details_yes || data.ownership_experience_details_no) { %>
-    <div class="row">
-      <div class="cell w100">
-        <em class="muted">Experience details:</em>
-        <%= data.ownership_experience_details 
-            || (isYes(data.ownership_experience) ? data.ownership_experience_details_yes : data.ownership_experience_details_no) 
-            || "" %>
+      <div class="row">
+        <div class="cell label w30">Experience details</div>
+        <div class="cell w70">
+          <%= data.ownership_experience_details 
+              || (isYes(data.ownership_experience) ? data.ownership_experience_details_yes : data.ownership_experience_details_no) 
+              || "" %>
+        </div>
       </div>
-    </div>
     <% } %>
   </div>
 
@@ -132,7 +121,7 @@
       <div class="cell label w25">7. Counter service?</div>
       <div class="cell w25"><span class="check"><%= isYes(data.counter_service) ? "✓" : "" %></span> Yes</div>
       <div class="cell label w25">Automatic sprinkler</div>
-      <div class="cell w25"><%= yn(data.automatic_sprinkler) %></div>
+      <div class="cell w25"><%= yesno(data.automatic_sprinkler) %></div>
     </div>
   </div>
 
@@ -143,20 +132,27 @@
       <div class="cell label w40">8. Manufacture alcohol?</div>
       <div class="cell w10"><span class="check"><%= isYes(data.alcohol_manufactured) ? "✓" : "" %></span> Yes</div>
       <div class="cell label w35">If yes, >25% consumed on premises?</div>
-      <div class="cell w15"><%= yn(data.percent_consumed) %></div>
+      <div class="cell w15"><%= yesno(data.percent_consumed) %></div>
     </div>
     <div class="row">
       <div class="cell label w25">Food Sales</div>
-      <div class="cell w25"><%= fmtMoney(data.food_sales) %></div>
+      <div class="cell w25"><%= moneyUSD(data.food_sales) %></div>
       <div class="cell label w25">Alcohol Sales</div>
-      <div class="cell w25"><%= fmtMoney(data.alcohol_sales) %></div>
+      <div class="cell w25"><%= moneyUSD(data.alcohol_sales) %></div>
     </div>
     <div class="row">
       <div class="cell label w25">Total Sales</div>
-      <div class="cell w25"><%= fmtMoney(data.total_sales) %></div>
+      <div class="cell w25"><%= moneyUSD(data.total_sales) %></div>
       <div class="cell label w25">% Alcohol</div>
-      <div class="cell w25"><%= data.Percent_Alcohol || "" %></div>
+      <div class="cell w25"><%= data.Percent_Alcohol || calcAlcoholPercent(data.food_sales, data.alcohol_sales) %></div>
     </div>
+
+    <% if (isYes(data.alcohol_manufactured) && isYes(data.percent_consumed) && data.percent_consumed_details) { %>
+      <div class="row">
+        <div class="cell label w30">>25% consumed on premises – details</div>
+        <div class="cell w70"><%= data.percent_consumed_details %></div>
+      </div>
+    <% } %>
   </div>
 
   <!-- COOKING & FIRE CONTROLS -->
@@ -174,14 +170,27 @@
     </div>
     <div class="row">
       <div class="cell label w30">11. Cannabis infusion?</div>
-      <div class="cell w20"><%= yn(data.infused_with_cannabis) %></div>
+      <div class="cell w20"><%= yesno(data.infused_with_cannabis) %></div>
       <div class="cell label w30">12. Solid fuel within 10 ft?</div>
-      <div class="cell w20"><%= yn(data.solid_fuel) %></div>
+      <div class="cell w20"><%= yesno(data.solid_fuel) %></div>
     </div>
     <div class="row">
       <div class="cell label w60">13. Any surfaces NOT protected by UL300 suppression?</div>
-      <div class="cell w40"><%= yn(data.non_UL300) %></div>
+      <div class="cell w40"><%= yesno(data.non_UL300) %></div>
     </div>
+
+    <!-- Grill / Smoker follow-up -->
+    <% if (isYes(data.solid_fuel) && data.solid_fuel_details) { %>
+      <div class="row">
+        <div class="cell label w30">Grill / Smoker details</div>
+        <div class="cell w70"><%= data.solid_fuel_details %></div>
+      </div>
+    <% } else if (isYes(data.solid_fuel)) { %>
+      <div class="row">
+        <div class="cell label w30">Grill / Smoker in use</div>
+        <div class="cell w70">Yes (solid fuel within 10 ft)</div>
+      </div>
+    <% } %>
   </div>
 
   <!-- ENTERTAINMENT & RECREATION -->
@@ -189,16 +198,29 @@
   <div class="block">
     <div class="row">
       <div class="cell label w35">14. Entertainment other than ambience/background, karaoke, trivia?</div>
-      <div class="cell w15"><%= yn(data.entertainment_other) %></div>
+      <div class="cell w15"><%= yesno(data.entertainment_other) %></div>
       <div class="cell label w15">Details</div>
       <div class="cell w35"><%= data.entertainment_details || "" %></div>
     </div>
+    <% if (isYes(data.entertainment_other) && data.entertainment_details) { %>
+      <div class="row">
+        <div class="cell label w30">Entertainment details (expanded)</div>
+        <div class="cell w70"><%= data.entertainment_details %></div>
+      </div>
+    <% } %>
+
     <div class="row">
       <div class="cell label w35">15. Recreational activities (besides darts, bag toss, ≤5 pool, horseshoes, volleyball)?</div>
-      <div class="cell w15"><%= yn(data.recreational_activites) %></div>
+      <div class="cell w15"><%= yesno(data.recreational_activites) %></div>
       <div class="cell label w15">Details</div>
       <div class="cell w35"><%= data.recreational_details || "" %></div>
     </div>
+    <% if (isYes(data.recreational_activites) && data.recreational_details) { %>
+      <div class="row">
+        <div class="cell label w30">Recreational details (expanded)</div>
+        <div class="cell w70"><%= data.recreational_details %></div>
+      </div>
+    <% } %>
   </div>
 
   <!-- SECURITY -->
@@ -206,17 +228,76 @@
   <div class="block">
     <div class="row">
       <div class="cell label w25">16. Bouncers / security present?</div>
-      <div class="cell w25"><%= yn(data.security_present) %></div>
+      <div class="cell w25"><%= yesno(data.security_present) %></div>
       <div class="cell label w25">Background checks?</div>
-      <div class="cell w25"><%= yn(data.ComboBox22) %></div>
+      <div class="cell w25"><%= yesno(data.ComboBox22) %></div>
     </div>
     <div class="row">
       <div class="cell label w25">Armed?</div>
-      <div class="cell w25"><%= yn(data.ComboBox23) %></div>
+      <div class="cell w25"><%= yesno(data.ComboBox23) %></div>
       <div class="cell label w25">Conflict-resolution trained?</div>
-      <div class="cell w25"><%= yn(data.ComboBox24) %></div>
+      <div class="cell w25"><%= yesno(data.ComboBox24) %></div>
     </div>
+
+    <% if (isYes(data.security_present)) { %>
+      <div class="row">
+        <div class="cell label w30">Bouncer/Security summary</div>
+        <div class="cell w70">
+          <%= [
+                `Background checks: ${yesno(data.ComboBox22)}`,
+                `Armed: ${yesno(data.ComboBox23)}`,
+                `Conflict training: ${yesno(data.ComboBox24)}`
+              ].join("  |  ") %>
+        </div>
+      </div>
+    <% } %>
+
+    <% if (isYes(data.security_present) && (data.security_count || data.security_hours)) { %>
+      <div class="row">
+        <div class="cell label w30">Security staffing</div>
+        <div class="cell w70">
+          <%= [
+                data.security_count ? `Count: ${data.security_count}` : "",
+                data.security_hours ? `Hours: ${data.security_hours}` : ""
+              ].filter(Boolean).join("  |  ") %>
+        </div>
+      </div>
+    <% } %>
   </div>
+
+  <!-- Optional: SECURITY & CONTROLS (Door/TIPS/Incident) -->
+  <% if (typeof data.id_checking !== "undefined" ||
+         typeof data.tips_training !== "undefined" ||
+         typeof data.servsafe !== "undefined" ||
+         typeof data.incident_log !== "undefined") { %>
+    <div class="subbar">SECURITY & CONTROLS</div>
+    <div class="block">
+      <% if (typeof data.id_checking !== "undefined") { %>
+        <div class="row">
+          <div class="cell label w40">ID check at door</div>
+          <div class="cell w60"><%= yesno(data.id_checking) %></div>
+        </div>
+      <% } %>
+
+      <% if (typeof data.tips_training !== "undefined" || typeof data.servsafe !== "undefined") { %>
+        <div class="row">
+          <div class="cell label w40">Server training (TIPS/ServSafe)</div>
+          <div class="cell w60">
+            <% const hasTips = typeof data.tips_training !== "undefined" ? yesno(data.tips_training) : ""; %>
+            <% const hasSS  = typeof data.servsafe      !== "undefined" ? yesno(data.servsafe)      : ""; %>
+            <%= [ hasTips ? `TIPS: ${hasTips}` : "", hasSS ? `ServSafe: ${hasSS}` : "" ].filter(Boolean).join("  |  ") %>
+          </div>
+        </div>
+      <% } %>
+
+      <% if (typeof data.incident_log !== "undefined") { %>
+        <div class="row">
+          <div class="cell label w40">Incident log maintained</div>
+          <div class="cell w60"><%= yesno(data.incident_log) %></div>
+        </div>
+      <% } %>
+    </div>
+  <% } %>
 </div>
 
 <!-- ===== PAGE 2 ===== -->
@@ -231,36 +312,59 @@
   <div class="block">
     <div class="row">
       <div class="cell label w25">17. Delivery offered?</div>
-      <div class="cell w25"><%= yn(data.delivery_offered) %></div>
+      <div class="cell w25"><%= yesno(data.delivery_offered) %></div>
       <div class="cell label w25">Owned autos?</div>
-      <div class="cell w25"><%= yn(data.ComboBox13) %></div>
+      <div class="cell w25"><%= yesno(data.ComboBox13) %></div>
     </div>
     <div class="row">
       <div class="cell label w25">Employee autos?</div>
-      <div class="cell w25"><%= yn(data.ComboBox14) %></div>
+      <div class="cell w25"><%= yesno(data.ComboBox14) %></div>
       <div class="cell label w25">3rd-party services?</div>
-      <div class="cell w25"><%= yn(data.ComboBox15) %></div>
+      <div class="cell w25"><%= yesno(data.ComboBox15) %></div>
     </div>
     <div class="row">
       <div class="cell label w40">Delivery sales (owned or employee autos)</div>
-      <div class="cell w20"><%= fmtMoney(data.TextField0) %></div>
+      <div class="cell w20"><%= moneyUSD(data.TextField0) %></div>
       <div class="cell label w25">>20% at any one location?</div>
-      <div class="cell w15"><%= yn(data.ComboBox16) %></div>
+      <div class="cell w15"><%= yesno(data.ComboBox16) %></div>
     </div>
     <% if (isYes(data.ComboBox16) && data.TextField12) { %>
-    <div class="row"><div class="cell w100"><em class="muted">Explain >20% at a location:</em> <%= data.TextField12 %></div></div>
+      <div class="row">
+        <div class="cell label w30">If >20% at one location, explain</div>
+        <div class="cell w70"><%= data.TextField12 %></div>
+      </div>
     <% } %>
+
     <div class="row">
       <div class="cell label w25">Radius > 5 miles?</div>
-      <div class="cell w25"><%= yn(data.ComboBox17) %></div>
+      <div class="cell w25"><%= yesno(data.ComboBox17) %></div>
       <div class="cell label w25">Hours past 10 PM?</div>
-      <div class="cell w25"><%= yn(data.ComboBox18) %></div>
+      <div class="cell w25"><%= yesno(data.ComboBox18) %></div>
     </div>
     <% if (isYes(data.ComboBox17) && data.TextField11) { %>
-    <div class="row"><div class="cell w100"><em class="muted">Radius explanation:</em> <%= data.TextField11 %></div></div>
+      <div class="row">
+        <div class="cell label w30">Delivery radius explanation</div>
+        <div class="cell w70"><%= data.TextField11 %></div>
+      </div>
     <% } %>
     <% if (isYes(data.ComboBox18) && data.TextField13) { %>
-    <div class="row"><div class="cell w100"><em class="muted">After-10 PM explanation:</em> <%= data.TextField13 %></div></div>
+      <div class="row">
+        <div class="cell label w30">After 10 PM delivery explanation</div>
+        <div class="cell w70"><%= data.TextField13 %></div>
+      </div>
+    <% } %>
+
+    <% if (isYes(data.delivery_offered)) { %>
+      <div class="row">
+        <div class="cell label w30">Delivery methods</div>
+        <div class="cell w70">
+          <%= [
+                isYes(data.ComboBox13) ? "Owned autos"     : "",
+                isYes(data.ComboBox14) ? "Employee autos"  : "",
+                isYes(data.ComboBox15) ? "3rd-party svc"   : ""
+              ].filter(Boolean).join("  |  ") %>
+        </div>
+      </div>
     <% } %>
   </div>
 
@@ -269,13 +373,19 @@
   <div class="block">
     <div class="row">
       <div class="cell label w40">18. If auto rated, does business provide shuttle?</div>
-      <div class="cell w20"><%= yn(data.ComboBox19) %></div>
+      <div class="cell w20"><%= yesno(data.ComboBox19) %></div>
       <div class="cell label w15">Details</div>
       <div class="cell w25"><%= data.shuttle_explanation || "" %></div>
     </div>
+    <% if (isYes(data.ComboBox19) && data.shuttle_explanation) { %>
+      <div class="row">
+        <div class="cell label w30">Shuttle details (expanded)</div>
+        <div class="cell w70"><%= data.shuttle_explanation %></div>
+      </div>
+    <% } %>
     <div class="row">
       <div class="cell label w60">Other auto policies in force for the named insured(s)?</div>
-      <div class="cell w40"><%= yn(data.ComboBox1) %></div>
+      <div class="cell w40"><%= yesno(data.ComboBox1) %></div>
     </div>
   </div>
 
@@ -284,7 +394,7 @@
   <div class="block">
     <div class="row">
       <div class="cell label w40">19. Liquor law violations?</div>
-      <div class="cell w20"><%= yn(data.liquor_lapse) %></div>
+      <div class="cell w20"><%= yesno(data.liquor_lapse) %></div>
       <div class="cell w40"><%= data.liquor_claims || "" %></div>
     </div>
     <div class="row">
@@ -353,4 +463,5 @@
 
 </body>
 </html>
+
 
