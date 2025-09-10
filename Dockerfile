@@ -24,7 +24,7 @@ RUN npm ci --omit=dev || npm install --omit=dev
 COPY src ./src
 COPY templates ./templates
 COPY mapping ./mapping
-COPY utils ./utils    # <-- added
+COPY utils/ ./utils/   
 
 # IMPORTANT: point to where @puppeteer/browsers actually put Chrome
 # (since we set PUPPETEER_CACHE_DIR, Chrome lives under /app/.cache/puppeteer)
