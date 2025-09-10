@@ -47,8 +47,8 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
   const browser = await puppeteer.launch({
     headless: "new",
     executablePath:
-      process.env.PUPPETEER_EXECUTABLE_PATH ||
-      "/app/chrome/linux-123.0.6312.122/chrome-linux64/chrome",
+  process.env.PUPPETEER_EXECUTABLE_PATH ||
+  "/app/chrome/chrome-linux64/chrome",
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
