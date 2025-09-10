@@ -16,9 +16,10 @@ WORKDIR /app
 ENV PUPPETEER_CACHE_DIR=/app/.cache/puppeteer
 
 # Install the exact Chrome version Puppeteer expects (from your logs)
+  executablePath:
   process.env.PUPPETEER_EXECUTABLE_PATH ||
   "/app/.cache/puppeteer/chrome/linux-123.0.6312.122/chrome-linux64/chrome",
-
+  
 COPY package*.json ./
 RUN npm ci --omit=dev || npm install --omit=dev
 
