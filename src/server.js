@@ -4,8 +4,9 @@ import { normalizeBar125 } from "../mapping/normalizeBar125.js";
 import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
-import { renderPdf } from "./pdf.js";
+import { renderPdf } from "./pdf.js";           // <- make sure this is your actual renderer
 import { sendWithGmail } from "./email.js";
+import helpers from "../utils/helpers.js";      // <- shared yn/money etc. used by EJS templates
 
 const FILENAME_MAP = {
   Society_FieldNames: "Society-Supplement.pdf",
@@ -13,11 +14,7 @@ const FILENAME_MAP = {
   BarAccord126: "ACORD-126.pdf",
   BarAccord140: "ACORD-140.pdf",
   WCBarform: "WC-Application.pdf",
-
-  Roofing125: "ACORD-125.pdf",
-  Roofing126: "ACORD-126.pdf",
-  Roofing140: "ACORD-140.pdf",
-  WCRoofingForm: "WC-Application.pdf"
+  
 };
 
 const __filename = fileURLToPath(import.meta.url);
@@ -26,7 +23,7 @@ const __dirname = path.dirname(__filename);
 const APP = express();
 APP.use(express.json({ limit: "20mb" }));
 
-// replace the existing CORS block with:
+// CORS
 APP.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key");
@@ -34,7 +31,6 @@ APP.use((req, res, next) => {
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
-
 
 // --- Directories ---
 const TPL_DIR = path.join(__dirname, "..", "templates");
@@ -68,42 +64,48 @@ async function renderBundleAndRespond({ templates, email }, res) {
     templates.map(async (t) => {
       const name = t.name;
       const htmlPath = path.join(TPL_DIR, name, "index.ejs");
-      const cssPath = path.join(TPL_DIR, name, "styles.css");
+      const cssPath  = path.join(TPL_DIR, name, "styles.css");
+
+      // Source data from request
+      const rawData = t.data || {};
+
+      // Normalize/mapping per template
       let unified;
       if (name === "BarAccord125") {
-     // ✅ New path: use the schema normalizer
-     unified = normalizeBar125(rawData);
-} else {
-  // 🔁 Existing path: JSON mapping file (no change for other templates)
-  unified = await maybeApplyMapping(name, rawData);
-}
+        // 125 uses a schema normalizer
+        unified = normalizeBar125(rawData);
+      } else {
+        // others may optionally have mapping/<name>.json
+        unified = await maybeMapData(name, rawData);
+      }
 
-// now render with unified data
-const buffer = await renderPDF(tplPath, cssPath, name, unified);
+      // Render (pass helpers so templates can call helpers.yn / helpers.money)
+      const buffer = await renderPdf(htmlPath, cssPath, name, { data: unified, helpers });
 
       const prettyName = FILENAME_MAP[name] || t.filename || `${name}.pdf`;
       return { filename: prettyName, buffer };
-
     })
   );
 
-  const failures = results.filter(r => r.status === "rejected");
+  const failures = results.filter((r) => r.status === "rejected");
   if (failures.length) {
-    console.error("RENDER_FAILURES", failures.map(f => String(f.reason)));
-    return res
-      .status(500)
-      .json({ ok: false, success: false, error: "ONE_OR_MORE_ATTACHMENTS_FAILED", failedCount: failures.length });
-
+    console.error("RENDER_FAILURES", failures.map((f) => String(f.reason)));
+    return res.status(500).json({
+      ok: false,
+      success: false,
+      error: "ONE_OR_MORE_ATTACHMENTS_FAILED",
+      failedCount: failures.length,
+    });
   }
 
-  const attachments = results.map(r => r.value);
+  const attachments = results.map((r) => r.value);
 
   if (email?.to?.length) {
     await sendWithGmail({
       to: email.to,
       subject: email.subject || "Submission Packet",
       html: email.bodyHtml || "<p>Attachments included.</p>",
-      attachments
+      attachments,
     });
     return res.json({ ok: true, success: true, sent: true, count: attachments.length });
   }
@@ -116,7 +118,7 @@ const buffer = await renderPDF(tplPath, cssPath, name, unified);
 
 // --- Public routes ---
 
-// New JSON API (what we designed for): { templates:[{name,filename,data}], email? }
+// JSON API: { templates:[{name,filename?,data}], email? }
 APP.post("/render-bundle", async (req, res) => {
   try {
     await renderBundleAndRespond(req.body || {}, res);
@@ -126,29 +128,30 @@ APP.post("/render-bundle", async (req, res) => {
   }
 });
 
-// Back-compat for your existing forms (no HTML changes):
-// Accepts: { formData: {...}, segments: ["Society_FieldNames","BarAccord125", ...], email? }
+// Back-compat: { formData, segments[], email? }
 APP.post("/submit-quote", async (req, res) => {
   try {
     const { formData = {}, segments = [], email } = req.body || {};
 
-    // Build templates directly from HTML's segments (must match folder names)
+    // Build from front-end `segments` (folder names must match)
     const templates = (segments || []).map((name) => ({
       name,
-      filename: `${name}.pdf`,
-      data: formData
+      filename: FILENAME_MAP[name] || `${name}.pdf`,
+      data: formData,
     }));
     if (templates.length === 0) {
       return res.status(400).json({ ok: false, success: false, error: "NO_VALID_SEGMENTS" });
     }
 
-    // Always send email for this route so the client gets JSON (not a PDF stream)
+    // Default email (so /submit-quote responds JSON, not a PDF stream)
     const defaultTo = process.env.CARRIER_EMAIL || process.env.GMAIL_USER;
-    const emailBlock = email?.to?.length ? email : {
-      to: [defaultTo].filter(Boolean),
-      subject: `New Bar/Tavern Submission – ${formData.applicant_name || ""}`,
-      bodyHtml: "<p>Quote packet attached.</p>"
-    };
+    const emailBlock = email?.to?.length
+      ? email
+      : {
+          to: [defaultTo].filter(Boolean),
+          subject: `New Submission – ${formData.applicant_name || ""}`,
+          bodyHtml: "<p>Quote packet attached.</p>",
+        };
 
     await renderBundleAndRespond({ templates, email: emailBlock }, res);
   } catch (e) {
@@ -157,7 +160,7 @@ APP.post("/submit-quote", async (req, res) => {
   }
 });
 
-
 // --- Start server ---
 const PORT = process.env.PORT || 8080;
 APP.listen(PORT, () => console.log(`PDF service listening on ${PORT}`));
+
