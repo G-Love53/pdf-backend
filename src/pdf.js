@@ -61,10 +61,11 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
     const pdfBuffer = await page.pdf({
-      format: "Letter",
-      printBackground: true,
-      margin: { top: "0.5in", right: "0.5in", bottom: "0.5in", left: "0.5in" }
-    });
+  printBackground: true,
+  preferCSSPageSize: true   // <-- let @page in CSS own size + margins
+  // no "format", no "margin" here
+});
+
     return pdfBuffer;
   } finally {
     await browser.close();
