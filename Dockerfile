@@ -19,15 +19,17 @@ ENV PUPPETEER_CACHE_DIR=/app/.cache/puppeteer
 RUN npx @puppeteer/browsers install chrome@123.0.6312.122
 
 COPY package*.json ./
-# Use lockfile if present; fall back if not
 RUN npm ci --omit=dev || npm install --omit=dev
 
 COPY src ./src
 COPY templates ./templates
 COPY mapping ./mapping
+COPY utils ./utils    # <-- added
 
+# IMPORTANT: point to where @puppeteer/browsers actually put Chrome
+# (since we set PUPPETEER_CACHE_DIR, Chrome lives under /app/.cache/puppeteer)
 ENV NODE_ENV=production
-ENV PUPPETEER_EXECUTABLE_PATH=/app/chrome/linux-123.0.6312.122/chrome-linux64/chrome
+ENV PUPPETEER_EXECUTABLE_PATH=/app/.cache/puppeteer/chrome/linux-123.0.6312.122/chrome-linux64/chrome
 
 EXPOSE 8080
 CMD ["npm","start"]
