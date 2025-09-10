@@ -25,10 +25,23 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
 
   // Render HTML (expose both flattened keys and `data`, plus helpers + inline CSS)
   const html = await ejs.render(
-    templateStr,
-    { ...data, data, styles: cssStr, ...helpers },
-    { async: true, filename: htmlPath }
-  );
+  templateStr,
+  {
+    // data aliases
+    ...data,            // flattened: <%= applicant_name %>
+    data,               // nested:    <%= data.applicant_name %>
+    formData: data,     // legacy:    <%= formData.applicant_name %>
+
+    // styles
+    styles: cssStr,
+
+    // helpers available BOTH ways:
+    helpers,            // <%= helpers.yn(...) %>
+    ...helpers          // <%= yn(...) %>  (old templates)
+  },
+  { async: true, filename: htmlPath }
+);
+
 
   // Launch the Chrome we install in Docker via @puppeteer/browsers
   const browser = await puppeteer.launch({
