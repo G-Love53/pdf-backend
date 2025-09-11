@@ -91,9 +91,17 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "load" });
     const pdfBuffer = await page.pdf({
-      printBackground: true,
-      preferCSSPageSize: true
-    });
+  format: 'Letter',
+  printBackground: true,
+  preferCSSPageSize: false,  // Let Puppeteer control size
+  margin: { 
+    top: '0.5in', 
+    right: '0.5in', 
+    bottom: '0.5in', 
+    left: '0.5in' 
+  },
+  scale: 1
+});
     return pdfBuffer;
   } finally {
     await browser.close();
