@@ -98,7 +98,7 @@
         <div class="cell w45"><%= helpers.yn(data.solid_fuel) %></div>
       </div>
 
-      <% if (helpers.yn(data.solid_fuel)==="Yes") { %>
+      <% if isyes(data.solid_fuel)==="Yes") { %>
       <div class="row">
         <div class="cell label w40">• Professionally installed?</div>
         <div class="cell w10"><%= helpers.yn(data.professionally_installed) %></div>
