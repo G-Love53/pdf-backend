@@ -48,19 +48,24 @@ const __dirname = path.dirname(__filename);
 
 /* ---------- main renderer ---------- */
 export async function renderPdf({ htmlPath, cssPath, data = {} }) {
-  // Add validation
-  if (!cssPath) {
-    console.warn("Warning: No CSS path provided for PDF rendering");
-  }
+  console.log("PDF Render - htmlPath:", htmlPath);
+  console.log("PDF Render - cssPath:", cssPath);
   
   // Load template + CSS
-  const [templateStr, cssStr] = await Promise.all([
-    fs.readFile(htmlPath, "utf8"),
-    cssPath ? fs.readFile(cssPath, "utf8") : Promise.resolve("")
-  ]);
+  const templateStr = await fs.readFile(htmlPath, "utf8");
   
-  // Debug log
-  console.log(`CSS loaded: ${cssStr.length} characters`);
+  let cssStr = "";
+  try {
+    if (cssPath) {
+      cssStr = await fs.readFile(cssPath, "utf8");
+      console.log("CSS loaded successfully:", cssStr.length, "characters");
+    } else {
+      console.log("No CSS path provided");
+    }
+  } catch (err) {
+    console.error("Failed to load CSS:", err.message);
+    cssStr = "";
+  }
   
   // Render EJS -> HTML
   const html = await ejs.render(
@@ -74,14 +79,14 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
     },
     { async: true, filename: htmlPath }
   );
-
-  // Launch Chrome (path provided by Dockerfile env var)
+  
+  // Launch Chrome and generate PDF
   const browser = await puppeteer.launch({
     headless: "new",
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || "/app/chrome/chrome-linux64/chrome",
     args: ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=none", "--disable-dev-shm-usage"]
   });
-
+  
   try {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "load" });
