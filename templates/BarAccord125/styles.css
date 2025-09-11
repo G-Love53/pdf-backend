@@ -4,8 +4,6 @@
 @page { size: Letter; margin: 0.5in; }
 .page  { width: 7.5in; min-height: 10.5in; margin: 0 auto; }
 
-
-
 * {
   box-sizing: border-box;
   -webkit-print-color-adjust: exact;
@@ -19,9 +17,6 @@ body {
   line-height: 1.15;
   margin: 0;
 }
-
-.page { width: 7.5in; margin: 0 auto; }
-
 
 /* ===== ACORD header ===== */
 .headerbar {
@@ -152,3 +147,8 @@ body {
 
 /* Page break helper for multipage output */
 .pagebreak { break-before: page; }
+
+@media print {
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+}
