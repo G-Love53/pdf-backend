@@ -1,11 +1,11 @@
 /* ===== ACORD 125 Print-Fidelity Styles (Drop-in) ===== */
 
 /* Adjust this to 0.5in if your printer clips borders */
-@page { size: 8.5in 11in; 
-  margin: 0;  /* Remove all margins */ }
-.page  { width: 100%;  /* Use full width available */
-  max-width: 8.5in;
-  min-height: 11in; 
+@page { Letter; 
+  margin: 0.5;  /* keep standard margins */ }
+.page  {
+  width: 7.5in;
+  height: 11in; 
   margin: 0 auto;
   padding: 0; }
 
@@ -21,14 +21,13 @@ body {
   font-size: 9pt;          /* Dense ACORD look */
   line-height: 1.2;
   margin: 0;
-  padding: 0.25;
-  width: 100%;
+  padding: 0;
 }
 
 /* ===== ACORD header ===== */
 .headerbar {
   display: grid;
-  grid-template-columns: 1in 1fr 0.7in;
+  grid-template-columns: 1in 1fr 0.8in;
   align-items: center;
   border: 2pt solid #000;  /* Strong, ACORD-like frame */
   margin-bottom: 6pt;
@@ -36,34 +35,35 @@ body {
 
 .headerbar .acord {
   font-weight: 800;
-  font-size: 12pt;
+  font-size: 13pt;
   text-align: center;
   border-right: 1pt solid #000;
-  padding: 4pt 0;
+  padding: 5pt 0;
 }
 
 .headerbar .title {
   font-weight: 700;
   letter-spacing: 0.3pt;
   text-align: center;
-  font-size: 11pt;
+  font-size: 12pt;  /* Bigger */
+  padding: 2pt;
 }
 
 .headerbar .formno {
   font-weight: 700;
-  font-size: 11pt;
+  font-size: 12pt;
   text-align: center;
   border-left: 1pt solid #000;
-  padding: 2pt 0;
+  padding: 5pt 0;
 }
 
 /* ===== Section title bar ===== */
 .subbar {
   background: #e6e6e6;     /* Holds up in print/scan */
   border: 1pt solid #000;
-  padding: 4pt 6pt;
+  padding: 5pt 8pt;
   font-weight: 700;
-  font-size: 8pt;
+  font-size: 8.5pt;
   margin-top: 8pt;
 }
 
@@ -99,7 +99,7 @@ body {
 .label {
   background: #f5f5f5;     /* Slightly lighter than subbar */
   font-weight: 700;
-  font-size: 7.5pt;
+  font-size: 8pt;
   letter-spacing: 0.2pt;
   text-transform: uppercase; /* ACORD-style captions */
 }
