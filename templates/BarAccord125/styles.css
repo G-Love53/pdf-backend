@@ -1,7 +1,7 @@
 /* ===== ACORD 125 Print-Fidelity Styles (Drop-in) ===== */
 
 /* Adjust this to 0.5in if your printer clips borders */
-@page { ize: Letter;            /* 8.5in x 11in */
+@page { size: Letter;            /* 8.5in x 11in */
   margin: 0.5in;           /* safe printable margin */}
 .page  {
   width: 7.5in;            /* matches @page margins */
@@ -11,10 +11,12 @@
   page-break-after: always; }
 .page:last-child { page-break-after: auto; }
 
-{
-  box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-html, body { margin:0; padding:0; 
+* {
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
+
 
 body {
   font-family: Arial, Helvetica, sans-serif;
@@ -28,7 +30,7 @@ body {
 /* ===== ACORD header ===== */
 .headerbar {
   display: grid;
-  grid-template-columns: 1in 1fr 0.7in;
+  grid-template-columns: .95in 1fr 0..65in;
   align-items: center;
   border: 2pt solid #000;  /* Strong, ACORD-like frame */
   margin-bottom: 6pt;
