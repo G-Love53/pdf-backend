@@ -5,7 +5,6 @@ import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { renderPdf } from "./pdf.js";           // <- make sure this is your actual renderer
 import { sendWithGmail } from "./email.js";
-import helpers from "../utils/helpers.js";      // <- shared yn/money etc. used by EJS templates
 
 const FILENAME_MAP = {
   Society_FieldNames: "Society-Supplement.pdf",
