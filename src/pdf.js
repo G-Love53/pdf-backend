@@ -48,22 +48,28 @@ const __dirname = path.dirname(__filename);
 
 /* ---------- main renderer ---------- */
 export async function renderPdf({ htmlPath, cssPath, data = {} }) {
-  // Load template + optional CSS
+  // Add validation
+  if (!cssPath) {
+    console.warn("Warning: No CSS path provided for PDF rendering");
+  }
+  
+  // Load template + CSS
   const [templateStr, cssStr] = await Promise.all([
     fs.readFile(htmlPath, "utf8"),
-    fs.readFile(cssPath ?? "", "utf8").catch(() => "")
+    cssPath ? fs.readFile(cssPath, "utf8") : Promise.resolve("")
   ]);
-
-  // Render EJS -> HTML (expose helpers and styles)
+  
+  // Debug log
+  console.log(`CSS loaded: ${cssStr.length} characters`);
+  
+  // Render EJS -> HTML
   const html = await ejs.render(
     templateStr,
     {
-      ...data,          // flattened access
-      data,             // nested access
-      formData: data,   // legacy alias
-      styles: cssStr,   // used by <style><%= styles %></style>
-
-      // helpers available directly in EJS
+      ...data,
+      data,
+      formData: data,
+      styles: cssStr,
       yn, money, moneyUSD, formatDate, ck, isYes, join, yesno, isyes
     },
     { async: true, filename: htmlPath }
