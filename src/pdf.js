@@ -51,9 +51,46 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
   // css
   styles: cssStr,
 
-  // functions directly (no helpers object)
-  yn, money, formatDate, ck
-}, { async: true, filename: htmlPath });
+  // inline helpers (existing)
+const yn = (v) => { /* ... */ };
+const money = (v) => { /* ... */ };
+const formatDate = (d=new Date()) => { /* ... */ };
+const ck = (v) => (yn(v) === "Y" ? "X" : "");
+
+// NEW helpers — put these right after ck
+const isYes = (v) => {
+  const s = String(v ?? "").trim().toLowerCase();
+  return v === true || v === 1 || ["y","yes","true","1","on","checked"].includes(s);
+};
+const moneyUSD = (v) => {
+  const s = money(v);
+  return s ? `$${s}` : "";
+};
+const join = (parts, sep=", ") => {
+  const arr = Array.isArray(parts) ? parts : [parts];
+  return arr.filter(x => x != null && String(x).trim() !== "").join(sep);
+};
+
+// ...
+
+const html = await ejs.render(
+  templateStr,
+  {
+    // data aliases
+    ...data,
+    data,
+    formData: data,
+
+    // css
+    styles: cssStr,
+
+    // expose helpers to EJS
+    yn, money, formatDate, ck,
+    isYes, moneyUSD, join,
+  },
+  { async: true, filename: htmlPath }
+);
+
 
   // Launch the Chrome we install in Docker via @puppeteer/browsers
   const browser = await puppeteer.launch({
