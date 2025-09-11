@@ -137,6 +137,11 @@ body {
   border:1px solid #000; text-align:center; font-weight:700; font-size:9pt;
   margin:0 6pt 0 10pt; vertical-align:middle;
 }
+/* ===== Wrapping utilities ===== */
+.wrap { white-space: normal; overflow-wrap: anywhere; word-break: break-word; hyphens: auto; }
+.label { white-space: nowrap; }   /* keep captions compact */
+.small { font-size: 7pt; line-height: 1.15; }  /* for dense text blocks */
+.tight .cell { min-height: 12pt; } /* optional: tighter rows in specific blocks */
 
 /* ===== Legal/footer ===== */
 .legal {
