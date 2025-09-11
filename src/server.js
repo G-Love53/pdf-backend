@@ -1,6 +1,5 @@
 // src/server.js
 import express from "express";
-import { normalizeBar125 } from "../mapping/normalizeBar125.js";
 import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
