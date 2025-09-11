@@ -81,19 +81,18 @@ const yes = v => ["yes","true","1","on","checked"].includes(String(v||"").toLowe
 <!-- PAGE 1 -->
 <div class="page">
   
-  <!-- ACORD Header -->
-  <div class="acord-header">
-    <span class="acord-logo">ACORD</span>
-    <span class="form-title">COMMERCIAL INSURANCE APPLICATION</span>
-    <span class="acord-code">125</span>
-  </div>
+  <div class="headerbar">
+  <div class="acord">ACORD</div>
+  <div class="title">COMMERCIAL INSURANCE APPLICATION</div>
+  <div class="formno">125</div>
+</div>
   
   <!-- Producer Section -->
-  <div class="section">
-    <div class="section-header">PRODUCER</div>
-    <div class="row">
-      <div class="field label w15">PRODUCER</div>
-      <div class="field w35">
+  <div class="subbar">PRODUCER</div>
+<div class="block">
+  <div class="row">
+    <div class="cell label w15">PRODUCER</div>
+    <div class="cell w35">...
         <%= data.producerName %><br/>
         <%= data.producerAddress1 %><br/>
         <%= data.producerAddress2 %>
