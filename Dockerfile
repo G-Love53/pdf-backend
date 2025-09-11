@@ -30,7 +30,6 @@ RUN mkdir -p /app/chrome && \
 COPY src ./src
 COPY templates ./templates
 COPY mapping ./mapping
-COPY utils ./utils
 
 # Set environment variables
 ENV NODE_ENV=production
