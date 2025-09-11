@@ -4,7 +4,8 @@ import path from "path";
 import ejs from "ejs";
 import puppeteer from "puppeteer-core";
 import { fileURLToPath } from "url";
-// inline helpers
+
+// --- helpers (define BEFORE use) ---
 const yn = (v) => {
   const s = String(v ?? "").trim().toLowerCase();
   if (v === true || ["y","yes","true","1","on","checked"].includes(s)) return "Y";
@@ -14,50 +15,17 @@ const yn = (v) => {
 const money = (v) => {
   if (v === 0) return "0.00";
   if (v == null || v === "") return "";
-  const n = Number(v); if (!Number.isFinite(n)) return "";
-  return n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const n = Number(v);
+  if (!Number.isFinite(n)) return "";
+  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
-const formatDate = (d=new Date()) => {
+const formatDate = (d = new Date()) => {
   const dt = (d instanceof Date) ? d : new Date(d);
-  const mm = String(dt.getMonth()+1).padStart(2,"0");
-  const dd = String(dt.getDate()).padStart(2,"0");
+  const mm = String(dt.getMonth() + 1).padStart(2, "0");
+  const dd = String(dt.getDate()).padStart(2, "0");
   return `${mm}/${dd}/${dt.getFullYear()}`;
 };
 const ck = (v) => (yn(v) === "Y" ? "X" : "");
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-/**
- * Render a single PDF from one template folder
- *  - htmlPath: .../templates/<name>/index.ejs
- *  - cssPath:  .../templates/<name>/styles.css (optional)
- *  - data:     object with template variables
- */
-export async function renderPdf({ htmlPath, cssPath, data = {} }) {
-  // Load EJS template + optional CSS
-  const [templateStr, cssStr] = await Promise.all([
-    fs.readFile(htmlPath, "utf8"),
-    fs.readFile(cssPath, "utf8").catch(() => "")
-  ]);
-
-  // Render HTML (expose both flattened keys and `data`, plus helpers + inline CSS)
-  const html = await ejs.render(templateStr, {
-  // data aliases you already have:
-  ...data,         // flattened
-  data,            // nested
-  formData: data,  // legacy
-
-  // css
-  styles: cssStr,
-
-  // inline helpers (existing)
-const yn = (v) => { /* ... */ };
-const money = (v) => { /* ... */ };
-const formatDate = (d=new Date()) => { /* ... */ };
-const ck = (v) => (yn(v) === "Y" ? "X" : "");
-
-// NEW helpers — put these right after ck
 const isYes = (v) => {
   const s = String(v ?? "").trim().toLowerCase();
   return v === true || v === 1 || ["y","yes","true","1","on","checked"].includes(s);
@@ -66,30 +34,39 @@ const moneyUSD = (v) => {
   const s = money(v);
   return s ? `$${s}` : "";
 };
-const join = (parts, sep=", ") => {
+const join = (parts, sep = ", ") => {
   const arr = Array.isArray(parts) ? parts : [parts];
   return arr.filter(x => x != null && String(x).trim() !== "").join(sep);
 };
 
 // ...
 
-const html = await ejs.render(
-  templateStr,
-  {
-    // data aliases
-    ...data,
-    data,
-    formData: data,
+export async function renderPdf({ htmlPath, cssPath, data = {} }) {
+  const [templateStr, cssStr] = await Promise.all([
+    fs.readFile(htmlPath, "utf8"),
+    fs.readFile(cssPath, "utf8").catch(() => "")
+  ]);
 
-    // css
-    styles: cssStr,
+  const html = await ejs.render(
+    templateStr,
+    {
+      // data in three ways (for old/new templates)
+      ...data,
+      data,
+      formData: data,
 
-    // expose helpers to EJS
-    yn, money, formatDate, ck,
-    isYes, moneyUSD, join,
-  },
-  { async: true, filename: htmlPath }
-);
+      // CSS for <style><%= styles %></style>
+      styles: cssStr,
+
+      // helpers available directly in EJS
+      yn, money, formatDate, ck, isYes, moneyUSD, join
+    },
+    { async: true, filename: htmlPath }
+  );
+
+  // ...launch puppeteer + pdf...
+}
+
 
 
   // Launch the Chrome we install in Docker via @puppeteer/browsers
