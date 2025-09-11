@@ -19,12 +19,8 @@ body {
   margin: 0;
 }
 
-.page {
-  width: 7.9in;            /* Fills page inside margins */
-  min-height: 10.6in;      /* Prevents last row clipping */
-  margin: 0 auto;
-  padding: 0.05in;         /* Tiny inner padding for border safety */
-}
+.page { width: 7.5in; margin: 0 auto; }
+
 
 /* ===== ACORD header ===== */
 .headerbar {
