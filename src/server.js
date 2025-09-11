@@ -68,21 +68,24 @@ async function renderBundleAndRespond({ templates, email }, res) {
     return res.status(400).json({ ok: false, error: "NO_TEMPLATES" });
   }
 
-  const results = await Promise.allSettled(
-    templates.map(async (t) => {
-      const name = t.name;
-const htmlPath = path.join(TPL_DIR, name, "index.ejs");
-const cssPath  = path.join(TPL_DIR, name, "styles.css");
+  // --- render each template one-by-one (avoid parallel Chrome) ---
+const results = [];
+for (const t of templates) {
+  const name = t.name;
+  const htmlPath = path.join(TPL_DIR, name, "index.ejs");
+  const cssPath  = path.join(TPL_DIR, name, "styles.css");
 
-// Source data from request
-const rawData = t.data || {};
+  // 1:1 pass-through for now (no mapping/normalizer)
+  const rawData  = t.data || {};
+  const unified  = rawData;
 
-// Normalize/mapping per template
-let unified;
-if (name === "BarAccord125") {
-  unified = normalizeBar125(rawData);
-} else {
-  unified = await maybeMapData(name, rawData);
+  try {
+    const buffer = await renderPdf({ htmlPath, cssPath, data: unified });
+    const prettyName = FILENAME_MAP[name] || t.filename || `${name}.pdf`;
+    results.push({ status: "fulfilled", value: { filename: prettyName, buffer } });
+  } catch (err) {
+    results.push({ status: "rejected", reason: err });
+  }
 }
 
 // ---- FIXED RENDER CALL (object form) ----
