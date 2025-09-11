@@ -223,6 +223,10 @@ const styles = `
   <style><%= styles %></style>
 </head>
 <body>
+<%
+// normalize truthy values from form ("Yes", "true", true, 1, "on")
+const yes = v => ["yes","true","1","on","checked"].includes(String(v||"").toLowerCase()) || v===1 || v===true;
+%>
 
 <!-- PAGE 1 -->
 <div class="page">
@@ -280,6 +284,13 @@ const styles = `
       <div class="field w15"></div>
       <div class="field label w20">AGENCY CUSTOMER ID</div>
       <div class="field w30"></div>
+    </div>
+    <div class="row">
+      <div class="field label w20">ORGANIZATION TYPE</div>
+      <div class="field w80">
+      <span class="check"><%= yes(data.org_type_corporation) ? "✓" : "" %></span> Corporation
+      <span class="check"><%= yes(data.org_type_llc) ? "✓" : "" %></span> LLC
+      <span class="check"><%= yes(data.org_type_individual) ? "✓" : "" %></span> Individual / Sole Prop
     </div>
     <div class="row">
       <div class="field label w20">STATUS OF TRANSACTION</div>
