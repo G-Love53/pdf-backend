@@ -1,8 +1,9 @@
 /* ===== ACORD 125 Print-Fidelity Styles (Drop-in) ===== */
 
 /* Adjust this to 0.5in if your printer clips borders */
-@page { size: Letter; margin: 0.5in; }  /* single source of truth for margins */
-.page { width: 7.5in; margin: 0 auto; } /* 8.5 - 0.5 - 0.5 = 7.5in content width */
+@page { size: Letter; margin: 0.5in; }
+.page  { width: 7.5in; min-height: 10.5in; margin: 0 auto; }
+
 
 
 * {
