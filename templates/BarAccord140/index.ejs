@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8"/>
   <title>ACORD 140 – Property Section</title>
+  <!-- Injected CSS from styles.css via pdf.js -->
   <style><%= styles %></style>
 </head>
 <body>
-  <!-- PAGE 1 -->
+  <!-- ===== PAGE 1 ===== -->
   <div class="page">
     <div class="headerbar">
       <div class="acord">ACORD</div>
@@ -28,12 +29,12 @@
       <div class="row">
         <div class="cell label w25">ADDRESS</div>
         <div class="cell w75">
-          <%= [
+          <%= join([
                 data.premise_address || data.location_address,
-                data.premise_city   || data.location_city,
-                data.premise_state  || data.location_state,
-                data.premise_zip    || data.location_zip
-              ].filter(Boolean).join(", ") %>
+                join([data.premise_city || data.location_city,
+                      data.premise_state || data.location_state,
+                      data.premise_zip || data.location_zip])
+              ]) %>
         </div>
       </div>
     </div>
@@ -58,11 +59,11 @@
       <div class="row">
         <div class="cell label w25">AUTOMATIC SPRINKLER</div>
         <div class="cell w25">
-          <span class="check"><%= helpers.yn(data.automatic_sprinkler)==="Yes" ? "✓" : "" %></span> Yes
+          <span class="check"><%= isYes(data.automatic_sprinkler) ? "✓" : "" %></span> Yes
         </div>
         <div class="cell label w25">CENTRAL STATION ALARM</div>
         <div class="cell w25">
-          <span class="check"><%= helpers.yn(data.central_station_alarm)==="Yes" ? "✓" : "" %></span> Yes
+          <span class="check"><%= isYes(data.central_station_alarm) ? "✓" : "" %></span> Yes
         </div>
       </div>
     </div>
@@ -72,13 +73,13 @@
     <div class="block">
       <div class="row">
         <div class="cell label w20">BUILDING</div>
-        <div class="cell w30 right"><%= helpers.money(data.building_limit) %></div>
+        <div class="cell w30 right"><%= money(data.building_limit) %></div>
         <div class="cell label w20">BPP</div>
-        <div class="cell w30 right"><%= helpers.money(data.business_personal_property || data.bpp_limit) %></div>
+        <div class="cell w30 right"><%= money(data.business_personal_property || data.bpp_limit) %></div>
       </div>
       <div class="row">
         <div class="cell label w20">BUSINESS INCOME</div>
-        <div class="cell w30 right"><%= helpers.money(data.business_income_limit || data.bi_limit) %></div>
+        <div class="cell w30 right"><%= money(data.business_income_limit || data.bi_limit) %></div>
         <div class="cell label w20">CAUSE OF LOSS</div>
         <div class="cell w30"><%= data.cause_of_loss || "" %></div>
       </div>
@@ -94,43 +95,47 @@
     <div class="subbar">SOLID FUEL / SMOKER – WITHIN 10 FT OF BUILDING</div>
     <div class="block">
       <div class="row">
-        <div class="cell label w55">Do you have a non-gas Smoker/Grill (wood, pellets, etc) within 10 feet of the building?</div>
-        <div class="cell w45"><%= helpers.yn(data.solid_fuel) %></div>
+        <div class="cell label w55">
+          Do you have a non-gas Smoker/Grill (wood, pellets, etc) within 10 feet of the building?
+        </div>
+        <div class="cell w45"><%= yn(data.solid_fuel) %></div>
       </div>
 
-      <% if isyes(data.solid_fuel)==="Yes") { %>
-      <div class="row">
-        <div class="cell label w40">• Professionally installed?</div>
-        <div class="cell w10"><%= helpers.yn(data.professionally_installed) %></div>
-        <div class="cell label w35">• Regularly maintained?</div>
-        <div class="cell w15"><%= helpers.yn(data.regularly_maintained) %></div>
-      </div>
+      <% if (isYes(data.solid_fuel)) { %>
+        <div class="row">
+          <div class="cell label w40">• Professionally installed?</div>
+          <div class="cell w10"><%= yn(data.professionally_installed) %></div>
+          <div class="cell label w35">• Regularly maintained?</div>
+          <div class="cell w15"><%= yn(data.regularly_maintained) %></div>
+        </div>
 
-      <div class="row">
-        <div class="cell label w33">• Cleaned & scraped weekly</div>
-        <div class="cell w10"><span class="check"><%= helpers.yn(data.cleaned_scraped_weekly)==="Yes" ? "✓" : "" %></span></div>
-        <div class="cell label w33">• Vent/exhaust cleaned monthly</div>
-        <div class="cell w10"><span class="check"><%= helpers.yn(data.vent_cleaned_monthly)==="Yes" ? "✓" : "" %></span></div>
-        <div class="cell label w13">• Ashes removed daily</div>
-        <div class="cell w10"><span class="check"><%= helpers.yn(data.ashes_removed_daily)==="Yes" ? "✓" : "" %></span></div>
-      </div>
+        <div class="row">
+          <div class="cell label w33">• Cleaned & scraped weekly</div>
+          <div class="cell w10"><span class="check"><%= isYes(data.cleaned_scraped_weekly) ? "✓" : "" %></span></div>
+          <div class="cell label w33">• Vent/exhaust cleaned monthly</div>
+          <div class="cell w10"><span class="check"><%= isYes(data.vent_cleaned_monthly) ? "✓" : "" %></span></div>
+          <div class="cell label w13">• Ashes removed daily</div>
+          <div class="cell w10"><span class="check"><%= isYes(data.ashes_removed_daily) ? "✓" : "" %></span></div>
+        </div>
 
-      <div class="row">
-        <div class="cell label w55">Other than the day’s supply, is fuel (wood/pellets) stored more than 10 ft from the cooker?</div>
-        <div class="cell w45"><%= helpers.yn(data.storage_10_feet) %></div>
-      </div>
+        <div class="row">
+          <div class="cell label w55">
+            Other than the day’s supply, is fuel (wood/pellets) stored more than 10 ft from the cooker?
+          </div>
+          <div class="cell w45"><%= yn(data.storage_10_feet) %></div>
+        </div>
 
-      <div class="row">
-        <div class="cell label w40">Hood system + UL 300 extinguishing system present?</div>
-        <div class="cell w15"><%= helpers.yn(data.hood_ul300) %></div>
-        <div class="cell label w35">Class K or 2A extinguisher within 20 ft?</div>
-        <div class="cell w10"><%= helpers.yn(data.fire_extinguisher_20_feet) %></div>
-      </div>
+        <div class="row">
+          <div class="cell label w40">Hood system + UL 300 extinguishing system present?</div>
+          <div class="cell w15"><%= yn(data.hood_ul300) %></div>
+          <div class="cell label w35">Class K or 2A extinguisher within 20 ft?</div>
+          <div class="cell w10"><%= yn(data.fire_extinguisher_20_feet) %></div>
+        </div>
       <% } %>
     </div>
   </div>
 
-  <!-- PAGE 2 -->
+  <!-- ===== PAGE 2 ===== -->
   <div class="page pagebreak">
     <div class="headerbar">
       <div class="acord">ACORD</div>
@@ -138,7 +143,7 @@
       <div class="formno">140</div>
     </div>
 
-    <!-- Additional Interests (future-ready; minimal for Bars today) -->
+    <!-- Additional Interests (simple 1-up) -->
     <div class="subbar">ADDITIONAL INTERESTS / LENDER’S LOSS PAYABLE</div>
     <div class="block">
       <div class="row">
@@ -150,16 +155,13 @@
       <div class="row">
         <div class="cell label w20">ADDRESS</div>
         <div class="cell w80">
-          <%= [
-            data.ai_address_1,
-            [data.ai_city_1, data.ai_state_1, data.ai_zip_1].filter(Boolean).join(", ")
-          ].filter(Boolean).join(", ") %>
+          <%= join([ data.ai_address_1, join([data.ai_city_1, data.ai_state_1, data.ai_zip_1]) ]) %>
         </div>
       </div>
       <!-- Duplicate block(s) as needed for additional names -->
     </div>
 
-    <!-- Signature / Fraud warnings (short form) -->
+    <!-- Signature -->
     <div class="subbar">SIGNATURE</div>
     <div class="block">
       <div class="row">
@@ -170,20 +172,22 @@
         <div class="cell label w30">TITLE</div>
         <div class="cell w30">&nbsp;</div>
         <div class="cell label w20">DATE</div>
-        <div class="cell w20">&nbsp;</div>
+        <div class="cell w20"><%= formatDate() %></div>
       </div>
     </div>
 
+    <!-- Legal -->
     <div class="subbar">LEGAL NOTICE</div>
     <div class="block">
-      <div class="row"><div class="cell w100">
-        <div class="legal">
-          The undersigned represents that reasonable inquiry has been made and that the answers are true and complete to the best of their knowledge.
-          State-specific fraud notices apply (see ACORD 101 if attached).
+      <div class="row">
+        <div class="cell w100">
+          <div class="legal">
+            The undersigned represents that reasonable inquiry has been made and that the answers are true and complete to the best of their knowledge.
+            State-specific fraud notices apply (see ACORD 101 if attached).
+          </div>
         </div>
-      </div></div>
+      </div>
     </div>
   </div>
 </body>
 </html>
-
