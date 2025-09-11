@@ -68,65 +68,47 @@ async function renderBundleAndRespond({ templates, email }, res) {
     return res.status(400).json({ ok: false, error: "NO_TEMPLATES" });
   }
 
-  // --- render each template one-by-one (avoid parallel Chrome) ---
-const results = [];
-for (const t of templates) {
-  const name = t.name;
-  const htmlPath = path.join(TPL_DIR, name, "index.ejs");
-  const cssPath  = path.join(TPL_DIR, name, "styles.css");
+  // Render templates sequentially (avoid 5 Chrome instances at once)
+  const results = [];
+  for (const t of templates) {
+    const name     = t.name;
+    const htmlPath = path.join(TPL_DIR, name, "index.ejs");
+    const cssPath  = path.join(TPL_DIR, name, "styles.css");
+    const rawData  = t.data || {};
+    const unified  = rawData; // 1:1 pass-through (no mapping)
 
-  // 1:1 pass-through for now (no mapping/normalizer)
-  const rawData  = t.data || {};
-  const unified  = rawData;
-
-  try {
-    const buffer = await renderPdf({ htmlPath, cssPath, data: unified });
-    const prettyName = FILENAME_MAP[name] || t.filename || `${name}.pdf`;
-    results.push({ status: "fulfilled", value: { filename: prettyName, buffer } });
-  } catch (err) {
-    results.push({ status: "rejected", reason: err });
+    try {
+      const buffer = await renderPdf({ htmlPath, cssPath, data: unified });
+      const prettyName = FILENAME_MAP[name] || t.filename || `${name}.pdf`;
+      results.push({ status: "fulfilled", value: { filename: prettyName, buffer } });
+    } catch (err) {
+      results.push({ status: "rejected", reason: err });
+    }
   }
-}
 
-// ---- FIXED RENDER CALL (object form) ----
-const buffer = await renderPdf({
-  htmlPath,
-  cssPath,
-  templateName: name,
-  locals: { data: unified, helpers }
-});
-// -----------------------------------------
-
-const prettyName = FILENAME_MAP[name] || t.filename || `${name}.pdf`;
-return { filename: prettyName, buffer };
-
-    })
-  );
-
-  const failures = results.filter((r) => r.status === "rejected");
+  const failures = results.filter(r => r.status === "rejected");
   if (failures.length) {
-    console.error("RENDER_FAILURES", failures.map((f) => String(f.reason)));
+    console.error("RENDER_FAILURES", failures.map(f => String(f.reason)));
     return res.status(500).json({
       ok: false,
       success: false,
       error: "ONE_OR_MORE_ATTACHMENTS_FAILED",
-      failedCount: failures.length,
+      failedCount: failures.length
     });
   }
 
-  const attachments = results.map((r) => r.value);
+  const attachments = results.map(r => r.value);
 
   if (email?.to?.length) {
     await sendWithGmail({
       to: email.to,
       subject: email.subject || "Submission Packet",
       html: email.bodyHtml || "<p>Attachments included.</p>",
-      attachments,
+      attachments
     });
     return res.json({ ok: true, success: true, sent: true, count: attachments.length });
   }
 
-  // Non-email test path: stream first PDF
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", `attachment; filename="${attachments[0].filename}"`);
   res.send(attachments[0].buffer);
