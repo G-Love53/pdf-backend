@@ -24,9 +24,6 @@ const formatDate = (d=new Date()) => {
   return `${mm}/${dd}/${dt.getFullYear()}`;
 };
 const ck = (v) => (yn(v) === "Y" ? "X" : "");
-const helpers = { yn, money, formatDate, ck };
-
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,24 +42,18 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
   ]);
 
   // Render HTML (expose both flattened keys and `data`, plus helpers + inline CSS)
-  const html = await ejs.render(
-  templateStr,
-  {
-    // data aliases
-    ...data,            // flattened: <%= applicant_name %>
-    data,               // nested:    <%= data.applicant_name %>
-    formData: data,     // legacy:    <%= formData.applicant_name %>
+  const html = await ejs.render(templateStr, {
+  // data aliases you already have:
+  ...data,         // flattened
+  data,            // nested
+  formData: data,  // legacy
 
-    // styles
-    styles: cssStr,
+  // css
+  styles: cssStr,
 
-    // helpers available BOTH ways:
-    helpers,            // <%= helpers.yn(...) %>
-    ...helpers          // <%= yn(...) %>  (old templates)
-  },
-  { async: true, filename: htmlPath }
-);
-
+  // functions directly (no helpers object)
+  yn, money, formatDate, ck
+}, { async: true, filename: htmlPath });
 
   // Launch the Chrome we install in Docker via @puppeteer/browsers
   const browser = await puppeteer.launch({
