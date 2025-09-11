@@ -317,11 +317,12 @@ const yes = v => ["yes","true","1","on","checked"].includes(String(v||"").toLowe
     <div class="row">
       <div class="field label w30">NAME (FIRST NAMED INSURED) AND MAILING ADDRESS</div>
       <div class="field w40">
-        <%= (data.namedInsured?.legalName || data.businessName || data.applicantName || "") %><br/>
-        <%= (data.namedInsured?.mailAddress1 || data.mailingAddress || data.businessAddress || "") %><br/>
-        <%= (data.namedInsured?.city || data.mailingCity || "") %>, 
-        <%= (data.namedInsured?.state || data.mailingState || "") %> 
-        <%= (data.namedInsured?.zip || data.mailingZip || "") %>
+        <%= data.applicant_name || data.businessName || (data.namedInsured && data.namedInsured.legalName) || "" %>
+        <%= (data.namedInsured?.mailAddress1 || data.mailingAddress || data.businessAddress || data.premise_address || "") %><br/>
+        <%= (data.namedInsured?.city || data.mailingCity || data.premise_city || "") %>, 
+        <%= (data.namedInsured?.state || data.mailingState || data.premise_state || "") %> 
+        <%= (data.namedInsured?.zip || data.mailingZip || data.premise_zip || "") %>
+
       </div>
       <div class="field label w10">GL CODE</div>
       <div class="field w10"><%= data.glCode || "" %></div>
@@ -330,7 +331,7 @@ const yes = v => ["yes","true","1","on","checked"].includes(String(v||"").toLowe
     </div>
     <div class="row">
       <div class="field label w15">BUSINESS PHONE #</div>
-      <div class="field w15"><%= data.businessPhone || data.contacts?.primary?.phone || "" %></div>
+      <div class="field w15"><%= data.business_phone || data.businessPhone || data.contacts?.primary?.phone || "" %>
       <div class="field label w10">NAICS</div>
       <div class="field w10"><%= data.naicsCode || "" %></div>
       <div class="field label w15">FEIN OR SOC SEC #</div>
