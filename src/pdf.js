@@ -34,6 +34,9 @@ const isYes = (v) => {
   const s = String(v ?? "").trim().toLowerCase();
   return v === true || v === 1 || ["y","yes","true","1","on","checked"].includes(s);
 };
+const yesno = (v) => (yn(v) === "Y" ? "Yes" : (yn(v) === "N" ? "No" : ""));
+const isyes = (v) => isYes(v); // alias to satisfy lowercase calls
+
 const join = (parts, sep = ", ") => {
   const arr = Array.isArray(parts) ? parts : [parts];
   return arr.filter(x => x != null && String(x).trim() !== "").join(sep);
@@ -61,7 +64,7 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
       styles: cssStr,   // used by <style><%= styles %></style>
 
       // helpers available directly in EJS
-      yn, money, moneyUSD, formatDate, ck, isYes, join
+      yn, money, moneyUSD, formatDate, ck, isYes, join, yesno, isyes
     },
     { async: true, filename: htmlPath }
   );
