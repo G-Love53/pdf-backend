@@ -199,6 +199,27 @@ body {
 .no-break {
   break-inside: avoid;
   page-break-inside: avoid;
+  -webkit-column-break-inside: avoid; /* Chrome/WebKit fallback */
+  
+  /* --- Compact rows when space is tight --- */
+.compact .cell { padding: 2pt 3pt; min-height: 12pt; }
+
+/* --- Slightly smaller labels everywhere (helps titles not spill) --- */
+.label { font-size: 6.5pt; letter-spacing: 0.15pt; }
+
+/* --- Long text wrappers --- */
+.wrap       { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+.wrap-tight { white-space: normal; overflow-wrap: anywhere; word-break: break-word; line-height: 1.1; }
+
+/* --- Numbers (right aligned, tidy width) --- */
+.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* --- Tiny checkboxes (Inside/Outside, Owner/Tenant, etc.) --- */
+.check-xs { width: 10pt; height: 10pt; line-height: 10pt; font-size: 8pt; }
+
+/* --- Small text helper (use on busy rows/blocks) --- */
+.small { font-size: 6.8pt; line-height: 1.15; }
+
 }
 
 
