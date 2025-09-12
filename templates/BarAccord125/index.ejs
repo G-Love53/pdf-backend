@@ -435,18 +435,20 @@ const money = (value) => {
 
   <!-- City limits + Interest -->
   <div class="row compact small">
-    <div class="cell label w20">CITY LIMITS</div>
-    <div class="cell w30">
-      <span class="check check-xs"><%= ck(data.locations?.[0]?.cityLimits ?? data.locationCityLimits) %></span> Inside
-      <span class="check check-xs"><%= ck(!(data.locations?.[0]?.cityLimits ?? data.locationCityLimits)) %></span> Outside
-    </div>
-
-    <div class="cell label w20">INTEREST</div>
-    <div class="cell w30">
-      <span class="check check-xs"><%= (data.locations?.[0]?.interest || data.locationInterest) === "OWNER"  ? "X" : "" %></span> Owner
-      <span class="check check-xs"><%= (data.locations?.[0]?.interest || data.locationInterest) === "TENANT" ? "X" : "" %></span> Tenant
-    </div>
+  <div class="cell label w20">CITY LIMITS</div>
+  <div class="cell w30">
+    <% const cityLim = (data.locations?.[0]?.cityLimits ?? data.locationCityLimits); %>
+    <span class="check check-xs"><%= (cityLim === true  || cityLim === "INSIDE"  || cityLim === "inside")  ? "X" : "" %></span> Inside
+    <span class="check check-xs"><%= (cityLim === false || cityLim === "OUTSIDE" || cityLim === "outside") ? "X" : "" %></span> Outside
   </div>
+
+  <div class="cell label w20">INTEREST</div>
+  <div class="cell w30">
+    <% const li = (data.locations?.[0]?.interest || data.locationInterest || ""); %>
+    <span class="check check-xs"><%= li === "OWNER"  ? "X" : "" %></span> Owner
+    <span class="check check-xs"><%= li === "TENANT" ? "X" : "" %></span> Tenant
+  </div>
+</div>
 
   <!-- Employees -->
   <div class="row compact small">
