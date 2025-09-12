@@ -73,7 +73,8 @@ async function renderBundleAndRespond({ templates, email }, res) {
     const htmlPath = path.join(TPL_DIR, name, "index.ejs");
     const cssPath  = path.join(TPL_DIR, name, "styles.css");
     const rawData  = t.data || {};
-    const unified  = rawData; // 1:1 pass-through (no mapping)
+    const unified  = await maybeMapData(name, rawData); // applies mapping/<name>.json if present (non-destructive)
+
 
     try {
       const buffer = await renderPdf({ htmlPath, cssPath, data: unified });
