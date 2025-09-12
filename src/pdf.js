@@ -68,7 +68,10 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
   }
   
   // Render EJS -> HTML
-  const html = await ejs.render(
+  // Render EJS -> HTML
+let html;
+try {
+  html = await ejs.render(
     templateStr,
     {
       ...data,
@@ -79,6 +82,12 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
     },
     { async: true, filename: htmlPath, compileDebug: true }
   );
+} catch (err) {
+  const msg = `${err.message}${err.lineNumber ? ` (line ${err.lineNumber})` : ""} – ${htmlPath}`;
+  console.error("EJS COMPILE ERROR:", msg);
+  throw new Error(msg);          // bubble up to server.js
+}
+
   
   // Launch Chrome and generate PDF
   const browser = await puppeteer.launch({
