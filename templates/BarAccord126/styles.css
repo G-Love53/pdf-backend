@@ -200,8 +200,9 @@ body {
   break-inside: avoid;
   page-break-inside: avoid;
   -webkit-column-break-inside: avoid; /* Chrome/WebKit fallback */
-  
-  /* --- Compact rows when space is tight --- */
+}
+
+/* --- Compact rows when space is tight --- */
 .compact .cell { padding: 2pt 3pt; min-height: 12pt; }
 
 /* --- Slightly smaller labels everywhere (helps titles not spill) --- */
@@ -220,7 +221,6 @@ body {
 /* --- Small text helper (use on busy rows/blocks) --- */
 .small { font-size: 6.8pt; line-height: 1.15; }
 
-}
 
 
 /* ===== Legal/footer ===== */
