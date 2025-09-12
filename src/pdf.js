@@ -77,7 +77,7 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
       styles: cssStr,
       yn, money, moneyUSD, formatDate, ck, isYes, join, yesno, isyes
     },
-    { async: true, filename: htmlPath }
+    { async: true, filename: htmlPath, compileDebug: true }
   );
   
   // Launch Chrome and generate PDF
