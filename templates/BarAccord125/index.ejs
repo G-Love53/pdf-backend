@@ -235,8 +235,8 @@ const money = (value) => {
   <!-- Attachments -->
   <div class="subbar">ATTACHMENTS</div>
   <div class="block">
-    <div class="row">
-      <div class="cell w100" style="font-size: 7pt;">
+    <div class="row no-break">
+      <div class="cell w100 wrap small"> ...attachments list... </div>
         <span class="check"><%= data.accountsReceivable ? "X" : "" %></span> ACCOUNTS RECEIVABLE / VALUABLE PAPERS&nbsp;&nbsp;
         <span class="check"><%= data.glassSign ? "X" : "" %></span> GLASS AND SIGN SECTION&nbsp;&nbsp;
         <span class="check"><%= data.statementValues ? "X" : "" %></span> STATEMENT / SCHEDULE OF VALUES<br/>
@@ -456,7 +456,7 @@ const money = (value) => {
   <div class="subbar">NATURE OF BUSINESS</div>
   <div class="block">
     <div class="row">
-      <div class="cell w100">
+      <div class="cell w100 wrap preline"><%= data.primaryOperations || "" %></div>
         <span class="check"><%= (data.business?.type || data.businessType) === "APARTMENTS" ? "X" : "" %></span> APARTMENTS
         <span class="check"><%= (data.business?.type || data.businessType) === "CONDOMINIUMS" ? "X" : "" %></span> CONDOMINIUMS
         <span class="check"><%= (data.business?.type || data.businessType) === "CONTRACTOR" ? "X" : "" %></span> CONTRACTOR
@@ -710,17 +710,32 @@ const money = (value) => {
       </div>
     </div>
     <div class="row">
-      <div class="cell label w20">INTEREST NAME AND ADDRESS</div>
-      <div class="cell w30"><%= data.aiName || data.interests?.[0]?.name || "" %></div>
-      <div class="cell label w10">RANK</div>
-      <div class="cell w5"><%= data.aiRank || data.interests?.[0]?.rank || "" %></div>
-      <div class="cell label w15">EVIDENCE</div>
-      <div class="cell w20">
-        <span class="check"><%= ((data.aiEvidence || data.interests?.[0]?.evidence) === "CERTIFICATE") ? "X" : "" %></span> CERTIFICATE
-        <span class="check"><%= ((data.aiEvidence || data.interests?.[0]?.evidence) === "POLICY") ? "X" : "" %></span> POLICY
-        <span class="check"><%= ((data.aiEvidence || data.interests?.[0]?.evidence) === "SEND_BILL") ? "X" : "" %></span> SEND BILL
-      </div>
-    </div>
+  <div class="field label w20">INTEREST NAME AND ADDRESS</div>
+  <div class="field w30"><%= data.aiName || data.interests?.[0]?.name || "" %></div>
+  <div class="field label w10">RANK</div>
+  <div class="field w5"><%= data.aiRank || data.interests?.[0]?.rank || "" %></div>
+  <div class="field label w15">REFERENCE/LOAN #</div>
+  <div class="field w20"><%= data.aiLoanNumber || data.interests?.[0]?.loanNumber || "" %></div>
+</div>
+
+<div class="row">
+  <div class="field label w15">EVIDENCE</div>
+  <div class="field w85 check-row">
+    <span class="ck">
+      <span class="checkbox"><%= ((data.aiEvidence || data.interests?.[0]?.evidence) === "CERTIFICATE") ? "X" : "" %></span>
+      <span>CERTIFICATE</span>
+    </span>
+    <span class="ck">
+      <span class="checkbox"><%= ((data.aiEvidence || data.interests?.[0]?.evidence) === "POLICY") ? "X" : "" %></span>
+      <span>POLICY</span>
+    </span>
+    <span class="ck">
+      <span class="checkbox"><%= ((data.aiEvidence || data.interests?.[0]?.evidence) === "SEND_BILL") ? "X" : "" %></span>
+      <span>SEND BILL</span>
+    </span>
+  </div>
+</div>
+
     <div class="row">
       <div class="cell w50"><%= data.aiAddress || data.interests?.[0]?.address || "" %></div>
       <div class="cell label w15">REFERENCE/LOAN #</div>
@@ -990,7 +1005,7 @@ const money = (value) => {
   <!-- State-specific fraud warnings -->
   <div class="block">
     <div class="row">
-      <div class="cell w100" style="font-size: 6pt; padding: 5px; line-height: 1.3;">
+       <div class="cell w100 legal wrap preline no-break">
         <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong> Any person who knowingly (or willfully)* presents a false or fraudulent 
         claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is 
         guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.<br/><br/>
