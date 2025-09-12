@@ -194,6 +194,14 @@ body {
 .small { font-size: 7pt; line-height: 1.15; }  /* for dense text blocks */
 .tight .cell { min-height: 12pt; } /* optional: tighter rows in specific blocks */
 
+/* keep a row/section from splitting across pages */
+.block .row.no-break,
+.no-break {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+
 /* ===== Legal/footer ===== */
 .legal {
   font-size: 7pt;
