@@ -233,37 +233,41 @@ const money = (value) => {
   </div>
   
   <!-- Attachments -->
-  <div class="subbar">ATTACHMENTS</div>
-  <div class="block">
-    <div class="row compact no-break">
-      <div class="cell w100 wrap small"> ...attachments list... </div>
-        <span class="check"><%= data.accountsReceivable ? "X" : "" %></span> ACCOUNTS RECEIVABLE / VALUABLE PAPERS&nbsp;&nbsp;
-        <span class="check"><%= data.glassSign ? "X" : "" %></span> GLASS AND SIGN SECTION&nbsp;&nbsp;
-        <span class="check"><%= data.statementValues ? "X" : "" %></span> STATEMENT / SCHEDULE OF VALUES<br/>
-        <span class="check"><%= data.additionalInterest ? "X" : "" %></span> ADDITIONAL INTEREST SCHEDULE&nbsp;&nbsp;
-        <span class="check"><%= data.hotelMotel ? "X" : "" %></span> HOTEL / MOTEL SUPPLEMENT&nbsp;&nbsp;
-        <span class="check"><%= data.stateSupplement ? "X" : "" %></span> STATE SUPPLEMENT (If applicable)<br/>
-        <span class="check"><%= data.additionalPremises ? "X" : "" %></span> ADDITIONAL PREMISES INFORMATION SCHEDULE&nbsp;&nbsp;
-        <span class="check"><%= data.installation ? "X" : "" %></span> INSTALLATION / BUILDERS RISK SECTION&nbsp;&nbsp;
-        <span class="check"><%= data.vacantBuilding ? "X" : "" %></span> VACANT BUILDING SUPPLEMENT<br/>
-        <span class="check"><%= data.apartmentBuilding ? "X" : "" %></span> APARTMENT BUILDING SUPPLEMENT&nbsp;&nbsp;
-        <span class="check"><%= data.intlLiability ? "X" : "" %></span> INTERNATIONAL LIABILITY EXPOSURE SUPPLEMENT&nbsp;&nbsp;
-        <span class="check"><%= data.vehicleSchedule ? "X" : "" %></span> VEHICLE SCHEDULE<br/>
-        <span class="check"><%= data.condoAssn ? "X" : "" %></span> CONDO ASSN BYLAWS (for D&O Coverage only)&nbsp;&nbsp;
-        <span class="check"><%= data.intlProperty ? "X" : "" %></span> INTERNATIONAL PROPERTY EXPOSURE SUPPLEMENT<br/>
-        <span class="check"><%= data.contractors ? "X" : "" %></span> CONTRACTORS SUPPLEMENT&nbsp;&nbsp;
-        <span class="check"><%= data.lossHistory ? "X" : "" %></span> LOSS SUMMARY<br/>
-        <span class="check"><%= data.coverages ? "X" : "" %></span> COVERAGES SCHEDULE&nbsp;&nbsp;
-        <span class="check"><%= data.openCargo ? "X" : "" %></span> OPEN CARGO SECTION<br/>
-        <span class="check"><%= data.dealers ? "X" : "" %></span> DEALERS SECTION&nbsp;&nbsp;
-        <span class="check"><%= data.premiumPayment ? "X" : "" %></span> PREMIUM PAYMENT SUPPLEMENT<br/>
-        <span class="check"><%= data.driverInfo ? "X" : "" %></span> DRIVER INFORMATION SCHEDULE&nbsp;&nbsp;
-        <span class="check"><%= data.professional ? "X" : "" %></span> PROFESSIONAL LIABILITY SUPPLEMENT<br/>
-        <span class="check"><%= data.electronicData ? "X" : "" %></span> ELECTRONIC DATA PROCESSING SECTION&nbsp;&nbsp;
-        <span class="check"><%= data.restaurant ? "X" : "" %></span> RESTAURANT / TAVERN SUPPLEMENT
-      </div>
+<div class="subbar">ATTACHMENTS</div>
+<div class="block attachments">
+  <div class="row no-break">
+    <div class="cell w100 wrap small">
+      <span class="check"><%= data.accountsReceivable ? "X" : "" %></span> ACCOUNTS RECEIVABLE / VALUABLE PAPERS&nbsp;&nbsp;
+      <span class="check"><%= data.glassSign ? "X" : "" %></span> GLASS AND SIGN SECTION&nbsp;&nbsp;
+      <span class="check"><%= data.statementValues ? "X" : "" %></span> STATEMENT / SCHEDULE OF VALUES<br/>
+      <span class="check"><%= data.additionalInterest ? "X" : "" %></span> ADDITIONAL INTEREST SCHEDULE&nbsp;&nbsp;
+      <span class="check"><%= data.hotelMotel ? "X" : "" %></span> HOTEL / MOTEL SUPPLEMENT&nbsp;&nbsp;
+      <span class="check"><%= data.stateSupplement ? "X" : "" %></span> STATE SUPPLEMENT (If applicable)<br/>
+      <span class="check"><%= data.additionalPremises ? "X" : "" %></span> ADDITIONAL PREMISES INFORMATION SCHEDULE&nbsp;&nbsp;
+      <span class="check"><%= data.installation ? "X" : "" %></span> INSTALLATION / BUILDERS RISK SECTION&nbsp;&nbsp;
+      <span class="check"><%= data.vacantBuilding ? "X" : "" %></span> VACANT BUILDING SUPPLEMENT<br/>
+      <span class="check"><%= data.apartmentBuilding ? "X" : "" %></span> APARTMENT BUILDING SUPPLEMENT&nbsp;&nbsp;
+      <span class="check"><%= data.intlLiability ? "X" : "" %></span> INTERNATIONAL LIABILITY EXPOSURE SUPPLEMENT&nbsp;&nbsp;
+      <span class="check"><%= data.vehicleSchedule ? "X" : "" %></span> VEHICLE SCHEDULE<br/>
+      <span class="check"><%= data.condoAssn ? "X" : "" %></span> CONDO ASSN BYLAWS (for D&O Coverage only)&nbsp;&nbsp;
+      <span class="check"><%= data.intlProperty ? "X" : "" %></span> INTERNATIONAL PROPERTY EXPOSURE SUPPLEMENT<br/>
+      <span class="check"><%= data.contractors ? "X" : "" %></span> CONTRACTORS SUPPLEMENT&nbsp;&nbsp;
+      <span class="check"><%= data.lossHistory ? "X" : "" %></span> LOSS SUMMARY<br/>
+      <span class="check"><%= data.coverages ? "X" : "" %></span> COVERAGES SCHEDULE&nbsp;&nbsp;
+      <span class="check"><%= data.openCargo ? "X" : "" %></span> OPEN CARGO SECTION<br/>
+      <span class="check"><%= data.dealers ? "X" : "" %></span> DEALERS SECTION&nbsp;&nbsp;
+      <span class="check"><%= data.premiumPayment ? "X" : "" %></span> PREMIUM PAYMENT SUPPLEMENT<br/>
+      <span class="check"><%= data.driverInfo ? "X" : "" %></span> DRIVER INFORMATION SCHEDULE&nbsp;&nbsp;
+      <span class="check"><%= data.professional ? "X" : "" %></span> PROFESSIONAL LIABILITY SUPPLEMENT<br/>
+      <span class="check"><%= data.electronicData ? "X" : "" %></span> ELECTRONIC DATA PROCESSING SECTION&nbsp;&nbsp;
+      <span class="check"><%= data.restaurant ? "X" : "" %></span> RESTAURANT / TAVERN SUPPLEMENT
     </div>
   </div>
+</div>
+<div class="block compact">
+  <div class="row">…</div>
+</div>
+
   
   <!-- Policy Information -->
   <div class="subbar">POLICY INFORMATION</div>
@@ -353,7 +357,7 @@ const money = (value) => {
       <div class="cell label w15">WEBSITE ADDRESS</div>
       <div class="cell w15"><%= data.website || data.business?.website || "" %></div>
     </div>
-    <div class="row compact small"> ...org type cells & checks... </div>
+    <div class="row"> ...org type cells & checks... </div>
       <div class="cell w100">
         <span class="check"><%= (data.business?.entityType || data.entityType) === "CORPORATION" ? "X" : "" %></span> CORPORATION
         <span class="check"><%= (data.business?.entityType || data.entityType) === "INDIVIDUAL" ? "X" : "" %></span> INDIVIDUAL
@@ -405,7 +409,7 @@ const money = (value) => {
  <div class="block">
 
   <!-- Address row -->
-  <div class="row compact">
+  <div class="row">
     <div class="cell label w5">LOC #</div>
     <div class="cell w5"><%= data.locations?.[0]?.loc || data.locationLoc || "" %></div>
 
@@ -419,7 +423,7 @@ const money = (value) => {
   </div>
 
   <!-- City/County/State/Zip -->
-  <div class="row compact">
+  <div class="row">
     <div class="cell label w10">CITY</div>
     <div class="cell w20 wrap"><%= data.locations?.[0]?.city || data.locationCity || data.businessCity || data.premise_city || "" %></div>
 
@@ -434,7 +438,7 @@ const money = (value) => {
   </div>
 
   <!-- City limits + Interest -->
-  <div class="row compact small">
+  <div class="row">
   <div class="cell label w20">CITY LIMITS</div>
   <div class="cell w30">
     <% const cityLim = (data.locations?.[0]?.cityLimits ?? data.locationCityLimits); %>
@@ -451,7 +455,7 @@ const money = (value) => {
 </div>
 
   <!-- Employees -->
-  <div class="row compact small">
+  <div class="row">
     <div class="cell label w25">FULL TIME EMPLOY</div>
     <div class="cell w25 num"><%= data.locations?.[0]?.fullTimeEmployees  ?? data.locationFullTimeEmployees  ?? "" %></div>
 
@@ -460,7 +464,7 @@ const money = (value) => {
   </div>
 
   <!-- Revenues & Areas -->
-  <div class="row compact small">
+  <div class="row">
     <div class="cell label w25">ANNUAL REVENUES</div>
     <div class="cell w25 num"><%= moneyUSD(data.annual_revenues) %></div>
 
@@ -468,7 +472,7 @@ const money = (value) => {
     <div class="cell w25 num"><%= data.total_area_percent || data.total_area_pct || "" %></div>
   </div>
 
-  <div class="row compact small">
+  <div class="row">
     <div class="cell label w25">TOTAL BUILDING AREA (SQ FT)</div>
     <div class="cell w25 num"><%= data.total_building_area_sqft || data.total_area_sqft || "" %></div>
 
@@ -557,7 +561,7 @@ const money = (value) => {
 
     <!-- Parent -->
     <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
       <div class="cell label w20">PARENT COMPANY NAME</div>
@@ -572,7 +576,7 @@ const money = (value) => {
 
     <!-- Subsidiary (first; can be repeated later if needed) -->
     <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
       <div class="cell label w20">SUBSIDIARY COMPANY NAME</div>
@@ -587,7 +591,7 @@ const money = (value) => {
 
     <!-- 2 -->
     <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
       <div class="cell label w5">2.</div>
@@ -603,7 +607,7 @@ const money = (value) => {
 
     <!-- 3 -->
   <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
       <div class="cell label w5">3.</div>
@@ -614,7 +618,7 @@ const money = (value) => {
 
     <!-- 4 -->
     <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
       <div class="cell label w5">4.</div>
@@ -625,7 +629,7 @@ const money = (value) => {
 
     <!-- 5 -->
     <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
       <div class="cell label w5">5.</div>
@@ -650,7 +654,7 @@ const money = (value) => {
 
     <!-- 6 -->
     <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
       <div class="cell label w5">6.</div>
@@ -661,7 +665,7 @@ const money = (value) => {
 
     <!-- 7 -->
    <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
 
@@ -672,7 +676,7 @@ const money = (value) => {
 
     <!-- 8 -->
     <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
 
@@ -684,7 +688,7 @@ const money = (value) => {
 
     <!-- 9 -->
    <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
 
@@ -695,7 +699,7 @@ const money = (value) => {
 
     <!-- 10 -->
     <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
 
@@ -707,7 +711,7 @@ const money = (value) => {
 
     <!-- 11 -->
   <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
       <div class="cell label w5">11.</div>
@@ -719,7 +723,7 @@ const money = (value) => {
 
     <!-- 12 -->
     <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
       <div class="cell label w5">12.</div>
@@ -730,7 +734,7 @@ const money = (value) => {
 
     <!-- 13 -->
     <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
       <div class="cell label w5">13.</div>
@@ -741,7 +745,7 @@ const money = (value) => {
 
     <!-- 14 -->
    <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
 
@@ -753,7 +757,7 @@ const money = (value) => {
 
     <!-- 15 -->
    <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
 
@@ -765,7 +769,7 @@ const money = (value) => {
 
     <!-- Explain YES -->
    <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
 
@@ -779,7 +783,7 @@ const money = (value) => {
   <!-- Additional Interest Section -->
   <div class="subbar">ADDITIONAL INTEREST</div>
   <div class="block small">
-  <div class="row compact"> ...Q1... </div>
+  <div class="row"> ...Q1... </div>
   <!-- repeat compact for dense rows -->
 </div>
 
@@ -900,14 +904,14 @@ const money = (value) => {
   <!-- Loss History Section -->
   <div class="subbar">LOSS HISTORY</div>
   <div class="block samll">
-    <div class="row compact">
+    <div class="row">
       <div class="cell w100">
         ENTER ALL CLAIMS OR LOSSES (REGARDLESS OF FAULT AND WHETHER OR NOT INSURED) OR OCCURRENCES THAT MAY GIVE RISE TO CLAIMS<br/>
         FOR THE LAST <span style="text-decoration: underline;"><%= String(lossYearsBack).padEnd(5, " ") %></span> YEARS
         &nbsp;&nbsp;&nbsp;TOTAL LOSSES: $ <span style="text-decoration: underline;"><%= String(fmtMoney(totalLossesAmount)).padEnd(10, " ") %></span>
       </div>
     </div>
-    <div class="row compact">
+    <div class="row">
       <div class="cell label w15 center">DATE OF<br/>OCCURRENCE</div>
       <div class="cell label w10 center">LINE</div>
       <div class="cell label w35 center">TYPE/DESCRIPTION OF OCCURRENCE OR CLAIM</div>
@@ -919,7 +923,7 @@ const money = (value) => {
     </div>
 
     <% (losses || []).slice(0,4).forEach(function(L){ %>
-      <div class="row compact">
+      <div class="row">
         <div class="cell w15"><%= L.dateOfOccurrence || "" %></div>
         <div class="cell w10"><%= L.line || "" %></div>
         <div class="cell w35"><%= L.description || "" %></div>
@@ -941,7 +945,7 @@ const money = (value) => {
   <!-- Prior Carrier Information Section -->
   <div class="subbar">PRIOR CARRIER INFORMATION (3 YEARS)</div>
   <div class="block samall">
-    <div class="row compact">
+    <div class="row">
       <div class="cell label w15 center">CATEGORY</div>
       <div class="cell label w25 center">CARRIER</div>
       <div class="cell label w15 center">POLICY NUMBER</div>
@@ -971,7 +975,7 @@ const money = (value) => {
       </div>
 
       <!-- AUTO -->
-      <div class="row compact">
+      <div class="row">
         <div class="cell w15">
           <span class="check"><%= auto.category ? "X" : "" %></span> AUTOMOBILE
         </div>
@@ -984,7 +988,7 @@ const money = (value) => {
       </div>
 
       <!-- PROPERTY -->
-      <div class="row compact">
+      <div class="row">
         <div class="cell w15">
           <span class="check"><%= prop.category ? "X" : "" %></span> PROPERTY
         </div>
@@ -997,7 +1001,7 @@ const money = (value) => {
       </div>
 
       <!-- OTHER -->
-      <div class="row comact">
+      <div class="row">
         <div class="cell w15">
           <span class="check"><%= oth.category ? "X" : "" %></span> OTHER: <%= oth.otherType || oth.type || "" %>
         </div>
@@ -1065,7 +1069,7 @@ const money = (value) => {
     </div>
 
     <!-- Applicant signature line -->
-    <div class="row small">
+    <div class="row">
   <div class="cell label w30">APPLICANT’S SIGNATURE</div>
   <div class="cell w40">&nbsp;</div>
   <div class="cell label w15">DATE</div>
@@ -1099,7 +1103,7 @@ const money = (value) => {
 
   <!-- State-specific fraud warnings -->
   <div class="block small">
-    <div class="row compant">
+    <div class="row">
        <div class="cell w100 legal wrap preline no-break">
         <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong> Any person who knowingly (or willfully)* presents a false or fraudulent 
         claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is 
