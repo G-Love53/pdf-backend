@@ -67,27 +67,32 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
     cssStr = "";
   }
   
-  // Render EJS -> HTML
-  // Render EJS -> HTML
+// Render EJS -> HTML (expose helpers and styles)
 let html;
 try {
   html = await ejs.render(
     templateStr,
     {
-      ...data,
-      data,
-      formData: data,
-      styles: cssStr,
+      ...data,             // flattened access
+      data,                // nested access
+      formData: data,      // legacy alias
+      styles: cssStr,      // used by <style><%= styles %></style>
+
+      // helpers available directly in EJS
       yn, money, moneyUSD, formatDate, ck, isYes, join, yesno, isyes
     },
-    { async: true, filename: htmlPath, compileDebug: true }
+    {
+      async: true,
+      filename: htmlPath,   // lets EJS report filename
+      compileDebug: true    // lets EJS report line numbers
+    }
   );
 } catch (err) {
-  const msg = `${err.message}${err.lineNumber ? ` (line ${err.lineNumber})` : ""} – ${htmlPath}`;
-  console.error("EJS COMPILE ERROR:", msg);
-  throw new Error(msg);          // bubble up to server.js
+  const msg =
+    `EJS compile error in ${htmlPath}: ${err.message}` +
+    (err.lineNumber ? ` (line ${err.lineNumber})` : "");
+  throw new Error(msg);
 }
-
   
   // Launch Chrome and generate PDF
   const browser = await puppeteer.launch({
