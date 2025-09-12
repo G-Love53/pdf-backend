@@ -1,15 +1,57 @@
 {
-    "applicant_name": "applicant_name",
-    "total_sales": "total_sales",
-    "alcohol_sales": "alcohol_sales",
-    "square_footage": "square_footage",
-    "ai_additional_insured": "ai_additional_insured",
-    "ai_loss_payee": "ai_loss_payee",
-    "ai_mortgagee": "ai_mortgagee",
-    "ai_lienholder": "ai_lienholder",
-    "ai_name_1": "ai_name_1",
-    "ai_address_1": "ai_address_1",
-    "ai_city_1": "ai_city_1",
-    "ai_state_1": "ai_state_1",
-    "ai_zip_1": "ai_zip_1"
+  "applicant_name": "applicant_name",
+  "named_insured": "applicant_name",
+
+  "premise_address": "premise_address",
+  "premise_city": "premise_city",
+  "premise_state": "premise_state",
+  "premise_zip": "premise_zip",
+
+  "total_sales": "total_sales",
+  "alcohol_sales": "alcohol_sales",
+  "square_footage": "square_footage",
+  "occupancy": "occupancy",
+  "max_occupancy": "max_occupancy",
+
+  "remarks": "remarks",
+
+  "date": "date",
+  "effectiveDate": "effective_date",
+
+  "ai_additional_insured": "ai_additional_insured",
+  "ai_loss_payee": "ai_loss_payee",
+  "ai_mortgagee": "ai_mortgagee",
+  "ai_lienholder": "ai_lienholder",
+
+  "ai_name_1": "ai_name_1",
+  "ai_address_1": "ai_address_1",
+  "ai_city_1": "ai_city_1",
+  "ai_state_1": "ai_state_1",
+  "ai_zip_1": "ai_zip_1",
+
+  "ai_name_2": "ai_name_2",
+  "ai_address_2": "ai_address_2",
+  "ai_city_2": "ai_city_2",
+  "ai_state_2": "ai_state_2",
+  "ai_zip_2": "ai_zip_2",
+
+  "ai_name_3": "ai_name_3",
+  "ai_address_3": "ai_address_3",
+  "ai_city_3": "ai_city_3",
+  "ai_state_3": "ai_state_3",
+  "ai_zip_3": "ai_zip_3",
+
+  "ai_name_4": "ai_name_4",
+  "ai_address_4": "ai_address_4",
+  "ai_city_4": "ai_city_4",
+  "ai_state_4": "ai_state_4",
+  "ai_zip_4": "ai_zip_4",
+
+  "ai_name_5": "ai_name_5",
+  "ai_address_5": "ai_address_5",
+  "ai_city_5": "ai_city_5",
+  "ai_state_5": "ai_state_5",
+  "ai_zip_5": "ai_zip_5",
+
+  "additional_interests": "additional_interests"
 }
