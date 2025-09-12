@@ -137,6 +137,19 @@ body {
   border:1px solid #000; text-align:center; font-weight:700; font-size:9pt;
   margin:0 6pt 0 10pt; vertical-align:middle;
 }
+/* Global wrap utilities */
+.field, .cell { word-break: break-word; hyphens: auto; }
+.label, .nowrap { white-space: nowrap; }
+
+/* Slightly comfier spacing everywhere */
+.field, .cell { min-height: 16pt; padding: 3pt 5pt; }
+
+/* Keep grid columns flexible */
+.block .row { grid-template-columns: repeat(20, minmax(0,1fr)); }
+
+/* Checkbox visual tweak */
+.check { transform: translateY(1px); }
+
 /* ===== Wrapping utilities ===== */
 .wrap { white-space: normal; overflow-wrap: anywhere; word-break: break-word; hyphens: auto; }
 .label { white-space: nowrap; }   /* keep captions compact */
