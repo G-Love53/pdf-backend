@@ -60,21 +60,21 @@ async function maybeMapData(templateName, rawData) {
 }
 
 
-// --- Core: render all PDFs (strict) and optionally email ---
+// --- Core: render all PDFs (strict, sequential) and optionally email ---
 async function renderBundleAndRespond({ templates, email }, res) {
   if (!Array.isArray(templates) || templates.length === 0) {
     return res.status(400).json({ ok: false, error: "NO_TEMPLATES" });
   }
 
-  // Render templates sequentially (avoid 5 Chrome instances at once)
-  const results = [];
+  const results = []; // single declaration ONLY
+
+  // Render templates sequentially (stable & low-memory)
   for (const t of templates) {
     const name     = t.name;
     const htmlPath = path.join(TPL_DIR, name, "index.ejs");
     const cssPath  = path.join(TPL_DIR, name, "styles.css");
     const rawData  = t.data || {};
-    const unified  = await maybeMapData(name, rawData); // applies mapping/<name>.json if present (non-destructive)
-
+    const unified  = await maybeMapData(name, rawData); // mapping enabled
 
     try {
       const buffer = await renderPdf({ htmlPath, cssPath, data: unified });
@@ -85,47 +85,19 @@ async function renderBundleAndRespond({ templates, email }, res) {
     }
   }
 
-  // Build render jobs with per-template error capture
-const RENDER_FAILURES = [];
-
-const renderJobs = templates.map(t => (async () => {
-  try {
-    // If you pass a payload object, keep using whatever you already have (req.body, etc.)
-    return await renderPdf({
-      htmlPath: t.htmlPath,
-      cssPath:  t.cssPath,
-      data:     payload   // <-- or whatever your data variable is named
+  const failures = results.filter(r => r.status === "rejected");
+  if (failures.length) {
+    console.error("RENDER_FAILURES", failures.map(f => String(f.reason)));
+    return res.status(500).json({
+      ok: false,
+      success: false,
+      error: "ONE_OR_MORE_ATTACHMENTS_FAILED",
+      failedCount: failures.length
     });
-  } catch (err) {
-    const msg =
-      `Render failed for ${t.name}: ${err.message}` +
-      (err.lineNumber ? ` (line ${err.lineNumber})` : "");
-    RENDER_FAILURES.push(msg);
-    throw new Error(msg); // keep the promise rejected so allSettled sees it
   }
-})());
-
-// wait for all jobs
-const settled = await Promise.allSettled(renderJobs);
-const failures = settled.filter(r => r.status === "rejected");
-
-if (failures.length) {
-  console.error("RENDER_FAILURES", RENDER_FAILURES);
-  return res.status(500).json({
-    ok: false,
-    success: false,
-    error: "ONE_OR_MORE_ATTACHMENTS_FAILED",
-    failedCount: failures.length,
-    details: RENDER_FAILURES
-  });
-}
-
-// ...continue with your success path (sending PDF/zip, etc.)
-
 
   const attachments = results.map(r => r.value);
 
-  
   if (email?.to?.length) {
     await sendWithGmail({
       to: email.to,
@@ -140,6 +112,7 @@ if (failures.length) {
   res.setHeader("Content-Disposition", `attachment; filename="${attachments[0].filename}"`);
   res.send(attachments[0].buffer);
 }
+
 
 // --- Public routes ---
 
