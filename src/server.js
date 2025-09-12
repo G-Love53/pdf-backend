@@ -105,9 +105,9 @@ const renderJobs = templates.map(t => (async () => {
   }
 })());
 
-// Wait for all, then short-circuit if any failed
-const results  = await Promise.allSettled(renderJobs);
-const failures = results.filter(r => r.status === "rejected");
+// wait for all jobs
+const settled = await Promise.allSettled(renderJobs);
+const failures = settled.filter(r => r.status === "rejected");
 
 if (failures.length) {
   console.error("RENDER_FAILURES", RENDER_FAILURES);
