@@ -85,19 +85,47 @@ async function renderBundleAndRespond({ templates, email }, res) {
     }
   }
 
-  const failures = results.filter(r => r.status === "rejected");
-  if (failures.length) {
-    console.error("RENDER_FAILURES", failures.map(f => String(f.reason)));
-    return res.status(500).json({
-      ok: false,
-      success: false,
-      error: "ONE_OR_MORE_ATTACHMENTS_FAILED",
-      failedCount: failures.length
+  // Build render jobs with per-template error capture
+const RENDER_FAILURES = [];
+
+const renderJobs = templates.map(t => (async () => {
+  try {
+    // If you pass a payload object, keep using whatever you already have (req.body, etc.)
+    return await renderPdf({
+      htmlPath: t.htmlPath,
+      cssPath:  t.cssPath,
+      data:     payload   // <-- or whatever your data variable is named
     });
+  } catch (err) {
+    const msg =
+      `Render failed for ${t.name}: ${err.message}` +
+      (err.lineNumber ? ` (line ${err.lineNumber})` : "");
+    RENDER_FAILURES.push(msg);
+    throw new Error(msg); // keep the promise rejected so allSettled sees it
   }
+})());
+
+// Wait for all, then short-circuit if any failed
+const results  = await Promise.allSettled(renderJobs);
+const failures = results.filter(r => r.status === "rejected");
+
+if (failures.length) {
+  console.error("RENDER_FAILURES", RENDER_FAILURES);
+  return res.status(500).json({
+    ok: false,
+    success: false,
+    error: "ONE_OR_MORE_ATTACHMENTS_FAILED",
+    failedCount: failures.length,
+    details: RENDER_FAILURES
+  });
+}
+
+// ...continue with your success path (sending PDF/zip, etc.)
+
 
   const attachments = results.map(r => r.value);
 
+  
   if (email?.to?.length) {
     await sendWithGmail({
       to: email.to,
