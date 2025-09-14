@@ -89,9 +89,9 @@ const formatDate = (d) => {
   <meta charset="utf-8"/>
   <title>ACORD 125 - Commercial Insurance Application</title>
   <style>
-    /* ACORD 125 Form Styles */
+    /* ACORD 125 Form Styles - MINIMAL CHANGES TO PRESERVE WORKING LAYOUT */
     @media print {
-      @page { margin: 0.5in; size: letter; }
+      @page { margin: 0.25in; size: letter; }  /* Reduced margin for more space */
       .page { page-break-after: always; }
       .page:last-child { page-break-after: auto; }
     }
@@ -107,12 +107,13 @@ const formatDate = (d) => {
     }
 
     .page {
-      width: 8.5in;
+      width: 100%;           /* Changed from 8.5in to 100% */
+      max-width: none;       /* Remove max-width constraint */
       min-height: 11in;
-      margin: 0 auto;
+      margin: 0;             /* Remove auto centering margin */
       background: white;
       border: 1px solid #ccc;
-      padding: 0.25in;
+      padding: 0.125in;      /* Reduced padding from 0.25in */
       position: relative;
     }
 
@@ -177,7 +178,7 @@ const formatDate = (d) => {
     .row {
       display: flex;
       border-bottom: 1px solid black;
-      min-height: 20px;
+      min-height: 18px;      /* Slightly reduced from 20px */
     }
 
     .row:last-child {
@@ -186,7 +187,7 @@ const formatDate = (d) => {
 
     .cell {
       border-right: 1px solid black;
-      padding: 2px 4px;
+      padding: 1px 3px;     /* Slightly reduced padding */
       display: flex;
       align-items: center;
       word-wrap: break-word;
@@ -200,7 +201,7 @@ const formatDate = (d) => {
     .cell.label {
       background: #f0f0f0;
       font-weight: bold;
-      font-size: 7pt;
+      font-size: 6.5pt;     /* Slightly smaller for more space */
     }
 
     .cell.center { justify-content: center; text-align: center; }
@@ -210,7 +211,7 @@ const formatDate = (d) => {
     .cell.legal { font-size: 6pt; line-height: 1.2; }
     .cell.num { text-align: right; }
 
-    /* Width classes */
+    /* Width classes - keeping original system */
     .w5 { width: 5%; }
     .w10 { width: 10%; }
     .w15 { width: 15%; }
@@ -275,9 +276,9 @@ const formatDate = (d) => {
 
     .footnote {
       position: absolute;
-      bottom: 0.25in;
-      left: 0.25in;
-      right: 0.25in;
+      bottom: 0.125in;       /* Adjusted for reduced padding */
+      left: 0.125in;
+      right: 0.125in;
       font-size: 6pt;
       border-top: 1px solid black;
       padding-top: 2px;
@@ -286,14 +287,13 @@ const formatDate = (d) => {
 
     .attachments .row {
       min-height: auto;
-      padding: 3px 0;
+      padding: 2px 0;        /* Slightly reduced */
     }
 
     .no-break {
       page-break-inside: avoid;
     }
 
-    /* Specific adjustments for better PDF matching */
     .row.ai-evidence {
       align-items: flex-start;
       padding: 3px 0;
@@ -539,7 +539,7 @@ const formatDate = (d) => {
   <div class="block">
     <div class="row">
       <div class="cell label w25">NAME (FIRST NAMED INSURED) AND MAILING ADDRESS</div>
-      <div class="cell w75 wrap">
+      <div class="cell w55 wrap">
         <%= data.applicant_name || data.businessName || (data.namedInsured && data.namedInsured.legalName) || "" %><br/>
         <%= (data.namedInsured && data.namedInsured.mailAddress1) || data.mailingAddress || data.businessAddress || data.premise_address || "" %><br/>
         <%= (data.namedInsured && data.namedInsured.city) || data.mailingCity || data.premise_city || "" %>, 
@@ -547,9 +547,8 @@ const formatDate = (d) => {
         <%= (data.namedInsured && data.namedInsured.zip) || data.mailingZip || data.premise_zip || "" %>
       </div>
       <div class="cell label w10">GL CODE</div>
-      <div class="cell w10"><%= data.glCode || "" %></div>
+      <div class="cell w5"><%= data.glCode || "" %></div>
       <div class="cell label w5">SIC</div>
-      <div class="cell w5"><%= data.sicCode || "" %></div>
     </div>
     <div class="row">
       <div class="cell label w15">BUSINESS PHONE #</div>
@@ -558,8 +557,8 @@ const formatDate = (d) => {
       <div class="cell w10"><%= data.naicsCode || "" %></div>
       <div class="cell label w15">FEIN OR SOC SEC #</div>
       <div class="cell w15"><%= data.fein || data.taxId || "" %></div>
-      <div class="cell label w15">WEBSITE ADDRESS</div>
-      <div class="cell w15"><%= data.website || (data.business && data.business.website) || "" %></div>
+      <div class="cell label w10">WEBSITE ADDRESS</div>
+      <div class="cell w10"><%= data.website || (data.business && data.business.website) || "" %></div>
     </div>
     <div class="row">
       <div class="cell w100">
@@ -575,10 +574,10 @@ const formatDate = (d) => {
       </div>
     </div>
     <div class="row">
-      <div class="cell label w20">NO. OF MEMBERS/MANAGERS</div>
-      <div class="cell w30"><%= data.numberOfMembers || data.business?.membersManagers || "" %></div>
-      <div class="cell label w20">NO. OF PARTNERS/OFFICERS</div>
-      <div class="cell w30"><%= data.partnersOfficers || data.trustManagers || "" %></div>
+      <div class="cell label w25">NO. OF MEMBERS/MANAGERS</div>
+      <div class="cell w25"><%= data.numberOfMembers || data.business?.membersManagers || "" %></div>
+      <div class="cell label w25">NO. OF PARTNERS/OFFICERS</div>
+      <div class="cell w25"><%= data.partnersOfficers || data.trustManagers || "" %></div>
     </div>
   </div>
 
@@ -615,17 +614,17 @@ const formatDate = (d) => {
       <div class="cell label w5">BLDG</div>
       <div class="cell w5"><%= data.locations?.[0]?.building || data.locationBuilding || "" %></div>
       <div class="cell label w10">STREET</div>
-      <div class="cell w65 wrap"><%= data.locations?.[0]?.address1 || data.location1Address || data.businessAddress || data.premise_address || "" %></div>
+      <div class="cell w70 wrap"><%= data.locations?.[0]?.address1 || data.location1Address || data.businessAddress || data.premise_address || "" %></div>
     </div>
     <div class="row">
       <div class="cell label w10">CITY</div>
       <div class="cell w20 wrap"><%= data.locations?.[0]?.city || data.locationCity || data.businessCity || data.premise_city || "" %></div>
       <div class="cell label w10">COUNTY</div>
-      <div class="cell w15 wrap"><%= data.locations?.[0]?.county || data.locationCounty || "" %></div>
+      <div class="cell w20 wrap"><%= data.locations?.[0]?.county || data.locationCounty || "" %></div>
       <div class="cell label w10">STATE</div>
-      <div class="cell w10"><%= data.locations?.[0]?.state || data.locationState || data.businessState || data.premise_state || "" %></div>
-      <div class="cell label w10">ZIP</div>
-      <div class="cell w15"><%= data.locations?.[0]?.zip || data.locationZip || data.businessZip || data.premise_zip || "" %></div>
+      <div class="cell w15"><%= data.locations?.[0]?.state || data.locationState || data.businessState || data.premise_state || "" %></div>
+      <div class="cell label w5">ZIP</div>
+      <div class="cell w10"><%= data.locations?.[0]?.zip || data.locationZip || data.businessZip || data.premise_zip || "" %></div>
     </div>
     <div class="row">
       <div class="cell label w20">CITY LIMITS</div>
@@ -654,8 +653,8 @@ const formatDate = (d) => {
       <div class="cell w25 num"><%= data.total_area_percent || data.total_area_pct || "" %></div>
     </div>
     <div class="row">
-      <div class="cell label w25">TOTAL BUILDING AREA (SQ FT)</div>
-      <div class="cell w25 num"><%= data.total_building_area_sqft || data.total_area_sqft || "" %></div>
+      <div class="cell label w30">TOTAL BUILDING AREA (SQ FT)</div>
+      <div class="cell w20 num"><%= data.total_building_area_sqft || data.total_area_sqft || "" %></div>
       <div class="cell label w25">OPEN TO PUBLIC</div>
       <div class="cell w25 num"><%= (data.locations?.[0]?.openToPublic ?? data.locationOpenToPublic ?? "") %> SQ FT</div>
     </div>
@@ -669,15 +668,15 @@ const formatDate = (d) => {
     </div>
     <div class="row">
       <div class="cell label w20">DATE BUSINESS STARTED</div>
-      <div class="cell w20"><%= data.business?.startDate || data.businessStartDate || "" %></div>
-      <div class="cell label w20">GL CODE</div>
+      <div class="cell w15"><%= data.business?.startDate || data.businessStartDate || "" %></div>
+      <div class="cell label w15">GL CODE</div>
       <div class="cell w10"><%= data.glCode || "" %></div>
       <div class="cell label w10">SIC</div>
-      <div class="cell w20"><%= data.sicCode || "" %></div>
+      <div class="cell w30"><%= data.sicCode || "" %></div>
     </div>
     <div class="row">
       <div class="cell label w20">BUSINESS TYPE</div>
-      <div class="cell w80">
+      <div class="cell w80 wrap">
         <span class="check"><%= (data.business?.type || data.businessType) === "APARTMENTS" ? "X" : "" %></span> APARTMENTS
         <span class="check"><%= (data.business?.type || data.businessType) === "CONDOMINIUMS" ? "X" : "" %></span> CONDOMINIUMS
         <span class="check"><%= (data.business?.type || data.businessType) === "CONTRACTOR" ? "X" : "" %></span> CONTRACTOR
@@ -692,18 +691,18 @@ const formatDate = (d) => {
       </div>
     </div>
     <div class="row">
-      <div class="cell label w40">RETAIL STORES OR SERVICE OPERATIONS % OF TOTAL SALES</div>
+      <div class="cell label w50">RETAIL STORES OR SERVICE OPERATIONS % OF TOTAL SALES</div>
       <div class="cell w10 right"><%= data.retailPercent || "" %>%</div>
-      <div class="cell label w40">INSTALLATION, SERVICE OR REPAIR WORK</div>
+      <div class="cell label w30">INSTALLATION, SERVICE OR REPAIR WORK</div>
       <div class="cell w10 right"><%= data.installationPercent || "" %>%</div>
     </div>
     <div class="row">
-      <div class="cell label w40">OFF PREMISES INSTALLATION, SERVICE OR REPAIR WORK</div>
+      <div class="cell label w50">OFF PREMISES INSTALLATION, SERVICE OR REPAIR WORK</div>
       <div class="cell w10 right"><%= data.offPremisesPercent || "" %>%</div>
-      <div class="cell label w50">DESCRIPTION OF OPERATIONS OF OTHER NAMED INSUREDS</div>
+      <div class="cell label w40">DESCRIPTION OF OPERATIONS OF OTHER NAMED INSUREDS</div>
     </div>
     <div class="row">
-      <div class="cell w100" style="min-height: 30px;"><%= data.otherNamedInsuredsOperations || "" %></div>
+      <div class="cell w100 wrap" style="min-height: 30px;"><%= data.otherNamedInsuredsOperations || "" %></div>
     </div>
   </div>
 
@@ -772,9 +771,8 @@ const formatDate = (d) => {
     <!-- 3 -->
     <div class="row">
       <div class="cell label w5">3.</div>
-      <div class="cell w45">ANY EXPOSURE TO FLAMMABLES, EXPLOSIVES, CHEMICALS?</div>
+      <div class="cell w90">ANY EXPOSURE TO FLAMMABLES, EXPLOSIVES, CHEMICALS?</div>
       <div class="cell w5"><%= yn(data.hazardousExposure) %></div>
-      <div class="cell w45"></div>
     </div>
 
     <!-- 4 -->
@@ -788,13 +786,12 @@ const formatDate = (d) => {
     <!-- 5 -->
     <div class="row">
       <div class="cell label w5">5.</div>
-      <div class="cell w75">ANY POLICY OR COVERAGE DECLINED, CANCELLED OR NON-RENEWED DURING THE PRIOR THREE (3) YEARS?</div>
+      <div class="cell w90">ANY POLICY OR COVERAGE DECLINED, CANCELLED OR NON-RENEWED DURING THE PRIOR THREE (3) YEARS?</div>
       <div class="cell w5"><%= yn(data.coverageDeclined) %></div>
-      <div class="cell w15"></div>
     </div>
     <div class="row">
-      <div class="cell w20"><span class="check"><%= (data.declineReason === "NON-PAYMENT") ? "X" : "" %></span> NON-PAYMENT</div>
-      <div class="cell w30"><span class="check"><%= (data.declineReason === "AGENT") ? "X" : "" %></span> AGENT NO LONGER REPRESENTS CARRIER</div>
+      <div class="cell w25"><span class="check"><%= (data.declineReason === "NON-PAYMENT") ? "X" : "" %></span> NON-PAYMENT</div>
+      <div class="cell w25"><span class="check"><%= (data.declineReason === "AGENT") ? "X" : "" %></span> AGENT NO LONGER REPRESENTS CARRIER</div>
       <div class="cell w25"><span class="check"><%= (data.declineReason === "NON-RENEWAL") ? "X" : "" %></span> NON-RENEWAL</div>
       <div class="cell w25"><span class="check"><%= (data.declineReason === "UNDERWRITING") ? "X" : "" %></span> UNDERWRITING</div>
     </div>
@@ -802,9 +799,8 @@ const formatDate = (d) => {
     <!-- 6 -->
     <div class="row">
       <div class="cell label w5">6.</div>
-      <div class="cell w75">ANY PAST LOSSES OR CLAIMS RELATING TO SEXUAL ABUSE OR MOLESTATION ALLEGATIONS, DISCRIMINATION OR NEGLIGENT HIRING?</div>
+      <div class="cell w90">ANY PAST LOSSES OR CLAIMS RELATING TO SEXUAL ABUSE OR MOLESTATION ALLEGATIONS, DISCRIMINATION OR NEGLIGENT HIRING?</div>
       <div class="cell w5"><%= yn(data.sexualAbuseClaims) %></div>
-      <div class="cell w15"></div>
     </div>
 
     <!-- 7 -->
@@ -817,9 +813,8 @@ const formatDate = (d) => {
     <!-- 8 -->
     <div class="row">
       <div class="cell label w5">8.</div>
-      <div class="cell w45">ANY UNCORRECTED FIRE AND/OR SAFETY CODE VIOLATIONS?</div>
+      <div class="cell w90">ANY UNCORRECTED FIRE AND/OR SAFETY CODE VIOLATIONS?</div>
       <div class="cell w5"><%= yn(data.codeViolations) %></div>
-      <div class="cell w45"></div>
     </div>
 
     <!-- 9 -->
@@ -832,50 +827,45 @@ const formatDate = (d) => {
     <!-- 10 -->
     <div class="row">
       <div class="cell label w5">10.</div>
-      <div class="cell w55">HAS APPLICANT HAD A JUDGMENT OR LIEN DURING THE LAST FIVE (5) YEARS?</div>
+      <div class="cell w90">HAS APPLICANT HAD A JUDGMENT OR LIEN DURING THE LAST FIVE (5) YEARS?</div>
       <div class="cell w5"><%= yn(data.judgementOrLien || data.judgmentOrLien) %></div>
-      <div class="cell w35"></div>
     </div>
 
     <!-- 11 -->
     <div class="row">
       <div class="cell label w5">11.</div>
-      <div class="cell w45">HAS BUSINESS BEEN PLACED IN A TRUST?</div>
+      <div class="cell w60">HAS BUSINESS BEEN PLACED IN A TRUST?</div>
       <div class="cell w5"><%= yn(data.inTrust) %></div>
       <div class="cell label w15">NAME OF TRUST</div>
-      <div class="cell w30"><%= data.trustName || "" %></div>
+      <div class="cell w15"><%= data.trustName || "" %></div>
     </div>
 
     <!-- 12 -->
     <div class="row">
       <div class="cell label w5">12.</div>
-      <div class="cell w75">ANY FOREIGN OPERATIONS, FOREIGN PRODUCTS DISTRIBUTED IN USA, OR US PRODUCTS SOLD/DISTRIBUTED IN FOREIGN COUNTRIES?</div>
+      <div class="cell w90">ANY FOREIGN OPERATIONS, FOREIGN PRODUCTS DISTRIBUTED IN USA, OR US PRODUCTS SOLD/DISTRIBUTED IN FOREIGN COUNTRIES?</div>
       <div class="cell w5"><%= yn(data.foreignOperations) %></div>
-      <div class="cell w15"></div>
     </div>
 
     <!-- 13 -->
     <div class="row">
       <div class="cell label w5">13.</div>
-      <div class="cell w55">DOES APPLICANT HAVE OTHER BUSINESS VENTURES FOR WHICH COVERAGE IS NOT REQUESTED?</div>
+      <div class="cell w90">DOES APPLICANT HAVE OTHER BUSINESS VENTURES FOR WHICH COVERAGE IS NOT REQUESTED?</div>
       <div class="cell w5"><%= yn(data.otherBusinessVentures) %></div>
-      <div class="cell w35"></div>
     </div>
 
     <!-- 14 -->
     <div class="row">
       <div class="cell label w5">14.</div>
-      <div class="cell w45">DOES APPLICANT OWN/LEASE/OPERATE ANY DRONES?</div>
+      <div class="cell w90">DOES APPLICANT OWN/LEASE/OPERATE ANY DRONES?</div>
       <div class="cell w5"><%= yn(data.ownDrones) %></div>
-      <div class="cell w45"><%= data.droneUseDescription || "" %></div>
     </div>
 
     <!-- 15 -->
     <div class="row">
       <div class="cell label w5">15.</div>
-      <div class="cell w45">DOES APPLICANT HIRE OTHERS TO OPERATE DRONES?</div>
+      <div class="cell w90">DOES APPLICANT HIRE OTHERS TO OPERATE DRONES?</div>
       <div class="cell w5"><%= yn(data.hireDroneOperators) %></div>
-      <div class="cell w45"><%= data.hireDroneDescription || "" %></div>
     </div>
 
     <!-- Explain YES -->
@@ -883,7 +873,7 @@ const formatDate = (d) => {
       <div class="cell label w100">EXPLAIN ALL "YES" RESPONSES</div>
     </div>
     <div class="row">
-      <div class="cell w100" style="min-height: 60px;"><%= data.yesExplanations || "" %></div>
+      <div class="cell w100 wrap" style="min-height: 60px;"><%= data.yesExplanations || "" %></div>
     </div>
   </div>
 
@@ -891,12 +881,14 @@ const formatDate = (d) => {
   <div class="block">
     <div class="row">
       <div class="cell label w10">TYPE</div>
-      <div class="cell w15"><span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "ADDITIONAL_INSURED") ? "X" : "" %></span> ADDITIONAL INSURED</div>
-      <div class="cell w15"><span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "LIENHOLDER") ? "X" : "" %></span> LIENHOLDER</div>
-      <div class="cell w15"><span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "LOSS_PAYEE") ? "X" : "" %></span> LOSS PAYEE</div>
-      <div class="cell w15"><span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "MORTGAGEE") ? "X" : "" %></span> MORTGAGEE</div>
-      <div class="cell w10"><span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "BREACH_WARRANTY") ? "X" : "" %></span> BREACH OF WARRANTY</div>
-      <div class="cell w20"><span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "LENDERS_LOSS") ? "X" : "" %></span> LENDER'S LOSS PAYABLE</div>
+      <div class="cell w90 wrap">
+        <span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "ADDITIONAL_INSURED") ? "X" : "" %></span> ADDITIONAL INSURED
+        <span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "LIENHOLDER") ? "X" : "" %></span> LIENHOLDER
+        <span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "LOSS_PAYEE") ? "X" : "" %></span> LOSS PAYEE
+        <span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "MORTGAGEE") ? "X" : "" %></span> MORTGAGEE
+        <span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "BREACH_WARRANTY") ? "X" : "" %></span> BREACH OF WARRANTY
+        <span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "LENDERS_LOSS") ? "X" : "" %></span> LENDER'S LOSS PAYABLE
+      </div>
     </div>
 
     <div class="row ai-evidence">
@@ -919,29 +911,29 @@ const formatDate = (d) => {
 
     <div class="row">
       <div class="cell label w20">INTEREST NAME AND ADDRESS</div>
-      <div class="cell w30"><%= data.aiName || data.interests?.[0]?.name || "" %></div>
+      <div class="cell w30 wrap"><%= data.aiName || data.interests?.[0]?.name || "" %></div>
       <div class="cell label w10">RANK</div>
-      <div class="cell w5"><%= data.aiRank || data.interests?.[0]?.rank || "" %></div>
+      <div class="cell w10"><%= data.aiRank || data.interests?.[0]?.rank || "" %></div>
       <div class="cell label w15">REFERENCE/LOAN #</div>
+      <div class="cell w15"><%= data.aiLoanNumber || data.interests?.[0]?.loanNumber || "" %></div>
+    </div>
+
+    <div class="row">
+      <div class="cell w60 wrap"><%= data.aiAddress || data.interests?.[0]?.address || "" %></div>
+      <div class="cell label w20">REFERENCE/LOAN #</div>
       <div class="cell w20"><%= data.aiLoanNumber || data.interests?.[0]?.loanNumber || "" %></div>
     </div>
 
     <div class="row">
-      <div class="cell w50"><%= data.aiAddress || data.interests?.[0]?.address || "" %></div>
-      <div class="cell label w15">REFERENCE/LOAN #</div>
-      <div class="cell w35"><%= data.aiLoanNumber || data.interests?.[0]?.loanNumber || "" %></div>
-    </div>
-
-    <div class="row">
       <div class="cell label w10">ITEM</div>
-      <div class="cell w15">
+      <div class="cell w50 wrap">
         <span class="check"><%= ((data.aiItemType || data.interests?.[0]?.itemType) === "LOCATION") ? "X" : "" %></span> LOCATION
         <span class="check"><%= ((data.aiItemType || data.interests?.[0]?.itemType) === "BUILDING") ? "X" : "" %></span> BUILDING
         <span class="check"><%= ((data.aiItemType || data.interests?.[0]?.itemType) === "VEHICLE") ? "X" : "" %></span> VEHICLE
         <span class="check"><%= ((data.aiItemType || data.interests?.[0]?.itemType) === "BOAT") ? "X" : "" %></span> BOAT
       </div>
       <div class="cell label w20">ITEM DESCRIPTION</div>
-      <div class="cell w55"><%= data.aiItemDescription || data.interests?.[0]?.itemDescription || "" %></div>
+      <div class="cell w20 wrap"><%= data.aiItemDescription || data.interests?.[0]?.itemDescription || "" %></div>
     </div>
   </div>
 
@@ -988,7 +980,7 @@ const formatDate = (d) => {
   <div class="subbar">LOSS HISTORY</div>
   <div class="block">
     <div class="row">
-      <div class="cell w100">
+      <div class="cell w100 wrap">
         ENTER ALL CLAIMS OR LOSSES (REGARDLESS OF FAULT AND WHETHER OR NOT INSURED) OR OCCURRENCES THAT MAY GIVE RISE TO CLAIMS<br/>
         FOR THE LAST <span style="text-decoration: underline;"><%= pad(lossYearsBack, 5) %></span> YEARS
         &nbsp;&nbsp;&nbsp;TOTAL LOSSES: $ <span style="text-decoration: underline;"><%= pad(money(totalLossesAmount), 10) %></span>
@@ -1009,7 +1001,7 @@ const formatDate = (d) => {
       <div class="row">
         <div class="cell w15"><%= L.dateOfOccurrence || "" %></div>
         <div class="cell w10"><%= L.line || "" %></div>
-        <div class="cell w35"><%= L.description || "" %></div>
+        <div class="cell w35 wrap"><%= L.description || "" %></div>
         <div class="cell w15"><%= L.dateOfClaim || "" %></div>
         <div class="cell w10 right">$<%= money(L.amountPaid) %></div>
         <div class="cell w10 right">$<%= money(L.amountReserved) %></div>
@@ -1093,7 +1085,7 @@ const formatDate = (d) => {
   <div class="subbar">REMARKS / PROCESSING INSTRUCTIONS (ACORD 101 MAY BE ATTACHED IF MORE SPACE IS REQUIRED)</div>
   <div class="block">
     <div class="row">
-      <div class="cell w100" style="min-height: 80px;"><%= data.remarks || data.processingInstructions || "" %></div>
+      <div class="cell w100 wrap" style="min-height: 80px;"><%= data.remarks || data.processingInstructions || "" %></div>
     </div>
   </div>
 
@@ -1113,7 +1105,7 @@ const formatDate = (d) => {
   <div class="subbar">SIGNATURE</div>
   <div class="block">
     <div class="row">
-      <div class="cell w100" style="padding: 8px;">
+      <div class="cell w100 wrap" style="padding: 6px;">
         THE UNDERSIGNED IS AN AUTHORIZED REPRESENTATIVE OF THE APPLICANT AND REPRESENTS THAT REASONABLE INQUIRY HAS BEEN MADE TO OBTAIN THE 
         ANSWERS TO QUESTIONS ON THIS APPLICATION. HE/SHE REPRESENTS THAT THE ANSWERS ARE TRUE, CORRECT AND COMPLETE TO THE BEST OF HIS/HER 
         KNOWLEDGE.
@@ -1121,16 +1113,16 @@ const formatDate = (d) => {
     </div>
 
     <div class="row">
-      <div class="cell label w20">PRODUCER'S SIGNATURE</div>
-      <div class="cell w35" style="border-bottom: 1px solid #000;"><%= data.producerSignatureName || data.producerSignerName || "" %></div>
-      <div class="cell label w20">PRODUCER'S NAME (PLEASE PRINT)</div>
+      <div class="cell label w25">PRODUCER'S SIGNATURE</div>
+      <div class="cell w25" style="border-bottom: 1px solid #000;"><%= data.producerSignatureName || data.producerSignerName || "" %></div>
+      <div class="cell label w25">PRODUCER'S NAME (PLEASE PRINT)</div>
       <div class="cell w25"><%= data.producerPrintedName || data.producerContact || "" %></div>
     </div>
 
     <div class="row">
-      <div class="cell label w20">STATE PRODUCER LICENSE NO</div>
-      <div class="cell w35"><%= data.producerStateLicense || "" %></div>
-      <div class="cell label w20">NATIONAL PRODUCER NUMBER</div>
+      <div class="cell label w25">STATE PRODUCER LICENSE NO</div>
+      <div class="cell w25"><%= data.producerStateLicense || "" %></div>
+      <div class="cell label w25">NATIONAL PRODUCER NUMBER</div>
       <div class="cell w25"><%= data.producerNPN || "" %></div>
     </div>
 
@@ -1163,9 +1155,9 @@ const formatDate = (d) => {
 
   <!-- STATE FRAUD NOTICES -->
   <div class="subbar">STATE FRAUD NOTICES</div>
-  <div class="block small">
+  <div class="block">
     <div class="row">
-      <div class="cell w100 legal wrap no-break">
+      <div class="cell w100 small legal wrap" style="padding: 4px;">
         <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong>
         Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.
         <br/><br/>
