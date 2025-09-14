@@ -1,11 +1,7 @@
 <%
-/* =========================
-   ACORD 125 – Clean Template
-   ========================= */
-
-// --- Defaults (inline; no helpers or external utils) ---
+/* ===== Helpers & Defaults (tiny, safe) ===== */
 const defaults = {
-  // Agency / Producer
+  // Producer / Agency defaults
   producerName: "All Access Ins, dba Commercial Insurance Direct LLC",
   producerAddress1: "9200 W Cross Drive #515",
   producerAddress2: "Littleton, CO 80123",
@@ -14,19 +10,13 @@ const defaults = {
   producerFax: "(555) 123-4568",
   producerEmail: "quote@barinsurancedirect.com",
 
-  // Dates / Transaction
+  // Dates / transaction
   date: "09/11/2025",
   effectiveDate: "09/11/2025",
-  transactionType: "QUOTE",   // QUOTE | ISSUE | RENEW | BOUND | CHANGE | CANCEL
-  timeAMPM: "AM",             // AM | PM
+  transactionType: "QUOTE", // QUOTE | ISSUE | RENEW | BOUND | CHANGE | CANCEL
+  timeAMPM: "AM",
 
-  // Lines of Business (defaults for bar/tavern)
-  commercialGeneralLiability: true,
-  liquorLiability: true,
-  commercialProperty: true,
-  umbrella: true,
-
-  // Other LOB (explicit false)
+  // LOB toggles
   boilerMachinery: false,
   cyberPrivacy: false,
   hiredNonOwnedAuto: false,
@@ -38,8 +28,12 @@ const defaults = {
   motorCarrier: false,
   truckers: false,
   crime: false,
+  commercialGeneralLiability: true,
+  liquorLiability: true,
+  commercialProperty: true,
+  umbrella: true,
 
-  // Attachments (explicit false)
+  // Attachments toggles
   accountsReceivable: false,
   glassSign: false,
   statementValues: false,
@@ -63,25 +57,30 @@ const defaults = {
   driverInfo: false,
   professional: false,
   electronicData: false,
-  restaurant: false
+  restaurant: false,
 };
 
-// Merge incoming formData over defaults
-const data = Object.assign({}, defaults, formData || {});
+const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
 
-// Inline helpers
-const yes = (v) => ["yes","true","1","on","checked"].includes(String(v||"").toLowerCase()) || v===1 || v===true;
-const yn  = (value) => {
-  if (value === true || value === "Y" || value === "Yes" || yes(value)) return "Y";
-  if (value === false || value === "N" || value === "No") return "N";
-  return "";
+const yes = (v) => ["yes","true","1","on","checked","y"].includes(String(v ?? "").toLowerCase()) || v === true || v === 1;
+const yn = (v) => yes(v) ? "Y" : (v === false || String(v).toLowerCase() === "n" ? "N" : "");
+const money = (v) => {
+  if (v === null || v === undefined || v === "") return "";
+  const n = Number(v); if (Number.isNaN(n)) return "";
+  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
-const money = (value) => {
-  if (value === 0) return "0.00";
-  if (!value) return "";
-  const num = Number(value);
-  if (Number.isNaN(num)) return "";
-  return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const moneyUSD = (v) => money(v);
+const pad = (s, n) => String(s ?? "").padEnd(n, " ");
+const formatDate = (d) => {
+  try {
+    if (!d) return "";
+    const dt = new Date(d);
+    if (Number.isNaN(dt.getTime())) return String(d);
+    const mm = String(dt.getMonth()+1).padStart(2,"0");
+    const dd = String(dt.getDate()).padStart(2,"0");
+    const yyyy = dt.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
+  } catch { return String(d ?? ""); }
 };
 %>
 <!DOCTYPE html>
@@ -93,9 +92,7 @@ const money = (value) => {
 </head>
 <body>
 
-<!-- =======================
-     PAGE 1
-     ======================= -->
+<!-- ====================== PAGE 1 ====================== -->
 <div class="page">
   <div class="headerbar">
     <div class="acord">ACORD</div>
@@ -108,7 +105,7 @@ const money = (value) => {
   <div class="block">
     <div class="row">
       <div class="cell label w15">PRODUCER</div>
-      <div class="cell w35">
+      <div class="cell w35 wrap">
         <%= data.producerName %><br/>
         <%= data.producerAddress1 %><br/>
         <%= data.producerAddress2 %>
@@ -148,14 +145,14 @@ const money = (value) => {
       <div class="cell label w10">SUBCODE</div>
       <div class="cell w15"></div>
       <div class="cell label w20">AGENCY CUSTOMER ID</div>
-      <div class="cell w30"></div>
+      <div class="cell w30"><%= data.agencyCustomerId || "" %></div>
     </div>
     <div class="row">
       <div class="cell label w20">ORGANIZATION TYPE</div>
       <div class="cell w80">
-        <span class="check"><%= yes(data.org_type_corporation) ? "X" : "" %></span> Corporation
-        <span class="check"><%= yes(data.org_type_llc) ? "X" : "" %></span> LLC
-        <span class="check"><%= yes(data.org_type_individual) ? "X" : "" %></span> Individual / Sole Prop
+        <span class="check"><%= yes(data.org_type_corporation || (data.business?.entityType === "CORPORATION")) ? "X" : "" %></span> Corporation
+        <span class="check"><%= yes(data.org_type_llc || (data.business?.entityType === "LLC")) ? "X" : "" %></span> LLC
+        <span class="check"><%= yes(data.org_type_individual || (data.business?.entityType === "INDIVIDUAL")) ? "X" : "" %></span> Individual / Sole Prop
       </div>
     </div>
     <div class="row">
@@ -167,8 +164,8 @@ const money = (value) => {
         <span class="check"><%= data.transactionType === "BOUND" ? "X" : "" %></span> BOUND (Give Date and/or Attach Copy)
         <span class="check"><%= data.transactionType === "CHANGE" ? "X" : "" %></span> CHANGE
         <span class="check"><%= data.transactionType === "CANCEL" ? "X" : "" %></span> CANCEL
-        &nbsp;&nbsp;TIME: 12:01 
-        <span class="check"><%= data.timeAMPM === "AM" ? "X" : "" %></span> AM 
+        &nbsp;&nbsp;TIME: 12:01
+        <span class="check"><%= data.timeAMPM === "AM" ? "X" : "" %></span> AM
         <span class="check"><%= data.timeAMPM === "PM" ? "X" : "" %></span> PM
       </div>
     </div>
@@ -271,7 +268,7 @@ const money = (value) => {
     </div>
   </div>
 
-  <!-- POLICY INFORMATION -->
+  <!-- POLICY INFO -->
   <div class="subbar">POLICY INFORMATION</div>
   <div class="block">
     <div class="row">
@@ -313,30 +310,24 @@ const money = (value) => {
   </div>
 </div>
 
-<!-- =======================
-     PAGE 2
-     ======================= -->
+<!-- ====================== PAGE 2 ====================== -->
 <div class="page">
   <div class="headerbar">
     <div class="acord">ACORD</div>
-    <div class="title">
-      COMMERCIAL INSURANCE APPLICATION<br/>
-      <span style="font-size: 9pt;">APPLICANT INFORMATION SECTION</span>
-    </div>
+    <div class="title">COMMERCIAL INSURANCE APPLICATION<br/><span style="font-size: 9pt;">APPLICANT INFORMATION SECTION</span></div>
     <div class="formno">125</div>
   </div>
 
-  <!-- APPLICANT INFORMATION -->
   <div class="subbar">APPLICANT INFORMATION</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w30">NAME (FIRST NAMED INSURED) AND MAILING ADDRESS</div>
-      <div class="cell w40">
+      <div class="cell label w25">NAME (FIRST NAMED INSURED) AND MAILING ADDRESS</div>
+      <div class="cell w75 wrap">
         <%= data.applicant_name || data.businessName || (data.namedInsured && data.namedInsured.legalName) || "" %><br/>
-        <%= (data.namedInsured?.mailAddress1 || data.mailingAddress || data.businessAddress || data.premise_address || "") %><br/>
-        <%= (data.namedInsured?.city || data.mailingCity || data.premise_city || "") %>, 
-        <%= (data.namedInsured?.state || data.mailingState || data.premise_state || "") %>
-        <%= (data.namedInsured?.zip || data.mailingZip || data.premise_zip || "") %>
+        <%= (data.namedInsured && data.namedInsured.mailAddress1) || data.mailingAddress || data.businessAddress || data.premise_address || "" %><br/>
+        <%= (data.namedInsured && data.namedInsured.city) || data.mailingCity || data.premise_city || "" %>, 
+        <%= (data.namedInsured && data.namedInsured.state) || data.mailingState || data.premise_state || "" %>
+        <%= (data.namedInsured && data.namedInsured.zip) || data.mailingZip || data.premise_zip || "" %>
       </div>
       <div class="cell label w10">GL CODE</div>
       <div class="cell w10"><%= data.glCode || "" %></div>
@@ -345,13 +336,13 @@ const money = (value) => {
     </div>
     <div class="row">
       <div class="cell label w15">BUSINESS PHONE #</div>
-      <div class="cell w15"><%= data.business_phone || data.businessPhone || data.contacts?.primary?.phone || "" %></div>
+      <div class="cell w15"><%= data.business_phone || data.businessPhone || (data.contacts && data.contacts.primary && data.contacts.primary.phone) || "" %></div>
       <div class="cell label w10">NAICS</div>
       <div class="cell w10"><%= data.naicsCode || "" %></div>
       <div class="cell label w15">FEIN OR SOC SEC #</div>
       <div class="cell w15"><%= data.fein || data.taxId || "" %></div>
       <div class="cell label w15">WEBSITE ADDRESS</div>
-      <div class="cell w15"><%= data.website || data.business?.website || "" %></div>
+      <div class="cell w15"><%= data.website || (data.business && data.business.website) || "" %></div>
     </div>
     <div class="row">
       <div class="cell w100">
@@ -374,7 +365,6 @@ const money = (value) => {
     </div>
   </div>
 
-  <!-- CONTACT INFORMATION -->
   <div class="subbar">CONTACT INFORMATION</div>
   <div class="block">
     <div class="row">
@@ -400,66 +390,60 @@ const money = (value) => {
     </div>
   </div>
 
-  <!-- PREMISES INFORMATION (Location 1) -->
   <div class="subbar">PREMISES INFORMATION (ATTACH ACORD 823 FOR ADDITIONAL PREMISES)</div>
   <div class="block">
     <div class="row">
       <div class="cell label w5">LOC #</div>
       <div class="cell w5"><%= data.locations?.[0]?.loc || data.locationLoc || "" %></div>
-      <div class="cell label w10">BLD #</div>
+      <div class="cell label w5">BLDG</div>
       <div class="cell w5"><%= data.locations?.[0]?.building || data.locationBuilding || "" %></div>
       <div class="cell label w10">STREET</div>
-      <div class="cell w65 wrap">
-        <%= (data.locations?.[0]?.address1 || data.location1Address || data.businessAddress || data.premise_address || "") %>
-      </div>
+      <div class="cell w65 wrap"><%= data.locations?.[0]?.address1 || data.location1Address || data.businessAddress || data.premise_address || "" %></div>
     </div>
     <div class="row">
       <div class="cell label w10">CITY</div>
-      <div class="cell w20 wrap"><%= (data.locations?.[0]?.city || data.location1City || data.businessCity || data.premise_city || "") %></div>
+      <div class="cell w20 wrap"><%= data.locations?.[0]?.city || data.locationCity || data.businessCity || data.premise_city || "" %></div>
       <div class="cell label w10">COUNTY</div>
-      <div class="cell w15 wrap"><%= (data.locations?.[0]?.county || data.location1County || "") %></div>
+      <div class="cell w15 wrap"><%= data.locations?.[0]?.county || data.locationCounty || "" %></div>
       <div class="cell label w10">STATE</div>
-      <div class="cell w10"><%= (data.locations?.[0]?.state || data.location1State || data.businessState || data.premise_state || "") %></div>
+      <div class="cell w10"><%= data.locations?.[0]?.state || data.locationState || data.businessState || data.premise_state || "" %></div>
       <div class="cell label w10">ZIP</div>
-      <div class="cell w15"><%= (data.locations?.[0]?.zip || data.location1Zip || data.businessZip || data.premise_zip || "") %></div>
+      <div class="cell w15"><%= data.locations?.[0]?.zip || data.locationZip || data.businessZip || data.premise_zip || "" %></div>
     </div>
     <div class="row">
-      <div class="cell label w10">CITY LIMITS</div>
-      <div class="cell w20">
-        <% const cityLim = (data.locations?.[0]?.cityLimits ?? data.location1CityLimits); %>
-        <span class="check"><%= (cityLim === true  || cityLim === "INSIDE"  || cityLim === "inside")  ? "X" : "" %></span> INSIDE
-        <span class="check"><%= (cityLim === false || cityLim === "OUTSIDE" || cityLim === "outside") ? "X" : "" %></span> OUTSIDE
+      <div class="cell label w20">CITY LIMITS</div>
+      <div class="cell w30">
+        <% const cityLim = (data.locations?.[0]?.cityLimits ?? data.locationCityLimits); %>
+        <span class="check check-xs"><%= (cityLim === true  || String(cityLim).toUpperCase()==="INSIDE")  ? "X" : "" %></span> Inside
+        <span class="check check-xs"><%= (cityLim === false || String(cityLim).toUpperCase()==="OUTSIDE") ? "X" : "" %></span> Outside
       </div>
-      <div class="cell label w10">INTEREST</div>
-      <div class="cell w20">
-        <% const li = (data.locations?.[0]?.interest || data.location1Interest || ""); %>
-        <span class="check"><%= li === "OWNER"  ? "X" : "" %></span> OWNER
-        <span class="check"><%= li === "TENANT" ? "X" : "" %></span> TENANT
+      <div class="cell label w20">INTEREST</div>
+      <div class="cell w30">
+        <% const li = (data.locations?.[0]?.interest || data.locationInterest || ""); %>
+        <span class="check check-xs"><%= String(li).toUpperCase()==="OWNER"  ? "X" : "" %></span> Owner
+        <span class="check check-xs"><%= String(li).toUpperCase()==="TENANT" ? "X" : "" %></span> Tenant
       </div>
-      <div class="cell label w15"># FULL TIME EMPL</div>
-      <div class="cell w10"><%= (data.locations?.[0]?.fullTimeEmployees || data.location1FullTimeEmployees || data.fullTimeEmployees || "") %></div>
-      <div class="cell label w15"># PART TIME EMPL</div>
-      <div class="cell w10"><%= (data.locations?.[0]?.partTimeEmployees || data.location1PartTimeEmployees || data.partTimeEmployees || "") %></div>
     </div>
     <div class="row">
-      <div class="cell label w15">ANNUAL REVENUES</div>
-      <div class="cell w15 right">$<%= money(data.locations?.[0]?.revenue || data.location1Revenue || data.annualRevenue || data.total_sales || "") %></div>
-      <div class="cell label w15">OCCUPIED AREA</div>
-      <div class="cell w10"><%= data.locations?.[0]?.occupiedArea || data.location1OccupiedArea || data.square_footage || "" %> SQ FT</div>
-      <div class="cell label w15">TOTAL BUILDING AREA</div>
-      <div class="cell w10"><%= data.locations?.[0]?.totalArea || data.location1TotalArea || "" %> SQ FT</div>
-      <div class="cell label w15">OPEN TO PUBLIC</div>
-      <div class="cell w10"><%= data.locations?.[0]?.openToPublic || data.location1OpenToPublic || "" %> SQ FT</div>
+      <div class="cell label w25">FULL TIME EMPLOY</div>
+      <div class="cell w25 num"><%= data.locations?.[0]?.fullTimeEmployees  ?? data.locationFullTimeEmployees  ?? "" %></div>
+      <div class="cell label w25">PART TIME EMPLOY</div>
+      <div class="cell w25 num"><%= data.locations?.[0]?.partTimeEmployees ?? data.locationPartTimeEmployees ?? "" %></div>
     </div>
     <div class="row">
-      <div class="cell label w25">ANY AREA LEASED TO OTHERS? Y/N</div>
-      <div class="cell w5"><%= yn(data.locations?.[0]?.leasedToOthers ?? data.location1LeasedToOthers) %></div>
-      <div class="cell label w25">DESCRIPTION OF OPERATIONS</div>
-      <div class="cell w45"><%= data.locations?.[0]?.description || data.location1Description || data.businessDescription || "" %></div>
+      <div class="cell label w25">ANNUAL REVENUES</div>
+      <div class="cell w25 num">$<%= moneyUSD(data.annual_revenues || data.annualRevenues) %></div>
+      <div class="cell label w25">% TOTAL BUILDING AREA</div>
+      <div class="cell w25 num"><%= data.total_area_percent || data.total_area_pct || "" %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">TOTAL BUILDING AREA (SQ FT)</div>
+      <div class="cell w25 num"><%= data.total_building_area_sqft || data.total_area_sqft || "" %></div>
+      <div class="cell label w25">OPEN TO PUBLIC</div>
+      <div class="cell w25 num"><%= (data.locations?.[0]?.openToPublic ?? data.locationOpenToPublic ?? "") %> SQ FT</div>
     </div>
   </div>
 
-  <!-- NATURE OF BUSINESS -->
   <div class="subbar">NATURE OF BUSINESS</div>
   <div class="block">
     <div class="row">
@@ -469,21 +453,14 @@ const money = (value) => {
     <div class="row">
       <div class="cell label w20">DATE BUSINESS STARTED</div>
       <div class="cell w20"><%= data.business?.startDate || data.businessStartDate || "" %></div>
-      <div class="cell label w20">RETAIL / SERVICE % OF SALES</div>
-      <div class="cell w10 right"><%= data.retailPercent || "" %>%</div>
-      <div class="cell label w20">INSTALLATION / REPAIR %</div>
-      <div class="cell w10 right"><%= data.installationPercent || "" %>%</div>
+      <div class="cell label w20">GL CODE</div>
+      <div class="cell w10"><%= data.glCode || "" %></div>
+      <div class="cell label w10">SIC</div>
+      <div class="cell w20"><%= data.sicCode || "" %></div>
     </div>
     <div class="row">
-      <div class="cell label w40">OFF PREMISES INSTALLATION / SERVICE / REPAIR %</div>
-      <div class="cell w10 right"><%= data.offPremisesPercent || "" %>%</div>
-      <div class="cell label w50">DESCRIPTION OF OPERATIONS OF OTHER NAMED INSUREDS</div>
-    </div>
-    <div class="row">
-      <div class="cell w100" style="min-height: 30px;"><%= data.otherNamedInsuredsOperations || "" %></div>
-    </div>
-    <div class="row">
-      <div class="cell w100">
+      <div class="cell label w20">BUSINESS TYPE</div>
+      <div class="cell w80">
         <span class="check"><%= (data.business?.type || data.businessType) === "APARTMENTS" ? "X" : "" %></span> APARTMENTS
         <span class="check"><%= (data.business?.type || data.businessType) === "CONDOMINIUMS" ? "X" : "" %></span> CONDOMINIUMS
         <span class="check"><%= (data.business?.type || data.businessType) === "CONTRACTOR" ? "X" : "" %></span> CONTRACTOR
@@ -497,6 +474,20 @@ const money = (value) => {
         <span class="check"><%= (data.business?.type || data.businessType) === "OTHER" ? "X" : "" %></span> OTHER
       </div>
     </div>
+    <div class="row">
+      <div class="cell label w40">RETAIL STORES OR SERVICE OPERATIONS % OF TOTAL SALES</div>
+      <div class="cell w10 right"><%= data.retailPercent || "" %>%</div>
+      <div class="cell label w40">INSTALLATION, SERVICE OR REPAIR WORK</div>
+      <div class="cell w10 right"><%= data.installationPercent || "" %>%</div>
+    </div>
+    <div class="row">
+      <div class="cell label w40">OFF PREMISES INSTALLATION, SERVICE OR REPAIR WORK</div>
+      <div class="cell w10 right"><%= data.offPremisesPercent || "" %>%</div>
+      <div class="cell label w50">DESCRIPTION OF OPERATIONS OF OTHER NAMED INSUREDS</div>
+    </div>
+    <div class="row">
+      <div class="cell w100" style="min-height: 30px;"><%= data.otherNamedInsuredsOperations || "" %></div>
+    </div>
   </div>
 
   <div class="footnote">
@@ -504,9 +495,7 @@ const money = (value) => {
   </div>
 </div>
 
-<!-- =======================
-     PAGE 3
-     ======================= -->
+<!-- ====================== PAGE 3 ====================== -->
 <div class="page">
   <div class="headerbar">
     <div class="acord">ACORD</div>
@@ -514,10 +503,9 @@ const money = (value) => {
     <div class="formno">125</div>
   </div>
 
-  <!-- GENERAL INFORMATION -->
   <div class="subbar">GENERAL INFORMATION</div>
   <div class="block">
-    <!-- 1a / 1b -->
+    <!-- 1 -->
     <div class="row">
       <div class="cell label w5">1a.</div>
       <div class="cell w45">IS THE APPLICANT A SUBSIDIARY OF ANOTHER ENTITY?</div>
@@ -539,7 +527,7 @@ const money = (value) => {
       <div class="cell w5"><%= data.parentPercentOwned || data.org?.parent?.percentOwned || "" %></div>
     </div>
 
-    <!-- Subsidiary -->
+    <!-- Subsidiary (first) -->
     <div class="row">
       <div class="cell label w20">SUBSIDIARY COMPANY NAME</div>
       <div class="cell w20"><%= data.subsidiaryName || data.subsidiaries?.[0]?.name || "" %></div>
@@ -557,10 +545,10 @@ const money = (value) => {
       <div class="cell w45">IS A FORMAL SAFETY PROGRAM IN OPERATION?</div>
       <div class="cell w5"><%= yn(data.hasSafetyProgram) %></div>
       <div class="cell w45">
-        <span class="check"><%= data.safetyManual ? "X" : "" %></span> SAFETY MANUAL
-        <span class="check"><%= data.safetyPosition ? "X" : "" %></span> SAFETY POSITION
-        <span class="check"><%= data.monthlyMeetings ? "X" : "" %></span> MONTHLY MEETINGS
-        <span class="check"><%= data.osha ? "X" : "" %></span> OSHA
+        <span class="check"><%= yes(data.safetyManual) ? "X" : "" %></span> SAFETY MANUAL
+        <span class="check"><%= yes(data.safetyPosition) ? "X" : "" %></span> SAFETY POSITION
+        <span class="check"><%= yes(data.monthlyMeetings) ? "X" : "" %></span> MONTHLY MEETINGS
+        <span class="check"><%= yes(data.osha) ? "X" : "" %></span> OSHA
       </div>
     </div>
 
@@ -588,18 +576,10 @@ const money = (value) => {
       <div class="cell w15"></div>
     </div>
     <div class="row">
-      <div class="cell w20">
-        <span class="check"><%= (data.declineReason === "NON-PAYMENT") ? "X" : "" %></span> NON-PAYMENT
-      </div>
-      <div class="cell w30">
-        <span class="check"><%= (data.declineReason === "AGENT") ? "X" : "" %></span> AGENT NO LONGER REPRESENTS CARRIER
-      </div>
-      <div class="cell w25">
-        <span class="check"><%= (data.declineReason === "NON-RENEWAL") ? "X" : "" %></span> NON-RENEWAL
-      </div>
-      <div class="cell w25">
-        <span class="check"><%= (data.declineReason === "UNDERWRITING") ? "X" : "" %></span> UNDERWRITING
-      </div>
+      <div class="cell w20"><span class="check"><%= (data.declineReason === "NON-PAYMENT") ? "X" : "" %></span> NON-PAYMENT</div>
+      <div class="cell w30"><span class="check"><%= (data.declineReason === "AGENT") ? "X" : "" %></span> AGENT NO LONGER REPRESENTS CARRIER</div>
+      <div class="cell w25"><span class="check"><%= (data.declineReason === "NON-RENEWAL") ? "X" : "" %></span> NON-RENEWAL</div>
+      <div class="cell w25"><span class="check"><%= (data.declineReason === "UNDERWRITING") ? "X" : "" %></span> UNDERWRITING</div>
     </div>
 
     <!-- 6 -->
@@ -690,28 +670,33 @@ const money = (value) => {
     </div>
   </div>
 
-  <!-- ADDITIONAL INTEREST -->
   <div class="subbar">ADDITIONAL INTEREST</div>
   <div class="block">
     <div class="row">
       <div class="cell label w10">TYPE</div>
-      <div class="cell w15">
-        <span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "ADDITIONAL_INSURED") ? "X" : "" %></span> ADDITIONAL INSURED
-      </div>
-      <div class="cell w15">
-        <span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "LIENHOLDER") ? "X" : "" %></span> LIENHOLDER
-      </div>
-      <div class="cell w15">
-        <span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "LOSS_PAYEE") ? "X" : "" %></span> LOSS PAYEE
-      </div>
-      <div class="cell w15">
-        <span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "MORTGAGEE") ? "X" : "" %></span> MORTGAGEE
-      </div>
-      <div class="cell w10">
-        <span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "BREACH_WARRANTY") ? "X" : "" %></span> BREACH OF WARRANTY
-      </div>
-      <div class="cell w20">
-        <span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "LENDERS_LOSS") ? "X" : "" %></span> LENDER'S LOSS PAYABLE
+      <div class="cell w15"><span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "ADDITIONAL_INSURED") ? "X" : "" %></span> ADDITIONAL INSURED</div>
+      <div class="cell w15"><span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "LIENHOLDER") ? "X" : "" %></span> LIENHOLDER</div>
+      <div class="cell w15"><span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "LOSS_PAYEE") ? "X" : "" %></span> LOSS PAYEE</div>
+      <div class="cell w15"><span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "MORTGAGEE") ? "X" : "" %></span> MORTGAGEE</div>
+      <div class="cell w10"><span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "BREACH_WARRANTY") ? "X" : "" %></span> BREACH OF WARRANTY</div>
+      <div class="cell w20"><span class="check"><%= ((data.aiType || data.interests?.[0]?.type) === "LENDERS_LOSS") ? "X" : "" %></span> LENDER'S LOSS PAYABLE</div>
+    </div>
+
+    <div class="row ai-evidence">
+      <div class="cell label w15">EVIDENCE</div>
+      <div class="cell w85">
+        <span class="ck">
+          <span class="checkbox"><%= ((data.aiEvidence || data.interests?.[0]?.evidence) === "CERTIFICATE") ? "X" : "" %></span>
+          <span>CERTIFICATE</span>
+        </span>
+        <span class="ck">
+          <span class="checkbox"><%= ((data.aiEvidence || data.interests?.[0]?.evidence) === "POLICY") ? "X" : "" %></span>
+          <span>POLICY</span>
+        </span>
+        <span class="ck">
+          <span class="checkbox"><%= ((data.aiEvidence || data.interests?.[0]?.evidence) === "SEND_BILL") ? "X" : "" %></span>
+          <span>SEND BILL</span>
+        </span>
       </div>
     </div>
 
@@ -724,15 +709,6 @@ const money = (value) => {
       <div class="cell w20"><%= data.aiLoanNumber || data.interests?.[0]?.loanNumber || "" %></div>
     </div>
 
-    <div class="row ai-evidence">
-      <div class="cell label w15">EVIDENCE</div>
-      <div class="cell w85">
-        <span class="check"><%= ((data.aiEvidence || data.interests?.[0]?.evidence) === "CERTIFICATE") ? "X" : "" %></span> CERTIFICATE
-        <span class="check"><%= ((data.aiEvidence || data.interests?.[0]?.evidence) === "POLICY") ? "X" : "" %></span> POLICY
-        <span class="check"><%= ((data.aiEvidence || data.interests?.[0]?.evidence) === "SEND_BILL") ? "X" : "" %></span> SEND BILL
-      </div>
-    </div>
-
     <div class="row">
       <div class="cell w50"><%= data.aiAddress || data.interests?.[0]?.address || "" %></div>
       <div class="cell label w15">REFERENCE/LOAN #</div>
@@ -741,14 +717,14 @@ const money = (value) => {
 
     <div class="row">
       <div class="cell label w10">ITEM</div>
-      <div class="cell w30">
+      <div class="cell w15">
         <span class="check"><%= ((data.aiItemType || data.interests?.[0]?.itemType) === "LOCATION") ? "X" : "" %></span> LOCATION
         <span class="check"><%= ((data.aiItemType || data.interests?.[0]?.itemType) === "BUILDING") ? "X" : "" %></span> BUILDING
         <span class="check"><%= ((data.aiItemType || data.interests?.[0]?.itemType) === "VEHICLE") ? "X" : "" %></span> VEHICLE
         <span class="check"><%= ((data.aiItemType || data.interests?.[0]?.itemType) === "BOAT") ? "X" : "" %></span> BOAT
       </div>
       <div class="cell label w20">ITEM DESCRIPTION</div>
-      <div class="cell w40"><%= data.aiItemDescription || data.interests?.[0]?.itemDescription || "" %></div>
+      <div class="cell w55"><%= data.aiItemDescription || data.interests?.[0]?.itemDescription || "" %></div>
     </div>
   </div>
 
@@ -757,9 +733,7 @@ const money = (value) => {
   </div>
 </div>
 
-<!-- =======================
-     PAGE 4
-     ======================= -->
+<!-- ====================== PAGE 4 ====================== -->
 <div class="page">
   <div class="headerbar">
     <div class="acord">ACORD</div>
@@ -767,43 +741,40 @@ const money = (value) => {
     <div class="formno">125</div>
   </div>
 
-  <%
-    // ---------- LOSS HISTORY PREP ----------
-    let losses = Array.isArray(data.losses) ? data.losses.slice(0,4) : [];
-    if (!losses.length) {
-      const legacyLoss = idx => ({
-        dateOfOccurrence: data[`loss${idx}Date`] || "",
-        line:            data[`loss${idx}Line`] || "",
-        description:     data[`loss${idx}Description`] || "",
-        dateOfClaim:     data[`loss${idx}ClaimDate`] || "",
-        amountPaid:      data[`loss${idx}AmountPaid`] || "",
-        amountReserved:  data[`loss${idx}AmountReserved`] || "",
-        subrogation:     data[`loss${idx}Subrogation`],
-        open:            data[`loss${idx}Open`]
-      });
-      losses = [1,2,3,4].map(legacyLoss);
-    }
-    const lossYearsBack      = data.lossYearsBack || data.lossHistoryYears || "";
-    const totalLossesAmount  = data.totalLossesAmount || data.lossesTotal || "";
+  <% /* ---- LOSS HISTORY PREP ---- */ 
+     let losses = Array.isArray(data.losses) ? data.losses.slice(0,4) : [];
+     if (!losses.length) {
+       const legacyLoss = i => ({
+         dateOfOccurrence: data[`loss${i}Date`] || "",
+         line: data[`loss${i}Line`] || "",
+         description: data[`loss${i}Description`] || "",
+         dateOfClaim: data[`loss${i}ClaimDate`] || "",
+         amountPaid: data[`loss${i}AmountPaid`] || "",
+         amountReserved: data[`loss${i}AmountReserved`] || "",
+         subrogation: data[`loss${i}Subrogation`],
+         open: data[`loss${i}Open`]
+       });
+       losses = [1,2,3,4].map(legacyLoss);
+     }
+     const lossYearsBack = data.lossYearsBack || data.lossHistoryYears || "";
+     const totalLossesAmount = data.totalLossesAmount || data.lossesTotal || "";
 
-    // ---------- PRIOR CARRIER PREP ----------
-    const priors = Array.isArray(data.priorCarrier) ? data.priorCarrier : [];
-    const fmtMoney = v => (v || v === 0) ? money(v) : "";
-    const getPrior = (year, category) => {
-      const norm = (s) => (s || "").toUpperCase();
-      const cat = norm(category);
-      return priors.find(p => (p.year === year || p.yearIndex === year) && norm(p.category) === cat) || {};
-    };
+     /* ---- PRIOR CARRIER PREP ---- */
+     const priors = Array.isArray(data.priorCarrier) ? data.priorCarrier : [];
+     const getPrior = (year, category) => {
+       const norm = s => String(s || "").toUpperCase();
+       const cat = norm(category);
+       return priors.find(p => (p.year === year || p.yearIndex === year) && norm(p.category) === cat) || {};
+     };
   %>
 
-  <!-- LOSS HISTORY -->
   <div class="subbar">LOSS HISTORY</div>
   <div class="block">
     <div class="row">
       <div class="cell w100">
         ENTER ALL CLAIMS OR LOSSES (REGARDLESS OF FAULT AND WHETHER OR NOT INSURED) OR OCCURRENCES THAT MAY GIVE RISE TO CLAIMS<br/>
-        FOR THE LAST <span style="text-decoration: underline;"><%= String(lossYearsBack).padEnd(5, " ") %></span> YEARS
-        &nbsp;&nbsp;&nbsp;TOTAL LOSSES: $ <span style="text-decoration: underline;"><%= String(fmtMoney(totalLossesAmount)).padEnd(10, " ") %></span>
+        FOR THE LAST <span style="text-decoration: underline;"><%= pad(lossYearsBack, 5) %></span> YEARS
+        &nbsp;&nbsp;&nbsp;TOTAL LOSSES: $ <span style="text-decoration: underline;"><%= pad(money(totalLossesAmount), 10) %></span>
       </div>
     </div>
     <div class="row">
@@ -817,14 +788,14 @@ const money = (value) => {
       <div class="cell label w5 center">CLAIM<br/>OPEN<br/>Y/N</div>
     </div>
 
-    <% (losses || []).forEach(function(L){ %>
+    <% losses.forEach(function(L){ %>
       <div class="row">
         <div class="cell w15"><%= L.dateOfOccurrence || "" %></div>
         <div class="cell w10"><%= L.line || "" %></div>
         <div class="cell w35"><%= L.description || "" %></div>
         <div class="cell w15"><%= L.dateOfClaim || "" %></div>
-        <div class="cell w10 right">$<%= fmtMoney(L.amountPaid) %></div>
-        <div class="cell w10 right">$<%= fmtMoney(L.amountReserved) %></div>
+        <div class="cell w10 right">$<%= money(L.amountPaid) %></div>
+        <div class="cell w10 right">$<%= money(L.amountReserved) %></div>
         <div class="cell w5 center"><%= yn(L.subrogation) %></div>
         <div class="cell w5 center"><%= yn(L.open) %></div>
       </div>
@@ -832,12 +803,12 @@ const money = (value) => {
 
     <div class="row">
       <div class="cell w100">
-        <span class="check"><%= data.noLosses ? "X" : "" %></span> Check if none (Attach Loss Summary for Additional Loss Information)
+        <span class="check"><%= yes(data.noLosses) ? "X" : "" %></span>
+        Check if none (Attach Loss Summary for Additional Loss Information)
       </div>
     </div>
   </div>
 
-  <!-- PRIOR CARRIER INFORMATION -->
   <div class="subbar">PRIOR CARRIER INFORMATION (3 YEARS)</div>
   <div class="block">
     <div class="row">
@@ -851,19 +822,17 @@ const money = (value) => {
     </div>
 
     <% [1,2,3].forEach(function(Y){ 
-         const gl   = getPrior(Y,"GL");
+         const gl = getPrior(Y,"GL");
          const auto = getPrior(Y,"AUTO");
          const prop = getPrior(Y,"PROPERTY");
-         const oth  = getPrior(Y,"OTHER");
+         const oth = getPrior(Y,"OTHER");
     %>
       <!-- Year <%= Y %> - GL -->
       <div class="row" style="<%= Y>1 ? 'border-top: 2px solid #000;' : '' %>">
-        <div class="cell w15">
-          <span class="check"><%= gl.category ? "X" : "" %></span> GENERAL LIABILITY
-        </div>
+        <div class="cell w15"><span class="check"><%= gl.category ? "X" : "" %></span> GENERAL LIABILITY</div>
         <div class="cell w25"><%= gl.carrier || "" %></div>
         <div class="cell w15"><%= gl.policyNumber || "" %></div>
-        <div class="cell w10 right">$<%= fmtMoney(gl.premium) %></div>
+        <div class="cell w10 right">$<%= money(gl.premium) %></div>
         <div class="cell w10"><%= gl.effectiveDate || "" %></div>
         <div class="cell w10"><%= gl.expirationDate || "" %></div>
         <div class="cell w15 center"><%= Y %></div>
@@ -871,12 +840,10 @@ const money = (value) => {
 
       <!-- AUTO -->
       <div class="row">
-        <div class="cell w15">
-          <span class="check"><%= auto.category ? "X" : "" %></span> AUTOMOBILE
-        </div>
+        <div class="cell w15"><span class="check"><%= auto.category ? "X" : "" %></span> AUTOMOBILE</div>
         <div class="cell w25"><%= auto.carrier || "" %></div>
         <div class="cell w15"><%= auto.policyNumber || "" %></div>
-        <div class="cell w10 right">$<%= fmtMoney(auto.premium) %></div>
+        <div class="cell w10 right">$<%= money(auto.premium) %></div>
         <div class="cell w10"><%= auto.effectiveDate || "" %></div>
         <div class="cell w10"><%= auto.expirationDate || "" %></div>
         <div class="cell w15"></div>
@@ -884,12 +851,10 @@ const money = (value) => {
 
       <!-- PROPERTY -->
       <div class="row">
-        <div class="cell w15">
-          <span class="check"><%= prop.category ? "X" : "" %></span> PROPERTY
-        </div>
+        <div class="cell w15"><span class="check"><%= prop.category ? "X" : "" %></span> PROPERTY</div>
         <div class="cell w25"><%= prop.carrier || "" %></div>
         <div class="cell w15"><%= prop.policyNumber || "" %></div>
-        <div class="cell w10 right">$<%= fmtMoney(prop.premium) %></div>
+        <div class="cell w10 right">$<%= money(prop.premium) %></div>
         <div class="cell w10"><%= prop.effectiveDate || "" %></div>
         <div class="cell w10"><%= prop.expirationDate || "" %></div>
         <div class="cell w15"></div>
@@ -897,12 +862,10 @@ const money = (value) => {
 
       <!-- OTHER -->
       <div class="row">
-        <div class="cell w15">
-          <span class="check"><%= oth.category ? "X" : "" %></span> OTHER: <%= oth.otherType || oth.type || "" %>
-        </div>
+        <div class="cell w15"><span class="check"><%= oth.category ? "X" : "" %></span> OTHER: <%= oth.otherType || oth.type || "" %></div>
         <div class="cell w25"><%= oth.carrier || "" %></div>
         <div class="cell w15"><%= oth.policyNumber || "" %></div>
-        <div class="cell w10 right">$<%= fmtMoney(oth.premium) %></div>
+        <div class="cell w10 right">$<%= money(oth.premium) %></div>
         <div class="cell w10"><%= oth.effectiveDate || "" %></div>
         <div class="cell w10"><%= oth.expirationDate || "" %></div>
         <div class="cell w15"></div>
@@ -910,7 +873,6 @@ const money = (value) => {
     <% }) %>
   </div>
 
-  <!-- REMARKS -->
   <div class="subbar">REMARKS / PROCESSING INSTRUCTIONS (ACORD 101 MAY BE ATTACHED IF MORE SPACE IS REQUIRED)</div>
   <div class="block">
     <div class="row">
@@ -923,9 +885,7 @@ const money = (value) => {
   </div>
 </div>
 
-<!-- =======================
-     PAGE 5
-     ======================= -->
+<!-- ====================== PAGE 5 ====================== -->
 <div class="page">
   <div class="headerbar">
     <div class="acord">ACORD</div>
@@ -933,7 +893,6 @@ const money = (value) => {
     <div class="formno">125</div>
   </div>
 
-  <!-- SIGNATURE -->
   <div class="subbar">SIGNATURE</div>
   <div class="block">
     <div class="row">
@@ -946,9 +905,7 @@ const money = (value) => {
 
     <div class="row">
       <div class="cell label w20">PRODUCER'S SIGNATURE</div>
-      <div class="cell w35" style="border-bottom: 1px solid #000;">
-        <%= data.producerSignatureName || data.producerSignerName || "" %>
-      </div>
+      <div class="cell w35" style="border-bottom: 1px solid #000;"><%= data.producerSignatureName || data.producerSignerName || "" %></div>
       <div class="cell label w20">PRODUCER'S NAME (PLEASE PRINT)</div>
       <div class="cell w25"><%= data.producerPrintedName || data.producerContact || "" %></div>
     </div>
@@ -961,103 +918,152 @@ const money = (value) => {
     </div>
 
     <div class="row">
-      <div class="cell label w20">APPLICANT'S SIGNATURE</div>
-      <div class="cell w35" style="border-bottom: 1px solid #000;">
-        <%= data.applicantSignatureName || data.namedInsured?.legalName || data.applicantName || data.applicant_name || "" %>
-      </div>
-      <div class="cell label w10">DATE</div>
-      <div class="cell w35"><%= data.signatureDate || data.date || "" %></div>
+      <div class="cell label w30">APPLICANT’S SIGNATURE</div>
+      <div class="cell w40">&nbsp;</div>
+      <div class="cell label w15">DATE</div>
+      <div class="cell w15"><%= data.signatureDate || formatDate(data.date) || "" %></div>
     </div>
   </div>
 
-  <!-- SC NOTICE -->
   <div class="subbar">NOTICE REGARDING CANCELLATION APPLICABLE IN SOUTH CAROLINA</div>
   <div class="block">
     <div class="row">
-      <div class="cell w100" style="font-size: 7pt; padding: 5px;">
+      <div class="cell w100 small legal wrap">
         THE INSURER CAN CANCEL THIS POLICY FOR WHICH YOU ARE APPLYING WITHOUT CAUSE DURING THE FIRST 120 DAYS. THAT IS THE INSURER'S CHOICE. 
         AFTER THE FIRST 120 DAYS, THE INSURER CAN ONLY CANCEL THIS POLICY FOR REASONS STATED IN THE POLICY.
       </div>
     </div>
   </div>
 
-  <!-- PRIVACY NOTICE -->
   <div class="block">
     <div class="row">
-      <div class="cell w100" style="font-size: 7pt; padding: 5px;">
+      <div class="cell w100 small legal wrap">
         <strong>Copy of the Notice of Information Practices (Privacy) has been given to the applicant.</strong>
         (Not required in all states. Check your state's requirements.)
       </div>
     </div>
   </div>
 
-  <!-- FRAUD WARNINGS -->
-  <div class="block">
+  <!-- Fraud / state warnings block (kept dense but readable) -->
+  <div class="block small">
     <div class="row">
-      <div class="cell w100 legal wrap preline no-break">
-        <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong> Any person who knowingly (or willfully)* presents a false or fraudulent 
-        claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is 
-        guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.<br/><br/>
-        
-        <strong>Applicable in CA:</strong> For your protection, California law requires the following to appear on this form: Any person who 
-        knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss 
-        is guilty of a crime and may be subject to fines and confinement in state prison.<br/><br/>
-        
-        <strong>Applicable in CO:</strong> It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an 
-        insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial 
-        of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or 
-        misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder 
-        or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance 
-        within the Department of Regulatory Agencies.<br/><br/>
-        
-        <strong>Applicable in DC:</strong> WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of 
-        defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance 
-        benefits if false information materially related to a claim was provided by the applicant.<br/><br/>
-        
-        <strong>Applicable in FL and OK:</strong> Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a 
-        statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third 
-        degree)*. *Applies in FL Only.<br/><br/>
-        
-        <strong>Applicable in KS:</strong> Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares 
-        with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, 
-        electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an 
-        application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or 
-        other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false 
-        information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material 
-        thereto commits a fraudulent insurance act.<br/><br/>
-        
-        <strong>Applicable in KY, OH and PA:</strong> Any person who knowingly and with intent to defraud any insurance company or other person 
-        files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of 
-        misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such 
-        person to criminal and civil penalties.<br/><br/>
-        
-        <strong>Applicable in ME, TN, VA and WA:</strong> It is a crime to knowingly provide false, incomplete or misleading information to an 
-        insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance 
-        benefits. *Applies in ME Only.<br/><br/>
-        
-        <strong>Applicable in NJ:</strong> Any person who includes any false or misleading information on an application for an insurance policy 
-        is subject to criminal and civil penalties.<br/><br/>
-        
-        <strong>Applicable in NY:</strong> Any person who knowingly and with intent to defraud any insurance company or other person files an 
-        application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, 
-        information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a 
-        civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.<br/><br/>
-        
-        <strong>Applicable in OR:</strong> Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by 
-        submitting an application containing a false statement as to any material fact may be violating state law.<br/><br/>
-        
-        <strong>Applicable in PR:</strong> Any person who knowingly and with the intention of defrauding presents false information in an 
-        insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other 
-        benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned 
-        for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a 
-        fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus 
-        established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum 
-        of two (2) years.
+      <div class="cell w100 legal wrap">
+        <!-- ===== STATE FRAUD NOTICES (ACORD 125 Signature Page) ===== -->
+<div class="subbar">STATE FRAUD NOTICES</div>
+<div class="block small">
+  <div class="row">
+    <div class="cell w100 legal wrap no-break">
+      <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong>
+      Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.
+      <br/><br/>
+
+      <strong>Applicable in CA:</strong>
+      For your protection, California law requires the following to appear on this form: Any person who knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.
+      <br/><br/>
+
+      <strong>Applicable in CO:</strong>
+      It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.
+      <br/><br/>
+
+      <strong>Applicable in DC:</strong>
+      WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance benefits if false information materially related to a claim was provided by the applicant.
+      <br/><br/>
+
+      <strong>Applicable in FL and OK:</strong>
+      Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in FL Only.
+      <br/><br/>
+
+      <strong>Applicable in KS:</strong>
+      Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.
+      <br/><br/>
+
+      <strong>Applicable in KY, OH and PA:</strong>
+      Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties.
+      <br/><br/>
+
+      <strong>Applicable in ME, TN, VA and WA:</strong>
+      It is a crime to knowingly provide false, incomplete or misleading information to an insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance benefits. *Applies in ME Only.
+      <br/><br/>
+
+      <strong>Applicable in NJ:</strong>
+      Any person who includes any false or misleading information on an application for an insurance policy is subject to criminal and civil penalties.
+      <br/><br/>
+
+      <strong>Applicable in NY:</strong>
+      Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.
+      <br/><br/>
+
+      <strong>Applicable in OR:</strong>
+      Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by submitting an application containing a false statement as to any material fact may be violating state law.
+      <br/><br/>
+
+      <strong>Applicable in PR:</strong>
+      Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum of two (2) years.
+    </div>
+  </div>
+</div>
+<!-- ===== END STATE FRAUD NOTICES ===== -->
+<!-- ===== STATE FRAUD NOTICES (ACORD 125 Signature Page) ===== -->
+<div class="subbar">STATE FRAUD NOTICES</div>
+<div class="block small">
+  <div class="row">
+    <div class="cell w100 legal wrap no-break">
+      <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong>
+      Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.
+      <br/><br/>
+
+      <strong>Applicable in CA:</strong>
+      For your protection, California law requires the following to appear on this form: Any person who knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.
+      <br/><br/>
+
+      <strong>Applicable in CO:</strong>
+      It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.
+      <br/><br/>
+
+      <strong>Applicable in DC:</strong>
+      WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance benefits if false information materially related to a claim was provided by the applicant.
+      <br/><br/>
+
+      <strong>Applicable in FL and OK:</strong>
+      Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in FL Only.
+      <br/><br/>
+
+      <strong>Applicable in KS:</strong>
+      Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.
+      <br/><br/>
+
+      <strong>Applicable in KY, OH and PA:</strong>
+      Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties.
+      <br/><br/>
+
+      <strong>Applicable in ME, TN, VA and WA:</strong>
+      It is a crime to knowingly provide false, incomplete or misleading information to an insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance benefits. *Applies in ME Only.
+      <br/><br/>
+
+      <strong>Applicable in NJ:</strong>
+      Any person who includes any false or misleading information on an application for an insurance policy is subject to criminal and civil penalties.
+      <br/><br/>
+
+      <strong>Applicable in NY:</strong>
+      Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.
+      <br/><br/>
+
+      <strong>Applicable in OR:</strong>
+      Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by submitting an application containing a false statement as to any material fact may be violating state law.
+      <br/><br/>
+
+      <strong>Applicable in PR:</strong>
+      Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum of two (2) years.
+    </div>
+  </div>
+</div>
+<!-- ===== END STATE FRAUD NOTICES ===== -->
+
+        <%= data.stateFraudNotices || "" %>
       </div>
     </div>
   </div>
 
-  <!-- AGENCY CUSTOMER ID -->
   <div class="block">
     <div class="row">
       <div class="cell label w20">AGENCY CUSTOMER ID</div>
