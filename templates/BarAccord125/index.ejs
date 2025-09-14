@@ -264,6 +264,7 @@ const money = (value) => {
     </div>
   </div>
 </div>
+
 <div class="block compact">
   <div class="row">…</div>
 </div>
@@ -485,28 +486,40 @@ const money = (value) => {
 </div>
 
 
-  <!-- Nature of Business -->
   <div class="subbar">NATURE OF BUSINESS</div>
-       <div class="block compact small">
-       <div class="row">
-       <div class="cell label w25">NATURE OF BUSINESS</div>
-       <div class="cell w75 wrap-tight"><%= data.nature_of_business || "" %></div>
-       </div>
-       <!-- Add wrap/wrap-tight to any long description cells -->
+<div class="block">
+  <div class="row">
+    <div class="cell label w40">DESCRIPTION OF PRIMARY OPERATIONS</div>
+    <div class="cell w60 wrap"><%= data.primaryOperations || data.business?.description || data.businessDescription || "" %></div>
   </div>
-        <span class="check"><%= (data.business?.type || data.businessType) === "APARTMENTS" ? "X" : "" %></span> APARTMENTS
-        <span class="check"><%= (data.business?.type || data.businessType) === "CONDOMINIUMS" ? "X" : "" %></span> CONDOMINIUMS
-        <span class="check"><%= (data.business?.type || data.businessType) === "CONTRACTOR" ? "X" : "" %></span> CONTRACTOR
-        <span class="check"><%= (data.business?.type || data.businessType) === "INSTITUTIONAL" ? "X" : "" %></span> INSTITUTIONAL
-        <span class="check"><%= (data.business?.type || data.businessType) === "MANUFACTURING" ? "X" : "" %></span> MANUFACTURING
-        <span class="check"><%= (data.business?.type || data.businessType) === "OFFICE" ? "X" : "" %></span> OFFICE
-        <span class="check"><%= (data.business?.type || data.businessType) === "RESTAURANT" ? "X" : "" %></span> RESTAURANT
-        <span class="check"><%= (data.business?.type || data.businessType) === "RETAIL" ? "X" : "" %></span> RETAIL
-        <span class="check"><%= (data.business?.type || data.businessType) === "SERVICE" ? "X" : "" %></span> SERVICE
-        <span class="check"><%= (data.business?.type || data.businessType) === "WHOLESALE" ? "X" : "" %></span> WHOLESALE
-        <span class="check"><%= (data.business?.type || data.businessType) === "OTHER" ? "X" : "" %></span> OTHER
-      </div>
+
+  <div class="row">
+    <div class="cell label w20">DATE BUSINESS STARTED</div>
+    <div class="cell w20"><%= data.business?.startDate || data.businessStartDate || "" %></div>
+    <div class="cell label w20">GL CODE</div>
+    <div class="cell w10"><%= data.glCode || "" %></div>
+    <div class="cell label w10">SIC</div>
+    <div class="cell w20"><%= data.sicCode || "" %></div>
+  </div>
+
+  <div class="row">
+    <div class="cell label w20">BUSINESS TYPE</div>
+    <div class="cell w80">
+      <span class="check"><%= (data.business?.type || data.businessType) === "APARTMENTS" ? "X" : "" %></span> APARTMENTS
+      <span class="check"><%= (data.business?.type || data.businessType) === "CONDOMINIUMS" ? "X" : "" %></span> CONDOMINIUMS
+      <span class="check"><%= (data.business?.type || data.businessType) === "CONTRACTOR" ? "X" : "" %></span> CONTRACTOR
+      <span class="check"><%= (data.business?.type || data.businessType) === "INSTITUTIONAL" ? "X" : "" %></span> INSTITUTIONAL
+      <span class="check"><%= (data.business?.type || data.businessType) === "MANUFACTURING" ? "X" : "" %></span> MANUFACTURING
+      <span class="check"><%= (data.business?.type || data.businessType) === "OFFICE" ? "X" : "" %></span> OFFICE
+      <span class="check"><%= (data.business?.type || data.businessType) === "RESTAURANT" ? "X" : "" %></span> RESTAURANT
+      <span class="check"><%= (data.business?.type || data.businessType) === "RETAIL" ? "X" : "" %></span> RETAIL
+      <span class="check"><%= (data.business?.type || data.businessType) === "SERVICE" ? "X" : "" %></span> SERVICE
+      <span class="check"><%= (data.business?.type || data.businessType) === "WHOLESALE" ? "X" : "" %></span> WHOLESALE
+      <span class="check"><%= (data.business?.type || data.businessType) === "OTHER" ? "X" : "" %></span> OTHER
     </div>
+  </div>
+</div>
+
     <div class="row">
       <div class="cell label w20">DATE BUSINESS STARTED</div>
       <div class="cell w20"><%= data.business?.startDate || data.businessStartDate || "" %></div>
