@@ -1,193 +1,676 @@
-<!doctype html>
+<%
+/* ===== Shared Helpers & Defaults (same guts as 125/126) ===== */
+const defaults = {
+  // Producer / Agency defaults
+  producerName: "All Access Ins, dba Commercial Insurance Direct LLC",
+  producerAddress1: "9200 W Cross Drive #515",
+  producerAddress2: "Littleton, CO 80123",
+  producerContact: "Rick Cline or Gerry Jones",
+  producerPhone: "(555) 123-4567",
+  producerFax: "(555) 123-4568",
+  producerEmail: "quote@barinsurancedirect.com",
+
+  // Dates / meta
+  date: "09/11/2025",
+  effectiveDate: "09/11/2025",
+  carrier: "",
+  naicCode: "",
+  policyNumber: "",
+  agencyCustomerId: "",
+
+  // Applicant
+  applicant_name: "",
+  premises_name: "", // DBA or premises descriptor
+
+  // Location / Building
+  premisesNumber: "1",
+  buildingNumber: "1",
+  streetAddress: "",
+  city: "",
+  state: "",
+  zip: "",
+  bldgDescription: "",
+  yearBuilt: "",
+  numberOfStories: "",
+  squareFootage: "",
+  constructionType: "",     // FRAME, JM, MNC, MFR, etc (free text ok)
+  distanceToHydrantFt: "",
+  distanceToFireStationMi: "",
+  protectionClass: "",
+  otherOccupancies: "",
+  roofType: "",
+  windClass: "",
+  taxCode: "",
+  bldgCode: "",
+  semiResistive: false,
+  resistive: false,
+
+  // Alarms & Protection
+  automaticSprinkler: false,
+  sprinklerPercent: "",
+  fireAlarm_local: false,
+  fireAlarm_gong: false,
+  fireAlarm_central: false,
+  fireAlarm_station: false,
+  fireAlarmManufacturer: "",
+  premisesFireProtection: "",  // sprinklers/standpipes/CO2/Chem text
+
+  burglarAlarmType: "",
+  burglarAlarmCert: "",
+  burglarAlarmCertExp: "",
+  burglarAlarmInstalledBy: "",
+  burglarAlarmWithKeys: false,
+  guardsWatchmen: "",
+  clockHourly: false,
+
+  // Improvements
+  improvements_heatingYear: "",
+  improvements_plumbingYear: "",
+  improvements_wiringYear: "",
+  improvements_roofingYear: "",
+  improvements_otherDesc: "",
+  improvements_otherYear: "",
+
+  // Heating / Boiler / Solid Fuel
+  primaryHeat: "",
+  secondaryHeat: "",
+  boilerPresent: false,
+  boilerInsuredElsewhere: null,  // Y/N
+  solidFuelPrimary: false,
+  solidFuelSecondary: false,
+
+  // Custom BBQ / Smoker safety questions (from “Need fixin”)
+  hasSmokerWithin10ft: "",
+  smokerProfessionallyInstalled: "",
+  smokerRegularlyMaintained: "",
+  smokerCleanedScrapedWeekly: "",
+  smokerAshesRemovedDaily: "",
+  smokerVentCleanedMonthly: "",
+  smokerFuelStoredAway: "",
+  hoodSystemUL300: "",
+  extinguisherClassK_2A_20ft: "",
+
+  // Exposures
+  frontExposure: "",
+  frontDistance: "",
+  rearExposure: "",
+  rearDistance: "",
+  leftExposure: "",
+  leftDistance: "",
+  rightExposure: "",
+  rightDistance: "",
+  openSidesOnStructure: "",
+
+  // Coverages table rows
+  coverages: [
+    // {
+    //   subject: "Building",
+    //   amount: "500,000",
+    //   coinsPct: "80",
+    //   valuation: "RC",
+    //   causesOfLoss: "SP, B, S, T",
+    //   inflationGuardPct: "",
+    //   deductibleType: "", // "PER OCC", "PER ITEM", etc
+    //   deductible: "1,000",
+    //   blktNo: "",
+    //   formsConditions: "CP 10 30, CP 00 10"
+    // }
+  ],
+
+  // Spoilage (Options)
+  spoilage_covered: "", // Y/N
+  spoilage_description: "",
+  spoilage_limit: "",
+  spoilage_deductible: "",
+  spoilage_powerOutage: "", // Y/N
+  spoilage_breakdownOrContam: "", // Y/N
+  spoilage_refrigMaintAgreement: "", // Y/N
+
+  // Sinkhole / Mine Subsidence
+  sinkhole_accept: "",    // ACCEPT/REJECT
+  sinkhole_limit: "",
+  mineSubsidence_accept: "", // ACCEPT/REJECT
+  mineSubsidence_limit: "",
+
+  // Value Reporting & BI/EE
+  businessIncomeExtraExpenseAttached: false,
+  valueReportingAttached: false,
+  additionalCoveragesEtc: "",
+
+  // Additional Interest
+  interests: [
+    // {
+    //   type:"MORTGAGEE|LOSS_PAYEE|LENDERS_LOSS|ADDITIONAL_INSURED|LIENHOLDER",
+    //   name:"", address:"", rank:"", loanNumber:"",
+    //   classItem:"", item:"", itemDescription:"",
+    //   interestItemNumber:"", location:"", building:""
+    // }
+  ],
+
+  remarks: ""
+};
+
+const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
+
+// ===== Helpers (same as 125/126) =====
+const yes = (v) => ["yes","true","1","on","checked","y"].includes(String(v ?? "").toLowerCase()) || v === true || v === 1;
+const yn = (v) => (v===null||v===undefined||v==="") ? "" : (yes(v) ? "Y" : "N");
+const money = (v, opts={min:0,max:0}) => {
+  if (v === null || v === undefined || v === "") return "";
+  const n = Number(String(v).toString().replace(/[^0-9.-]/g,""));
+  if (Number.isNaN(n)) return String(v);
+  return n.toLocaleString("en-US", { minimumFractionDigits: opts.min, maximumFractionDigits: opts.max });
+};
+const moneyUSD = (v) => money(v);
+const pad = (s, n) => String(s ?? "").padEnd(n, " ");
+const formatDate = (d) => {
+  try {
+    if (!d) return "";
+    const dt = new Date(d);
+    if (Number.isNaN(dt.getTime())) return String(d);
+    const mm = String(dt.getMonth()+1).padStart(2,"0");
+    const dd = String(dt.getDate()).padStart(2,"0");
+    const yyyy = dt.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
+  } catch { return String(d ?? ""); }
+};
+%>
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>ACORD 140 – Property Section</title>
-  <!-- Injected CSS from styles.css via pdf.js -->
-  <style><%= styles %></style>
+  <title>ACORD 140 - Property Section</title>
+  <style>
+    /* ===== Same layout system as 125/126 ===== */
+    @media print { @page { margin: 0.25in; size: letter; } .page { page-break-after: always; } .page:last-child { page-break-after: auto; } }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; font-size: 8pt; line-height: 1.1; background: #fff; color: #000; }
+    .page { width: 100%; min-height: 10.5in; padding: 0.125in; border: 1px solid #ccc; position: relative; }
+    .headerbar { display:flex; border:2px solid #000; background:#fff; margin-bottom:2px; align-items:center; height:40px; }
+    .headerbar .acord, .headerbar .formno { background:#000; color:#fff; font-weight:bold; font-size:16pt; width:60px; text-align:center; height:100%; display:flex; align-items:center; justify-content:center; }
+    .headerbar .acord { width:80px; }
+    .headerbar .title { flex:1; font-weight:bold; font-size:12pt; text-align:center; padding:0 10px; }
+    .subbar { background:#000; color:#fff; font-weight:bold; font-size:9pt; padding:3px 8px; margin:2px 0; text-align:left; }
+    .block { border:1px solid #000; margin-bottom:2px; }
+    .row { display:flex; border-bottom:1px solid #000; min-height:18px; }
+    .row:last-child { border-bottom:none; }
+    .cell { border-right:1px solid #000; padding:1px 3px; display:flex; align-items:center; overflow-wrap:break-word; }
+    .cell:last-child { border-right:none; }
+    .cell.label { background:#f0f0f0; font-weight:bold; font-size:6.5pt; }
+    .cell.center { justify-content:center; text-align:center; }
+    .cell.right { justify-content:flex-end; text-align:right; }
+    .cell.wrap { flex-wrap:wrap; align-items:flex-start; }
+    .cell.small { font-size:7pt; }
+    .cell.legal { font-size:6pt; line-height:1.2; }
+    .w5{width:5%}.w7{width:7%}.w8{width:8%}.w10{width:10%}.w12{width:12%}.w15{width:15%}.w18{width:18%}.w20{width:20%}.w22{width:22%}.w25{width:25%}.w28{width:28%}.w30{width:30%}.w33{width:33%}.w35{width:35%}.w40{width:40%}.w45{width:45%}.w50{width:50%}.w55{width:55%}.w60{width:60%}.w65{width:65%}.w70{width:70%}.w75{width:75%}.w80{width:80%}.w85{width:85%}.w90{width:90%}.w95{width:95%}.w100{width:100%}
+    .check { display:inline-block; width:10px; height:10px; border:1px solid #000; text-align:center; line-height:8px; font-size:8pt; margin-right:5px; vertical-align:middle; }
+    .check-xs { width:8px; height:8px; font-size:6pt; line-height:6px; }
+    .checkbox { display:inline-block; width:8px; height:8px; border:1px solid #000; text-align:center; line-height:6px; font-size:6pt; margin-right:3px; vertical-align:middle; }
+    .footnote { position:absolute; bottom:0.125in; left:0.125in; right:0.125in; font-size:6pt; border-top:1px solid #000; padding-top:2px; text-align:center; }
+    .no-break { page-break-inside: avoid; }
+    @media screen { .page{margin-bottom:20px; box-shadow:0 0 10px rgba(0,0,0,.1)} }
+  </style>
 </head>
 <body>
-  <!-- ===== PAGE 1 ===== -->
-  <div class="page">
-    <div class="headerbar">
-      <div class="acord">ACORD</div>
-      <div class="title">PROPERTY SECTION</div>
-      <div class="formno">140</div>
+
+<!-- ====================== PAGE 1 ====================== -->
+<div class="page">
+  <div class="headerbar">
+    <div class="acord">ACORD</div>
+    <div class="title">PROPERTY SECTION</div>
+    <div class="formno">140</div>
+  </div>
+
+  <div class="subbar">APPLICANT / POLICY</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w15">AGENCY</div>
+      <div class="cell w35 wrap">
+        <%= data.producerName %><br/>
+        <%= data.producerAddress1 %><br/>
+        <%= data.producerAddress2 %>
+      </div>
+      <div class="cell label w15">AGENCY CUSTOMER ID</div>
+      <div class="cell w15"><%= data.agencyCustomerId || "" %></div>
+      <div class="cell label w10">DATE (MM/DD/YYYY)</div>
+      <div class="cell w10"><%= data.date %></div>
     </div>
-
-    <!-- Location -->
-    <div class="subbar">LOCATION</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w25">APPLICANT</div>
-        <div class="cell w75"><%= data.applicant_name || data.named_insured || "" %></div>
+    <div class="row">
+      <div class="cell label w20">NAMED INSURED(S)</div>
+      <div class="cell w40 wrap">
+        <%= data.applicant_name || "" %><br/>
+        <%= data.premises_name || "" %>
       </div>
-      <div class="row">
-        <div class="cell label w25">PREMISES / DBA</div>
-        <div class="cell w75"><%= data.premises_name || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w25">ADDRESS</div>
-        <div class="cell w75">
-          <%= join([
-                data.premise_address || data.location_address,
-                join([data.premise_city || data.location_city,
-                      data.premise_state || data.location_state,
-                      data.premise_zip || data.location_zip])
-              ]) %>
-        </div>
-      </div>
+      <div class="cell label w10">CARRIER</div>
+      <div class="cell w10"><%= data.carrier %></div>
+      <div class="cell label w10">NAIC CODE</div>
+      <div class="cell w10"><%= data.naicCode %></div>
     </div>
-
-    <!-- Building -->
-    <div class="subbar">BUILDING</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w20">YEAR BUILT</div>
-        <div class="cell w15"><%= data.year_built || "" %></div>
-        <div class="cell label w20"># STORIES</div>
-        <div class="cell w15"><%= data.number_of_stories || "" %></div>
-        <div class="cell label w15">SQ FT</div>
-        <div class="cell w15 right"><%= data.square_footage || data.total_area_sqft || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w20">CONSTRUCTION</div>
-        <div class="cell w30"><%= data.construction_type || "" %></div>
-        <div class="cell label w20">PROTECTION CLASS</div>
-        <div class="cell w30"><%= data.protection_class || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w25">AUTOMATIC SPRINKLER</div>
-        <div class="cell w25">
-          <span class="check"><%= isYes(data.automatic_sprinkler) ? "✓" : "" %></span> Yes
-        </div>
-        <div class="cell label w25">CENTRAL STATION ALARM</div>
-        <div class="cell w25">
-          <span class="check"><%= isYes(data.central_station_alarm) ? "✓" : "" %></span> Yes
-        </div>
-      </div>
-    </div>
-
-    <!-- Coverages & Limits -->
-    <div class="subbar">COVERAGES & LIMITS</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w20">BUILDING</div>
-        <div class="cell w30 right"><%= money(data.building_limit) %></div>
-        <div class="cell label w20">BPP</div>
-        <div class="cell w30 right"><%= money(data.business_personal_property || data.bpp_limit) %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w20">BUSINESS INCOME</div>
-        <div class="cell w30 right"><%= money(data.business_income_limit || data.bi_limit) %></div>
-        <div class="cell label w20">CAUSE OF LOSS</div>
-        <div class="cell w30"><%= data.cause_of_loss || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w20">DEDUCTIBLE</div>
-        <div class="cell w30"><%= data.deductible || "" %></div>
-        <div class="cell label w20">COINSURANCE</div>
-        <div class="cell w30"><%= data.coinsurance || "" %></div>
-      </div>
-    </div>
-
-    <!-- Solid Fuel / Grill Q&A -->
-    <div class="subbar">SOLID FUEL / SMOKER – WITHIN 10 FT OF BUILDING</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w55">
-          Do you have a non-gas Smoker/Grill (wood, pellets, etc) within 10 feet of the building?
-        </div>
-        <div class="cell w45"><%= yn(data.solid_fuel) %></div>
-      </div>
-
-      <% if (isYes(data.solid_fuel)) { %>
-        <div class="row">
-          <div class="cell label w40">• Professionally installed?</div>
-          <div class="cell w10"><%= yn(data.professionally_installed) %></div>
-          <div class="cell label w35">• Regularly maintained?</div>
-          <div class="cell w15"><%= yn(data.regularly_maintained) %></div>
-        </div>
-
-        <div class="row">
-          <div class="cell label w33">• Cleaned & scraped weekly</div>
-          <div class="cell w10"><span class="check"><%= isYes(data.cleaned_scraped_weekly) ? "✓" : "" %></span></div>
-          <div class="cell label w33">• Vent/exhaust cleaned monthly</div>
-          <div class="cell w10"><span class="check"><%= isYes(data.vent_cleaned_monthly) ? "✓" : "" %></span></div>
-          <div class="cell label w13">• Ashes removed daily</div>
-          <div class="cell w10"><span class="check"><%= isYes(data.ashes_removed_daily) ? "✓" : "" %></span></div>
-        </div>
-
-        <div class="row">
-          <div class="cell label w55">
-            Other than the day’s supply, is fuel (wood/pellets) stored more than 10 ft from the cooker?
-          </div>
-          <div class="cell w45"><%= yn(data.storage_10_feet) %></div>
-        </div>
-
-        <div class="row">
-          <div class="cell label w40">Hood system + UL 300 extinguishing system present?</div>
-          <div class="cell w15"><%= yn(data.hood_ul300) %></div>
-          <div class="cell label w35">Class K or 2A extinguisher within 20 ft?</div>
-          <div class="cell w10"><%= yn(data.fire_extinguisher_20_feet) %></div>
-        </div>
-      <% } %>
+    <div class="row">
+      <div class="cell label w20">POLICY NUMBER</div>
+      <div class="cell w20"><%= data.policyNumber %></div>
+      <div class="cell label w20">EFFECTIVE DATE</div>
+      <div class="cell w20"><%= data.effectiveDate %></div>
+      <div class="cell label w10">ATTACH TO</div>
+      <div class="cell w10">ACORD 125</div>
     </div>
   </div>
 
-  <!-- ===== PAGE 2 ===== -->
-  <div class="page pagebreak">
-    <div class="headerbar">
-      <div class="acord">ACORD</div>
-      <div class="title">PROPERTY SECTION</div>
-      <div class="formno">140</div>
+  <div class="subbar">PREMISES INFORMATION</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w10">PREMISES #</div>
+      <div class="cell w10"><%= data.premisesNumber %></div>
+      <div class="cell label w10">BUILDING #</div>
+      <div class="cell w10"><%= data.buildingNumber %></div>
+      <div class="cell label w15">STREET ADDRESS</div>
+      <div class="cell w45 wrap"><%= data.streetAddress %></div>
     </div>
-
-    <!-- Additional Interests (simple 1-up) -->
-    <div class="subbar">ADDITIONAL INTERESTS / LENDER’S LOSS PAYABLE</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w20">INTEREST</div>
-        <div class="cell w20"><%= data.ai_interest_type || "" %></div>
-        <div class="cell label w20">NAME</div>
-        <div class="cell w40"><%= data.ai_name_1 || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w20">ADDRESS</div>
-        <div class="cell w80">
-          <%= join([ data.ai_address_1, join([data.ai_city_1, data.ai_state_1, data.ai_zip_1]) ]) %>
-        </div>
-      </div>
-      <!-- Duplicate block(s) as needed for additional names -->
+    <div class="row">
+      <div class="cell label w10">CITY</div>
+      <div class="cell w20"><%= data.city %></div>
+      <div class="cell label w10">STATE</div>
+      <div class="cell w10"><%= data.state %></div>
+      <div class="cell label w10">ZIP</div>
+      <div class="cell w10"><%= data.zip %></div>
+      <div class="cell label w15">BLDG DESCRIPTION</div>
+      <div class="cell w15 wrap"><%= data.bldgDescription %></div>
     </div>
+  </div>
 
-    <!-- Signature -->
-    <div class="subbar">SIGNATURE</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w30">APPLICANT’S SIGNATURE</div>
-        <div class="cell w70">&nbsp;</div>
-      </div>
-      <div class="row">
-        <div class="cell label w30">TITLE</div>
-        <div class="cell w30">&nbsp;</div>
-        <div class="cell label w20">DATE</div>
-        <div class="cell w20"><%= formatDate() %></div>
-      </div>
+  <div class="subbar">BUILDING DETAILS</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w10">YR BUILT</div>
+      <div class="cell w10"><%= data.yearBuilt %></div>
+      <div class="cell label w10"># STORIES</div>
+      <div class="cell w10"><%= data.numberOfStories %></div>
+      <div class="cell label w15">TOTAL AREA (SQ FT)</div>
+      <div class="cell w15 right"><%= data.squareFootage %></div>
+      <div class="cell label w15">CONSTRUCTION</div>
+      <div class="cell w15"><%= data.constructionType %></div>
     </div>
-
-    <!-- Legal -->
-    <div class="subbar">LEGAL NOTICE</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell w100">
-          <div class="legal">
-            The undersigned represents that reasonable inquiry has been made and that the answers are true and complete to the best of their knowledge.
-            State-specific fraud notices apply (see ACORD 101 if attached).
-          </div>
-        </div>
+    <div class="row">
+      <div class="cell label w15">DIST TO HYDRANT</div>
+      <div class="cell w10"><%= data.distanceToHydrantFt %> FT</div>
+      <div class="cell label w15">FIRE STATION</div>
+      <div class="cell w10"><%= data.distanceToFireStationMi %> MI</div>
+      <div class="cell label w15">PROT CL</div>
+      <div class="cell w10"><%= data.protectionClass %></div>
+      <div class="cell label w15">OTHER OCCUPANCIES</div>
+      <div class="cell w10 wrap"><%= data.otherOccupancies %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w10">ROOF TYPE</div>
+      <div class="cell w10"><%= data.roofType %></div>
+      <div class="cell label w10">WIND CLASS</div>
+      <div class="cell w10"><%= data.windClass %></div>
+      <div class="cell label w10">TAX CODE</div>
+      <div class="cell w10"><%= data.taxCode %></div>
+      <div class="cell label w10">BLDG CODE</div>
+      <div class="cell w10"><%= data.bldgCode %></div>
+      <div class="cell label w10">CONSTR</div>
+      <div class="cell w10">
+        <span class="check"><%= yes(data.semiResistive) ? "X" : "" %></span> SEMI-RES
+        <span class="check"><%= yes(data.resistive) ? "X" : "" %></span> RESISTIVE
       </div>
     </div>
   </div>
+
+  <div class="subbar">PREMISES FIRE & BURGLAR PROTECTION</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w15">% SPRNK</div>
+      <div class="cell w10 right"><%= data.sprinklerPercent %></div>
+      <div class="cell w10">
+        <span class="check check-xs"><%= yes(data.automaticSprinkler) ? "X" : "" %></span> AUTOMATIC
+      </div>
+      <div class="cell label w15">FIRE ALARM</div>
+      <div class="cell w50 small">
+        <span class="check check-xs"><%= yes(data.fireAlarm_local) ? "X" : "" %></span> LOCAL
+        <span class="check check-xs"><%= yes(data.fireAlarm_gong) ? "X" : "" %></span> GONG
+        <span class="check check-xs"><%= yes(data.fireAlarm_central) ? "X" : "" %></span> CENTRAL
+        <span class="check check-xs"><%= yes(data.fireAlarm_station) ? "X" : "" %></span> STATION
+        &nbsp; Manufacturer: <%= data.fireAlarmManufacturer %>
+      </div>
+    </div>
+    <div class="row">
+      <div class="cell label w20">PREMISES FIRE PROTECTION</div>
+      <div class="cell w80 wrap"><%= data.premisesFireProtection %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w15">BURGLAR ALARM TYPE</div>
+      <div class="cell w20"><%= data.burglarAlarmType %></div>
+      <div class="cell label w15">CERTIFICATE #</div>
+      <div class="cell w15"><%= data.burglarAlarmCert %></div>
+      <div class="cell label w15">EXPIRATION DATE</div>
+      <div class="cell w20"><%= data.burglarAlarmCertExp %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">INSTALLED & SERVICED BY</div>
+      <div class="cell w25"><%= data.burglarAlarmInstalledBy %></div>
+      <div class="cell label w20">WITH KEYS</div>
+      <div class="cell w10 center"><%= yn(data.burglarAlarmWithKeys) %></div>
+      <div class="cell label w10"># GUARDS/WATCHMEN</div>
+      <div class="cell w10"><%= data.guardsWatchmen %></div>
+      <div class="cell label w10">CLOCK HOURLY</div>
+      <div class="cell w10 center"><%= yn(data.clockHourly) %></div>
+    </div>
+  </div>
+
+  <div class="subbar">BUILDING IMPROVEMENTS</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w10">HEATING</div>
+      <div class="cell w10"><%= data.improvements_heatingYear %></div>
+      <div class="cell label w10">PLUMBING</div>
+      <div class="cell w10"><%= data.improvements_plumbingYear %></div>
+      <div class="cell label w10">WIRING</div>
+      <div class="cell w10"><%= data.improvements_wiringYear %></div>
+      <div class="cell label w10">ROOFING</div>
+      <div class="cell w10"><%= data.improvements_roofingYear %></div>
+      <div class="cell label w10">OTHER</div>
+      <div class="cell w30"><%= data.improvements_otherDesc %> <%= data.improvements_otherYear %></div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    ACORD 140 (2016/03) &nbsp;&nbsp;&nbsp; Page 1 of 3 &nbsp;&nbsp;&nbsp; © 1985-2015 ACORD CORPORATION. All rights reserved.
+  </div>
+</div>
+
+<!-- ====================== PAGE 2 ====================== -->
+<div class="page">
+  <div class="headerbar">
+    <div class="acord">ACORD</div>
+    <div class="title">PROPERTY SECTION</div>
+    <div class="formno">140</div>
+  </div>
+
+  <div class="subbar">HEATING / BOILER / SOLID FUEL</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w15">PRIMARY HEAT</div>
+      <div class="cell w20"><%= data.primaryHeat %></div>
+      <div class="cell label w15">SECONDARY HEAT</div>
+      <div class="cell w20"><%= data.secondaryHeat %></div>
+      <div class="cell label w15">BOILER</div>
+      <div class="cell w15">
+        <span class="check check-xs"><%= yes(data.boilerPresent) ? "X" : "" %></span> PRESENT
+      </div>
+    </div>
+    <div class="row">
+      <div class="cell label w35">IF BOILER, IS INSURANCE PLACED ELSEWHERE?</div>
+      <div class="cell w15 center"><%= yn(data.boilerInsuredElsewhere) %></div>
+      <div class="cell label w20">SOLID FUEL (PRIMARY)</div>
+      <div class="cell w10 center"><%= yn(data.solidFuelPrimary) %></div>
+      <div class="cell label w20">SOLID FUEL (SECONDARY)</div>
+      <div class="cell w10 center"><%= yn(data.solidFuelSecondary) %></div>
+    </div>
+  </div>
+
+  <div class="subbar">SOLID FUEL / SMOKER – WITHIN 10 FT OF BUILDING</div>
+  <div class="block">
+    <div class="row"><div class="cell w100 small">
+      Do you have a non-gas Smoker/Grill (wood, pellets, etc) within 10 feet of the building? <strong><%= yn(data.hasSmokerWithin10ft) %></strong>
+    </div></div>
+    <div class="row"><div class="cell w100 small">
+      Is the equipment professionally installed? <strong><%= yn(data.smokerProfessionallyInstalled) %></strong>
+    </div></div>
+    <div class="row"><div class="cell w100 small">
+      Is it regularly maintained? <strong><%= yn(data.smokerRegularlyMaintained) %></strong> &nbsp;&nbsp; Cleaned &amp; scraped weekly? <strong><%= yn(data.smokerCleanedScrapedWeekly) %></strong> &nbsp;&nbsp; Ashes removed daily? <strong><%= yn(data.smokerAshesRemovedDaily) %></strong>
+    </div></div>
+    <div class="row"><div class="cell w100 small">
+      Vent/exhaust system inspected &amp; cleaned monthly? <strong><%= yn(data.smokerVentCleanedMonthly) %></strong> &nbsp;&nbsp; Fuel stored &gt; 10ft away (beyond daily supply)? <strong><%= yn(data.smokerFuelStoredAway) %></strong>
+    </div></div>
+    <div class="row"><div class="cell w100 small">
+      Hood system and UL 300 extinguishing system in place? <strong><%= yn(data.hoodSystemUL300) %></strong> &nbsp;&nbsp; Class K or 2A extinguisher within 20ft of each cooker? <strong><%= yn(data.extinguisherClassK_2A_20ft) %></strong>
+    </div></div>
+  </div>
+
+  <div class="subbar">EXPOSURES & DISTANCES</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w20">FRONT EXPOSURE & DIST</div>
+      <div class="cell w30"><%= data.frontExposure %> &nbsp; <%= data.frontDistance %></div>
+      <div class="cell label w20">REAR EXPOSURE & DIST</div>
+      <div class="cell w30"><%= data.rearExposure %> &nbsp; <%= data.rearDistance %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w20">LEFT EXPOSURE & DIST</div>
+      <div class="cell w30"><%= data.leftExposure %> &nbsp; <%= data.leftDistance %></div>
+      <div class="cell label w20">RIGHT EXPOSURE & DIST</div>
+      <div class="cell w30"><%= data.rightExposure %> &nbsp; <%= data.rightDistance %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w35"># OF OPEN SIDES ON STRUCTURE</div>
+      <div class="cell w65"><%= data.openSidesOnStructure %></div>
+    </div>
+  </div>
+
+  <div class="subbar">COVERAGES & LIMITS</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w15 center">SUBJECT OF INSURANCE</div>
+      <div class="cell label w10 center">AMOUNT</div>
+      <div class="cell label w8 center">COINS %</div>
+      <div class="cell label w10 center">VALUATION</div>
+      <div class="cell label w12 center">CAUSES OF LOSS</div>
+      <div class="cell label w10 center">INFL GUARD %</div>
+      <div class="cell label w10 center">DED TYPE</div>
+      <div class="cell label w10 center">DEDUCTIBLE</div>
+      <div class="cell label w5 center">BLKT #</div>
+      <div class="cell label w10 center">FORMS & CONDITIONS TO APPLY</div>
+    </div>
+
+    <% (Array.isArray(data.coverages)?data.coverages:[]).forEach(function(C){ %>
+      <div class="row">
+        <div class="cell w15 wrap"><%= C.subject || "" %></div>
+        <div class="cell w10 right">$<%= moneyUSD(C.amount) %></div>
+        <div class="cell w8 center"><%= C.coinsPct || "" %></div>
+        <div class="cell w10 center"><%= C.valuation || "" %></div>
+        <div class="cell w12 center"><%= C.causesOfLoss || "" %></div>
+        <div class="cell w10 center"><%= C.inflationGuardPct || "" %></div>
+        <div class="cell w10 center"><%= C.deductibleType || "" %></div>
+        <div class="cell w10 right">$<%= moneyUSD(C.deductible) %></div>
+        <div class="cell w5 center"><%= C.blktNo || "" %></div>
+        <div class="cell w10 wrap"><%= C.formsConditions || "" %></div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="subbar">SPOILAGE / OPTIONS</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w30">DESCRIPTION OF PROPERTY COVERED</div>
+      <div class="cell w70 wrap"><%= data.spoilage_description %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w15">LIMIT</div>
+      <div class="cell w20 right">$<%= moneyUSD(data.spoilage_limit) %></div>
+      <div class="cell label w15">DEDUCTIBLE</div>
+      <div class="cell w20 right">$<%= moneyUSD(data.spoilage_deductible) %></div>
+      <div class="cell label w15">SPOILAGE COVERAGE</div>
+      <div class="cell w15 center"><%= yn(data.spoilage_covered) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w30">POWER OUTAGE</div>
+      <div class="cell w20 center"><%= yn(data.spoilage_powerOutage) %></div>
+      <div class="cell label w30">BREAKDOWN OR CONTAMINATION</div>
+      <div class="cell w20 center"><%= yn(data.spoilage_breakdownOrContam) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w50">REFRIGERATION MAINTENANCE AGREEMENT (Y/N)</div>
+      <div class="cell w50 center"><%= yn(data.spoilage_refrigMaintAgreement) %></div>
+    </div>
+  </div>
+
+  <div class="subbar">SINKHOLE / MINE SUBSIDENCE</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w30">SINKHOLE COVERAGE (FL)</div>
+      <div class="cell w20"><span class="check check-xs"><%= (String(data.sinkhole_accept).toUpperCase()==="ACCEPT") ? "X" : "" %></span> ACCEPT
+        <span class="check check-xs"><%= (String(data.sinkhole_accept).toUpperCase()==="REJECT") ? "X" : "" %></span> REJECT</div>
+      <div class="cell label w20">LIMIT</div>
+      <div class="cell w30 right">$<%= moneyUSD(data.sinkhole_limit) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w30">MINE SUBSIDENCE (IL, IN, KY, WV)</div>
+      <div class="cell w20"><span class="check check-xs"><%= (String(data.mineSubsidence_accept).toUpperCase()==="ACCEPT") ? "X" : "" %></span> ACCEPT
+        <span class="check check-xs"><%= (String(data.mineSubsidence_accept).toUpperCase()==="REJECT") ? "X" : "" %></span> REJECT</div>
+      <div class="cell label w20">LIMIT</div>
+      <div class="cell w30 right">$<%= moneyUSD(data.mineSubsidence_limit) %></div>
+    </div>
+  </div>
+
+  <div class="subbar">VALUE REPORTING / BI & EXTRA EXPENSE</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell w50 small">
+        VALUE REPORTING INFORMATION — Attach ACORD 811:&nbsp;
+        <span class="check check-xs"><%= yes(data.valueReportingAttached) ? "X" : "" %></span>
+      </div>
+      <div class="cell w50 small">
+        BUSINESS INCOME / EXTRA EXPENSE — Attach ACORD 810:&nbsp;
+        <span class="check check-xs"><%= yes(data.businessIncomeExtraExpenseAttached) ? "X" : "" %></span>
+      </div>
+    </div>
+    <div class="row">
+      <div class="cell label w45">ADDITIONAL COVERAGES, OPTIONS, RESTRICTIONS, ENDORSEMENTS AND RATING INFORMATION</div>
+      <div class="cell w55 wrap"><%= data.additionalCoveragesEtc %></div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    ACORD 140 (2016/03) &nbsp;&nbsp;&nbsp; Page 2 of 3 &nbsp;&nbsp;&nbsp; © 1985-2015 ACORD CORPORATION. All rights reserved.
+  </div>
+</div>
+
+<!-- ====================== PAGE 3 ====================== -->
+<div class="page">
+  <div class="headerbar">
+    <div class="acord">ACORD</div>
+    <div class="title">PROPERTY SECTION</div>
+    <div class="formno">140</div>
+  </div>
+
+  <div class="subbar">ADDITIONAL INTEREST</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell w100 small">
+        ACORD 45 attached for additional names
+      </div>
+    </div>
+    <div class="row">
+      <div class="cell label w10">INTEREST</div>
+      <div class="cell w45 small">
+        <span class="check check-xs"><%= ((data.interests?.[0]?.type||"").toUpperCase()==="MORTGAGEE") ? "X" : "" %></span> MORTGAGEE
+        <span class="check check-xs"><%= ((data.interests?.[0]?.type||"").toUpperCase()==="LOSS_PAYEE") ? "X" : "" %></span> LOSS PAYEE
+        <span class="check check-xs"><%= ((data.interests?.[0]?.type||"").toUpperCase()==="LENDERS_LOSS") ? "X" : "" %></span> LENDER'S LOSS PAYABLE
+        <span class="check check-xs"><%= ((data.interests?.[0]?.type||"").toUpperCase()==="ADDITIONAL_INSURED") ? "X" : "" %></span> ADDITIONAL INSURED
+        <span class="check check-xs"><%= ((data.interests?.[0]?.type||"").toUpperCase()==="LIENHOLDER") ? "X" : "" %></span> LIENHOLDER
+      </div>
+      <div class="cell label w10">RANK</div>
+      <div class="cell w10"><%= data.interests?.[0]?.rank || "" %></div>
+      <div class="cell label w15">REFERENCE / LOAN #</div>
+      <div class="cell w10"><%= data.interests?.[0]?.loanNumber || "" %></div>
+    </div>
+
+    <div class="row">
+      <div class="cell label w20">NAME AND ADDRESS</div>
+      <div class="cell w80 wrap"><%= data.interests?.[0]?.name || "" %><br/><%= data.interests?.[0]?.address || "" %></div>
+    </div>
+
+    <div class="row">
+      <div class="cell label w10">CLASS / ITEM</div>
+      <div class="cell w20 wrap"><%= data.interests?.[0]?.classItem || "" %> / <%= data.interests?.[0]?.item || "" %></div>
+      <div class="cell label w15">ITEM DESCRIPTION</div>
+      <div class="cell w25 wrap"><%= data.interests?.[0]?.itemDescription || "" %></div>
+      <div class="cell label w10">INTEREST IN ITEM #</div>
+      <div class="cell w10"><%= data.interests?.[0]?.interestItemNumber || "" %></div>
+      <div class="cell label w5">LOCATION</div>
+      <div class="cell w5"><%= data.interests?.[0]?.location || "" %></div>
+      <div class="cell label w5">BUILDING</div>
+      <div class="cell w5"><%= data.interests?.[0]?.building || "" %></div>
+    </div>
+  </div>
+
+  <div class="subbar">REMARKS</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell w100 wrap" style="min-height:60px;"><%= data.remarks %></div>
+    </div>
+  </div>
+
+  <div class="subbar">SIGNATURE</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell w100 small legal wrap" style="padding:6px;">
+        THE UNDERSIGNED IS AN AUTHORIZED REPRESENTATIVE OF THE APPLICANT AND REPRESENTS THAT REASONABLE INQUIRY HAS BEEN MADE TO OBTAIN THE ANSWERS TO QUESTIONS ON THIS APPLICATION. HE/SHE REPRESENTS THAT THE ANSWERS ARE TRUE, CORRECT AND COMPLETE TO THE BEST OF HIS/HER KNOWLEDGE.
+      </div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">PRODUCER'S SIGNATURE</div>
+      <div class="cell w25" style="border-bottom:1px solid #000;"><%= data.producerSignatureName || "" %></div>
+      <div class="cell label w25">PRODUCER'S NAME (PLEASE PRINT)</div>
+      <div class="cell w25"><%= data.producerContact %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">STATE PRODUCER LICENSE NO</div>
+      <div class="cell w25"><%= data.producerStateLicense || "" %></div>
+      <div class="cell label w25">NATIONAL PRODUCER NUMBER</div>
+      <div class="cell w25"><%= data.producerNPN || "" %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w30">APPLICANT'S SIGNATURE</div>
+      <div class="cell w40">&nbsp;</div>
+      <div class="cell label w15">DATE</div>
+      <div class="cell w15"><%= formatDate(data.date) %></div>
+    </div>
+  </div>
+
+  <div class="subbar">STATE FRAUD NOTICES</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell w100 small legal wrap" style="padding:4px;">
+        <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong> Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.
+        <br/><br/>
+        <strong>Applicable in CA:</strong> For your protection, California law requires the following to appear on this form: Any person who knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.
+        <br/><br/>
+        <strong>Applicable in CO:</strong> It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.
+        <br/><br/>
+        <strong>Applicable in DC:</strong> WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance benefits if false information materially related to a claim was provided by the applicant.
+        <br/><br/>
+        <strong>Applicable in FL and OK:</strong> Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in FL Only.
+        <br/><br/>
+        <strong>Applicable in KS:</strong> Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.
+        <br/><br/>
+        <strong>Applicable in KY, OH and PA:</strong> Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties.
+        <br/><br/>
+        <strong>Applicable in ME, TN, VA and WA:</strong> It is a crime to knowingly provide false, incomplete or misleading information to an insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance benefits. *Applies in ME Only.
+        <br/><br/>
+        <strong>Applicable in NJ:</strong> Any person who includes any false or misleading information on an application for an insurance policy is subject to criminal and civil penalties.
+        <br/><br/>
+        <strong>Applicable in NY:</strong> Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.
+        <br/><br/>
+        <strong>Applicable in OR:</strong> Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by submitting an application containing a false statement as to any material fact may be violating state law.
+        <br/><br/>
+        <strong>Applicable in PR:</strong> Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum of two (2) years.
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="row">
+      <div class="cell label w25">AGENCY CUSTOMER ID</div>
+      <div class="cell w75"><%= data.agencyCustomerId || "" %></div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    ACORD 140 (2016/03) &nbsp;&nbsp;&nbsp; Page 3 of 3 &nbsp;&nbsp;&nbsp; © 1985-2015 ACORD CORPORATION. All rights reserved.
+  </div>
+</div>
+
 </body>
 </html>
