@@ -1,5 +1,5 @@
 <%
-/* ===== Shared helpers & defaults (same family as 125/126/140) ===== */
+/* ===== Shared helpers & defaults (consistent with 125/126/140) ===== */
 const defaults = {
   // Producer / Agency
   producerName: "All Access Ins, dba Commercial Insurance Direct LLC",
@@ -10,7 +10,7 @@ const defaults = {
   producerFax: "(555) 123-4568",
   producerEmail: "quote@barinsurancedirect.com",
 
-  // Policy / meta
+  // Meta / policy
   date: "",
   effectiveDate: "",
   expirationDate: "",
@@ -19,7 +19,7 @@ const defaults = {
   policyNumber: "",
   agencyCustomerId: "",
 
-  // Applicant
+  // Applicant (mailing)
   applicant_name: "",
   mailing_address1: "",
   mailing_address2: "",
@@ -30,84 +30,123 @@ const defaults = {
   website: "",
   businessPhone: "",
 
-  // Status of Submission
+  // Status of submission
   status_quote: true,
   status_issuePolicy: false,
   status_bound: false,
-  status_boundDate: "",
-  status_assignedRisk: false,
+  assignedRisk: false, // ACORD 133
 
-  // Billing / Audit (plan & method still user-fillable)
-  billingPlan: "",
-  paymentPlan: "",
-  methodOfPayment: "",
-  deposit: "",
+  // Billing / Audit
+  billingPlan_agencyBill: false,
+  billingPlan_directBill: true,
+  paymentPlan: "",          // e.g., "ANNUAL | SEMI-ANNUAL | QUARTERLY | MONTHLY"
+  paymentPlan_downPct: "",  // % Down
+  audit_atExpiration: true,
+  audit_semiAnnual: false,
+  audit_quarterly: false,
+  audit_monthly: false,
 
-  // Policy Information (dates still user-fillable)
+  // Policy Info (dates & rating)
   proposedEffDate: "",
   proposedExpDate: "",
   ratingEffectiveDate: "",
   anniversaryRatingDate: "",
-  dividendPlanSafetyGroup: "",
-  otherCoverages: "",
+  retroPlan_participating: false,
+  retroPlan_nonParticipating: false,
+  deduct_medical: "",
+  deduct_indemnity: "",
 
-  // Locations & classifications (for worksheet)
-  locations: [],
+  // Coverage
+  wc_coveredStates: ["CO"],     // Part 1
+  el_eachAccident: "1,000,000", // Part 2
+  el_diseasePolicyLimit: "1,000,000",
+  el_diseaseEachEmployee: "1,000,000",
+  otherStatesText: "",          // Part 3
+  cov_uslh: false,
+  cov_foreignVoluntary: false,
+  cov_managedCare: false,
+  dividendPlan_safetyGroup: "",
 
-  // Experience / prior carriers
-  expMod: "",
-  expModEffective: "",
-  priorCarrier: [],
+  // Additional coverages / endorsements
+  additionalCoveragesText: "",
 
-  // Officers / owners
-  officers: [],
+  // Locations (page 1 list)
+  locations: [
+    // { loc:"1", street:"", city:"", county:"", state:"", zip:"", floorHighest:"" }
+  ],
 
-  // Waivers / leased / volunteer comp
-  blanketWaiver: false,
-  specificWaivers: [],
-  leasedEmployees: false,
-  laborInterchange: false,
-  volunteerComp: false,
+  // Contacts (Info / Claims / Accounting / Inspection)
+  contact_info:      { name:"", officePhone:"", mobile:"", email:"" },
+  contact_claims:    { name:"", officePhone:"", mobile:"", email:"" },
+  contact_accounting:{ name:"", officePhone:"", mobile:"", email:"" },
+  contact_inspection:{ name:"", officePhone:"", mobile:"", email:"" },
 
-  // General info
-  gi_hasPriorWC: "",
-  gi_anySubcontractors: "",
-  gi_performWorkOutOfState: "",
-  gi_tempEmployees: "",
-  gi_drivers: "",
-  gi_athletics: "",
-  gi_federalActCoverage: "",
-  gi_pastLossControl: "",
-  gi_futureChanges: "",
+  // Individuals included/excluded (Officers/Owners)
+  officers: [
+    // { name:"", dob:"", title:"", ownershipPct:"", duties:"", include:true, classCode:"", remuneration:"", loc:"", state:"" }
+  ],
+
+  // ===== Page 2: STATE RATING WORKSHEET =====
+  ratingSheets: [
+    // {
+    //   state: "CO",
+    //   sheetNo: "1",
+    //   ofSheets: "1",
+    //   rows: [
+    //     { loc:"1", classCode:"9084", description:"BAR TAVERN", sic:"", naics:"", fullTime:"", partTime:"", annualRemuneration:"", rate:"", estManualPremium:"" },
+    //     { loc:"1", classCode:"9083", description:"RESTAURANT NOC", ... },
+    //     { loc:"1", classCode:"8810", description:"OUTSIDE SALES CLERICAL", ... }
+    //   ],
+    //   increasedLimits:"", deductible:"", ccpap:"", scheduleRatingFactor:"", experienceMod:"", premiumDiscount:"", expenseConstant:"",
+    //   assignedRiskSurcharge:"", arap:"", taxesAssessments:"",
+    //   factoredPremium:"", standardPremium:"",
+    //   totalEstimatedAnnualPremium:"", minimumPremium:"", depositPremium:""
+    // }
+  ],
+
+  // ===== Page 3 =====
+  business_description: "",
+  priorCarrier: [
+    // { year:"2024", carrier:"", policyNumber:"", annualPremium:"", mod:"", claimCount:"", amountPaid:"", amountReserved:"" }
+  ],
+
+  // General Information (1–24)
+  gi_1_air_watercraft: false,
+  gi_2_hazardousMaterials: false,
+  gi_3_underground_or_over15ft: false,
+  gi_4_barges_docks_bridge_over_water: false,
+  gi_5_otherBusiness: false,
+  gi_6_subcontractors: false,
+  gi_6_percentSubcontracted: "",
+  gi_7_workSubletNoCOI: false,
+  gi_8_writtenSafetyProgram: false,
+  gi_9_groupTransportation: false,
+  gi_10_under16_over60: false,
+  gi_11_seasonalEmployees: false,
+  gi_12_volunteerLabor: false,
+  gi_12_volunteerDetails: "",
+  gi_13_employeesWithHandicaps: false,
+  gi_14_travelOutOfState: false,
+  gi_14_travelStates: "",
+  gi_15_athleticTeams: false,
+  gi_16_physicalsAfterOffer: false,
+  gi_17_otherInsuranceThisInsurer: false,
+  gi_18_declinedCancelledNonRenewed3yrs: false,
+  gi_19_employeeHealthPlansProvided: false,
+  gi_20_employeesWorkForOtherBusinesses: false,
+  gi_21_leaseEmployeesToFrom: false,
+  gi_22_predominantlyWorkAtHome: false,
+  gi_22_numEmployeesAtHome: "",
+  gi_23_taxLiensOrBankruptcy5yrs: false,
+  gi_24_unpaidWCPremium: false,
   gi_explain: "",
 
-  // Loss history
-  losses: [],
-  noLosses: false,
+  // Signature
+  producerSignatureName: "",
+  producerStateLicense: "",
+  producerNPN: "",
 
-  // Worksheet totals (optional)
-  sw_standardPremium: "",
-  sw_scheduleRating: "",
-  sw_scheduleRatingFactor: "",
-  sw_ccpap: "",
-  sw_ccpapFactor: "",
-  sw_modification: "",
-  sw_modificationFactor: "",
-  sw_increasedLimits: "",
-  sw_deductible: "",
-  sw_arap: "",
-  sw_assignedRiskSurcharge: "",
-  sw_premiumDiscount: "",
-  sw_expenseConstant: "",
-  sw_taxesAssessments: "",
-  sw_terrorism: "",
-  sw_catastrophe: "",
-  sw_factoredPremium: "",
-  sw_depositPremium: "",
-  sw_minimumPremium: "",
-  sw_totalEstimatedAnnualPremium: "",
-
-  // Remarks
+  // Remarks (any page)
   remarks: ""
 };
 
@@ -115,7 +154,7 @@ const data = Object.assign({}, defaults, (typeof formData === "object" && formDa
 
 // ===== Helpers =====
 const yes = (v) => ["yes","true","1","on","checked","y"].includes(String(v ?? "").toLowerCase()) || v === true || v === 1;
-const yn = (v) => (v===null||v===undefined||v==="") ? "" : (yes(v) ? "Y" : "N");
+const yn  = (v) => (v===null||v===undefined||v==="") ? "" : (yes(v) ? "Y" : "N");
 const money = (v, opts={min:0,max:0}) => {
   if (v === null || v === undefined || v === "") return "";
   const n = Number(String(v).toString().replace(/[^0-9.-]/g,""));
@@ -139,7 +178,7 @@ const formatDate = (d) => {
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>ACORD 130 - Workers' Compensation Section</title>
+  <title>ACORD 130 - Workers' Compensation Application</title>
   <style>
     @media print { @page { margin: 0.25in; size: letter; } .page { page-break-after: always; } .page:last-child { page-break-after: auto; } }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -161,11 +200,10 @@ const formatDate = (d) => {
     .cell.wrap { flex-wrap:wrap; align-items:flex-start; }
     .cell.small { font-size:7pt; }
     .cell.legal { font-size:6pt; line-height:1.2; }
-    .w5{width:5%}.w7{width:7%}.w8{width:8%}.w10{width:10%}.w12{width:12%}.w15{width:15%}.w18{width:18%}.w20{width:20%}.w22{width:22%}.w25{width:25%}.w28{width:28%}.w30{width:30%}.w33{width:33%}.w35{width:35%}.w40{width:40%}.w45{width:45%}.w50{width:50%}.w55{width:55%}.w60{width:60%}.w65{width:65%}.w70{width:70%}.w75{width:75%}.w80{width:80%}.w85{width:85%}.w90{width:90%}.w95{width:95%}.w100{width:100%}
+    .w5{width:5%}.w6{width:6%}.w7{width:7%}.w8{width:8%}.w10{width:10%}.w12{width:12%}.w15{width:15%}.w18{width:18%}.w20{width:20%}.w22{width:22%}.w25{width:25%}.w27{width:27%}.w28{width:28%}.w30{width:30%}.w33{width:33%}.w35{width:35%}.w40{width:40%}.w45{width:45%}.w50{width:50%}.w55{width:55%}.w60{width:60%}.w65{width:65%}.w70{width:70%}.w75{width:75%}.w80{width:80%}.w85{width:85%}.w90{width:90%}.w95{width:95%}.w100{width:100%}
     .check { display:inline-block; width:10px; height:10px; border:1px solid #000; text-align:center; line-height:8px; font-size:8pt; margin-right:5px; vertical-align:middle; }
     .check-xs { width:8px; height:8px; font-size:6pt; line-height:6px; }
     .footnote { position:absolute; bottom:0.125in; left:0.125in; right:0.125in; font-size:6pt; border-top:1px solid #000; padding-top:2px; text-align:center; }
-    .no-break { page-break-inside: avoid; }
     @media screen { .page{margin-bottom:20px; box-shadow:0 0 10px rgba(0,0,0,.1)} }
   </style>
 </head>
@@ -175,15 +213,14 @@ const formatDate = (d) => {
 <div class="page">
   <div class="headerbar">
     <div class="acord">ACORD</div>
-    <div class="title">WORKERS' COMPENSATION SECTION</div>
+    <div class="title">WORKERS' COMPENSATION APPLICATION</div>
     <div class="formno">130</div>
   </div>
 
-  <!-- PRODUCER / APPLICANT -->
   <div class="subbar">PRODUCER / APPLICANT</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w15">AGENCY</div>
+      <div class="cell label w15">AGENCY NAME AND ADDRESS</div>
       <div class="cell w35 wrap">
         <%= data.producerName %><br/>
         <%= data.producerAddress1 %><br/>
@@ -195,16 +232,23 @@ const formatDate = (d) => {
       <div class="cell w10"><%= formatDate(data.date) %></div>
     </div>
     <div class="row">
-      <div class="cell label w20">APPLICANT / FIRST NAMED INSURED</div>
-      <div class="cell w40 wrap">
-        <%= data.applicant_name || "" %><br/>
+      <div class="cell label w20">APPLICANT NAME</div>
+      <div class="cell w30"><%= data.applicant_name || "" %></div>
+      <div class="cell label w10">FEIN</div>
+      <div class="cell w10"><%= data.fein %></div>
+      <div class="cell label w10">WEBSITE</div>
+      <div class="cell w20"><%= data.website %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w20">MAILING ADDRESS (including ZIP+4)</div>
+      <div class="cell w35 wrap">
         <%= data.mailing_address1 || "" %><% if (data.mailing_address2) { %><br/><%= data.mailing_address2 %><% } %><br/>
-        <%= data.mailing_city || "" %>, <%= data.mailing_state || "" %> <%= data.mailing_zip || "" %>
+        <%= [data.mailing_city, data.mailing_state, data.mailing_zip].filter(Boolean).join(", ") %>
       </div>
       <div class="cell label w10">CARRIER</div>
       <div class="cell w10"><%= data.carrier %></div>
       <div class="cell label w10">NAIC CODE</div>
-      <div class="cell w10"><%= data.naicCode %></div>
+      <div class="cell w15"><%= data.naicCode %></div>
     </div>
     <div class="row">
       <div class="cell label w15">POLICY NUMBER</div>
@@ -213,436 +257,393 @@ const formatDate = (d) => {
       <div class="cell w15"><%= formatDate(data.effectiveDate) %></div>
       <div class="cell label w15">EXPIRATION DATE</div>
       <div class="cell w15"><%= formatDate(data.expirationDate) %></div>
-      <div class="cell label w10">PHONE</div>
-      <div class="cell w10"><%= data.businessPhone %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w10">FEIN</div>
-      <div class="cell w15"><%= data.fein %></div>
-      <div class="cell label w10">WEBSITE</div>
-      <div class="cell w25"><%= data.website %></div>
-      <div class="cell label w15">BILLING PLAN</div>
-      <div class="cell w25"><%= data.billingPlan %></div>
     </div>
   </div>
 
-  <!-- STATUS OF SUBMISSION -->
   <div class="subbar">STATUS OF SUBMISSION</div>
   <div class="block">
     <div class="row">
-      <div class="cell w33 small">
-        <span class="check"><%= yes(data.status_quote) ? "X" : "" %></span> QUOTE
-      </div>
-      <div class="cell w33 small">
-        <span class="check"><%= yes(data.status_issuePolicy) ? "X" : "" %></span> ISSUE POLICY
-      </div>
-      <div class="cell w34 small">
-        <span class="check"><%= yes(data.status_bound) ? "X" : "" %></span> BOUND &nbsp;&nbsp; DATE: <%= formatDate(data.status_boundDate) %>
-      </div>
-    </div>
-    <div class="row">
-      <div class="cell w100 small">
-        <span class="check"><%= yes(data.status_assignedRisk) ? "X" : "" %></span> ASSIGNED RISK (Attach ACORD 133)
-      </div>
+      <div class="cell w25 small"><span class="check"><%= yes(data.status_quote) ? "X" : "" %></span> QUOTE</div>
+      <div class="cell w25 small"><span class="check"><%= yes(data.status_issuePolicy) ? "X" : "" %></span> ISSUE POLICY</div>
+      <div class="cell w25 small"><span class="check"><%= yes(data.status_bound) ? "X" : "" %></span> BOUND</div>
+      <div class="cell w25 small"><span class="check"><%= yes(data.assignedRisk) ? "X" : "" %></span> ASSIGNED RISK (Attach ACORD 133)</div>
     </div>
   </div>
 
-  <!-- BILLING / AUDIT INFORMATION -->
   <div class="subbar">BILLING / AUDIT INFORMATION</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w15">PAYMENT PLAN</div>
-      <div class="cell w20"><%= data.paymentPlan %></div>
-      <div class="cell label w15">METHOD OF PAYMENT</div>
-      <div class="cell w20"><%= data.methodOfPayment %></div>
-      <div class="cell label w10">AUDIT</div>
-      <div class="cell w10">AT EXPIRATION</div>
-      <div class="cell label w5">DEPOSIT</div>
-      <div class="cell w5 right">$<%= moneyUSD(data.deposit) %></div>
-    </div>
-  </div>
-
-  <!-- POLICY INFORMATION -->
-  <div class="subbar">POLICY INFORMATION</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w20">PROPOSED EFF DATE</div>
-      <div class="cell w15"><%= formatDate(data.proposedEffDate) %></div>
-      <div class="cell label w20">PROPOSED EXP DATE</div>
-      <div class="cell w15"><%= formatDate(data.proposedExpDate) %></div>
-      <div class="cell label w20">RATING EFFECTIVE DATE</div>
-      <div class="cell w10"><%= formatDate(data.ratingEffectiveDate) %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w20">ANNIVERSARY RATING DATE</div>
-      <div class="cell w15"><%= formatDate(data.anniversaryRatingDate) %></div>
-      <div class="cell label w20">RETRO PLAN</div>
-      <div class="cell w15">NON-PARTICIPATING</div>
-      <div class="cell label w20">DIVIDEND PLAN / SAFETY GROUP</div>
-      <div class="cell w10"><%= data.dividendPlanSafetyGroup %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w15">DEDUCTIBLES</div>
-      <div class="cell w28 small">MEDICAL: N/A in WI</div>
-      <div class="cell w28 small">INDEMNITY: N/A in WI</div>
-      <div class="cell w29 small">AMOUNT / %:</div>
-    </div>
-    <div class="row">
-      <div class="cell w25 small">
-        MANAGED CARE OPTION <span class="check check-xs"><%= yes(false) ? "X" : "" %></span>
+      <div class="cell label w12">BILLING PLAN</div>
+      <div class="cell w20 small">
+        <span class="check"><%= yes(data.billingPlan_agencyBill) ? "X" : "" %></span> AGENCY BILL
+        &nbsp;&nbsp;
+        <span class="check"><%= yes(data.billingPlan_directBill) ? "X" : "" %></span> DIRECT BILL
       </div>
-      <div class="cell w25 small">
-        FOREIGN COVERAGE <span class="check check-xs"><%= yes(false) ? "X" : "" %></span>
-      </div>
-      <div class="cell w25 small">
-        VOLUNTARY COMP <span class="check check-xs"><%= yes(false) ? "X" : "" %></span>
-      </div>
-      <div class="cell w25 small">
-        OTHER COVERAGES: <%= data.otherCoverages %>
+      <div class="cell label w12">PAYMENT PLAN</div>
+      <div class="cell w18"><%= data.paymentPlan %></div>
+      <div class="cell label w12">% DOWN</div>
+      <div class="cell w10 right"><%= data.paymentPlan_downPct %></div>
+      <div class="cell label w8">AUDIT</div>
+      <div class="cell w20 small">
+        <span class="check"><%= yes(data.audit_atExpiration) ? "X" : "" %></span> AT EXPIRATION
+        <span class="check"><%= yes(data.audit_semiAnnual) ? "X" : "" %></span> SEMI-ANNUAL
+        <span class="check"><%= yes(data.audit_quarterly) ? "X" : "" %></span> QUARTERLY
+        <span class="check"><%= yes(data.audit_monthly) ? "X" : "" %></span> MONTHLY
       </div>
     </div>
   </div>
 
-  <!-- LOCATIONS -->
   <div class="subbar">LOCATIONS</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w7 center">LOC #</div>
-      <div class="cell label w33 center">STREET / CITY / STATE / ZIP</div>
-      <div class="cell label w20 center">COUNTY</div>
-      <div class="cell label w20 center">BLDG DESCRIPTION</div>
-      <div class="cell label w20 center">FLOOR (HIGHEST)</div>
+      <div class="cell label w8 center">LOC #</div>
+      <div class="cell label w62 center">STREET, CITY, COUNTY, STATE, ZIP CODE</div>
+      <div class="cell label w30 center">FLOOR HIGHEST</div>
     </div>
-    <% (Array.isArray(data.locations)?data.locations:[]).forEach(function(L){ 
-         const addr = [L.address1, L.city, L.state, L.zip].filter(Boolean).join(", ");
-    %>
+    <% (Array.isArray(data.locations)?data.locations:[]).forEach(function(L){ %>
       <div class="row">
-        <div class="cell w7 center"><%= L.loc || "" %></div>
-        <div class="cell w33 wrap"><%= addr %></div>
-        <div class="cell w20"><%= L.county || "" %></div>
-        <div class="cell w20"><%= L.bldgDescription || "" %></div>
-        <div class="cell w20 center"><%= L.floorHighest || "" %></div>
+        <div class="cell w8 center"><%= L.loc || "" %></div>
+        <div class="cell w62 wrap">
+          <%= [L.street, L.city, L.county, L.state, L.zip].filter(Boolean).join(", ") %>
+        </div>
+        <div class="cell w30 center"><%= L.floorHighest || "" %></div>
       </div>
     <% }) %>
   </div>
 
-  <div class="footnote">
-    ACORD 130 (2017/05) &nbsp;&nbsp;&nbsp; Page 1 of 4 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
+  <div class="subbar">POLICY INFORMATION</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w15">PROPOSED EFF DATE</div>
+      <div class="cell w10"><%= formatDate(data.proposedEffDate) %></div>
+      <div class="cell label w15">PROPOSED EXP DATE</div>
+      <div class="cell w10"><%= formatDate(data.proposedExpDate) %></div>
+      <div class="cell label w15">RATING EFFECTIVE DATE</div>
+      <div class="cell w10"><%= formatDate(data.ratingEffectiveDate) %></div>
+      <div class="cell label w15">ANNIVERSARY RATING DATE</div>
+      <div class="cell w10"><%= formatDate(data.anniversaryRatingDate) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w15">RETRO PLAN</div>
+      <div class="cell w35 small">
+        <span class="check"><%= yes(data.retroPlan_participating) ? "X" : "" %></span> PARTICIPATING
+        &nbsp;&nbsp;
+        <span class="check"><%= yes(data.retroPlan_nonParticipating) ? "X" : "" %></span> NON-PARTICIPATING
+      </div>
+      <div class="cell label w15">DEDUCTIBLES (N/A WI)</div>
+      <div class="cell w35 small">
+        MEDICAL $<%= moneyUSD(data.deduct_medical) %> &nbsp;&nbsp; INDEMNITY $<%= moneyUSD(data.deduct_indemnity) %>
+      </div>
+    </div>
   </div>
+
+  <div class="subbar">COVERAGE</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w25">PART 1 — WORKERS COMPENSATION (STATES)</div>
+      <div class="cell w75 wrap"><%= (Array.isArray(data.wc_coveredStates)?data.wc_coveredStates:[]).join(", ") %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">PART 2 — EMPLOYER'S LIABILITY</div>
+      <div class="cell label w25">EACH ACCIDENT</div>
+      <div class="cell w10 right">$<%= data.el_eachAccident %></div>
+      <div class="cell label w20">DISEASE — POLICY LIMIT</div>
+      <div class="cell w10 right">$<%= data.el_diseasePolicyLimit %></div>
+      <div class="cell label w10">DISEASE — EACH EMP</div>
+      <div class="cell w10 right">$<%= data.el_diseaseEachEmployee %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">PART 3 — OTHER STATES</div>
+      <div class="cell w75 wrap"><%= data.otherStatesText %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">ADDITIONAL COMPANY INFORMATION</div>
+      <div class="cell w75 small">
+        DIVIDEND PLAN / SAFETY GROUP: <%= data.dividendPlan_safetyGroup || "" %>
+        &nbsp;&nbsp; <span class="check"><%= yes(data.cov_uslh) ? "X" : "" %></span> U.S.L.&H.
+        &nbsp;&nbsp; <span class="check"><%= yes(data.cov_foreignVoluntary) ? "X" : "" %></span> FOREIGN VOL COMP
+        &nbsp;&nbsp; <span class="check"><%= yes(data.cov_managedCare) ? "X" : "" %></span> MANAGED CARE OPTION
+      </div>
+    </div>
+    <div class="row">
+      <div class="cell label w35">SPECIFY ADDITIONAL COVERAGES / ENDORSEMENTS</div>
+      <div class="cell w65 wrap"><%= data.additionalCoveragesText || "" %></div>
+    </div>
+  </div>
+
+  <div class="subbar">CONTACT INFORMATION</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w15 center">TYPE</div>
+      <div class="cell label w25 center">NAME</div>
+      <div class="cell label w20 center">OFFICE PHONE</div>
+      <div class="cell label w20 center">MOBILE PHONE</div>
+      <div class="cell label w20 center">E-MAIL</div>
+    </div>
+    <% const CI = [
+         { t:"INFO", c:data.contact_info },
+         { t:"CLAIMS", c:data.contact_claims },
+         { t:"RECORD / ACCTNG", c:data.contact_accounting },
+         { t:"INSPECTION", c:data.contact_inspection }
+       ]; 
+       CI.forEach(function(x){ %>
+      <div class="row">
+        <div class="cell w15 center"><%= x.t %></div>
+        <div class="cell w25"><%= x.c?.name || "" %></div>
+        <div class="cell w20"><%= x.c?.officePhone || "" %></div>
+        <div class="cell w20"><%= x.c?.mobile || "" %></div>
+        <div class="cell w20"><%= x.c?.email || "" %></div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="subbar">INDIVIDUALS INCLUDED / EXCLUDED</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w20 center">NAME / TITLE</div>
+      <div class="cell label w10 center">DOB</div>
+      <div class="cell label w10 center">% OWNERSHIP</div>
+      <div class="cell label w15 center">DUTIES</div>
+      <div class="cell label w8 center">INC</div>
+      <div class="cell label w8 center">EXC</div>
+      <div class="cell label w9 center">CLASS CODE</div>
+      <div class="cell label w10 center">REMUN/PAYROLL</div>
+      <div class="cell label w5 center">LOC</div>
+      <div class="cell label w5 center">STATE</div>
+    </div>
+    <% (Array.isArray(data.officers)?data.officers:[]).forEach(function(O){ %>
+      <div class="row">
+        <div class="cell w20 wrap"><%= [O.name, O.title].filter(Boolean).join(" — ") %></div>
+        <div class="cell w10 center"><%= O.dob || "" %></div>
+        <div class="cell w10 center"><%= O.ownershipPct || "" %></div>
+        <div class="cell w15 wrap"><%= O.duties || "" %></div>
+        <div class="cell w8 center"><%= yes(O.include) ? "X" : "" %></div>
+        <div class="cell w8 center"><%= yes(O.include) ? "" : "X" %></div>
+        <div class="cell w9 center"><%= O.classCode || "" %></div>
+        <div class="cell w10 right">$<%= moneyUSD(O.remuneration) %></div>
+        <div class="cell w5 center"><%= O.loc || "" %></div>
+        <div class="cell w5 center"><%= O.state || "" %></div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="footnote">ACORD 130 (2017/05) &nbsp;&nbsp;&nbsp; Page 1 of 4 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.</div>
 </div>
 
-<!-- ====================== PAGE 2 ====================== -->
+<!-- ====================== PAGE 2: STATE RATING WORKSHEET ====================== -->
 <div class="page">
   <div class="headerbar">
     <div class="acord">ACORD</div>
-    <div class="title">WORKERS' COMPENSATION SECTION</div>
+    <div class="title">WORKERS' COMPENSATION APPLICATION</div>
     <div class="formno">130</div>
   </div>
 
-  <!-- STATE RATING WORKSHEET -->
-  <div class="subbar">STATE RATING WORKSHEET</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w25">RATING INFORMATION — STATE</div>
-      <div class="cell w25">CO</div>
-      <div class="cell label w25">AGENCY CUSTOMER ID</div>
-      <div class="cell w25"><%= data.agencyCustomerId || "" %></div>
-    </div>
-  </div>
-
-  <!-- CLASSIFICATION TABLE (Estimated Annual Exposure) -->
-  <div class="block">
-    <div class="row">
-      <div class="cell label w7 center">LOC</div>
-      <div class="cell label w10 center">CLASS CODE</div>
-      <div class="cell label w23 center">CATEGORIES / DUTIES / CLASSIFICATIONS</div>
-      <div class="cell label w8 center">FT</div>
-      <div class="cell label w8 center">PT</div>
-      <div class="cell label w14 center">EST. ANNUAL REMUN / PAYROLL</div>
-      <div class="cell label w10 center">RATE</div>
-      <div class="cell label w10 center">EST. MANUAL PREMIUM</div>
-      <div class="cell label w10 center">EST. PREM</div>
-    </div>
-
-    <% (Array.isArray(data.locations)?data.locations:[]).forEach(function(L){ 
-         const rows = Array.isArray(L.classRows)?L.classRows:[];
-         rows.forEach(function(R, idx){
-    %>
+  <% (Array.isArray(data.ratingSheets)?data.ratingSheets:[{state:"",sheetNo:"1",ofSheets:"1",rows:[]}]).forEach(function(S, idx){ %>
+    <div class="subbar">STATE RATING WORKSHEET</div>
+    <div class="block">
       <div class="row">
-        <div class="cell w7 center"><%= idx===0 ? (L.loc || "") : "" %></div>
-        <div class="cell w10 center"><%= R.classCode || "" %></div>
-        <div class="cell w23 wrap"><%= R.description || "" %></div>
-        <div class="cell w8 center"><%= R.ftEmployees || "" %></div>
-        <div class="cell w8 center"><%= R.ptEmployees || "" %></div>
-        <div class="cell w14 right">$<%= moneyUSD(R.annualRemuneration) %></div>
-        <div class="cell w10 right"><%= R.rate || "" %></div>
-        <div class="cell w10 right"><%= R.estimatedAnnualManualPremium ? ('$'+moneyUSD(R.estimatedAnnualManualPremium)) : "" %></div>
-        <div class="cell w10 right">$<%= moneyUSD(R.estimatedAnnualPremium) %></div>
+        <div class="cell label w25">RATING INFORMATION — STATE:</div>
+        <div class="cell w15"><%= S.state || "" %></div>
+        <div class="cell label w20 center">STATE RATING SHEET #</div>
+        <div class="cell w10 center"><%= S.sheetNo || (idx+1) %></div>
+        <div class="cell label w15 center">OF SHEETS</div>
+        <div class="cell w15 center"><%= S.ofSheets || (Array.isArray(data.ratingSheets)?data.ratingSheets.length:1) %></div>
       </div>
-    <%   });
-       }); %>
-  </div>
+      <div class="row">
+        <div class="cell label w6 center">LOC</div>
+        <div class="cell label w10 center">CLASS CODE</div>
+        <div class="cell label w22 center">CATEGORIES / DUTIES / CLASSIFICATIONS</div>
+        <div class="cell label w8 center">SIC</div>
+        <div class="cell label w8 center">NAICS</div>
+        <div class="cell label w7 center"># EMP FT</div>
+        <div class="cell label w7 center"># EMP PT</div>
+        <div class="cell label w12 center">EST. ANNUAL REMUN / PAYROLL</div>
+        <div class="cell label w8 center">RATE</div>
+        <div class="cell label w12 center">EST. ANNUAL MANUAL PREMIUM</div>
+      </div>
+      <% (Array.isArray(S.rows)?S.rows:[]).forEach(function(R){ %>
+        <div class="row">
+          <div class="cell w6 center"><%= R.loc || "" %></div>
+          <div class="cell w10 center"><%= R.classCode || "" %></div>
+          <div class="cell w22 wrap"><%= R.description || "" %></div>
+          <div class="cell w8 center"><%= R.sic || "" %></div>
+          <div class="cell w8 center"><%= R.naics || "" %></div>
+          <div class="cell w7 center"><%= R.fullTime || "" %></div>
+          <div class="cell w7 center"><%= R.partTime || "" %></div>
+          <div class="cell w12 right">$<%= moneyUSD(R.annualRemuneration) %></div>
+          <div class="cell w8 right"><%= R.rate || "" %></div>
+          <div class="cell w12 right">$<%= moneyUSD(R.estManualPremium) %></div>
+        </div>
+      <% }) %>
+    </div>
 
-  <!-- WORKSHEET TOTALS -->
+    <div class="block">
+      <div class="row">
+        <div class="cell label w15">INCREASED LIMITS</div>
+        <div class="cell w10 right">$<%= moneyUSD(S.increasedLimits) %></div>
+        <div class="cell label w12">DEDUCTIBLE *</div>
+        <div class="cell w10 right">$<%= moneyUSD(S.deductible) %></div>
+        <div class="cell label w10">CCPAP</div>
+        <div class="cell w10 right"><%= S.ccpap || "" %></div>
+        <div class="cell label w18">SCHEDULE RATING *</div>
+        <div class="cell w15 right"><%= S.scheduleRatingFactor || "" %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w18">EXPERIENCE OR MERIT MOD</div>
+        <div class="cell w12 right"><%= S.experienceMod || "" %></div>
+        <div class="cell label w15">STANDARD PREMIUM</div>
+        <div class="cell w15 right">$<%= moneyUSD(S.standardPremium) %></div>
+        <div class="cell label w15">FACTORED PREMIUM</div>
+        <div class="cell w15 right">$<%= moneyUSD(S.factoredPremium) %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w18">PREMIUM DISCOUNT</div>
+        <div class="cell w12 right">$<%= moneyUSD(S.premiumDiscount) %></div>
+        <div class="cell label w18">EXPENSE CONSTANT</div>
+        <div class="cell w12 right">$<%= moneyUSD(S.expenseConstant) %></div>
+        <div class="cell label w20">ASSIGNED RISK SURCHARGE *</div>
+        <div class="cell w20 right">$<%= moneyUSD(S.assignedRiskSurcharge) %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w18">ARAP *</div>
+        <div class="cell w12 right">$<%= moneyUSD(S.arap) %></div>
+        <div class="cell label w18">TAXES / ASSESSMENTS *</div>
+        <div class="cell w12 right">$<%= moneyUSD(S.taxesAssessments) %></div>
+        <div class="cell label w20">TOTAL EST. ANNUAL PREMIUM</div>
+        <div class="cell w20 right">$<%= moneyUSD(S.totalEstimatedAnnualPremium) %></div>
+      </div>
+      <div class="row">
+        <div class="cell label w20">MINIMUM PREMIUM</div>
+        <div class="cell w15 right">$<%= moneyUSD(S.minimumPremium) %></div>
+        <div class="cell label w20">DEPOSIT PREMIUM</div>
+        <div class="cell w15 right">$<%= moneyUSD(S.depositPremium) %></div>
+        <div class="cell w30 small">* N/A in Wisconsin</div>
+      </div>
+    </div>
+  <% }) %>
+
+  <div class="subbar">REMARKS</div>
   <div class="block">
-    <div class="row">
-      <div class="cell label w20">STANDARD PREMIUM</div>
-      <div class="cell w15 right">$<%= moneyUSD(data.sw_standardPremium) %></div>
-      <div class="cell label w20">SCHEDULE RATING *</div>
-      <div class="cell w15 right"><%= data.sw_scheduleRatingFactor ? data.sw_scheduleRatingFactor : "" %> <%= data.sw_scheduleRating ? ('$'+moneyUSD(data.sw_scheduleRating)) : "" %></div>
-      <div class="cell label w20">CCPAP</div>
-      <div class="cell w10 right"><%= data.sw_ccpapFactor ? data.sw_ccpapFactor : "" %> <%= data.sw_ccpap ? ('$'+moneyUSD(data.sw_ccpap)) : "" %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w20">MODIFICATION (EXP/MERIT)</div>
-      <div class="cell w15 right"><%= data.sw_modificationFactor ? data.sw_modificationFactor : "" %> <%= data.sw_modification ? ('$'+moneyUSD(data.sw_modification)) : "" %></div>
-      <div class="cell label w20">INCREASED LIMITS</div>
-      <div class="cell w15 right">$<%= moneyUSD(data.sw_increasedLimits) %></div>
-      <div class="cell label w20">DEDUCTIBLE *</div>
-      <div class="cell w10 right">$<%= moneyUSD(data.sw_deductible) %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w20">ARAP *</div>
-      <div class="cell w15 right">$<%= moneyUSD(data.sw_arap) %></div>
-      <div class="cell label w20">ASSIGNED RISK SURCHARGE *</div>
-      <div class="cell w15 right">$<%= moneyUSD(data.sw_assignedRiskSurcharge) %></div>
-      <div class="cell label w20">PREMIUM DISCOUNT</div>
-      <div class="cell w10 right">$<%= moneyUSD(data.sw_premiumDiscount) %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w20">EXPENSE CONSTANT</div>
-      <div class="cell w15 right">$<%= moneyUSD(data.sw_expenseConstant) %></div>
-      <div class="cell label w20">TAXES / ASSESSMENTS *</div>
-      <div class="cell w15 right">$<%= moneyUSD(data.sw_taxesAssessments) %></div>
-      <div class="cell label w20">TERRORISM</div>
-      <div class="cell w10 right">$<%= moneyUSD(data.sw_terrorism) %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w20">CATASTROPHE</div>
-      <div class="cell w15 right">$<%= moneyUSD(data.sw_catastrophe) %></div>
-      <div class="cell label w20">FACTORED PREMIUM</div>
-      <div class="cell w15 right">$<%= moneyUSD(data.sw_factoredPremium) %></div>
-      <div class="cell label w20">DEPOSIT PREMIUM</div>
-      <div class="cell w10 right">$<%= moneyUSD(data.sw_depositPremium) %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w20">MINIMUM PREMIUM</div>
-      <div class="cell w15 right">$<%= moneyUSD(data.sw_minimumPremium) %></div>
-      <div class="cell label w20">TOTAL ESTIMATED ANNUAL PREMIUM</div>
-      <div class="cell w45 right">$<%= moneyUSD(data.sw_totalEstimatedAnnualPremium) %></div>
-    </div>
-    <div class="row">
-      <div class="cell w100 small">* N / A in Wisconsin</div>
-    </div>
+    <div class="row"><div class="cell w100 wrap" style="min-height:60px;"><%= data.remarks || "" %></div></div>
   </div>
 
-  <div class="footnote">
-    ACORD 130 (2017/05) &nbsp;&nbsp;&nbsp; Page 2 of 4 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
-  </div>
+  <div class="footnote">ACORD 130 (2017/05) &nbsp;&nbsp;&nbsp; Page 2 of 4 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.</div>
 </div>
 
 <!-- ====================== PAGE 3 ====================== -->
 <div class="page">
   <div class="headerbar">
     <div class="acord">ACORD</div>
-    <div class="title">WORKERS' COMPENSATION SECTION</div>
+    <div class="title">WORKERS' COMPENSATION APPLICATION</div>
     <div class="formno">130</div>
   </div>
 
-  <!-- COVERAGE -->
-  <div class="subbar">COVERAGE</div>
+  <div class="subbar">NATURE OF BUSINESS / DESCRIPTION OF OPERATIONS</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w20">PART ONE — WC INSURANCE (STATES)</div>
-      <div class="cell w80 wrap">CO</div>
-    </div>
-    <div class="row">
-      <div class="cell label w20">PART TWO — EMPLOYERS LIABILITY</div>
-      <div class="cell label w20">BODILY INJURY — EACH ACCIDENT</div>
-      <div class="cell w15 right">$1,000,000</div>
-      <div class="cell label w25">BODILY INJURY — DISEASE — POLICY LIMIT</div>
-      <div class="cell w20 right">$1,000,000</div>
-    </div>
-    <div class="row">
-      <div class="cell w20"></div>
-      <div class="cell label w25">BODILY INJURY — DISEASE — EACH EMPLOYEE</div>
-      <div class="cell w15 right">$1,000,000</div>
-      <div class="cell w20"></div>
-      <div class="cell w20"></div>
-    </div>
-    <div class="row">
-      <div class="cell label w20">PART THREE — OTHER STATES</div>
-      <div class="cell w80 wrap"><%= data.wc_otherStatesText %></div>
+      <div class="cell w100 wrap" style="min-height:70px;"><%= data.business_description || "" %></div>
     </div>
   </div>
 
-  <!-- EXPERIENCE MOD & PRIOR CARRIER (3 YEARS) -->
-  <div class="subbar">EXPERIENCE MOD & PRIOR CARRIER (3 YEARS)</div>
+  <div class="subbar">PRIOR CARRIER INFORMATION / LOSS HISTORY (PAST 5 YEARS)</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w15">EXPERIENCE MOD</div>
-      <div class="cell w10"><%= data.expMod %></div>
-      <div class="cell label w15">MOD EFFECTIVE DATE</div>
-      <div class="cell w10"><%= formatDate(data.expModEffective) %></div>
-      <div class="cell w50 small">PRIOR WC CARRIERS (MOST RECENT FIRST)</div>
+      <div class="cell label w8 center">YEAR</div>
+      <div class="cell label w20 center">CARRIER & POLICY #</div>
+      <div class="cell label w12 center">ANNUAL PREMIUM</div>
+      <div class="cell label w8 center">MOD</div>
+      <div class="cell label w8 center"># CLAIMS</div>
+      <div class="cell label w12 center">AMOUNT PAID</div>
+      <div class="cell label w12 center">AMOUNT RESERVED</div>
+      <div class="cell label w20 center">REMARKS</div>
     </div>
-    <div class="row">
-      <div class="cell label w10 center">YEAR</div>
-      <div class="cell label w25 center">CARRIER</div>
-      <div class="cell label w20 center">POLICY NUMBER</div>
-      <div class="cell label w15 center">PREMIUM</div>
-      <div class="cell label w15 center">EFFECTIVE</div>
-      <div class="cell label w15 center">EXPIRATION</div>
-    </div>
-    <% (Array.isArray(data.priorCarrier)?data.priorCarrier:[]).slice(0,3).forEach(function(P){ %>
+    <% (Array.isArray(data.priorCarrier)?data.priorCarrier:[]).slice(0,5).forEach(function(P){ %>
       <div class="row">
-        <div class="cell w10 center"><%= P.year || "" %></div>
-        <div class="cell w25"><%= P.carrier || "" %></div>
-        <div class="cell w20"><%= P.policyNumber || "" %></div>
-        <div class="cell w15 right">$<%= moneyUSD(P.premium) %></div>
-        <div class="cell w15"><%= formatDate(P.effective) %></div>
-        <div class="cell w15"><%= formatDate(P.expiration) %></div>
+        <div class="cell w8 center"><%= P.year || "" %></div>
+        <div class="cell w20 wrap"><%= [P.carrier, P.policyNumber].filter(Boolean).join(" — ") %></div>
+        <div class="cell w12 right">$<%= moneyUSD(P.annualPremium) %></div>
+        <div class="cell w8 center"><%= P.mod || "" %></div>
+        <div class="cell w8 center"><%= P.claimCount || "" %></div>
+        <div class="cell w12 right">$<%= moneyUSD(P.amountPaid) %></div>
+        <div class="cell w12 right">$<%= moneyUSD(P.amountReserved) %></div>
+        <div class="cell w20 wrap"><%= P.description || "" %></div>
       </div>
     <% }) %>
   </div>
 
-  <!-- OFFICERS / OWNERS -->
-  <div class="subbar">OFFICERS / OWNERS (INCLUDE OR EXCLUDE)</div>
+  <div class="subbar">GENERAL INFORMATION</div>
   <div class="block">
+    <div class="row"><div class="cell w100 small">1. OWN/OPERATE/LEASE AIRCRAFT/WATERCRAFT? <span class="check check-xs"><%= yes(data.gi_1_air_watercraft) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">2. HAZARDOUS MATERIALS (STORE/TREAT/DISPOSE/TRANSPORT)? <span class="check check-xs"><%= yes(data.gi_2_hazardousMaterials) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">3. WORK UNDERGROUND OR ABOVE 15 FEET? <span class="check check-xs"><%= yes(data.gi_3_underground_or_over15ft) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">4. WORK ON BARGES/VESSELS/DOCKS/BRIDGE OVER WATER? <span class="check check-xs"><%= yes(data.gi_4_barges_docks_bridge_over_water) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">5. ENGAGED IN ANY OTHER TYPE OF BUSINESS? <span class="check check-xs"><%= yes(data.gi_5_otherBusiness) ? "X" : "" %></span></div></div>
     <div class="row">
-      <div class="cell label w20 center">NAME / TITLE</div>
-      <div class="cell label w10 center">% OWNERSHIP</div>
-      <div class="cell label w20 center">DUTIES</div>
-      <div class="cell label w10 center">CLASS CODE</div>
-      <div class="cell label w10 center">INCL</div>
-      <div class="cell label w10 center">EXCL</div>
-      <div class="cell label w20 center">ANNUAL REMUNERATION</div>
+      <div class="cell w70 small">6. ARE SUB-CONTRACTORS USED?</div>
+      <div class="cell w10 center"><%= yn(data.gi_6_subcontractors) %></div>
+      <div class="cell w10 small">% SUBCONTRACTED</div>
+      <div class="cell w10 right"><%= data.gi_6_percentSubcontracted || "" %></div>
     </div>
-    <% (Array.isArray(data.officers)?data.officers:[]).forEach(function(O){ %>
-      <div class="row">
-        <div class="cell w20 wrap"><%= O.name || "" %><% if (O.title) { %> — <%= O.title %><% } %></div>
-        <div class="cell w10 center"><%= O.ownershipPct || "" %>%</div>
-        <div class="cell w20 wrap"><%= O.duties || "" %></div>
-        <div class="cell w10 center"><%= O.classCode || "" %></div>
-        <div class="cell w10 center"><%= yes(O.include) ? "X" : "" %></div>
-        <div class="cell w10 center"><%= yes(O.include) ? "" : "X" %></div>
-        <div class="cell w20 right">$<%= moneyUSD(O.remuneration) %></div>
-      </div>
-    <% }) %>
+    <div class="row"><div class="cell w100 small">7. ANY WORK SUBLET WITHOUT CERTIFICATES OF INSURANCE? <span class="check check-xs"><%= yes(data.gi_7_workSubletNoCOI) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">8. WRITTEN SAFETY PROGRAM IN OPERATION? <span class="check check-xs"><%= yes(data.gi_8_writtenSafetyProgram) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">9. GROUP TRANSPORTATION PROVIDED? <span class="check check-xs"><%= yes(data.gi_9_groupTransportation) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">10. ANY EMPLOYEES UNDER 16 OR OVER 60? <span class="check check-xs"><%= yes(data.gi_10_under16_over60) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">11. ANY SEASONAL EMPLOYEES? <span class="check check-xs"><%= yes(data.gi_11_seasonalEmployees) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">12. ANY VOLUNTEER OR DONATED LABOR? <span class="check check-xs"><%= yes(data.gi_12_volunteerLabor) ? "X" : "" %></span> &nbsp; <%= data.gi_12_volunteerDetails || "" %></div></div>
+    <div class="row"><div class="cell w100 small">13. ANY EMPLOYEES WITH PHYSICAL HANDICAPS? <span class="check check-xs"><%= yes(data.gi_13_employeesWithHandicaps) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">14. EMPLOYEES TRAVEL OUT OF STATE? <span class="check check-xs"><%= yes(data.gi_14_travelOutOfState) ? "X" : "" %></span> &nbsp; <%= data.gi_14_travelStates || "" %></div></div>
+    <div class="row"><div class="cell w100 small">15. ATHLETIC TEAMS SPONSORED? <span class="check check-xs"><%= yes(data.gi_15_athleticTeams) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">16. PHYSICALS REQUIRED AFTER OFFERS ARE MADE? <span class="check check-xs"><%= yes(data.gi_16_physicalsAfterOffer) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">17. ANY OTHER INSURANCE WITH THIS INSURER? <span class="check check-xs"><%= yes(data.gi_17_otherInsuranceThisInsurer) ? "X" : "" %></span></div></div>
   </div>
 
-  <!-- WAIVERS / LEASED / VOLUNTEER -->
-  <div class="subbar">WAIVERS, LEASED / VOLUNTEER WORKERS</div>
+  <div class="subbar">EXPLAIN ALL "YES" RESPONSES</div>
   <div class="block">
-    <div class="row">
-      <div class="cell w40 small">BLANKET WAIVER OF SUBROGATION REQUIRED?
-        <span class="check check-xs"><%= yes(data.blanketWaiver) ? "X" : "" %></span>
-      </div>
-      <div class="cell w30 small">LEASED EMPLOYEES?
-        <span class="check check-xs"><%= yes(data.leasedEmployees) ? "X" : "" %></span>
-      </div>
-      <div class="cell w30 small">VOLUNTEER / VOLUNTARY COMP?
-        <span class="check check-xs"><%= yes(data.volunteerComp) ? "X" : "" %></span>
-      </div>
-    </div>
-    <div class="row">
-      <div class="cell label w25">SPECIFIC WAIVERS (NAME / STATE / DESC)</div>
-      <div class="cell w75 wrap">
-        <% (Array.isArray(data.specificWaivers)?data.specificWaivers:[]).forEach(function(W, i){ %>
-          <div><%= i+1 %>.) <%= [W.name, W.state, W.description].filter(Boolean).join(" — ") %></div>
-        <% }) %>
-      </div>
-    </div>
+    <div class="row"><div class="cell w100 wrap" style="min-height:50px;"><%= data.gi_explain || "" %></div></div>
   </div>
 
-  <div class="footnote">
-    ACORD 130 (2017/05) &nbsp;&nbsp;&nbsp; Page 3 of 4 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
-  </div>
+  <div class="footnote">ACORD 130 (2017/05) &nbsp;&nbsp;&nbsp; Page 3 of 4 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.</div>
 </div>
 
 <!-- ====================== PAGE 4 ====================== -->
 <div class="page">
   <div class="headerbar">
     <div class="acord">ACORD</div>
-    <div class="title">WORKERS' COMPENSATION SECTION</div>
+    <div class="title">WORKERS' COMPENSATION APPLICATION</div>
     <div class="formno">130</div>
   </div>
 
-  <!-- GENERAL INFORMATION -->
-  <div class="subbar">GENERAL INFORMATION</div>
+  <div class="subbar">GENERAL INFORMATION (continued)</div>
   <div class="block">
-    <div class="row"><div class="cell w100 small">
-      1. PRIOR WC COVERAGE? <span class="check check-xs"><%= yes(data.gi_hasPriorWC) ? "X" : "" %></span>
-      &nbsp; 2. ANY SUBCONTRACTORS? <span class="check check-xs"><%= yes(data.gi_anySubcontractors) ? "X" : "" %></span>
-      &nbsp; 3. WORK PERFORMED OUT OF STATE? <span class="check check-xs"><%= yes(data.gi_performWorkOutOfState) ? "X" : "" %></span>
-    </div></div>
-    <div class="row"><div class="cell w100 small">
-      4. TEMP EMPLOYEES? <span class="check check-xs"><%= yes(data.gi_tempEmployees) ? "X" : "" %></span>
-      &nbsp; 5. DRIVERS? <span class="check check-xs"><%= yes(data.gi_drivers) ? "X" : "" %></span>
-      &nbsp; 6. ATHLETIC TEAMS / ACTIVITIES? <span class="check check-xs"><%= yes(data.gi_athletics) ? "X" : "" %></span>
-    </div></div>
-    <div class="row"><div class="cell w100 small">
-      7. COVERAGE UNDER ANY FEDERAL ACTS (USL&amp;H, FELA, JONES, ETC)? <span class="check check-xs"><%= yes(data.gi_federalActCoverage) ? "X" : "" %></span>
-      &nbsp; 8. PAST LOSS CONTROL RECOMMENDATIONS COMPLIED WITH? <span class="check check-xs"><%= yes(data.gi_pastLossControl) ? "X" : "" %></span>
-      &nbsp; 9. ANY SIGNIFICANT CHANGES ANTICIPATED? <span class="check check-xs"><%= yes(data.gi_futureChanges) ? "X" : "" %></span>
-    </div></div>
+    <div class="row"><div class="cell w100 small">18. ANY PRIOR COVERAGE DECLINED / CANCELLED / NON-RENEWED IN LAST 3 YEARS? <span class="check check-xs"><%= yes(data.gi_18_declinedCancelledNonRenewed3yrs) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">19. ARE EMPLOYEE HEALTH PLANS PROVIDED? <span class="check check-xs"><%= yes(data.gi_19_employeeHealthPlansProvided) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">20. ANY EMPLOYEES WHO PERFORM WORK FOR OTHER BUSINESSES/SUBSIDIARIES? <span class="check check-xs"><%= yes(data.gi_20_employeesWorkForOtherBusinesses) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">21. DO YOU LEASE EMPLOYEES TO OR FROM OTHER EMPLOYERS? <span class="check check-xs"><%= yes(data.gi_21_leaseEmployeesToFrom) ? "X" : "" %></span></div></div>
     <div class="row">
-      <div class="cell label w100">EXPLAIN ANY "YES" RESPONSES</div>
+      <div class="cell w70 small">22. DO ANY EMPLOYEES PREDOMINANTLY WORK AT HOME?</div>
+      <div class="cell w10 center"><%= yn(data.gi_22_predominantlyWorkAtHome) %></div>
+      <div class="cell w10 small"># EMPLOYEES</div>
+      <div class="cell w10 center"><%= data.gi_22_numEmployeesAtHome || "" %></div>
     </div>
-    <div class="row">
-      <div class="cell w100 wrap" style="min-height:40px;"><%= data.gi_explain || "" %></div>
-    </div>
+    <div class="row"><div class="cell w100 small">23. ANY TAX LIENS OR BANKRUPTCY WITHIN THE LAST 5 YEARS? <span class="check check-xs"><%= yes(data.gi_23_taxLiensOrBankruptcy5yrs) ? "X" : "" %></span></div></div>
+    <div class="row"><div class="cell w100 small">24. ANY UNDISPUTED/UNPAID WC PREMIUM DUE FROM YOU OR COMMONLY MANAGED/OWNED ENTERPRISES? <span class="check check-xs"><%= yes(data.gi_24_unpaidWCPremium) ? "X" : "" %></span></div></div>
   </div>
 
-  <!-- LOSS HISTORY -->
-  <div class="subbar">LOSS HISTORY (3 YEARS)</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell w100 small">
-        ENTER ALL CLAIMS OR LOSSES (REGARDLESS OF FAULT). &nbsp;
-        <span class="check check-xs"><%= yes(data.noLosses) ? "X" : "" %></span> Check if none.
-      </div>
-    </div>
-    <div class="row">
-      <div class="cell label w10 center">YEAR</div>
-      <div class="cell label w15 center"># CLAIMS</div>
-      <div class="cell label w20 center">AMOUNT PAID</div>
-      <div class="cell label w20 center">AMOUNT RESERVED</div>
-      <div class="cell label w35 center">DESCRIPTION</div>
-    </div>
-    <% (Array.isArray(data.losses)?data.losses:[]).slice(0,4).forEach(function(L){ %>
-      <div class="row">
-        <div class="cell w10 center"><%= L.year || "" %></div>
-        <div class="cell w15 center"><%= L.claimCount || "" %></div>
-        <div class="cell w20 right">$<%= moneyUSD(L.amountPaid) %></div>
-        <div class="cell w20 right">$<%= moneyUSD(L.amountReserved) %></div>
-        <div class="cell w35 wrap"><%= L.description || "" %></div>
-      </div>
-    <% }) %>
-  </div>
-
-  <!-- REMARKS -->
-  <div class="subbar">REMARKS (ACORD 101 MAY BE ATTACHED IF MORE SPACE IS REQUIRED)</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell w100 wrap" style="min-height:70px;"><%= data.remarks || "" %></div>
-    </div>
-  </div>
-
-  <!-- SIGNATURE -->
   <div class="subbar">SIGNATURE</div>
   <div class="block">
     <div class="row">
       <div class="cell w100 small legal wrap" style="padding:6px;">
-        THE UNDERSIGNED IS AN AUTHORIZED REPRESENTATIVE OF THE APPLICANT AND REPRESENTS THAT REASONABLE INQUIRY HAS BEEN MADE TO OBTAIN THE
-        ANSWERS TO QUESTIONS ON THIS APPLICATION. HE/SHE REPRESENTS THAT THE ANSWERS ARE TRUE, CORRECT AND COMPLETE TO THE BEST OF HIS/HER KNOWLEDGE.
+        PERSONAL INFORMATION ABOUT YOU, INCLUDING INFORMATION FROM A CREDIT OR OTHER INVESTIGATIVE REPORT, MAY BE COLLECTED...
+        (Notice of Information Practices / Privacy text as applicable in your state.)
       </div>
     </div>
     <div class="row">
-      <div class="cell label w25">PRODUCER'S SIGNATURE</div>
-      <div class="cell w25" style="border-bottom:1px solid #000;"><%= data.producerSignatureName || "" %></div>
-      <div class="cell label w25">PRODUCER'S NAME (PLEASE PRINT)</div>
-      <div class="cell w25"><%= data.producerContact %></div>
+      <div class="cell label w30">APPLICANT'S SIGNATURE (Officer/Owner/Partner)</div>
+      <div class="cell w30" style="border-bottom:1px solid #000;"></div>
+      <div class="cell label w10">DATE</div>
+      <div class="cell w10"><%= formatDate(data.date) %></div>
+      <div class="cell label w10">PRODUCER'S SIGNATURE</div>
+      <div class="cell w10" style="border-bottom:1px solid #000;"><%= data.producerSignatureName || "" %></div>
     </div>
     <div class="row">
       <div class="cell label w25">STATE PRODUCER LICENSE NO</div>
@@ -650,32 +651,19 @@ const formatDate = (d) => {
       <div class="cell label w25">NATIONAL PRODUCER NUMBER</div>
       <div class="cell w25"><%= data.producerNPN || "" %></div>
     </div>
-    <div class="row">
-      <div class="cell label w30">APPLICANT'S SIGNATURE</div>
-      <div class="cell w40">&nbsp;</div>
-      <div class="cell label w15">DATE</div>
-      <div class="cell w15"><%= formatDate(data.date) %></div>
-    </div>
   </div>
 
-  <!-- STATE FRAUD NOTICES -->
   <div class="subbar">STATE FRAUD NOTICES</div>
   <div class="block">
     <div class="row"><div class="cell w100 small legal wrap" style="padding:4px;">
-      <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong>
+      <strong>Applicable in AL, AR, DC, LA, MD, NM, RI and WV:</strong>
       Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.
-      <br/><br/>
-      <strong>Applicable in CA:</strong> For your protection, California law requires the following to appear on this form: Any person who knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.
       <br/><br/>
       <strong>Applicable in CO:</strong> It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.
       <br/><br/>
-      <strong>Applicable in DC:</strong> WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance benefits if false information materially related to a claim was provided by the applicant.
-      <br/><br/>
       <strong>Applicable in FL and OK:</strong> Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in FL Only.
       <br/><br/>
-      <strong>Applicable in KS:</strong> Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.
-      <br/><br/>
-      <strong>Applicable in KY, OH and PA:</strong> Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties.
+      <strong>Applicable in KS:</strong> Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, any communication as part of an application, rating, or claim, knowing it contains materially false information, or conceals material facts, commits a fraudulent insurance act.
       <br/><br/>
       <strong>Applicable in ME, TN, VA and WA:</strong> It is a crime to knowingly provide false, incomplete or misleading information to an insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance benefits. *Applies in ME Only.
       <br/><br/>
@@ -685,20 +673,11 @@ const formatDate = (d) => {
       <br/><br/>
       <strong>Applicable in OR:</strong> Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by submitting an application containing a false statement as to any material fact may be violating state law.
       <br/><br/>
-      <strong>Applicable in PR:</strong> Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum of two (2) years.
+      <strong>Applicable in PR:</strong> Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned as provided by law.
     </div></div>
   </div>
 
-  <div class="block">
-    <div class="row">
-      <div class="cell label w25">AGENCY CUSTOMER ID</div>
-      <div class="cell w75"><%= data.agencyCustomerId || "" %></div>
-    </div>
-  </div>
-
-  <div class="footnote">
-    ACORD 130 (2017/05) &nbsp;&nbsp;&nbsp; Page 4 of 4 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
-  </div>
+  <div class="footnote">ACORD 130 (2017/05) &nbsp;&nbsp;&nbsp; Page 4 of 4 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.</div>
 </div>
 
 </body>
