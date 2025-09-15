@@ -49,7 +49,7 @@ const defaults = {
   entertainment_other: "",          // yes/no
   entertainment_details: "",
 
-  recreational_activites: "",       // yes/no (typo preserved to match source)
+  recreational_activites: "",       // yes/no (typo preserved)
   recreational_details: "",
 
   security_present: "",             // yes/no
@@ -76,6 +76,24 @@ const defaults = {
   liquor_claims: "",                // details
 
   remarks: "",
+
+  // --- Smoker / Grill (NEW) ---
+  has_smoker_grill: "",           // yes/no
+  smoker_fuel_wood: "",           // yes/no
+  smoker_fuel_charcoal: "",
+  smoker_fuel_pellet: "",
+  smoker_fuel_gas: "",
+  smoker_location_inside: "",     // yes/no
+  smoker_location_outside: "",
+  smoker_distance_ft: "",         // number
+  smoker_ul300_protected: "",     // yes/no
+  smoker_hood_protected: "",      // yes/no
+  smoker_clean_freq: "",          // text (Monthly, Quarterly…)
+  smoker_spark_arrestor: "",      // yes/no
+  smoker_ash_metal_container: "", // yes/no
+  smoker_units: "",               // number
+  smoker_brand_model: "",         // text
+  smoker_notes: "",               // long text
 
   // Raw carry-overs (accept legacy names so mapping “just works”)
   ComboBox22: "", ComboBox23: "", ComboBox24: "",
@@ -252,6 +270,68 @@ const dateShown           = prefer(data.date,                data.TextField0) ||
     </div>
   </div>
 
+  <!-- SMOKER / GRILL — NEW SECTION -->
+  <div class="subbar">SMOKER / GRILL — COOKING DETAILS</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w45">SMOKER / GRILL IN USE?</div>
+      <div class="cell w10 center"><%= yn(data.has_smoker_grill) %></div>
+      <div class="cell label w25"># OF UNITS</div>
+      <div class="cell w20 right"><%= data.smoker_units %></div>
+    </div>
+
+    <div class="row">
+      <div class="cell label w20">FUEL TYPE</div>
+      <div class="cell w80 small">
+        <span class="check"><%= yeslike(data.smoker_fuel_wood) ? "X" : "" %></span> Wood
+        <span class="check"><%= yeslike(data.smoker_fuel_charcoal) ? "X" : "" %></span> Charcoal
+      </div>
+    </div>
+    <div class="row">
+      <div class="cell w20"></div>
+      <div class="cell w80 small">
+        <span class="check"><%= yeslike(data.smoker_fuel_pellet) ? "X" : "" %></span> Pellet
+        <span class="check"><%= yeslike(data.smoker_fuel_gas) ? "X" : "" %></span> Gas
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="cell label w25">LOCATION</div>
+      <div class="cell w35 small">
+        <span class="check"><%= yeslike(data.smoker_location_inside) ? "X" : "" %></span> Inside
+        <span class="check"><%= yeslike(data.smoker_location_outside) ? "X" : "" %></span> Outside
+      </div>
+      <div class="cell label w25">DISTANCE FROM STRUCTURE (FT)</div>
+      <div class="cell w15 right"><%= data.smoker_distance_ft %></div>
+    </div>
+
+    <div class="row">
+      <div class="cell label w35">UL300 / SUPPRESSION OVER COOKING?</div>
+      <div class="cell w10 center"><%= yn(data.smoker_ul300_protected) %></div>
+      <div class="cell label w25">HOOD / DUCT PROTECTION?</div>
+      <div class="cell w10 center"><%= yn(data.smoker_hood_protected) %></div>
+      <div class="cell label w20">CLEANING FREQUENCY</div>
+      <div class="cell w10"><%= data.smoker_clean_freq %></div>
+    </div>
+
+    <div class="row">
+      <div class="cell label w35">SPARK ARRESTOR FITTED?</div>
+      <div class="cell w10 center"><%= yn(data.smoker_spark_arrestor) %></div>
+      <div class="cell label w35">ASH IN METAL CONTAINER W/ LID?</div>
+      <div class="cell w10 center"><%= yn(data.smoker_ash_metal_container) %></div>
+    </div>
+
+    <div class="row">
+      <div class="cell label w30">BRAND / MODEL</div>
+      <div class="cell w70 wrap"><%= data.smoker_brand_model %></div>
+    </div>
+
+    <div class="row">
+      <div class="cell label w20">NOTES</div>
+      <div class="cell w80 wrap" style="min-height:48px;"><%= data.smoker_notes %></div>
+    </div>
+  </div>
+
   <!-- 14–16 ENTERTAINMENT / ACTIVITIES / SECURITY -->
   <div class="subbar">ENTERTAINMENT, ACTIVITIES & SECURITY</div>
   <div class="block">
@@ -409,6 +489,10 @@ const dateShown           = prefer(data.date,                data.TextField0) ||
     <div class="row">
       <div class="cell label w30">SHUTTLE EXPLANATION</div>
       <div class="cell w70 wrap" style="min-height:50px;"><%= data.shuttle_explanation %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w30">SMOKER / GRILL — NOTES (CONT.)</div>
+      <div class="cell w70 wrap" style="min-height:60px;"><%= data.smoker_notes %></div>
     </div>
   </div>
 
