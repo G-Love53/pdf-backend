@@ -300,6 +300,7 @@ const formatDate = (d) => {
   </div>
 
   <!-- SCHEDULE OF HAZARDS -->
+    <!-- SCHEDULE OF HAZARDS -->
   <div class="subbar">SCHEDULE OF HAZARDS (RATING AND PREMIUM BASIS)</div>
   <div class="block">
     <div class="row">
@@ -316,6 +317,57 @@ const formatDate = (d) => {
       <div class="cell label w10 center">PREMIUM<br/>PRODUCTS</div>
     </div>
 
+    <!-- Auto-mapped Row 1: GROSS REV -> total_sales -->
+    <div class="row">
+      <div class="cell w5 center">1</div>
+      <div class="cell w5 center">1</div>
+      <div class="cell w10 center"></div>
+      <div class="cell w25 wrap"></div>
+      <div class="cell w8 center">GROSS REV</div>
+      <div class="cell w7 right">
+        <% /* total_sales prints as money with $ */ %>
+        $<%= moneyUSD(data.total_sales) %>
+      </div>
+      <div class="cell w5 center"></div>
+      <div class="cell w8 right"></div>
+      <div class="cell w8 right"></div>
+      <div class="cell w9 right"></div>
+      <div class="cell w10 right"></div>
+    </div>
+
+    <!-- Auto-mapped Row 2: LIQ REV -> alcohol_sales -->
+    <div class="row">
+      <div class="cell w5 center">1</div>
+      <div class="cell w5 center">2</div>
+      <div class="cell w10 center"></div>
+      <div class="cell w25 wrap"></div>
+      <div class="cell w8 center">LIQ REV</div>
+      <div class="cell w7 right">
+        $<%= moneyUSD(data.alcohol_sales) %>
+      </div>
+      <div class="cell w5 center"></div>
+      <div class="cell w8 right"></div>
+      <div class="cell w8 right"></div>
+      <div class="cell w9 right"></div>
+      <div class="cell w10 right"></div>
+    </div>
+
+    <!-- Auto-mapped Row 3: SQUARE FT -> square_footage -->
+    <div class="row">
+      <div class="cell w5 center">1</div>
+      <div class="cell w5 center">3</div>
+      <div class="cell w10 center"></div>
+      <div class="cell w25 wrap"></div>
+      <div class="cell w8 center">SQUARE FT</div>
+      <div class="cell w7 right"><%= data.square_footage || "" %></div>
+      <div class="cell w5 center"></div>
+      <div class="cell w8 right"></div>
+      <div class="cell w8 right"></div>
+      <div class="cell w9 right"></div>
+      <div class="cell w10 right"></div>
+    </div>
+
+    <!-- Any additional hazards you pass in -->
     <% (Array.isArray(data.hazards)?data.hazards:[]).forEach(function(H){ %>
       <div class="row">
         <div class="cell w5 center"><%= H.loc || "" %></div>
@@ -332,6 +384,7 @@ const formatDate = (d) => {
       </div>
     <% }) %>
   </div>
+
 
   <div class="footnote">
     ACORD 126 (2025/03) &nbsp;&nbsp;&nbsp; Page 1 of 4 &nbsp;&nbsp;&nbsp; © 1993-2025 ACORD CORPORATION. All rights reserved.
