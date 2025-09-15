@@ -1,12 +1,12 @@
 <%
-/* ===== Helpers & sane defaults (same pattern as 125/126/130/140) ===== */
+/* ===== Helpers & sane defaults (ACORD/Society stack) ===== */
 const defaults = {
   // Masthead/branding
   programTitle: "Special Program Supplemental Application",
   programSubtitle: "(Restaurant, Bar, EZ Prep, Brewpub, Brewery & Winery)",
   accent: "#C0171D", // Society red
 
-  // Agency block (from Society sheet footer)
+  // Agency block
   agencyName: "All Access Insurance dba Commercial Insurance Direct, LLC",
   agencyCode: "70025M",
   agentName: "Rick Cline",
@@ -14,13 +14,14 @@ const defaults = {
   agentPhone: "303-932-1700",
 
   // App meta
-  date: "",
+  date: "",             // prefer this if posted
+  effective_date: "",   // fallback for date
 
-  // Section: header fields
+  // Header fields
   applicant_name: "",
-  premise_address: "",
+  premise_address: "",   // full street+city+state+zip if you post it that way
 
-  // Q1–Q19 (Society SPS-1)
+  // Operations status & experience
   open_60_days: "",                 // yes/no
   open_60_days_details: "",
   ownership_experience: "",         // yes/no
@@ -31,85 +32,85 @@ const defaults = {
   fine_dining: "",                  // yes/no
   counter_service: "",              // yes/no
 
+  // Alcohol & receipts
   alcohol_manufactured: "",         // yes/no
-  percent_consumed: "",             // >25% on-premise? yes/no
+  percent_consumed: "",             // yes/no (>25% on-premise?)
   food_sales: "",
   alcohol_sales: "",
   total_sales: "",
   Percent_Alcohol: "",
 
+  // Cooking levels / cannabis / UL300
   cooking_level_full: "",           // yes/no
   cooking_level_limited: "",
   cooking_level_non: "",
-
   infused_with_cannabis: "",        // yes/no
   solid_fuel: "",                   // yes/no
   non_UL300: "",                    // yes/no
 
+  // Entertainment / Recreational
   entertainment_other: "",          // yes/no
   entertainment_details: "",
-
-  recreational_activites: "",       // yes/no (typo preserved)
+  recreational_activites: "",       // yes/no (spelling per sheet)
   recreational_details: "",
 
+  // Security
   security_present: "",             // yes/no
-  background_checks: "",            // ComboBox22
-  security_armed: "",               // ComboBox23
-  security_trained: "",             // ComboBox24
+  background_checks: "",            // semantic; may come via ComboBox22
+  security_armed: "",               // semantic; may come via ComboBox23
+  security_trained: "",             // semantic; may come via ComboBox24
 
+  // Delivery & auto
   delivery_offered: "",             // yes/no
-  del_insured_autos: "",            // ComboBox13
-  del_employee_autos: "",           // ComboBox14
-  del_third_party: "",              // ComboBox15
-  del_sales_owned_emp: "",          // TextField11 (currency)
-  del_pct_over_20: "",              // ComboBox16
-  del_pct_explain: "",              // TextField13
-  del_radius_gt5: "",               // ComboBox17
-  del_radius_explain: "",
-  del_after_10pm: "",               // ComboBox18
-  del_after_10pm_explain: "",
+  del_insured_autos: "",            // semantic; may come via ComboBox13
+  del_employee_autos: "",           // semantic; may come via ComboBox14
+  del_third_party: "",              // semantic; may come via ComboBox15
+  del_sales_owned_emp: "",          // currency; may come via delivery_sales_amount
+  del_pct_over_20: "",              // semantic; may come via ComboBox16
+  del_pct_explain: "",              // may come via TextField12
+  del_radius_gt5: "",               // semantic; may come via ComboBox17
+  del_radius_explain: "",           // may come via TextField11
+  del_after_10pm: "",               // semantic; may come via ComboBox18
+  del_after_10pm_explain: "",       // may come via TextField13
 
-  shuttle_services: "",             // ComboBox19 (yes/no)
+  // Shuttle
+  shuttle_services: "",             // semantic; may come via ComboBox19
   shuttle_explanation: "",
 
+  // Liquor
   liquor_lapse: "",                 // yes/no (violations last 3 yrs)
   liquor_claims: "",                // details
 
+  // Smoker / Grill (final spec)
+  has_smoker_grill: "",              // yes/no
+  professionally_installed: "",      // yes/no
+  cleaned_scraped_weekly: "",        // yes/no
+  vent_cleaned_monthly: "",          // yes/no
+  ashes_removed_daily: "",           // yes/no
+  storage_10_feet: "",               // yes/no (fuel/pellets/wood > 10' from unit?)
+  hood_system_ul300: "",             // yes/no (drives UL/Hood/Spark = Yes when true)
+  smoker_ul300_protected: "",        // optional direct yes/no
+  smoker_hood_protected: "",         // optional direct yes/no
+  smoker_spark_arrestor: "",         // optional direct yes/no
+  smoker_ash_metal_container: "",    // yes/no
+  smoker_notes: "",                  // long text
+
+  // Remarks
   remarks: "",
 
-  // --- Smoker / Grill (NEW) ---
-  has_smoker_grill: "",           // yes/no
-  smoker_fuel_wood: "",           // yes/no
-  smoker_fuel_charcoal: "",
-  smoker_fuel_pellet: "",
-  smoker_fuel_gas: "",
-  smoker_location_inside: "",     // yes/no
-  smoker_location_outside: "",
-  smoker_distance_ft: "",         // number
-  smoker_ul300_protected: "",     // yes/no
-  smoker_hood_protected: "",      // yes/no
-  smoker_clean_freq: "",          // text (Monthly, Quarterly…)
-  smoker_spark_arrestor: "",      // yes/no
-  smoker_ash_metal_container: "", // yes/no
-  smoker_units: "",               // number
-  smoker_brand_model: "",         // text
-  smoker_notes: "",               // long text
-
-  // Raw carry-overs (accept legacy names so mapping “just works”)
-  ComboBox22: "", ComboBox23: "", ComboBox24: "",
-  ComboBox13: "", ComboBox14: "", ComboBox15: "", ComboBox16: "",
-  ComboBox17: "", ComboBox18: "", ComboBox19: "",
-  TextField11: "", TextField13: "", TextField12: "",
-  TextField0: "" // sometimes used as Date
+  // Legacy / carry-overs for compatibility (optional posts)
+  ComboBox22: "", ComboBox23: "", ComboBox24: "", // security trio
+  ComboBox13: "", ComboBox14: "", ComboBox15: "", // delivery trio
+  ComboBox16: "", ComboBox17: "", ComboBox18: "", ComboBox19: "",
+  TextField11: "", TextField12: "", TextField13: "", // delivery explainers
+  delivery_sales_amount: "" // alt to del_sales_owned_emp
 };
 
 const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
 
-// Normalize legacy ComboBox/TextField into semantic flags if the semantic ones weren’t provided
-const prefer = (a,b) => (a!=="" && a!==undefined) ? a : b;
-const val = (k) => (data[k] ?? "");
+// ===== Small helpers =====
 const yeslike = (v) => ["y","yes","true","1","on","checked"].includes(String(v||"").trim().toLowerCase());
-const yn = (v) => v==="" ? "" : (yeslike(v) ? "Y" : "N");
+const yn = (v) => (v===""||v==null) ? "" : (yeslike(v) ? "Y" : "N");
 const money = (v) => {
   if (v==null || v==="") return "";
   const n = Number(String(v).replace(/[^0-9.-]/g,""));
@@ -124,24 +125,31 @@ const formatDate = (d) => {
   const yy = dt.getFullYear();
   return `${mm}/${dd}/${yy}`;
 };
+const prefer = (a,b) => (a!=="" && a!==undefined) ? a : b;
 
-// Coalesce security/delivery toggles from ComboBoxes if semantic missing
+// Date fix: DO NOT fall back to any currency field
+const dateShown = data.date || data.effective_date || "";
+
+// Security aliasing
 const background_checks = prefer(data.background_checks, data.ComboBox22);
 const security_armed   = prefer(data.security_armed,   data.ComboBox23);
 const security_trained = prefer(data.security_trained, data.ComboBox24);
 
-const del_insured_autos = prefer(data.del_insured_autos, data.ComboBox13);
-const del_employee_autos= prefer(data.del_employee_autos,data.ComboBox14);
-const del_third_party   = prefer(data.del_third_party,   data.ComboBox15);
-const del_pct_over_20   = prefer(data.del_pct_over_20,   data.ComboBox16);
-const del_radius_gt5    = prefer(data.del_radius_gt5,    data.ComboBox17);
-const del_after_10pm    = prefer(data.del_after_10pm,    data.ComboBox18);
-const shuttle_services  = prefer(data.shuttle_services,  data.ComboBox19);
+// Delivery aliasing
+const del_insured_autos   = prefer(data.del_insured_autos,   data.ComboBox13);
+const del_employee_autos  = prefer(data.del_employee_autos,  data.ComboBox14);
+const del_third_party     = prefer(data.del_third_party,     data.ComboBox15);
+const del_pct_over_20     = prefer(data.del_pct_over_20,     data.ComboBox16);
+const del_radius_gt5      = prefer(data.del_radius_gt5,      data.ComboBox17);
+const del_after_10pm      = prefer(data.del_after_10pm,      data.ComboBox18);
+const shuttle_services    = prefer(data.shuttle_services,    data.ComboBox19);
+const del_sales_owned_emp = prefer(data.del_sales_owned_emp, data.delivery_sales_amount);
 
-// Some feeds labeled TextField* in the sheet
-const del_sales_owned_emp = prefer(data.del_sales_owned_emp, data.TextField11);
-const del_pct_explain     = prefer(data.del_pct_explain,     data.TextField13);
-const dateShown           = prefer(data.date,                data.TextField0) || "";
+// Smoker auto-fills from “hood_system_ul300”
+const hoodSystemYes = yeslike(data.hood_system_ul300 || "");
+const smoker_ul300_yn = yn( yeslike(data.smoker_ul300_protected) || hoodSystemYes );
+const smoker_hood_yn  = yn( yeslike(data.smoker_hood_protected)  || hoodSystemYes );
+const smoker_spark_yn = yn( yeslike(data.smoker_spark_arrestor)  || hoodSystemYes );
 %>
 <!DOCTYPE html>
 <html>
@@ -233,7 +241,7 @@ const dateShown           = prefer(data.date,                data.TextField0) ||
     </div>
   </div>
 
-  <!-- 8–10 ALCOHOL & COOKING -->
+  <!-- 8–13 ALCOHOL & COOKING -->
   <div class="subbar">ALCOHOL & COOKING</div>
   <div class="block">
     <div class="row">
@@ -270,60 +278,43 @@ const dateShown           = prefer(data.date,                data.TextField0) ||
     </div>
   </div>
 
-  <!-- SMOKER / GRILL — NEW SECTION -->
+  <!-- SMOKER / GRILL — FINAL SPEC -->
   <div class="subbar">SMOKER / GRILL — COOKING DETAILS</div>
   <div class="block">
     <div class="row">
       <div class="cell label w45">SMOKER / GRILL IN USE?</div>
       <div class="cell w10 center"><%= yn(data.has_smoker_grill) %></div>
-      <div class="cell label w25"># OF UNITS</div>
-      <div class="cell w20 right"><%= data.smoker_units %></div>
+      <div class="cell label w25">UNIT PROFESSIONALLY INSTALLED?</div>
+      <div class="cell w20 center"><%= yn(data.professionally_installed) %></div>
     </div>
 
     <div class="row">
-      <div class="cell label w20">FUEL TYPE</div>
-      <div class="cell w80 small">
-        <span class="check"><%= yeslike(data.smoker_fuel_wood) ? "X" : "" %></span> Wood
-        <span class="check"><%= yeslike(data.smoker_fuel_charcoal) ? "X" : "" %></span> Charcoal
-      </div>
-    </div>
-    <div class="row">
-      <div class="cell w20"></div>
-      <div class="cell w80 small">
-        <span class="check"><%= yeslike(data.smoker_fuel_pellet) ? "X" : "" %></span> Pellet
-        <span class="check"><%= yeslike(data.smoker_fuel_gas) ? "X" : "" %></span> Gas
+      <div class="cell label w25">REGULARLY MAINTAINED</div>
+      <div class="cell w75 small">
+        <span class="check"><%= yeslike(data.cleaned_scraped_weekly) ? "X" : "" %></span> Scraped Weekly
+        <span class="check"><%= yeslike(data.vent_cleaned_monthly) ? "X" : "" %></span> Vent/Exhaust Inspected/Cleaned Monthly
+        <span class="check"><%= yeslike(data.ashes_removed_daily) ? "X" : "" %></span> Ashes Removed Daily
       </div>
     </div>
 
     <div class="row">
-      <div class="cell label w25">LOCATION</div>
-      <div class="cell w35 small">
-        <span class="check"><%= yeslike(data.smoker_location_inside) ? "X" : "" %></span> Inside
-        <span class="check"><%= yeslike(data.smoker_location_outside) ? "X" : "" %></span> Outside
-      </div>
-      <div class="cell label w25">DISTANCE FROM STRUCTURE (FT)</div>
-      <div class="cell w15 right"><%= data.smoker_distance_ft %></div>
-    </div>
-
-    <div class="row">
-      <div class="cell label w35">UL300 / SUPPRESSION OVER COOKING?</div>
-      <div class="cell w10 center"><%= yn(data.smoker_ul300_protected) %></div>
-      <div class="cell label w25">HOOD / DUCT PROTECTION?</div>
-      <div class="cell w10 center"><%= yn(data.smoker_hood_protected) %></div>
-      <div class="cell label w20">CLEANING FREQUENCY</div>
-      <div class="cell w10"><%= data.smoker_clean_freq %></div>
-    </div>
-
-    <div class="row">
-      <div class="cell label w35">SPARK ARRESTOR FITTED?</div>
-      <div class="cell w10 center"><%= yn(data.smoker_spark_arrestor) %></div>
-      <div class="cell label w35">ASH IN METAL CONTAINER W/ LID?</div>
+      <div class="cell label w60">IS FUEL / PELLETS / WOOD MORE THAN 10' FROM UNIT?</div>
+      <div class="cell w10 center"><%= yn(data.storage_10_feet) %></div>
+      <div class="cell label w20">ASH IN METAL CONTAINER W/ LID?</div>
       <div class="cell w10 center"><%= yn(data.smoker_ash_metal_container) %></div>
     </div>
 
     <div class="row">
-      <div class="cell label w30">BRAND / MODEL</div>
-      <div class="cell w70 wrap"><%= data.smoker_brand_model %></div>
+      <div class="cell label w45">UL / SUPPRESSION OVER COOKING?</div>
+      <div class="cell w10 center"><%= smoker_ul300_yn %></div>
+      <div class="cell label w35">HOOD / DUCT PROTECTION?</div>
+      <div class="cell w10 center"><%= smoker_hood_yn %></div>
+    </div>
+
+    <div class="row">
+      <div class="cell label w45">SPARK ARRESTOR FITTED?</div>
+      <div class="cell w10 center"><%= smoker_spark_yn %></div>
+      <div class="cell w45"></div>
     </div>
 
     <div class="row">
@@ -375,15 +366,15 @@ const dateShown           = prefer(data.date,                data.TextField0) ||
       <div class="cell w10 center"><%= yn(del_third_party) %></div>
       <div class="cell label w35">DELIVERY SALES (INSURED/EMP AUTOS)</div>
       <div class="cell w15 right">$<%= money(del_sales_owned_emp) %></div>
-      <div class="cell label w15">>20% OF LOCATION SALES?</div>
+      <div class="cell label w15">&gt;20% OF LOCATION SALES?</div>
       <div class="cell w10 center"><%= yn(del_pct_over_20) %></div>
     </div>
     <div class="row">
       <div class="cell label w20">IF YES, EXPLAIN</div>
-      <div class="cell w80 wrap"><%= del_pct_explain %></div>
+      <div class="cell w80 wrap"><%= data.del_pct_explain %></div>
     </div>
     <div class="row">
-      <div class="cell label w25">RADIUS > 5 MILES?</div>
+      <div class="cell label w25">RADIUS &gt; 5 MILES?</div>
       <div class="cell w10 center"><%= yn(del_radius_gt5) %></div>
       <div class="cell label w20">IF YES, EXPLAIN</div>
       <div class="cell w45 wrap"><%= data.del_radius_explain %></div>
@@ -442,7 +433,7 @@ const dateShown           = prefer(data.date,                data.TextField0) ||
   </div>
 
   <div class="footnote">
-    SPS-1 (10/2020) &nbsp;&nbsp; Page 1 of 2 &nbsp;&nbsp; Society Insurance — Field-name mapping aligned to your sheet.
+    SPS-1 (10/2020) &nbsp;&nbsp; Page 1 of 2 &nbsp;&nbsp; Society Insurance — Supplemental.
   </div>
 </div>
 
@@ -475,11 +466,11 @@ const dateShown           = prefer(data.date,                data.TextField0) ||
       <div class="cell w70 wrap" style="min-height:50px;"><%= data.recreational_details %></div>
     </div>
     <div class="row">
-      <div class="cell label w30">DELIVERY >20% EXPLANATION</div>
-      <div class="cell w70 wrap" style="min-height:50px;"><%= del_pct_explain %></div>
+      <div class="cell label w30">DELIVERY &gt;20% EXPLANATION</div>
+      <div class="cell w70 wrap" style="min-height:50px;"><%= data.del_pct_explain %></div>
     </div>
     <div class="row">
-      <div class="cell label w30">RADIUS >5 MILES EXPLANATION</div>
+      <div class="cell label w30">RADIUS &gt;5 MILES EXPLANATION</div>
       <div class="cell w70 wrap" style="min-height:50px;"><%= data.del_radius_explain %></div>
     </div>
     <div class="row">
