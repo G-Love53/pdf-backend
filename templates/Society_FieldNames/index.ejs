@@ -45,7 +45,7 @@ const defaults = {
   cooking_level_limited: "",
   cooking_level_non: "",
   infused_with_cannabis: "",        // yes/no
-  solid_fuel: "",                   // yes/no
+  solid_fuel: "",                   // yes/no  (single question; reused)
   non_UL300: "",                    // yes/no
 
   // Entertainment / Recreational
@@ -56,33 +56,32 @@ const defaults = {
 
   // Security
   security_present: "",             // yes/no
-  background_checks: "",            // semantic; may come via ComboBox22
-  security_armed: "",               // semantic; may come via ComboBox23
-  security_trained: "",             // semantic; may come via ComboBox24
+  background_checks: "",            // may come via ComboBox22
+  security_armed: "",               // may come via ComboBox23
+  security_trained: "",             // may come via ComboBox24
 
   // Delivery & auto
   delivery_offered: "",             // yes/no
-  del_insured_autos: "",            // semantic; may come via ComboBox13
-  del_employee_autos: "",           // semantic; may come via ComboBox14
-  del_third_party: "",              // semantic; may come via ComboBox15
+  del_insured_autos: "",            // may come via ComboBox13
+  del_employee_autos: "",           // may come via ComboBox14
+  del_third_party: "",              // may come via ComboBox15
   del_sales_owned_emp: "",          // currency; may come via delivery_sales_amount
-  del_pct_over_20: "",              // semantic; may come via ComboBox16
+  del_pct_over_20: "",              // may come via ComboBox16
   del_pct_explain: "",              // may come via TextField12
-  del_radius_gt5: "",               // semantic; may come via ComboBox17
+  del_radius_gt5: "",               // may come via ComboBox17
   del_radius_explain: "",           // may come via TextField11
-  del_after_10pm: "",               // semantic; may come via ComboBox18
+  del_after_10pm: "",               // may come via ComboBox18
   del_after_10pm_explain: "",       // may come via TextField13
 
   // Shuttle
-  shuttle_services: "",             // semantic; may come via ComboBox19
+  shuttle_services: "",             // may come via ComboBox19
   shuttle_explanation: "",
 
   // Liquor
   liquor_lapse: "",                 // yes/no (violations last 3 yrs)
   liquor_claims: "",                // details
 
-  // Smoker / Grill (final spec)
-  has_smoker_grill: "",              // yes/no
+  // Smoker / Grill (final spec; keyed off solid_fuel)
   professionally_installed: "",      // yes/no
   cleaned_scraped_weekly: "",        // yes/no
   vent_cleaned_monthly: "",          // yes/no
@@ -108,7 +107,7 @@ const defaults = {
 
 const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
 
-// ===== Small helpers =====
+// ===== Small helpers (no new helper functions beyond these) =====
 const yeslike = (v) => ["y","yes","true","1","on","checked"].includes(String(v||"").trim().toLowerCase());
 const yn = (v) => (v===""||v==null) ? "" : (yeslike(v) ? "Y" : "N");
 const money = (v) => {
@@ -127,7 +126,7 @@ const formatDate = (d) => {
 };
 const prefer = (a,b) => (a!=="" && a!==undefined) ? a : b;
 
-// Date fix: DO NOT fall back to any currency field
+// Date fix: no currency fallbacks
 const dateShown = data.date || data.effective_date || "";
 
 // Security aliasing
@@ -145,7 +144,7 @@ const del_after_10pm      = prefer(data.del_after_10pm,      data.ComboBox18);
 const shuttle_services    = prefer(data.shuttle_services,    data.ComboBox19);
 const del_sales_owned_emp = prefer(data.del_sales_owned_emp, data.delivery_sales_amount);
 
-// Smoker auto-fills from “hood_system_ul300”
+// Smoker auto-fills from “hood_system_ul300” (simple in-template vars)
 const hoodSystemYes = yeslike(data.hood_system_ul300 || "");
 const smoker_ul300_yn = yn( yeslike(data.smoker_ul300_protected) || hoodSystemYes );
 const smoker_hood_yn  = yn( yeslike(data.smoker_hood_protected)  || hoodSystemYes );
@@ -278,12 +277,12 @@ const smoker_spark_yn = yn( yeslike(data.smoker_spark_arrestor)  || hoodSystemYe
     </div>
   </div>
 
-  <!-- SMOKER / GRILL — FINAL SPEC -->
+  <!-- SMOKER / GRILL — FINAL SPEC (driven by solid_fuel) -->
   <div class="subbar">SMOKER / GRILL — COOKING DETAILS</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w45">SMOKER / GRILL IN USE?</div>
-      <div class="cell w10 center"><%= yn(data.has_smoker_grill) %></div>
+      <div class="cell label w45">SOLID FUEL (SMOKER / GRILL) WITHIN 10 FT?</div>
+      <div class="cell w10 center"><%= yn(data.solid_fuel) %></div>
       <div class="cell label w25">UNIT PROFESSIONALLY INSTALLED?</div>
       <div class="cell w20 center"><%= yn(data.professionally_installed) %></div>
     </div>
