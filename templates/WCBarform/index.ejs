@@ -1,5 +1,5 @@
 <%
-/* ===== Shared helpers & defaults (same as 125/126/140) ===== */
+/* ===== Shared helpers & defaults (same family as 125/126/140) ===== */
 const defaults = {
   // Producer / Agency
   producerName: "All Access Ins, dba Commercial Insurance Direct LLC",
@@ -11,8 +11,8 @@ const defaults = {
   producerEmail: "quote@barinsurancedirect.com",
 
   // Policy / meta
-  date: "09/11/2025",
-  effectiveDate: "09/11/2025",
+  date: "",
+  effectiveDate: "",
   expirationDate: "",
   carrier: "",
   naicCode: "",
@@ -30,52 +30,94 @@ const defaults = {
   website: "",
   businessPhone: "",
 
-  // Policy info
-  billingPlan: "",
-  paymentPlan: "",
-  methodOfPayment: "",
-  audit: "",
-  deposit: "",
-  minimumPremium: "",
-  policyPremium: "",
+  // ===== NEW: Status of Submission =====
+  status_quote: true,
+  status_issuePolicy: false,
+  status_bound: false,
+  status_boundDate: "",         // if status_bound = true
+  status_assignedRisk: false,   // “Assigned Risk (attach ACORD 133)”
 
-  // WC / EL Limits
+  // ===== Billing / Audit Information (already had most) =====
+  billingPlan: "",              // Agency Bill / Direct Bill / Assigned Risk
+  paymentPlan: "",              // Annual / Semi-Annual / Quarterly / Monthly
+  methodOfPayment: "",          // free text if you want
+  audit: "AT EXPIRATION",       // At Expiration / Semi-Annual / Quarterly / Monthly
+  deposit: "",
+
+  // ===== Policy Information =====
+  proposedEffDate: "",
+  proposedExpDate: "",
+  ratingEffectiveDate: "",      // (if applicable)
+  anniversaryRatingDate: "",    // (if applicable)
+  retroPlan: "NON-PARTICIPATING", // PARTICIPATING | NON-PARTICIPATING
+  deduct_medical: "",           // e.g., "N/A in WI"
+  deduct_indemnity: "",         // e.g., "N/A in WI"
+  deduct_amountPct: "",         // Amount or %
+  dividendPlanSafetyGroup: "",  // free text
+  managedCareOption: false,
+  foreignCoverage: false,
+  voluntaryComp: false,
+  otherCoverages: "",
+
+  // ===== Locations (table one) =====
+  locations: [
+    // {
+    //   loc: "1",
+    //   address1: "123 Main St",
+    //   city: "Littleton",
+    //   county: "Arapahoe",
+    //   state: "CO",
+    //   zip: "80123",
+    //   floorHighest: "1",
+    //   // classification rows used on page 2 worksheet:
+    //   classRows: [
+    //     { classCode:"9084", description:"Bar/Tavern", ftEmployees:"8", ptEmployees:"6", annualRemuneration:"440000", rate:"", estimatedAnnualPremium:"" },
+    //     { classCode:"8810", description:"Clerical", ftEmployees:"2", ptEmployees:"",  annualRemuneration:"90000",  rate:"", estimatedAnnualPremium:"" }
+    //   ],
+    //   includeOvertime: true
+    // }
+  ],
+
+  // ===== Coverage (Part One/Two/Three) =====
   wc_coveredStates: ["CO"],     // array of postal abbreviations
-  wc_otherStatesText: "",       // free text “other states”
+  wc_otherStatesText: "",
   el_eachAccident: "1,000,000",
   el_diseasePolicyLimit: "1,000,000",
   el_diseaseEachEmployee: "1,000,000",
 
-  // Experience Mod / Prior Carrier (3 years typical)
+  // ===== State Rating Worksheet (page 2 totals) =====
+  ratingState: "CO",
+  sw_standardPremium: "",
+  sw_scheduleRating: "",
+  sw_scheduleRatingFactor: "",  // if you want to show factor separately
+  sw_ccpap: "",
+  sw_ccpapFactor: "",
+  sw_modification: "",
+  sw_modificationFactor: "",
+  sw_increasedLimits: "",
+  sw_deductible: "",
+  sw_arap: "",
+  sw_assignedRiskSurcharge: "",
+  sw_premiumDiscount: "",
+  sw_expenseConstant: "",
+  sw_taxesAssessments: "",
+  sw_terrorism: "",
+  sw_catastrophe: "",
+  sw_factoredPremium: "",
+  sw_depositPremium: "",
+  sw_minimumPremium: "",
+  sw_totalEstimatedAnnualPremium: "",
+
+  // Experience Mod / Prior Carrier
   expMod: "",
   expModEffective: "",
   priorCarrier: [
     // { year: "2024", carrier:"ABC", policyNumber:"", premium:"", effective:"", expiration:"" }
   ],
 
-  // Locations & Classifications
-  locations: [
-    // {
-    //   loc: "1",
-    //   address1: "123 Main St",
-    //   city: "Littleton",
-    //   state: "CO",
-    //   zip: "80123",
-    //   classRows: [
-    //     { classCode:"9079", description:"Restaurant", ftEmployees:"8", ptEmployees:"6", annualRemuneration:"440000", rate:"", estimatedAnnualPremium:"" },
-    //     { classCode:"8810", description:"Clerical", ftEmployees:"2", ptEmployees:"", annualRemuneration:"90000", rate:"", estimatedAnnualPremium:"" }
-    //   ],
-    //   includeOvertime: true
-    // }
-  ],
-
-  // Officers / Owners (include/exclude)
+  // Officers / Owners
   officers: [
-    // {
-    //   name:"Jane Founder", title:"Member", ownershipPct:"50",
-    //   duties:"Mgmt", classCode:"8810",
-    //   include:true, remuneration:"70000"
-    // }
+    // { name:"Jane Founder", title:"Member", ownershipPct:"50", duties:"Mgmt", classCode:"8810", include:true, remuneration:"70000" }
   ],
 
   // Waivers / Leased / Volunteer Comp
@@ -94,12 +136,12 @@ const defaults = {
   gi_tempEmployees: "",
   gi_drivers: "",
   gi_athletics: "",
-  gi_federalActCoverage: "", // e.g., USL&H, FELA
+  gi_federalActCoverage: "",
   gi_pastLossControl: "",
   gi_futureChanges: "",
   gi_explain: "",
 
-  // Loss history (3 years typical)
+  // Loss history
   losses: [
     // { year:"2024", claimCount:"0", amountPaid:"", amountReserved:"", description:"" }
   ],
@@ -111,7 +153,7 @@ const defaults = {
 
 const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
 
-// ===== Helpers (identical to your other forms) =====
+// ===== Helpers =====
 const yes = (v) => ["yes","true","1","on","checked","y"].includes(String(v ?? "").toLowerCase()) || v === true || v === 1;
 const yn = (v) => (v===null||v===undefined||v==="") ? "" : (yes(v) ? "Y" : "N");
 const money = (v, opts={min:0,max:0}) => {
@@ -121,7 +163,6 @@ const money = (v, opts={min:0,max:0}) => {
   return n.toLocaleString("en-US", { minimumFractionDigits: opts.min, maximumFractionDigits: opts.max });
 };
 const moneyUSD = (v) => money(v);
-const pad = (s, n) => String(s ?? "").padEnd(n, " ");
 const formatDate = (d) => {
   try {
     if (!d) return "";
@@ -140,7 +181,6 @@ const formatDate = (d) => {
   <meta charset="utf-8"/>
   <title>ACORD 130 - Workers' Compensation Section</title>
   <style>
-    /* ===== Same layout system as 125/126/140 ===== */
     @media print { @page { margin: 0.25in; size: letter; } .page { page-break-after: always; } .page:last-child { page-break-after: auto; } }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; font-size: 8pt; line-height: 1.1; background: #fff; color: #000; }
@@ -164,7 +204,6 @@ const formatDate = (d) => {
     .w5{width:5%}.w7{width:7%}.w8{width:8%}.w10{width:10%}.w12{width:12%}.w15{width:15%}.w18{width:18%}.w20{width:20%}.w22{width:22%}.w25{width:25%}.w28{width:28%}.w30{width:30%}.w33{width:33%}.w35{width:35%}.w40{width:40%}.w45{width:45%}.w50{width:50%}.w55{width:55%}.w60{width:60%}.w65{width:65%}.w70{width:70%}.w75{width:75%}.w80{width:80%}.w85{width:85%}.w90{width:90%}.w95{width:95%}.w100{width:100%}
     .check { display:inline-block; width:10px; height:10px; border:1px solid #000; text-align:center; line-height:8px; font-size:8pt; margin-right:5px; vertical-align:middle; }
     .check-xs { width:8px; height:8px; font-size:6pt; line-height:6px; }
-    .checkbox { display:inline-block; width:8px; height:8px; border:1px solid #000; text-align:center; line-height:6px; font-size:6pt; margin-right:3px; vertical-align:middle; }
     .footnote { position:absolute; bottom:0.125in; left:0.125in; right:0.125in; font-size:6pt; border-top:1px solid #000; padding-top:2px; text-align:center; }
     .no-break { page-break-inside: avoid; }
     @media screen { .page{margin-bottom:20px; box-shadow:0 0 10px rgba(0,0,0,.1)} }
@@ -225,19 +264,232 @@ const formatDate = (d) => {
       <div class="cell label w15">BILLING PLAN</div>
       <div class="cell w25"><%= data.billingPlan %></div>
     </div>
+  </div>
+
+  <!-- STATUS OF SUBMISSION -->
+  <div class="subbar">STATUS OF SUBMISSION</div>
+  <div class="block">
     <div class="row">
-      <div class="cell label w15">PAYMENT PLAN</div>
-      <div class="cell w20"><%= data.paymentPlan %></div>
-      <div class="cell label w10">METHOD OF PAYMENT</div>
-      <div class="cell w20"><%= data.methodOfPayment %></div>
-      <div class="cell label w10">AUDIT</div>
-      <div class="cell w10"><%= data.audit %></div>
-      <div class="cell label w7">DEPOSIT</div>
-      <div class="cell w8 right">$<%= moneyUSD(data.deposit) %></div>
+      <div class="cell w33 small">
+        <span class="check"><%= yes(data.status_quote) ? "X" : "" %></span> QUOTE
+      </div>
+      <div class="cell w33 small">
+        <span class="check"><%= yes(data.status_issuePolicy) ? "X" : "" %></span> ISSUE POLICY
+      </div>
+      <div class="cell w34 small">
+        <span class="check"><%= yes(data.status_bound) ? "X" : "" %></span> BOUND &nbsp;&nbsp; DATE: <%= formatDate(data.status_boundDate) %>
+      </div>
+    </div>
+    <div class="row">
+      <div class="cell w100 small">
+        <span class="check"><%= yes(data.status_assignedRisk) ? "X" : "" %></span> ASSIGNED RISK (Attach ACORD 133)
+      </div>
     </div>
   </div>
 
-  <!-- PART ONE / PART TWO / PART THREE -->
+  <!-- BILLING / AUDIT INFORMATION -->
+  <div class="subbar">BILLING / AUDIT INFORMATION</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w15">PAYMENT PLAN</div>
+      <div class="cell w20"><%= data.paymentPlan %></div>
+      <div class="cell label w15">METHOD OF PAYMENT</div>
+      <div class="cell w20"><%= data.methodOfPayment %></div>
+      <div class="cell label w10">AUDIT</div>
+      <div class="cell w10"><%= data.audit %></div>
+      <div class="cell label w5">DEPOSIT</div>
+      <div class="cell w5 right">$<%= moneyUSD(data.deposit) %></div>
+    </div>
+  </div>
+
+  <!-- POLICY INFORMATION -->
+  <div class="subbar">POLICY INFORMATION</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w20">PROPOSED EFF DATE</div>
+      <div class="cell w15"><%= formatDate(data.proposedEffDate) %></div>
+      <div class="cell label w20">PROPOSED EXP DATE</div>
+      <div class="cell w15"><%= formatDate(data.proposedExpDate) %></div>
+      <div class="cell label w20">RATING EFFECTIVE DATE</div>
+      <div class="cell w10"><%= formatDate(data.ratingEffectiveDate) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w20">ANNIVERSARY RATING DATE</div>
+      <div class="cell w15"><%= formatDate(data.anniversaryRatingDate) %></div>
+      <div class="cell label w20">RETRO PLAN</div>
+      <div class="cell w15"><%= data.retroPlan %></div>
+      <div class="cell label w20">DIVIDEND PLAN / SAFETY GROUP</div>
+      <div class="cell w10"><%= data.dividendPlanSafetyGroup %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w15">DEDUCTIBLES</div>
+      <div class="cell w28 small">MEDICAL: <%= data.deduct_medical %></div>
+      <div class="cell w28 small">INDEMNITY: <%= data.deduct_indemnity %></div>
+      <div class="cell w29 small">AMOUNT / %: <%= data.deduct_amountPct %></div>
+    </div>
+    <div class="row">
+      <div class="cell w25 small">
+        MANAGED CARE OPTION <span class="check check-xs"><%= yes(data.managedCareOption) ? "X" : "" %></span>
+      </div>
+      <div class="cell w25 small">
+        FOREIGN COVERAGE <span class="check check-xs"><%= yes(data.foreignCoverage) ? "X" : "" %></span>
+      </div>
+      <div class="cell w25 small">
+        VOLUNTARY COMP <span class="check check-xs"><%= yes(data.voluntaryComp) ? "X" : "" %></span>
+      </div>
+      <div class="cell w25 small">
+        OTHER COVERAGES: <%= data.otherCoverages %>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOCATIONS -->
+  <div class="subbar">LOCATIONS</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w7 center">LOC #</div>
+      <div class="cell label w33 center">STREET / CITY / STATE / ZIP</div>
+      <div class="cell label w20 center">COUNTY</div>
+      <div class="cell label w20 center">BLDG DESCRIPTION</div>
+      <div class="cell label w20 center">FLOOR (HIGHEST)</div>
+    </div>
+    <% (Array.isArray(data.locations)?data.locations:[]).forEach(function(L){ 
+         const addr = [L.address1, L.city, L.state, L.zip].filter(Boolean).join(", ");
+    %>
+      <div class="row">
+        <div class="cell w7 center"><%= L.loc || "" %></div>
+        <div class="cell w33 wrap"><%= addr %></div>
+        <div class="cell w20"><%= L.county || "" %></div>
+        <div class="cell w20"><%= L.bldgDescription || "" %></div>
+        <div class="cell w20 center"><%= L.floorHighest || "" %></div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="footnote">
+    ACORD 130 (2017/05) &nbsp;&nbsp;&nbsp; Page 1 of 4 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
+  </div>
+</div>
+
+<!-- ====================== PAGE 2 ====================== -->
+<div class="page">
+  <div class="headerbar">
+    <div class="acord">ACORD</div>
+    <div class="title">WORKERS' COMPENSATION SECTION</div>
+    <div class="formno">130</div>
+  </div>
+
+  <!-- STATE RATING WORKSHEET -->
+  <div class="subbar">STATE RATING WORKSHEET</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w25">RATING INFORMATION — STATE</div>
+      <div class="cell w25"><%= data.ratingState || "" %></div>
+      <div class="cell label w25">AGENCY CUSTOMER ID</div>
+      <div class="cell w25"><%= data.agencyCustomerId || "" %></div>
+    </div>
+  </div>
+
+  <!-- CLASSIFICATION TABLE (Estimated Annual Exposure) -->
+  <div class="block">
+    <div class="row">
+      <div class="cell label w7 center">LOC</div>
+      <div class="cell label w10 center">CLASS CODE</div>
+      <div class="cell label w23 center">CATEGORIES / DUTIES / CLASSIFICATIONS</div>
+      <div class="cell label w8 center">FT</div>
+      <div class="cell label w8 center">PT</div>
+      <div class="cell label w14 center">EST. ANNUAL REMUN / PAYROLL</div>
+      <div class="cell label w10 center">RATE</div>
+      <div class="cell label w10 center">EST. MANUAL PREMIUM</div>
+      <div class="cell label w10 center">EST. PREM</div>
+    </div>
+
+    <% (Array.isArray(data.locations)?data.locations:[]).forEach(function(L){ 
+         const rows = Array.isArray(L.classRows)?L.classRows:[];
+         rows.forEach(function(R, idx){
+    %>
+      <div class="row">
+        <div class="cell w7 center"><%= idx===0 ? (L.loc || "") : "" %></div>
+        <div class="cell w10 center"><%= R.classCode || "" %></div>
+        <div class="cell w23 wrap"><%= R.description || "" %></div>
+        <div class="cell w8 center"><%= R.ftEmployees || "" %></div>
+        <div class="cell w8 center"><%= R.ptEmployees || "" %></div>
+        <div class="cell w14 right">$<%= moneyUSD(R.annualRemuneration) %></div>
+        <div class="cell w10 right"><%= R.rate || "" %></div>
+        <div class="cell w10 right"><%= R.estimatedAnnualManualPremium ? ('$'+moneyUSD(R.estimatedAnnualManualPremium)) : "" %></div>
+        <div class="cell w10 right">$<%= moneyUSD(R.estimatedAnnualPremium) %></div>
+      </div>
+    <%   });
+       }); %>
+  </div>
+
+  <!-- WORKSHEET TOTALS -->
+  <div class="block">
+    <div class="row">
+      <div class="cell label w20">STANDARD PREMIUM</div>
+      <div class="cell w15 right">$<%= moneyUSD(data.sw_standardPremium) %></div>
+      <div class="cell label w20">SCHEDULE RATING *</div>
+      <div class="cell w15 right"><%= data.sw_scheduleRatingFactor ? data.sw_scheduleRatingFactor : "" %> <%= data.sw_scheduleRating ? ('$'+moneyUSD(data.sw_scheduleRating)) : "" %></div>
+      <div class="cell label w20">CCPAP</div>
+      <div class="cell w10 right"><%= data.sw_ccpapFactor ? data.sw_ccpapFactor : "" %> <%= data.sw_ccpap ? ('$'+moneyUSD(data.sw_ccpap)) : "" %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w20">MODIFICATION (EXP/MERIT)</div>
+      <div class="cell w15 right"><%= data.sw_modificationFactor ? data.sw_modificationFactor : "" %> <%= data.sw_modification ? ('$'+moneyUSD(data.sw_modification)) : "" %></div>
+      <div class="cell label w20">INCREASED LIMITS</div>
+      <div class="cell w15 right">$<%= moneyUSD(data.sw_increasedLimits) %></div>
+      <div class="cell label w20">DEDUCTIBLE *</div>
+      <div class="cell w10 right">$<%= moneyUSD(data.sw_deductible) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w20">ARAP *</div>
+      <div class="cell w15 right">$<%= moneyUSD(data.sw_arap) %></div>
+      <div class="cell label w20">ASSIGNED RISK SURCHARGE *</div>
+      <div class="cell w15 right">$<%= moneyUSD(data.sw_assignedRiskSurcharge) %></div>
+      <div class="cell label w20">PREMIUM DISCOUNT</div>
+      <div class="cell w10 right">$<%= moneyUSD(data.sw_premiumDiscount) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w20">EXPENSE CONSTANT</div>
+      <div class="cell w15 right">$<%= moneyUSD(data.sw_expenseConstant) %></div>
+      <div class="cell label w20">TAXES / ASSESSMENTS *</div>
+      <div class="cell w15 right">$<%= moneyUSD(data.sw_taxesAssessments) %></div>
+      <div class="cell label w20">TERRORISM</div>
+      <div class="cell w10 right">$<%= moneyUSD(data.sw_terrorism) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w20">CATASTROPHE</div>
+      <div class="cell w15 right">$<%= moneyUSD(data.sw_catastrophe) %></div>
+      <div class="cell label w20">FACTORED PREMIUM</div>
+      <div class="cell w15 right">$<%= moneyUSD(data.sw_factoredPremium) %></div>
+      <div class="cell label w20">DEPOSIT PREMIUM</div>
+      <div class="cell w10 right">$<%= moneyUSD(data.sw_depositPremium) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w20">MINIMUM PREMIUM</div>
+      <div class="cell w15 right">$<%= moneyUSD(data.sw_minimumPremium) %></div>
+      <div class="cell label w20">TOTAL ESTIMATED ANNUAL PREMIUM</div>
+      <div class="cell w45 right">$<%= moneyUSD(data.sw_totalEstimatedAnnualPremium) %></div>
+    </div>
+    <div class="row">
+      <div class="cell w100 small">* N / A in Wisconsin</div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    ACORD 130 (2017/05) &nbsp;&nbsp;&nbsp; Page 2 of 4 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
+  </div>
+</div>
+
+<!-- ====================== PAGE 3 ====================== -->
+<div class="page">
+  <div class="headerbar">
+    <div class="acord">ACORD</div>
+    <div class="title">WORKERS' COMPENSATION SECTION</div>
+    <div class="formno">130</div>
+  </div>
+
+  <!-- COVERAGE (Part One / Two / Three) -->
   <div class="subbar">COVERAGE</div>
   <div class="block">
     <div class="row">
@@ -294,61 +546,6 @@ const formatDate = (d) => {
     <% }) %>
   </div>
 
-  <div class="footnote">
-    ACORD 130 (2025/03) &nbsp;&nbsp;&nbsp; Page 1 of 3 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
-  </div>
-</div>
-
-<!-- ====================== PAGE 2 ====================== -->
-<div class="page">
-  <div class="headerbar">
-    <div class="acord">ACORD</div>
-    <div class="title">WORKERS' COMPENSATION SECTION</div>
-    <div class="formno">130</div>
-  </div>
-
-  <!-- LOCATIONS & CLASSIFICATIONS -->
-  <div class="subbar">LOCATIONS & CLASSIFICATIONS (ESTIMATED ANNUAL EXPOSURE)</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w10 center">LOC</div>
-      <div class="cell label w25 center">ADDRESS / CITY / STATE / ZIP</div>
-      <div class="cell label w10 center">CLASS CODE</div>
-      <div class="cell label w20 center">CLASSIFICATION</div>
-      <div class="cell label w7 center">FT</div>
-      <div class="cell label w7 center">PT</div>
-      <div class="cell label w12 center">ANNUAL REMUN</div>
-      <div class="cell label w9 center">RATE</div>
-      <div class="cell label w10 center">EST. PREM</div>
-    </div>
-
-    <% (Array.isArray(data.locations)?data.locations:[]).forEach(function(L){ 
-         const addr = [L.address1, L.city, L.state, L.zip].filter(Boolean).join(", ");
-         const rows = Array.isArray(L.classRows)?L.classRows:[];
-         const count = Math.max(rows.length, 1);
-    %>
-      <% rows.forEach(function(R, idx){ %>
-        <div class="row">
-          <div class="cell w10 center"><%= idx===0 ? (L.loc || "") : "" %></div>
-          <div class="cell w25 wrap"><%= idx===0 ? addr : "" %></div>
-          <div class="cell w10 center"><%= R.classCode || "" %></div>
-          <div class="cell w20 wrap"><%= R.description || "" %></div>
-          <div class="cell w7 center"><%= R.ftEmployees || "" %></div>
-          <div class="cell w7 center"><%= R.ptEmployees || "" %></div>
-          <div class="cell w12 right">$<%= moneyUSD(R.annualRemuneration) %></div>
-          <div class="cell w9 right"><%= R.rate || "" %></div>
-          <div class="cell w10 right">$<%= moneyUSD(R.estimatedAnnualPremium) %></div>
-        </div>
-      <% }); %>
-
-      <div class="row">
-        <div class="cell w100 small">
-          INCLUDE OVERTIME? <span class="check check-xs"><%= yes(L.includeOvertime) ? "X" : "" %></span>
-        </div>
-      </div>
-    <% }) %>
-  </div>
-
   <!-- OFFICERS / OWNERS -->
   <div class="subbar">OFFICERS / OWNERS (INCLUDE OR EXCLUDE)</div>
   <div class="block">
@@ -378,15 +575,14 @@ const formatDate = (d) => {
   <div class="subbar">WAIVERS, LEASED / VOLUNTEER WORKERS</div>
   <div class="block">
     <div class="row">
-      <div class="cell w40 small">
-        BLANKET WAIVER OF SUBROGATION REQUIRED? 
+      <div class="cell w40 small">BLANKET WAIVER OF SUBROGATION REQUIRED?
         <span class="check check-xs"><%= yes(data.blanketWaiver) ? "X" : "" %></span>
       </div>
-      <div class="cell w30 small">
-        LEASED EMPLOYEES? <span class="check check-xs"><%= yes(data.leasedEmployees) ? "X" : "" %></span>
+      <div class="cell w30 small">LEASED EMPLOYEES?
+        <span class="check check-xs"><%= yes(data.leasedEmployees) ? "X" : "" %></span>
       </div>
-      <div class="cell w30 small">
-        VOLUNTEER / VOLUNTARY COMP? <span class="check check-xs"><%= yes(data.volunteerComp) ? "X" : "" %></span>
+      <div class="cell w30 small">VOLUNTEER / VOLUNTARY COMP?
+        <span class="check check-xs"><%= yes(data.volunteerComp) ? "X" : "" %></span>
       </div>
     </div>
     <div class="row">
@@ -397,6 +593,19 @@ const formatDate = (d) => {
         <% }) %>
       </div>
     </div>
+  </div>
+
+  <div class="footnote">
+    ACORD 130 (2017/05) &nbsp;&nbsp;&nbsp; Page 3 of 4 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
+  </div>
+</div>
+
+<!-- ====================== PAGE 4 ====================== -->
+<div class="page">
+  <div class="headerbar">
+    <div class="acord">ACORD</div>
+    <div class="title">WORKERS' COMPENSATION SECTION</div>
+    <div class="formno">130</div>
   </div>
 
   <!-- GENERAL INFORMATION -->
@@ -423,19 +632,6 @@ const formatDate = (d) => {
     <div class="row">
       <div class="cell w100 wrap" style="min-height:40px;"><%= data.gi_explain || "" %></div>
     </div>
-  </div>
-
-  <div class="footnote">
-    ACORD 130 (2025/03) &nbsp;&nbsp;&nbsp; Page 2 of 3 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
-  </div>
-</div>
-
-<!-- ====================== PAGE 3 ====================== -->
-<div class="page">
-  <div class="headerbar">
-    <div class="acord">ACORD</div>
-    <div class="title">WORKERS' COMPENSATION SECTION</div>
-    <div class="formno">130</div>
   </div>
 
   <!-- LOSS HISTORY -->
@@ -502,48 +698,35 @@ const formatDate = (d) => {
     </div>
   </div>
 
-  <!-- STATE FRAUD NOTICES (same block you use on 125/126/140) -->
+  <!-- STATE FRAUD NOTICES (same block style as your other forms) -->
   <div class="subbar">STATE FRAUD NOTICES</div>
   <div class="block">
-    <div class="row">
-      <div class="cell w100 small legal wrap" style="padding:4px;">
-        <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong>
-        Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.
-        <br/><br/>
-        <strong>Applicable in CA:</strong>
-        For your protection, California law requires the following to appear on this form: Any person who knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.
-        <br/><br/>
-        <strong>Applicable in CO:</strong>
-        It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.
-        <br/><br/>
-        <strong>Applicable in DC:</strong>
-        WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance benefits if false information materially related to a claim was provided by the applicant.
-        <br/><br/>
-        <strong>Applicable in FL and OK:</strong>
-        Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in FL Only.
-        <br/><br/>
-        <strong>Applicable in KS:</strong>
-        Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.
-        <br/><br/>
-        <strong>Applicable in KY, OH and PA:</strong>
-        Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties.
-        <br/><br/>
-        <strong>Applicable in ME, TN, VA and WA:</strong>
-        It is a crime to knowingly provide false, incomplete or misleading information to an insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance benefits. *Applies in ME Only.
-        <br/><br/>
-        <strong>Applicable in NJ:</strong>
-        Any person who includes any false or misleading information on an application for an insurance policy is subject to criminal and civil penalties.
-        <br/><br/>
-        <strong>Applicable in NY:</strong>
-        Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.
-        <br/><br/>
-        <strong>Applicable in OR:</strong>
-        Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by submitting an application containing a false statement as to any material fact may be violating state law.
-        <br/><br/>
-        <strong>Applicable in PR:</strong>
-        Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum of two (2) years.
-      </div>
-    </div>
+    <div class="row"><div class="cell w100 small legal wrap" style="padding:4px;">
+      <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong>
+      Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.
+      <br/><br/>
+      <strong>Applicable in CA:</strong> For your protection, California law requires the following to appear on this form: Any person who knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.
+      <br/><br/>
+      <strong>Applicable in CO:</strong> It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.
+      <br/><br/>
+      <strong>Applicable in DC:</strong> WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance benefits if false information materially related to a claim was provided by the applicant.
+      <br/><br/>
+      <strong>Applicable in FL and OK:</strong> Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in FL Only.
+      <br/><br/>
+      <strong>Applicable in KS:</strong> Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.
+      <br/><br/>
+      <strong>Applicable in KY, OH and PA:</strong> Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties.
+      <br/><br/>
+      <strong>Applicable in ME, TN, VA and WA:</strong> It is a crime to knowingly provide false, incomplete or misleading information to an insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance benefits. *Applies in ME Only.
+      <br/><br/>
+      <strong>Applicable in NJ:</strong> Any person who includes any false or misleading information on an application for an insurance policy is subject to criminal and civil penalties.
+      <br/><br/>
+      <strong>Applicable in NY:</strong> Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.
+      <br/><br/>
+      <strong>Applicable in OR:</strong> Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by submitting an application containing a false statement as to any material fact may be violating state law.
+      <br/><br/>
+      <strong>Applicable in PR:</strong> Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum of two (2) years.
+    </div></div>
   </div>
 
   <div class="block">
@@ -554,7 +737,7 @@ const formatDate = (d) => {
   </div>
 
   <div class="footnote">
-    ACORD 130 (2025/03) &nbsp;&nbsp;&nbsp; Page 3 of 3 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
+    ACORD 130 (2017/05) &nbsp;&nbsp;&nbsp; Page 4 of 4 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
   </div>
 </div>
 
