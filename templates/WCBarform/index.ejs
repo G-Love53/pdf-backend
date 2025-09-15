@@ -1,88 +1,562 @@
-<!doctype html>
+<%
+/* ===== Shared helpers & defaults (same as 125/126/140) ===== */
+const defaults = {
+  // Producer / Agency
+  producerName: "All Access Ins, dba Commercial Insurance Direct LLC",
+  producerAddress1: "9200 W Cross Drive #515",
+  producerAddress2: "Littleton, CO 80123",
+  producerContact: "Rick Cline or Gerry Jones",
+  producerPhone: "(555) 123-4567",
+  producerFax: "(555) 123-4568",
+  producerEmail: "quote@barinsurancedirect.com",
+
+  // Policy / meta
+  date: "09/11/2025",
+  effectiveDate: "09/11/2025",
+  expirationDate: "",
+  carrier: "",
+  naicCode: "",
+  policyNumber: "",
+  agencyCustomerId: "",
+
+  // Applicant
+  applicant_name: "",
+  mailing_address1: "",
+  mailing_address2: "",
+  mailing_city: "",
+  mailing_state: "",
+  mailing_zip: "",
+  fein: "",
+  website: "",
+  businessPhone: "",
+
+  // Policy info
+  billingPlan: "",
+  paymentPlan: "",
+  methodOfPayment: "",
+  audit: "",
+  deposit: "",
+  minimumPremium: "",
+  policyPremium: "",
+
+  // WC / EL Limits
+  wc_coveredStates: ["CO"],     // array of postal abbreviations
+  wc_otherStatesText: "",       // free text “other states”
+  el_eachAccident: "1,000,000",
+  el_diseasePolicyLimit: "1,000,000",
+  el_diseaseEachEmployee: "1,000,000",
+
+  // Experience Mod / Prior Carrier (3 years typical)
+  expMod: "",
+  expModEffective: "",
+  priorCarrier: [
+    // { year: "2024", carrier:"ABC", policyNumber:"", premium:"", effective:"", expiration:"" }
+  ],
+
+  // Locations & Classifications
+  locations: [
+    // {
+    //   loc: "1",
+    //   address1: "123 Main St",
+    //   city: "Littleton",
+    //   state: "CO",
+    //   zip: "80123",
+    //   classRows: [
+    //     { classCode:"9079", description:"Restaurant", ftEmployees:"8", ptEmployees:"6", annualRemuneration:"440000", rate:"", estimatedAnnualPremium:"" },
+    //     { classCode:"8810", description:"Clerical", ftEmployees:"2", ptEmployees:"", annualRemuneration:"90000", rate:"", estimatedAnnualPremium:"" }
+    //   ],
+    //   includeOvertime: true
+    // }
+  ],
+
+  // Officers / Owners (include/exclude)
+  officers: [
+    // {
+    //   name:"Jane Founder", title:"Member", ownershipPct:"50",
+    //   duties:"Mgmt", classCode:"8810",
+    //   include:true, remuneration:"70000"
+    // }
+  ],
+
+  // Waivers / Leased / Volunteer Comp
+  blanketWaiver: false,
+  specificWaivers: [
+    // { name:"Landlord LLC", state:"CO", description:"Premises-related waiver" }
+  ],
+  leasedEmployees: false,
+  laborInterchange: false,
+  volunteerComp: false,
+
+  // General Info (yes/no)
+  gi_hasPriorWC: "",
+  gi_anySubcontractors: "",
+  gi_performWorkOutOfState: "",
+  gi_tempEmployees: "",
+  gi_drivers: "",
+  gi_athletics: "",
+  gi_federalActCoverage: "", // e.g., USL&H, FELA
+  gi_pastLossControl: "",
+  gi_futureChanges: "",
+  gi_explain: "",
+
+  // Loss history (3 years typical)
+  losses: [
+    // { year:"2024", claimCount:"0", amountPaid:"", amountReserved:"", description:"" }
+  ],
+  noLosses: false,
+
+  // Remarks
+  remarks: ""
+};
+
+const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
+
+// ===== Helpers (identical to your other forms) =====
+const yes = (v) => ["yes","true","1","on","checked","y"].includes(String(v ?? "").toLowerCase()) || v === true || v === 1;
+const yn = (v) => (v===null||v===undefined||v==="") ? "" : (yes(v) ? "Y" : "N");
+const money = (v, opts={min:0,max:0}) => {
+  if (v === null || v === undefined || v === "") return "";
+  const n = Number(String(v).toString().replace(/[^0-9.-]/g,""));
+  if (Number.isNaN(n)) return String(v);
+  return n.toLocaleString("en-US", { minimumFractionDigits: opts.min, maximumFractionDigits: opts.max });
+};
+const moneyUSD = (v) => money(v);
+const pad = (s, n) => String(s ?? "").padEnd(n, " ");
+const formatDate = (d) => {
+  try {
+    if (!d) return "";
+    const dt = new Date(d);
+    if (Number.isNaN(dt.getTime())) return String(d);
+    const mm = String(dt.getMonth()+1).padStart(2,"0");
+    const dd = String(dt.getDate()).padStart(2,"0");
+    const yyyy = dt.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
+  } catch { return String(d ?? ""); }
+};
+%>
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>Workers’ Compensation – Bar/Tavern</title>
-  <style><%= styles %></style>
+  <title>ACORD 130 - Workers' Compensation Section</title>
+  <style>
+    /* ===== Same layout system as 125/126/140 ===== */
+    @media print { @page { margin: 0.25in; size: letter; } .page { page-break-after: always; } .page:last-child { page-break-after: auto; } }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; font-size: 8pt; line-height: 1.1; background: #fff; color: #000; }
+    .page { width: 100%; min-height: 10.5in; padding: 0.125in; border: 1px solid #ccc; position: relative; }
+    .headerbar { display:flex; border:2px solid #000; background:#fff; margin-bottom:2px; align-items:center; height:40px; }
+    .headerbar .acord, .headerbar .formno { background:#000; color:#fff; font-weight:bold; font-size:16pt; width:60px; text-align:center; height:100%; display:flex; align-items:center; justify-content:center; }
+    .headerbar .acord { width:80px; }
+    .headerbar .title { flex:1; font-weight:bold; font-size:12pt; text-align:center; padding:0 10px; }
+    .subbar { background:#000; color:#fff; font-weight:bold; font-size:9pt; padding:3px 8px; margin:2px 0; text-align:left; }
+    .block { border:1px solid #000; margin-bottom:2px; }
+    .row { display:flex; border-bottom:1px solid #000; min-height:18px; }
+    .row:last-child { border-bottom:none; }
+    .cell { border-right:1px solid #000; padding:1px 3px; display:flex; align-items:center; overflow-wrap:break-word; }
+    .cell:last-child { border-right:none; }
+    .cell.label { background:#f0f0f0; font-weight:bold; font-size:6.5pt; }
+    .cell.center { justify-content:center; text-align:center; }
+    .cell.right { justify-content:flex-end; text-align:right; }
+    .cell.wrap { flex-wrap:wrap; align-items:flex-start; }
+    .cell.small { font-size:7pt; }
+    .cell.legal { font-size:6pt; line-height:1.2; }
+    .w5{width:5%}.w7{width:7%}.w8{width:8%}.w10{width:10%}.w12{width:12%}.w15{width:15%}.w18{width:18%}.w20{width:20%}.w22{width:22%}.w25{width:25%}.w28{width:28%}.w30{width:30%}.w33{width:33%}.w35{width:35%}.w40{width:40%}.w45{width:45%}.w50{width:50%}.w55{width:55%}.w60{width:60%}.w65{width:65%}.w70{width:70%}.w75{width:75%}.w80{width:80%}.w85{width:85%}.w90{width:90%}.w95{width:95%}.w100{width:100%}
+    .check { display:inline-block; width:10px; height:10px; border:1px solid #000; text-align:center; line-height:8px; font-size:8pt; margin-right:5px; vertical-align:middle; }
+    .check-xs { width:8px; height:8px; font-size:6pt; line-height:6px; }
+    .checkbox { display:inline-block; width:8px; height:8px; border:1px solid #000; text-align:center; line-height:6px; font-size:6pt; margin-right:3px; vertical-align:middle; }
+    .footnote { position:absolute; bottom:0.125in; left:0.125in; right:0.125in; font-size:6pt; border-top:1px solid #000; padding-top:2px; text-align:center; }
+    .no-break { page-break-inside: avoid; }
+    @media screen { .page{margin-bottom:20px; box-shadow:0 0 10px rgba(0,0,0,.1)} }
+  </style>
 </head>
 <body>
-  <!-- PAGE 1 -->
-  <div class="page">
-    <div class="headerbar">
-      <div class="acord">CID</div>
-      <div class="title">WORKERS’ COMPENSATION</div>
-      <div class="formno">WC</div>
+
+<!-- ====================== PAGE 1 ====================== -->
+<div class="page">
+  <div class="headerbar">
+    <div class="acord">ACORD</div>
+    <div class="title">WORKERS' COMPENSATION SECTION</div>
+    <div class="formno">130</div>
+  </div>
+
+  <!-- PRODUCER / APPLICANT -->
+  <div class="subbar">PRODUCER / APPLICANT</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w15">AGENCY</div>
+      <div class="cell w35 wrap">
+        <%= data.producerName %><br/>
+        <%= data.producerAddress1 %><br/>
+        <%= data.producerAddress2 %>
+      </div>
+      <div class="cell label w15">AGENCY CUSTOMER ID</div>
+      <div class="cell w15"><%= data.agencyCustomerId || "" %></div>
+      <div class="cell label w10">DATE (MM/DD/YYYY)</div>
+      <div class="cell w10"><%= formatDate(data.date) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w20">APPLICANT / FIRST NAMED INSURED</div>
+      <div class="cell w40 wrap">
+        <%= data.applicant_name || "" %><br/>
+        <%= data.mailing_address1 || "" %><% if (data.mailing_address2) { %><br/><%= data.mailing_address2 %><% } %><br/>
+        <%= data.mailing_city || "" %>, <%= data.mailing_state || "" %> <%= data.mailing_zip || "" %>
+      </div>
+      <div class="cell label w10">CARRIER</div>
+      <div class="cell w10"><%= data.carrier %></div>
+      <div class="cell label w10">NAIC CODE</div>
+      <div class="cell w10"><%= data.naicCode %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w15">POLICY NUMBER</div>
+      <div class="cell w15"><%= data.policyNumber %></div>
+      <div class="cell label w15">EFFECTIVE DATE</div>
+      <div class="cell w15"><%= formatDate(data.effectiveDate) %></div>
+      <div class="cell label w15">EXPIRATION DATE</div>
+      <div class="cell w15"><%= formatDate(data.expirationDate) %></div>
+      <div class="cell label w10">PHONE</div>
+      <div class="cell w10"><%= data.businessPhone %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w10">FEIN</div>
+      <div class="cell w15"><%= data.fein %></div>
+      <div class="cell label w10">WEBSITE</div>
+      <div class="cell w25"><%= data.website %></div>
+      <div class="cell label w15">BILLING PLAN</div>
+      <div class="cell w25"><%= data.billingPlan %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w15">PAYMENT PLAN</div>
+      <div class="cell w20"><%= data.paymentPlan %></div>
+      <div class="cell label w10">METHOD OF PAYMENT</div>
+      <div class="cell w20"><%= data.methodOfPayment %></div>
+      <div class="cell label w10">AUDIT</div>
+      <div class="cell w10"><%= data.audit %></div>
+      <div class="cell label w7">DEPOSIT</div>
+      <div class="cell w8 right">$<%= moneyUSD(data.deposit) %></div>
+    </div>
+  </div>
+
+  <!-- PART ONE / PART TWO / PART THREE -->
+  <div class="subbar">COVERAGE</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w20">PART ONE — WC INSURANCE (STATES)</div>
+      <div class="cell w80 wrap"><%= (Array.isArray(data.wc_coveredStates)?data.wc_coveredStates:[]).join(", ") %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w20">PART TWO — EMPLOYERS LIABILITY</div>
+      <div class="cell label w20">BODILY INJURY — EACH ACCIDENT</div>
+      <div class="cell w15 right">$<%= data.el_eachAccident %></div>
+      <div class="cell label w25">BODILY INJURY — DISEASE — POLICY LIMIT</div>
+      <div class="cell w20 right">$<%= data.el_diseasePolicyLimit %></div>
+    </div>
+    <div class="row">
+      <div class="cell w20"></div>
+      <div class="cell label w25">BODILY INJURY — DISEASE — EACH EMPLOYEE</div>
+      <div class="cell w15 right">$<%= data.el_diseaseEachEmployee %></div>
+      <div class="cell w20"></div>
+      <div class="cell w20"></div>
+    </div>
+    <div class="row">
+      <div class="cell label w20">PART THREE — OTHER STATES</div>
+      <div class="cell w80 wrap"><%= data.wc_otherStatesText %></div>
+    </div>
+  </div>
+
+  <!-- EXPERIENCE MOD & PRIOR CARRIER -->
+  <div class="subbar">EXPERIENCE MOD & PRIOR CARRIER (3 YEARS)</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w15">EXPERIENCE MOD</div>
+      <div class="cell w10"><%= data.expMod %></div>
+      <div class="cell label w15">MOD EFFECTIVE DATE</div>
+      <div class="cell w10"><%= formatDate(data.expModEffective) %></div>
+      <div class="cell w50 small">PRIOR WC CARRIERS (MOST RECENT FIRST)</div>
+    </div>
+    <div class="row">
+      <div class="cell label w10 center">YEAR</div>
+      <div class="cell label w25 center">CARRIER</div>
+      <div class="cell label w20 center">POLICY NUMBER</div>
+      <div class="cell label w15 center">PREMIUM</div>
+      <div class="cell label w15 center">EFFECTIVE</div>
+      <div class="cell label w15 center">EXPIRATION</div>
+    </div>
+    <% (Array.isArray(data.priorCarrier)?data.priorCarrier:[]).slice(0,3).forEach(function(P){ %>
+      <div class="row">
+        <div class="cell w10 center"><%= P.year || "" %></div>
+        <div class="cell w25"><%= P.carrier || "" %></div>
+        <div class="cell w20"><%= P.policyNumber || "" %></div>
+        <div class="cell w15 right">$<%= moneyUSD(P.premium) %></div>
+        <div class="cell w15"><%= formatDate(P.effective) %></div>
+        <div class="cell w15"><%= formatDate(P.expiration) %></div>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="footnote">
+    ACORD 130 (2025/03) &nbsp;&nbsp;&nbsp; Page 1 of 3 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
+  </div>
+</div>
+
+<!-- ====================== PAGE 2 ====================== -->
+<div class="page">
+  <div class="headerbar">
+    <div class="acord">ACORD</div>
+    <div class="title">WORKERS' COMPENSATION SECTION</div>
+    <div class="formno">130</div>
+  </div>
+
+  <!-- LOCATIONS & CLASSIFICATIONS -->
+  <div class="subbar">LOCATIONS & CLASSIFICATIONS (ESTIMATED ANNUAL EXPOSURE)</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w10 center">LOC</div>
+      <div class="cell label w25 center">ADDRESS / CITY / STATE / ZIP</div>
+      <div class="cell label w10 center">CLASS CODE</div>
+      <div class="cell label w20 center">CLASSIFICATION</div>
+      <div class="cell label w7 center">FT</div>
+      <div class="cell label w7 center">PT</div>
+      <div class="cell label w12 center">ANNUAL REMUN</div>
+      <div class="cell label w9 center">RATE</div>
+      <div class="cell label w10 center">EST. PREM</div>
     </div>
 
-    <!-- Applicant -->
-    <div class="subbar">APPLICANT</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w25">BUSINESS NAME</div>
-        <div class="cell w75"><%= data.applicant_name || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w25">PHONE</div>
-        <div class="cell w25"><%= data.business_phone || "" %></div>
-        <div class="cell label w25">EMAIL</div>
-        <div class="cell w25"><%= data.contact_email || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w25">WEBSITE</div>
-        <div class="cell w75"><%= data.premises_website || "" %></div>
-      </div>
-    </div>
+    <% (Array.isArray(data.locations)?data.locations:[]).forEach(function(L){ 
+         const addr = [L.address1, L.city, L.state, L.zip].filter(Boolean).join(", ");
+         const rows = Array.isArray(L.classRows)?L.classRows:[];
+         const count = Math.max(rows.length, 1);
+    %>
+      <% rows.forEach(function(R, idx){ %>
+        <div class="row">
+          <div class="cell w10 center"><%= idx===0 ? (L.loc || "") : "" %></div>
+          <div class="cell w25 wrap"><%= idx===0 ? addr : "" %></div>
+          <div class="cell w10 center"><%= R.classCode || "" %></div>
+          <div class="cell w20 wrap"><%= R.description || "" %></div>
+          <div class="cell w7 center"><%= R.ftEmployees || "" %></div>
+          <div class="cell w7 center"><%= R.ptEmployees || "" %></div>
+          <div class="cell w12 right">$<%= moneyUSD(R.annualRemuneration) %></div>
+          <div class="cell w9 right"><%= R.rate || "" %></div>
+          <div class="cell w10 right">$<%= moneyUSD(R.estimatedAnnualPremium) %></div>
+        </div>
+      <% }); %>
 
-    <!-- Location -->
-    <div class="subbar">LOCATION</div>
-    <div class="block">
       <div class="row">
-        <div class="cell label w25">ADDRESS</div>
-        <div class="cell w75">
-          <%= [
-            data.premise_address,
-            [data.premise_city, data.premise_state, data.premise_zip].filter(Boolean).join(", ")
-          ].filter(Boolean).join(", ") %>
+        <div class="cell w100 small">
+          INCLUDE OVERTIME? <span class="check check-xs"><%= yes(L.includeOvertime) ? "X" : "" %></span>
         </div>
       </div>
-    </div>
+    <% }) %>
+  </div>
 
-    <!-- Classification -->
-    <div class="subbar">CLASSIFICATION</div>
-    <div class="block">
+  <!-- OFFICERS / OWNERS -->
+  <div class="subbar">OFFICERS / OWNERS (INCLUDE OR EXCLUDE)</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w20 center">NAME / TITLE</div>
+      <div class="cell label w10 center">% OWNERSHIP</div>
+      <div class="cell label w20 center">DUTIES</div>
+      <div class="cell label w10 center">CLASS CODE</div>
+      <div class="cell label w10 center">INCL</div>
+      <div class="cell label w10 center">EXCL</div>
+      <div class="cell label w20 center">ANNUAL REMUNERATION</div>
+    </div>
+    <% (Array.isArray(data.officers)?data.officers:[]).forEach(function(O){ %>
       <div class="row">
-        <div class="cell label w25">BAR / TAVERN</div>
-        <div class="cell w25"><%= data.wc_bar_tavern || "" %></div>
-        <div class="cell label w25">RESTAURANT</div>
-        <div class="cell w25"><%= data.wc_restaurant || "" %></div>
+        <div class="cell w20 wrap"><%= O.name || "" %><% if (O.title) { %> — <%= O.title %><% } %></div>
+        <div class="cell w10 center"><%= O.ownershipPct || "" %>%</div>
+        <div class="cell w20 wrap"><%= O.duties || "" %></div>
+        <div class="cell w10 center"><%= O.classCode || "" %></div>
+        <div class="cell w10 center"><%= yes(O.include) ? "X" : "" %></div>
+        <div class="cell w10 center"><%= yes(O.include) ? "" : "X" %></div>
+        <div class="cell w20 right">$<%= moneyUSD(O.remuneration) %></div>
+      </div>
+    <% }) %>
+  </div>
+
+  <!-- WAIVERS / LEASED / VOLUNTEER -->
+  <div class="subbar">WAIVERS, LEASED / VOLUNTEER WORKERS</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell w40 small">
+        BLANKET WAIVER OF SUBROGATION REQUIRED? 
+        <span class="check check-xs"><%= yes(data.blanketWaiver) ? "X" : "" %></span>
+      </div>
+      <div class="cell w30 small">
+        LEASED EMPLOYEES? <span class="check check-xs"><%= yes(data.leasedEmployees) ? "X" : "" %></span>
+      </div>
+      <div class="cell w30 small">
+        VOLUNTEER / VOLUNTARY COMP? <span class="check check-xs"><%= yes(data.volunteerComp) ? "X" : "" %></span>
       </div>
     </div>
-
-    <!-- Employees & Payroll -->
-    <div class="subbar">EMPLOYEES & PAYROLL</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell label w25">FULL-TIME EMPLOYEES</div>
-        <div class="cell w25"><%= data.wc_employees_ft || "" %></div>
-        <div class="cell label w25">PART-TIME EMPLOYEES</div>
-        <div class="cell w25"><%= data.wc_employees_pt || "" %></div>
-      </div>
-      <div class="row">
-        <div class="cell label w25">EST. ANNUAL PAYROLL</div>
-        <div class="cell w25 right"><%= money(data.wc_annual_payroll || "") %></div>
-        <div class="cell label w25">&nbsp;</div>
-        <div class="cell w25">&nbsp;</div>
-      </div>
-    </div>
-
-    <!-- Notes (optional, future-ready) -->
-    <div class="subbar">NOTES</div>
-    <div class="block">
-      <div class="row">
-        <div class="cell w100" style="min-height:64px;"></div>
+    <div class="row">
+      <div class="cell label w25">SPECIFIC WAIVERS (NAME / STATE / DESC)</div>
+      <div class="cell w75 wrap">
+        <% (Array.isArray(data.specificWaivers)?data.specificWaivers:[]).forEach(function(W, i){ %>
+          <div><%= i+1 %>.) <%= [W.name, W.state, W.description].filter(Boolean).join(" — ") %></div>
+        <% }) %>
       </div>
     </div>
   </div>
+
+  <!-- GENERAL INFORMATION -->
+  <div class="subbar">GENERAL INFORMATION</div>
+  <div class="block">
+    <div class="row"><div class="cell w100 small">
+      1. PRIOR WC COVERAGE? <span class="check check-xs"><%= yes(data.gi_hasPriorWC) ? "X" : "" %></span>
+      &nbsp; 2. ANY SUBCONTRACTORS? <span class="check check-xs"><%= yes(data.gi_anySubcontractors) ? "X" : "" %></span>
+      &nbsp; 3. WORK PERFORMED OUT OF STATE? <span class="check check-xs"><%= yes(data.gi_performWorkOutOfState) ? "X" : "" %></span>
+    </div></div>
+    <div class="row"><div class="cell w100 small">
+      4. TEMP EMPLOYEES? <span class="check check-xs"><%= yes(data.gi_tempEmployees) ? "X" : "" %></span>
+      &nbsp; 5. DRIVERS? <span class="check check-xs"><%= yes(data.gi_drivers) ? "X" : "" %></span>
+      &nbsp; 6. ATHLETIC TEAMS / ACTIVITIES? <span class="check check-xs"><%= yes(data.gi_athletics) ? "X" : "" %></span>
+    </div></div>
+    <div class="row"><div class="cell w100 small">
+      7. COVERAGE UNDER ANY FEDERAL ACTS (USL&amp;H, FELA, JONES, ETC)? <span class="check check-xs"><%= yes(data.gi_federalActCoverage) ? "X" : "" %></span>
+      &nbsp; 8. PAST LOSS CONTROL RECOMMENDATIONS COMPLIED WITH? <span class="check check-xs"><%= yes(data.gi_pastLossControl) ? "X" : "" %></span>
+      &nbsp; 9. ANY SIGNIFICANT CHANGES ANTICIPATED? <span class="check check-xs"><%= yes(data.gi_futureChanges) ? "X" : "" %></span>
+    </div></div>
+    <div class="row">
+      <div class="cell label w100">EXPLAIN ANY "YES" RESPONSES</div>
+    </div>
+    <div class="row">
+      <div class="cell w100 wrap" style="min-height:40px;"><%= data.gi_explain || "" %></div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    ACORD 130 (2025/03) &nbsp;&nbsp;&nbsp; Page 2 of 3 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
+  </div>
+</div>
+
+<!-- ====================== PAGE 3 ====================== -->
+<div class="page">
+  <div class="headerbar">
+    <div class="acord">ACORD</div>
+    <div class="title">WORKERS' COMPENSATION SECTION</div>
+    <div class="formno">130</div>
+  </div>
+
+  <!-- LOSS HISTORY -->
+  <div class="subbar">LOSS HISTORY (3 YEARS)</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell w100 small">
+        ENTER ALL CLAIMS OR LOSSES (REGARDLESS OF FAULT). &nbsp;
+        <span class="check check-xs"><%= yes(data.noLosses) ? "X" : "" %></span> Check if none.
+      </div>
+    </div>
+    <div class="row">
+      <div class="cell label w10 center">YEAR</div>
+      <div class="cell label w15 center"># CLAIMS</div>
+      <div class="cell label w20 center">AMOUNT PAID</div>
+      <div class="cell label w20 center">AMOUNT RESERVED</div>
+      <div class="cell label w35 center">DESCRIPTION</div>
+    </div>
+    <% (Array.isArray(data.losses)?data.losses:[]).slice(0,4).forEach(function(L){ %>
+      <div class="row">
+        <div class="cell w10 center"><%= L.year || "" %></div>
+        <div class="cell w15 center"><%= L.claimCount || "" %></div>
+        <div class="cell w20 right">$<%= moneyUSD(L.amountPaid) %></div>
+        <div class="cell w20 right">$<%= moneyUSD(L.amountReserved) %></div>
+        <div class="cell w35 wrap"><%= L.description || "" %></div>
+      </div>
+    <% }) %>
+  </div>
+
+  <!-- REMARKS -->
+  <div class="subbar">REMARKS (ACORD 101 MAY BE ATTACHED IF MORE SPACE IS REQUIRED)</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell w100 wrap" style="min-height:70px;"><%= data.remarks || "" %></div>
+    </div>
+  </div>
+
+  <!-- SIGNATURE -->
+  <div class="subbar">SIGNATURE</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell w100 small legal wrap" style="padding:6px;">
+        THE UNDERSIGNED IS AN AUTHORIZED REPRESENTATIVE OF THE APPLICANT AND REPRESENTS THAT REASONABLE INQUIRY HAS BEEN MADE TO OBTAIN THE
+        ANSWERS TO QUESTIONS ON THIS APPLICATION. HE/SHE REPRESENTS THAT THE ANSWERS ARE TRUE, CORRECT AND COMPLETE TO THE BEST OF HIS/HER KNOWLEDGE.
+      </div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">PRODUCER'S SIGNATURE</div>
+      <div class="cell w25" style="border-bottom:1px solid #000;"><%= data.producerSignatureName || "" %></div>
+      <div class="cell label w25">PRODUCER'S NAME (PLEASE PRINT)</div>
+      <div class="cell w25"><%= data.producerContact %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">STATE PRODUCER LICENSE NO</div>
+      <div class="cell w25"><%= data.producerStateLicense || "" %></div>
+      <div class="cell label w25">NATIONAL PRODUCER NUMBER</div>
+      <div class="cell w25"><%= data.producerNPN || "" %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w30">APPLICANT'S SIGNATURE</div>
+      <div class="cell w40">&nbsp;</div>
+      <div class="cell label w15">DATE</div>
+      <div class="cell w15"><%= formatDate(data.date) %></div>
+    </div>
+  </div>
+
+  <!-- STATE FRAUD NOTICES (same block you use on 125/126/140) -->
+  <div class="subbar">STATE FRAUD NOTICES</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell w100 small legal wrap" style="padding:4px;">
+        <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong>
+        Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.
+        <br/><br/>
+        <strong>Applicable in CA:</strong>
+        For your protection, California law requires the following to appear on this form: Any person who knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.
+        <br/><br/>
+        <strong>Applicable in CO:</strong>
+        It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.
+        <br/><br/>
+        <strong>Applicable in DC:</strong>
+        WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance benefits if false information materially related to a claim was provided by the applicant.
+        <br/><br/>
+        <strong>Applicable in FL and OK:</strong>
+        Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in FL Only.
+        <br/><br/>
+        <strong>Applicable in KS:</strong>
+        Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.
+        <br/><br/>
+        <strong>Applicable in KY, OH and PA:</strong>
+        Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties.
+        <br/><br/>
+        <strong>Applicable in ME, TN, VA and WA:</strong>
+        It is a crime to knowingly provide false, incomplete or misleading information to an insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance benefits. *Applies in ME Only.
+        <br/><br/>
+        <strong>Applicable in NJ:</strong>
+        Any person who includes any false or misleading information on an application for an insurance policy is subject to criminal and civil penalties.
+        <br/><br/>
+        <strong>Applicable in NY:</strong>
+        Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.
+        <br/><br/>
+        <strong>Applicable in OR:</strong>
+        Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by submitting an application containing a false statement as to any material fact may be violating state law.
+        <br/><br/>
+        <strong>Applicable in PR:</strong>
+        Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum of two (2) years.
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="row">
+      <div class="cell label w25">AGENCY CUSTOMER ID</div>
+      <div class="cell w75"><%= data.agencyCustomerId || "" %></div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    ACORD 130 (2025/03) &nbsp;&nbsp;&nbsp; Page 3 of 3 &nbsp;&nbsp;&nbsp; © ACORD CORPORATION. All rights reserved.
+  </div>
+</div>
+
 </body>
 </html>
-
