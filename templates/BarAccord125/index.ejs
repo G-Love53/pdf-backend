@@ -89,251 +89,221 @@ const formatDate = (d) => {
   <meta charset="utf-8"/>
   <title>ACORD 125 - Commercial Insurance Application</title>
   <style>
-    /* ===== ACORD 125 Print-Fidelity Styles (Drop-in) ===== */
-
-    /* Adjust this to 0.5in if your printer clips borders */
-
-    .page  {
-      width: 100%;  /* Fill whatever space Puppeteer gives us */
-      max-width: none;
-      min-height: auto;
-      margin: 0;
-      padding: 0;
+    /* ACORD 125 Form Styles - MINIMAL CHANGES TO PRESERVE WORKING LAYOUT */
+    @media print {
+      @page { margin: 0.25in; size: letter; }  /* Reduced margin for more space */
+      .page { page-break-after: always; }
+      .page:last-child { page-break-after: auto; }
     }
 
-    * {
-      box-sizing: border-box;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
-      font-family: Arial, Helvetica, sans-serif;
-      color:#000;
+      font-family: Arial, sans-serif;
       font-size: 8pt;
-      line-height: 1.15;
+      line-height: 1.1;
+      background: white;
+      color: black;
     }
 
-    /* ===== ACORD header ===== */
-    .headerbar {
-      display: grid;
-      grid-template-columns: .95in 1fr 0.65in;
-      align-items: center;
-      border: 2pt solid #000;
-      margin-bottom: 6pt;
+    .page {
+      width: 100%;           /* Changed from 8.5in to 100% */
+      max-width: none;       /* Remove max-width constraint */
+      min-height: 11in;
+      margin: 0;             /* Remove auto centering margin */
+      background: white;
+      border: 1px solid #ccc;
+      padding: 0.125in;      /* Reduced padding from 0.25in */
+      position: relative;
     }
+
+    .headerbar {
+      display: flex;
+      border: 2px solid black;
+      background: white;
+      margin-bottom: 2px;
+      align-items: center;
+      height: 40px;
+    }
+
     .headerbar .acord {
-      font-weight: 800;
+      background: black;
+      color: white;
+      font-weight: bold;
+      font-size: 16pt;
+      width: 80px;
+      text-align: center;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .headerbar .title {
+      flex: 1;
+      font-weight: bold;
       font-size: 12pt;
       text-align: center;
-      border-right: 1pt solid #000;
-      padding: 4pt 0;
+      padding: 0 10px;
     }
-    .headerbar .title {
-      font-weight: 700;
-      letter-spacing: 0.3pt;
-      text-align: center;
-      font-size: 11pt;
-      padding: 2pt;
-    }
+
     .headerbar .formno {
-      font-weight: 700;
-      font-size: 11pt;
+      background: black;
+      color: white;
+      font-weight: bold;
+      font-size: 16pt;
+      width: 60px;
       text-align: center;
-      border-left: 1pt solid #000;
-      padding: 2pt 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    /* ===== Section title bar ===== */
     .subbar {
-      background: #e6e6e6;     /* Holds up in print/scan */
-      border: 1pt solid #000;
-      padding: 4pt 6pt;
-      font-weight: 700;
-      font-size: 8pt;
-      margin-top: 8pt;
+      background: black;
+      color: white;
+      font-weight: bold;
+      font-size: 9pt;
+      padding: 3px 8px;
+      margin: 2px 0;
+      text-align: left;
     }
 
-    /* ===== Boxed blocks (table/grid) ===== */
     .block {
-      border: 1pt solid #000;
-      border-top: none;
+      border: 1px solid black;
+      margin-bottom: 2px;
     }
 
-    .block .row {
-      display: grid;
-      grid-template-columns: repeat(20, 1fr);  /* 20-column micro-grid */
-      border-top: 1pt solid #000;              /* Solid black row rules */
+    .row {
+      display: flex;
+      border-bottom: 1px solid black;
+      min-height: 18px;      /* Slightly reduced from 20px */
     }
 
-    .block .row:first-child {
-      border-top: none;
+    .row:last-child {
+      border-bottom: none;
     }
 
     .cell {
-      padding: 3pt 4pt;                        /* Tight ACORD spacing */
-      border-left: 1pt solid #000;             /* Solid black column rules */
-      min-height: 14pt;                        /* Keeps rows consistent */
+      border-right: 1px solid black;
+      padding: 1px 3px;     /* Slightly reduced padding */
       display: flex;
       align-items: center;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
-    .cell:first-child {
-      border-left: none;
+    .cell:last-child {
+      border-right: none;
     }
 
-    /* ===== Labels ===== */
-    .label {
-      background: #f5f5f5;     /* Slightly lighter than subbar */
-      font-weight: 700;
-      font-size: 7pt;
-      letter-spacing: 0.2pt;
-      text-transform: uppercase; /* ACORD-style captions */
+    .cell.label {
+      background: #f0f0f0;
+      font-weight: bold;
+      font-size: 6.5pt;     /* Slightly smaller for more space */
     }
 
-    /* ===== Utilities ===== */
-    .right { text-align: right; }
-    .center { text-align: center; }
-    .nowrap { white-space: nowrap; }
-    /* ===== Section-specific hooks ===== */
+    .cell.center { justify-content: center; text-align: center; }
+    .cell.right { justify-content: flex-end; text-align: right; }
+    .cell.wrap { flex-wrap: wrap; align-items: flex-start; }
+    .cell.small { font-size: 7pt; }
+    .cell.legal { font-size: 6pt; line-height: 1.2; }
+    .cell.num { text-align: right; }
 
-    /* Pg 1 – Attachments line */
-    .attachments .field, .attachments .cell {
-      font-size: 7pt;
-      line-height: 1.25;
-    }
-    .attachments .check { margin-left: 0; margin-right: 4pt; }
+    /* Width classes - keeping original system */
+    .w5 { width: 5%; }
+    .w10 { width: 10%; }
+    .w15 { width: 15%; }
+    .w20 { width: 20%; }
+    .w25 { width: 25%; }
+    .w30 { width: 30%; }
+    .w35 { width: 35%; }
+    .w40 { width: 40%; }
+    .w45 { width: 45%; }
+    .w50 { width: 50%; }
+    .w55 { width: 55%; }
+    .w60 { width: 60%; }
+    .w65 { width: 65%; }
+    .w70 { width: 70%; }
+    .w75 { width: 75%; }
+    .w80 { width: 80%; }
+    .w85 { width: 85%; }
+    .w90 { width: 90%; }
+    .w95 { width: 95%; }
+    .w100 { width: 100%; }
 
-    /* Pg 2 – Nature of Business long text */
-    .nature-desc {
-      white-space: normal;
-      overflow-wrap: anywhere;
-      word-break: break-word;
-      hyphens: auto;
-      min-height: 48pt;
-    }
-
-    /* Pg 3 – Certificates / Policy / Send Bill row */
-    .ai-evidence {
-      white-space: normal;
-      display: flex;
-      gap: 6pt;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .ai-evidence .checkbox {
-      width: 10pt; height: 10pt; line-height: 10pt; margin-right: 4pt;
-    }
-
-    /* Pg 5 – State Legalese block */
-    .legalese {
-      font-size: 6.5pt;
-      line-height: 1.25;
-      padding: 5pt;
-      white-space: normal;
-      overflow-wrap: anywhere;
-      word-break: break-word;
-      hyphens: auto;
+    .check {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border: 1px solid black;
+      text-align: center;
+      line-height: 8px;
+      font-size: 8pt;
+      margin-right: 5px;
+      vertical-align: middle;
     }
 
-
-    /* Width utilities mapped to 20-column grid */
-    .w5  { grid-column: span 1; }
-    .w10 { grid-column: span 2; }
-    .w15 { grid-column: span 3; }
-    .w20 { grid-column: span 4; }
-    .w25 { grid-column: span 5; }
-    .w30 { grid-column: span 6; }
-    .w35 { grid-column: span 7; }
-    .w40 { grid-column: span 8; }
-    .w45 { grid-column: span 9; }
-    .w50 { grid-column: span 10; }
-    .w55 { grid-column: span 11; }
-    .w60 { grid-column: span 12; }
-    .w65 { grid-column: span 13; }
-    .w70 { grid-column: span 14; }
-    .w75 { grid-column: span 15; }
-    .w80 { grid-column: span 16; }
-    .w85 { grid-column: span 17; }
-    .w90 { grid-column: span 18; }
-    .w95 { grid-column: span 19; }
-    .w100{ grid-column: span 20; }
-
-    /* ===== Checkboxes (square, legible X) ===== */
-    .check{
-      display:inline-block; width:11pt; height:11pt; line-height:11pt;
-      border:1px solid #000; text-align:center; font-weight:700; font-size:9pt;
-      margin:0 6pt 0 10pt; vertical-align:middle;
-    }
-    /* Global wrap utilities */
-    .field, .cell { word-break: break-word; hyphens: auto; }
-    .label, .nowrap { white-space: nowrap; }
-
-    /* Slightly comfier spacing everywhere */
-    .field, .cell { min-height: 16pt; padding: 3pt 5pt; }
-
-    /* Keep grid columns flexible */
-    .block .row { grid-template-columns: repeat(20, minmax(0,1fr)); }
-
-    /* Checkbox visual tweak */
-    .check { transform: translateY(1px); }
-
-    /* ===== Wrapping utilities ===== */
-    .wrap { white-space: normal; overflow-wrap: anywhere; word-break: break-word; hyphens: auto; }
-    .label { white-space: nowrap; }   /* keep captions compact */
-    .small { font-size: 7pt; line-height: 1.15; }  /* for dense text blocks */
-    .tight .cell { min-height: 12pt; } /* optional: tighter rows in specific blocks */
-
-    /* keep a row/section from splitting across pages */
-    .block .row.no-break,
-    .no-break {
-      break-inside: avoid;
-      page-break-inside: avoid;
-      -webkit-column-break-inside: avoid; /* Chrome/WebKit fallback */
-      
-      /* --- Compact rows when space is tight --- */
-    .compact .cell { padding: 2pt 3pt; min-height: 12pt; }
-
-    /* --- Slightly smaller labels everywhere (helps titles not spill) --- */
-    .label { font-size: 6.5pt; letter-spacing: 0.15pt; }
-
-    /* --- Long text wrappers --- */
-    .wrap       { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
-    .wrap-tight { white-space: normal; overflow-wrap: anywhere; word-break: break-word; line-height: 1.1; }
-
-    /* --- Numbers (right aligned, tidy width) --- */
-    .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-
-    /* --- Tiny checkboxes (Inside/Outside, Owner/Tenant, etc.) --- */
-    .check-xs { width: 10pt; height: 10pt; line-height: 10pt; font-size: 8pt; }
-
-    /* --- Small text helper (use on busy rows/blocks) --- */
-    .small { font-size: 6.8pt; line-height: 1.15; }
-
+    .check-xs {
+      width: 8px;
+      height: 8px;
+      font-size: 6pt;
+      line-height: 6px;
     }
 
+    .checkbox {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border: 1px solid black;
+      text-align: center;
+      line-height: 6px;
+      font-size: 6pt;
+      margin-right: 3px;
+      vertical-align: middle;
+    }
 
-    /* ===== Legal/footer ===== */
-    .legal {
-      font-size: 7pt;
-      line-height: 1.2;
-      padding: 4pt 3pt;
+    .ck {
+      display: inline-block;
+      margin-right: 10px;
+      white-space: nowrap;
+    }
+
+    .ai-evidence .ck {
+      margin-right: 15px;
     }
 
     .footnote {
-      margin-top: 8pt;
-      font-size: 7pt;
-      color: #000;
-      text-align: center;        /* ACORD-style centered footer */
+      position: absolute;
+      bottom: 0.125in;       /* Adjusted for reduced padding */
+      left: 0.125in;
+      right: 0.125in;
+      font-size: 6pt;
+      border-top: 1px solid black;
+      padding-top: 2px;
+      text-align: center;
     }
 
-    /* Page break helper for multipage output */
-    .pagebreak { break-before: page; }
+    .attachments .row {
+      min-height: auto;
+      padding: 2px 0;        /* Slightly reduced */
+    }
 
-    @media print {
-      .page { page-break-after: always; }
-      .page:last-child { page-break-after: auto; }
+    .no-break {
+      page-break-inside: avoid;
+    }
+
+    .row.ai-evidence {
+      align-items: flex-start;
+      padding: 3px 0;
+    }
+
+    @media screen {
+      .page {
+        margin-bottom: 20px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      }
     }
   </style>
 </head>
@@ -460,24 +430,24 @@ const formatDate = (d) => {
       <div class="cell w25"></div>
     </div>
     <div class="row">
-      <div class="cell w25"><span class="check"><%= data.commercialProperty ? "X" : "" %></span> COMMERCIAL PROPERTY</div>
+      <div class="cell w25"><span class="check"><%= data.commercialInlandMarine ? "X" : "" %></span> COMMERCIAL INLAND MARINE</div>
       <div class="cell w10 right">$</div>
       <div class="cell w15"><span class="check"><%= data.motorCarrier ? "X" : "" %></span> MOTOR CARRIER</div>
       <div class="cell w10 right">$</div>
       <div class="cell w25"></div>
     </div>
     <div class="row">
-      <div class="cell w25"><span class="check"><%= data.truckers ? "X" : "" %></span> TRUCKERS</div>
+      <div class="cell w25"><span class="check"><%= data.commercialProperty ? "X" : "" %></span> COMMERCIAL PROPERTY</div>
       <div class="cell w10 right">$</div>
-      <div class="cell w15"><span class="check"><%= data.umbrella ? "X" : "" %></span> UMBRELLA</div>
+      <div class="cell w15"><span class="check"><%= data.truckers ? "X" : "" %></span> TRUCKERS</div>
       <div class="cell w10 right">$</div>
       <div class="cell w25"></div>
     </div>
     <div class="row">
       <div class="cell w25"><span class="check"><%= data.crime ? "X" : "" %></span> CRIME</div>
       <div class="cell w10 right">$</div>
-      <div class="cell w15"></div>
-      <div class="cell w10 right"></div>
+      <div class="cell w15"><span class="check"><%= data.umbrella ? "X" : "" %></span> UMBRELLA</div>
+      <div class="cell w10 right">$</div>
       <div class="cell w25"></div>
     </div>
   </div>
@@ -694,7 +664,7 @@ const formatDate = (d) => {
   <div class="block">
     <div class="row">
       <div class="cell label w40">DESCRIPTION OF PRIMARY OPERATIONS</div>
-      <div class="cell w60 wrap nature-desc"><%= data.primaryOperations || data.business?.description || data.businessDescription || "" %></div>
+      <div class="cell w60 wrap"><%= data.primaryOperations || data.business?.description || data.businessDescription || "" %></div>
     </div>
     <div class="row">
       <div class="cell label w20">DATE BUSINESS STARTED</div>
@@ -732,7 +702,7 @@ const formatDate = (d) => {
       <div class="cell label w40">DESCRIPTION OF OPERATIONS OF OTHER NAMED INSUREDS</div>
     </div>
     <div class="row">
-      <div class="cell w100 wrap" style="min-height: 30pt;"><%= data.otherNamedInsuredsOperations || "" %></div>
+      <div class="cell w100 wrap" style="min-height: 30px;"><%= data.otherNamedInsuredsOperations || "" %></div>
     </div>
   </div>
 
@@ -903,7 +873,7 @@ const formatDate = (d) => {
       <div class="cell label w100">EXPLAIN ALL "YES" RESPONSES</div>
     </div>
     <div class="row">
-      <div class="cell w100 wrap" style="min-height: 60pt;"><%= data.yesExplanations || "" %></div>
+      <div class="cell w100 wrap" style="min-height: 60px;"><%= data.yesExplanations || "" %></div>
     </div>
   </div>
 
@@ -923,7 +893,7 @@ const formatDate = (d) => {
 
     <div class="row ai-evidence">
       <div class="cell label w15">EVIDENCE</div>
-      <div class="cell w85 ai-evidence">
+      <div class="cell w85">
         <span class="ck">
           <span class="checkbox"><%= ((data.aiEvidence || data.interests?.[0]?.evidence) === "CERTIFICATE") ? "X" : "" %></span>
           <span>CERTIFICATE</span>
@@ -1115,7 +1085,7 @@ const formatDate = (d) => {
   <div class="subbar">REMARKS / PROCESSING INSTRUCTIONS (ACORD 101 MAY BE ATTACHED IF MORE SPACE IS REQUIRED)</div>
   <div class="block">
     <div class="row">
-      <div class="cell w100 wrap" style="min-height: 80pt;"><%= data.remarks || data.processingInstructions || "" %></div>
+      <div class="cell w100 wrap" style="min-height: 80px;"><%= data.remarks || data.processingInstructions || "" %></div>
     </div>
   </div>
 
@@ -1135,7 +1105,7 @@ const formatDate = (d) => {
   <div class="subbar">SIGNATURE</div>
   <div class="block">
     <div class="row">
-      <div class="cell w100 wrap" style="padding: 8pt;">
+      <div class="cell w100 wrap" style="padding: 6px;">
         THE UNDERSIGNED IS AN AUTHORIZED REPRESENTATIVE OF THE APPLICANT AND REPRESENTS THAT REASONABLE INQUIRY HAS BEEN MADE TO OBTAIN THE 
         ANSWERS TO QUESTIONS ON THIS APPLICATION. HE/SHE REPRESENTS THAT THE ANSWERS ARE TRUE, CORRECT AND COMPLETE TO THE BEST OF HIS/HER 
         KNOWLEDGE.
@@ -1187,7 +1157,7 @@ const formatDate = (d) => {
   <div class="subbar">STATE FRAUD NOTICES</div>
   <div class="block">
     <div class="row">
-      <div class="cell w100 legalese">
+      <div class="cell w100 small legal wrap" style="padding: 4px;">
         <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong>
         Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.
         <br/><br/>
