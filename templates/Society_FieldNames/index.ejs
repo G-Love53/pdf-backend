@@ -1,466 +1,421 @@
-<!doctype html>
+<%
+/* ===== Helpers & sane defaults (same pattern as 125/126/130/140) ===== */
+const defaults = {
+  // Masthead/branding
+  programTitle: "Special Program Supplemental Application",
+  programSubtitle: "(Restaurant, Bar, EZ Prep, Brewpub, Brewery & Winery)",
+  accent: "#C0171D", // Society red
+
+  // Agency block (from Society sheet footer)
+  agencyName: "All Access Insurance dba Commercial Insurance Direct, LLC",
+  agencyCode: "70025M",
+  agentName: "Rick Cline",
+  agentEmail: "quote@barinsurancedirect.com",
+  agentPhone: "303-932-1700",
+
+  // App meta
+  date: "",
+
+  // Section: header fields
+  applicant_name: "",
+  premise_address: "",
+
+  // Q1–Q19 (Society SPS-1)
+  open_60_days: "",                 // yes/no
+  open_60_days_details: "",
+  ownership_experience: "",         // yes/no
+  ownership_experience_details: "",
+  closing_time: "",
+  square_footage: "",
+  num_employees: "",
+  fine_dining: "",                  // yes/no
+  counter_service: "",              // yes/no
+
+  alcohol_manufactured: "",         // yes/no
+  percent_consumed: "",             // >25% on-premise? yes/no
+  food_sales: "",
+  alcohol_sales: "",
+  total_sales: "",
+  Percent_Alcohol: "",
+
+  cooking_level_full: "",           // yes/no
+  cooking_level_limited: "",
+  cooking_level_non: "",
+
+  infused_with_cannabis: "",        // yes/no
+  solid_fuel: "",                   // yes/no
+  non_UL300: "",                    // yes/no
+
+  entertainment_other: "",          // yes/no
+  entertainment_details: "",
+
+  recreational_activites: "",       // yes/no (typo preserved to match source)
+  recreational_details: "",
+
+  security_present: "",             // yes/no
+  background_checks: "",            // ComboBox22
+  security_armed: "",               // ComboBox23
+  security_trained: "",             // ComboBox24
+
+  delivery_offered: "",             // yes/no
+  del_insured_autos: "",            // ComboBox13
+  del_employee_autos: "",           // ComboBox14
+  del_third_party: "",              // ComboBox15
+  del_sales_owned_emp: "",          // TextField11 (currency)
+  del_pct_over_20: "",              // ComboBox16
+  del_pct_explain: "",              // TextField13
+  del_radius_gt5: "",               // ComboBox17
+  del_radius_explain: "",
+  del_after_10pm: "",               // ComboBox18
+  del_after_10pm_explain: "",
+
+  shuttle_services: "",             // ComboBox19 (yes/no)
+  shuttle_explanation: "",
+
+  liquor_lapse: "",                 // yes/no (violations last 3 yrs)
+  liquor_claims: "",                // details
+
+  remarks: "",
+
+  // Raw carry-overs (accept legacy names so mapping “just works”)
+  ComboBox22: "", ComboBox23: "", ComboBox24: "",
+  ComboBox13: "", ComboBox14: "", ComboBox15: "", ComboBox16: "",
+  ComboBox17: "", ComboBox18: "", ComboBox19: "",
+  TextField11: "", TextField13: "", TextField12: "",
+  TextField0: "" // sometimes used as Date
+};
+
+const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
+
+// Normalize legacy ComboBox/TextField into semantic flags if the semantic ones weren’t provided
+const prefer = (a,b) => (a!=="" && a!==undefined) ? a : b;
+const val = (k) => (data[k] ?? "");
+const yeslike = (v) => ["y","yes","true","1","on","checked"].includes(String(v||"").trim().toLowerCase());
+const yn = (v) => v==="" ? "" : (yeslike(v) ? "Y" : "N");
+const money = (v) => {
+  if (v==null || v==="") return "";
+  const n = Number(String(v).replace(/[^0-9.-]/g,""));
+  if (isNaN(n)) return String(v);
+  return n.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+};
+const formatDate = (d) => {
+  if (!d) return "";
+  const dt = new Date(d); if (isNaN(dt)) return String(d);
+  const mm = String(dt.getMonth()+1).padStart(2,"0");
+  const dd = String(dt.getDate()).padStart(2,"0");
+  const yy = dt.getFullYear();
+  return `${mm}/${dd}/${yy}`;
+};
+
+// Coalesce security/delivery toggles from ComboBoxes if semantic missing
+const background_checks = prefer(data.background_checks, data.ComboBox22);
+const security_armed   = prefer(data.security_armed,   data.ComboBox23);
+const security_trained = prefer(data.security_trained, data.ComboBox24);
+
+const del_insured_autos = prefer(data.del_insured_autos, data.ComboBox13);
+const del_employee_autos= prefer(data.del_employee_autos,data.ComboBox14);
+const del_third_party   = prefer(data.del_third_party,   data.ComboBox15);
+const del_pct_over_20   = prefer(data.del_pct_over_20,   data.ComboBox16);
+const del_radius_gt5    = prefer(data.del_radius_gt5,    data.ComboBox17);
+const del_after_10pm    = prefer(data.del_after_10pm,    data.ComboBox18);
+const shuttle_services  = prefer(data.shuttle_services,  data.ComboBox19);
+
+// Some feeds labeled TextField* in the sheet
+const del_sales_owned_emp = prefer(data.del_sales_owned_emp, data.TextField11);
+const del_pct_explain     = prefer(data.del_pct_explain,     data.TextField13);
+const dateShown           = prefer(data.date,                data.TextField0) || "";
+%>
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>Society – Special Program Supplemental Application</title>
+  <title>Society SPS-1 — Special Program Supplemental</title>
   <style>
-    /* Embedded print-like styling (similar to your 125 look) */
-    @page { size: Letter; margin: 36pt; }
-    body { font-family: Arial, Helvetica, sans-serif; color:#111; }
-    .page { page-break-inside: avoid; }
-    .pagebreak { page-break-before: always; }
-    .carrierbar {
-      display:flex; align-items:center; justify-content:space-between;
-      border: 2px solid #000; padding:10pt 12pt; margin-bottom:10pt;
-      background:#f5f5f5;
-    }
-    .carrierbar .brand { font-weight:700; letter-spacing:0.5pt; }
-    .carrierbar .title { font-weight:700; }
-    .subbar {
-      background:#000; color:#fff; font-weight:700; padding:6pt 8pt;
-      margin:14pt 0 6pt; letter-spacing:0.2pt;
-    }
-    .block { border:1px solid #000; padding:8pt; }
-    .row { display:flex; flex-wrap:wrap; border-bottom:1px solid #ddd; }
-    .row:last-child { border-bottom:none; }
-    .cell { padding:6pt 6pt; box-sizing:border-box; }
-    .label { font-weight:700; background:#fafafa; border-right:1px solid #eee; }
-    .w10{width:10%}.w15{width:15%}.w20{width:20%}.w25{width:25%}.w30{width:30%}
-    .w35{width:35%}.w40{width:40%}.w50{width:50%}.w60{width:60%}.w70{width:70%}
-    .w75{width:75%}.w80{width:80%}.w90{width:90%}.w100{width:100%}
-    .right { text-align:right; }
-    .check {
-      display:inline-block; min-width:14pt; text-align:center; border:1px solid #000; margin-right:6pt; font-weight:700;
-      width:14pt; height:14pt; line-height:12pt; vertical-align:middle; font-size:10pt;
-    }
-    .muted { color:#666; }
-    .legal { font-size:10pt; line-height:1.3; }
+    @media print { @page { margin: .25in; size: letter; } .page{ page-break-after: always } .page:last-child{ page-break-after:auto } }
+    *{ box-sizing:border-box; margin:0; padding:0 }
+    body{ font-family: Arial, sans-serif; font-size: 8pt; color:#000 }
+    .page{ width:100%; min-height:10.5in; padding:.125in; border:1px solid #ccc; position:relative; background:#fff }
+    .headerbar{ display:flex; align-items:center; height:42px; border:2px solid #000; margin-bottom:2px; }
+    .headerbar .brand{ background:<%= defaults.accent %>; color:#fff; font-weight:bold; font-size:14pt; width:120px; display:flex; align-items:center; justify-content:center; height:100% }
+    .headerbar .title{ flex:1; text-align:center; font-weight:bold; line-height:1.15 }
+    .headerbar .title .line1{ font-size:12pt }
+    .headerbar .title .line2{ font-size:9pt; color:<%= defaults.accent %> }
+    .subbar{ background:<%= defaults.accent %>; color:#fff; font-weight:bold; font-size:9pt; padding:3px 8px; margin:2px 0 }
+    .block{ border:1px solid #000; margin-bottom:2px }
+    .row{ display:flex; border-bottom:1px solid #000; min-height:18px }
+    .row:last-child{ border-bottom:none }
+    .cell{ border-right:1px solid #000; padding:1px 3px; display:flex; align-items:center; overflow-wrap:break-word }
+    .cell:last-child{ border-right:none }
+    .cell.label{ background:#f7f7f7; font-weight:bold; font-size:6.7pt }
+    .cell.center{ justify-content:center; text-align:center }
+    .cell.right{ justify-content:flex-end; text-align:right }
+    .cell.wrap{ flex-wrap:wrap; align-items:flex-start }
+    .cell.small{ font-size:7pt }
+    .w5{width:5%}.w8{width:8%}.w10{width:10%}.w12{width:12%}.w15{width:15%}.w18{width:18%}.w20{width:20%}.w22{width:22%}.w25{width:25%}.w30{width:30%}.w35{width:35%}.w40{width:40%}.w45{width:45%}.w50{width:50%}.w55{width:55%}.w60{width:60%}.w65{width:65%}.w70{width:70%}.w75{width:75%}.w80{width:80%}.w85{width:85%}.w90{width:90%}.w100{width:100%}
+    .check{ display:inline-block; width:10px; height:10px; border:1px solid #000; text-align:center; line-height:8px; font-size:8pt; margin:0 6px 0 2px; vertical-align:middle }
+    .footnote{ position:absolute; bottom:.125in; left:.125in; right:.125in; font-size:6pt; border-top:1px solid #000; padding-top:2px; text-align:center }
+    @media screen{ .page{ margin-bottom:20px; box-shadow:0 0 10px rgba(0,0,0,.1) } }
   </style>
 </head>
 <body>
 
-<!-- ===== PAGE 1 ===== -->
+<!-- ====================== PAGE 1 ====================== -->
 <div class="page">
-  <div class="carrierbar">
-    <div class="brand">SOCIETY INSURANCE</div>
-    <div class="title">SPECIAL PROGRAM SUPPLEMENTAL APPLICATION</div>
+  <div class="headerbar">
+    <div class="brand">SPS-1</div>
+    <div class="title">
+      <div class="line1"><%= defaults.programTitle %></div>
+      <div class="line2"><%= defaults.programSubtitle %></div>
+    </div>
   </div>
 
-  <!-- APPLICANT -->
+  <!-- APPLICANT / ADDRESS / DATE -->
   <div class="subbar">APPLICANT</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w25">BUSINESS NAME</div>
-      <div class="cell w75"><%= data.applicant_name || data.premises_name || "" %></div>
+      <div class="cell label w20">APPLICANT NAME</div>
+      <div class="cell w50 wrap"><%= data.applicant_name %></div>
+      <div class="cell label w10">DATE</div>
+      <div class="cell w20"><%= formatDate(dateShown) %></div>
     </div>
     <div class="row">
-      <div class="cell label w25">LOCATION</div>
-      <div class="cell w75">
-        <%= join([data.premise_address, data.premise_city, data.premise_state, data.premise_zip]) %>
-      </div>
-    </div>
-    <div class="row">
-      <div class="cell label w25">PHONE / EMAIL</div>
-      <div class="cell w75"><%= join([data.business_phone, data.contact_email], " / ") %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w25">EFFECTIVE DATE</div>
-      <div class="cell w25"><%= data.effective_date || "" %></div>
-      <div class="cell label w25">ORGANIZATION TYPE</div>
-      <div class="cell w25"><%= data.organization_type || "" %></div>
+      <div class="cell label w20">PREMISES ADDRESS</div>
+      <div class="cell w80 wrap"><%= data.premise_address %></div>
     </div>
   </div>
 
-  <!-- ELIGIBILITY -->
-  <div class="subbar">ELIGIBILITY</div>
+  <!-- 1–3 OPEN/EXPERIENCE/CLOSING -->
+  <div class="subbar">OPERATIONS STATUS & EXPERIENCE</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w60">1. Open now or within 60 days?</div>
-      <div class="cell w40"><span class="check"><%= isYes(data.open_60_days) ? "✓" : "" %></span> Yes</div>
+      <div class="cell label w55">1. OPEN FOR BUSINESS NOW OR WITHIN 60 DAYS?</div>
+      <div class="cell w5 center"><%= yn(data.open_60_days) %></div>
+      <div class="cell label w15">IF NO, EXPLAIN</div>
+      <div class="cell w25 wrap"><%= data.open_60_days_details %></div>
     </div>
-    <% if (!isYes(data.open_60_days) && data.open_60_days_details) { %>
-      <div class="row">
-        <div class="cell label w30">If No, details</div>
-        <div class="cell w70"><%= data.open_60_days_details %></div>
-      </div>
-    <% } %>
-
     <div class="row">
-      <div class="cell label w60">2. 3+ yrs restaurant/bar ownership experience in past 5 yrs?</div>
-      <div class="cell w40"><span class="check"><%= isYes(data.ownership_experience) ? "✓" : "" %></span> Yes</div>
+      <div class="cell label w55">2. AT LEAST 3 YEARS RESTAURANT/BAR OWNERSHIP IN LAST 5 YEARS?</div>
+      <div class="cell w5 center"><%= yn(data.ownership_experience) %></div>
+      <div class="cell label w15">IF NO, PRIOR EXPERIENCE</div>
+      <div class="cell w25 wrap"><%= data.ownership_experience_details %></div>
     </div>
-    <% if (data.ownership_experience_details || data.ownership_experience_details_yes || data.ownership_experience_details_no) { %>
-      <div class="row">
-        <div class="cell label w30">Experience details</div>
-        <div class="cell w70">
-          <%= data.ownership_experience_details 
-              || (isYes(data.ownership_experience) ? data.ownership_experience_details_yes : data.ownership_experience_details_no) 
-              || "" %>
-        </div>
-      </div>
-    <% } %>
+    <div class="row">
+      <div class="cell label w30">3. CLOSING TIME</div>
+      <div class="cell w20"><%= data.closing_time %></div>
+      <div class="cell label w25">SQUARE FOOTAGE</div>
+      <div class="cell w25 right"><%= money(data.square_footage) %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w30">NUMBER OF EMPLOYEES</div>
+      <div class="cell w20 right"><%= money(data.num_employees) %></div>
+      <div class="cell label w25">FINE DINING?</div>
+      <div class="cell w10 center"><%= yn(data.fine_dining) %></div>
+      <div class="cell label w10">COUNTER SERV.?</div>
+      <div class="cell w5 center"><%= yn(data.counter_service) %></div>
+    </div>
   </div>
 
-  <!-- OPERATIONS -->
-  <div class="subbar">OPERATIONS</div>
+  <!-- 8–10 ALCOHOL & COOKING -->
+  <div class="subbar">ALCOHOL & COOKING</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w25">3. Closing time</div>
-      <div class="cell w25"><%= data.closing_time || "" %></div>
-      <div class="cell label w25">4. Square footage</div>
-      <div class="cell w25"><%= data.square_footage || "" %></div>
+      <div class="cell label w35">8. MANUFACTURE ALCOHOL?</div>
+      <div class="cell w10 center"><%= yn(data.alcohol_manufactured) %></div>
+      <div class="cell label w40">IF YES, &gt; 25% FOR ON-PREMISE?</div>
+      <div class="cell w15 center"><%= yn(data.percent_consumed) %></div>
     </div>
     <div class="row">
-      <div class="cell label w25">5. # of employees</div>
-      <div class="cell w25"><%= data.num_employees || "" %></div>
-      <div class="cell label w25">6. Fine dining?</div>
-      <div class="cell w25"><span class="check"><%= isYes(data.fine_dining) ? "✓" : "" %></span> Yes</div>
+      <div class="cell label w20">FOOD SALES</div>
+      <div class="cell w15 right">$<%= money(data.food_sales) %></div>
+      <div class="cell label w20">ALCOHOL SALES</div>
+      <div class="cell w15 right">$<%= money(data.alcohol_sales) %></div>
+      <div class="cell label w15">TOTAL SALES</div>
+      <div class="cell w15 right">$<%= money(data.total_sales) %></div>
     </div>
     <div class="row">
-      <div class="cell label w25">7. Counter service?</div>
-      <div class="cell w25"><span class="check"><%= isYes(data.counter_service) ? "✓" : "" %></span> Yes</div>
-      <div class="cell label w25">Automatic sprinkler</div>
-      <div class="cell w25"><%= yesno(data.automatic_sprinkler) %></div>
+      <div class="cell label w30">% ALCOHOL</div>
+      <div class="cell w20 right"><%= data.Percent_Alcohol %>%</div>
+      <div class="cell label w25">10. LEVEL OF COOKING</div>
+      <div class="cell w25 small">
+        <span class="check"><%= yeslike(data.cooking_level_full) ? "X" : "" %></span> Full
+        <span class="check"><%= yeslike(data.cooking_level_limited) ? "X" : "" %></span> Limited
+        <span class="check"><%= yeslike(data.cooking_level_non) ? "X" : "" %></span> None
+      </div>
+    </div>
+    <div class="row">
+      <div class="cell label w35">11. INFUSE PRODUCTS WITH CANNABIS?</div>
+      <div class="cell w10 center"><%= yn(data.infused_with_cannabis) %></div>
+      <div class="cell label w30">12. ANY SOLID FUEL WITHIN 10 FT?</div>
+      <div class="cell w10 center"><%= yn(data.solid_fuel) %></div>
+      <div class="cell label w15">13. ANY NON-UL300 SURFACES?</div>
+      <div class="cell w10 center"><%= yn(data.non_UL300) %></div>
     </div>
   </div>
 
-  <!-- ALCOHOL & RECEIPTS -->
-  <div class="subbar">ALCOHOL & RECEIPTS</div>
+  <!-- 14–16 ENTERTAINMENT / ACTIVITIES / SECURITY -->
+  <div class="subbar">ENTERTAINMENT, ACTIVITIES & SECURITY</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w40">8. Manufacture alcohol?</div>
-      <div class="cell w10"><span class="check"><%= isYes(data.alcohol_manufactured) ? "✓" : "" %></span> Yes</div>
-      <div class="cell label w35">If yes, >25% consumed on premises?</div>
-      <div class="cell w15"><%= yesno(data.percent_consumed) %></div>
+      <div class="cell label w55">14. ANY ENTERTAINMENT OTHER THAN BG MUSIC/KARAOKE/TRIVIA?</div>
+      <div class="cell w5 center"><%= yn(data.entertainment_other) %></div>
+      <div class="cell label w15">DETAILS</div>
+      <div class="cell w25 wrap"><%= data.entertainment_details %></div>
     </div>
     <div class="row">
-      <div class="cell label w25">Food Sales</div>
-      <div class="cell w25"><%= moneyUSD(data.food_sales) %></div>
-      <div class="cell label w25">Alcohol Sales</div>
-      <div class="cell w25"><%= moneyUSD(data.alcohol_sales) %></div>
+      <div class="cell label w55">15. OTHER RECREATIONAL ACTIVITIES (BEYOND LISTED)?</div>
+      <div class="cell w5 center"><%= yn(data.recreational_activites) %></div>
+      <div class="cell label w15">DETAILS</div>
+      <div class="cell w25 wrap"><%= data.recreational_details %></div>
     </div>
     <div class="row">
-      <div class="cell label w25">Total Sales</div>
-      <div class="cell w25"><%= moneyUSD(data.total_sales) %></div>
-      <div class="cell label w25">% Alcohol</div>
-      <div class="cell w25"><%= data.Percent_Alcohol || calcAlcoholPercent(data.food_sales, data.alcohol_sales) %></div>
+      <div class="cell label w30">16. BOUNCERS / SECURITY STAFF?</div>
+      <div class="cell w10 center"><%= yn(data.security_present) %></div>
+      <div class="cell label w20">BACKGROUND CHECKS?</div>
+      <div class="cell w10 center"><%= yn(background_checks) %></div>
+      <div class="cell label w15">ARMED?</div>
+      <div class="cell w5 center"><%= yn(security_armed) %></div>
+      <div class="cell label w15">CONFLICT-RES TRAINED?</div>
+      <div class="cell w5 center"><%= yn(security_trained) %></div>
     </div>
-
-    <% if (isYes(data.alcohol_manufactured) && isYes(data.percent_consumed) && data.percent_consumed_details) { %>
-      <div class="row">
-        <div class="cell label w30">>25% consumed on premises – details</div>
-        <div class="cell w70"><%= data.percent_consumed_details %></div>
-      </div>
-    <% } %>
   </div>
 
-  <!-- COOKING & FIRE CONTROLS -->
-  <div class="subbar">COOKING & FIRE CONTROLS</div>
+  <!-- 17–18 DELIVERY / AUTO -->
+  <div class="subbar">DELIVERY & AUTO</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w30">10. Level of cooking</div>
-      <div class="cell w70">
-        <span class="check"><%= isYes(data.cooking_level_full) ? "✓" : "" %></span> Full
-        &nbsp;&nbsp;
-        <span class="check"><%= (!isYes(data.cooking_level_full) && isYes(data.cooking_level_limited)) ? "✓" : "" %></span> Limited
-        &nbsp;&nbsp;
-        <span class="check"><%= (!isYes(data.cooking_level_full) && !isYes(data.cooking_level_limited) && isYes(data.cooking_level_non)) ? "✓" : "" %></span> None
-      </div>
+      <div class="cell label w30">17. OFFER DELIVERY?</div>
+      <div class="cell w10 center"><%= yn(data.delivery_offered) %></div>
+      <div class="cell label w25">INSURED-OWNED AUTOS?</div>
+      <div class="cell w10 center"><%= yn(del_insured_autos) %></div>
+      <div class="cell label w15">EMPLOYEE AUTOS?</div>
+      <div class="cell w10 center"><%= yn(del_employee_autos) %></div>
     </div>
     <div class="row">
-      <div class="cell label w30">11. Cannabis infusion?</div>
-      <div class="cell w20"><%= yesno(data.infused_with_cannabis) %></div>
-      <div class="cell label w30">12. Solid fuel within 10 ft?</div>
-      <div class="cell w20"><%= yesno(data.solid_fuel) %></div>
+      <div class="cell label w25">3RD-PARTY DELIVERY?</div>
+      <div class="cell w10 center"><%= yn(del_third_party) %></div>
+      <div class="cell label w35">DELIVERY SALES (INSURED/EMP AUTOS)</div>
+      <div class="cell w15 right">$<%= money(del_sales_owned_emp) %></div>
+      <div class="cell label w15">>20% OF LOCATION SALES?</div>
+      <div class="cell w10 center"><%= yn(del_pct_over_20) %></div>
     </div>
     <div class="row">
-      <div class="cell label w60">13. Any surfaces NOT protected by UL300 suppression?</div>
-      <div class="cell w40"><%= yesno(data.non_UL300) %></div>
+      <div class="cell label w20">IF YES, EXPLAIN</div>
+      <div class="cell w80 wrap"><%= del_pct_explain %></div>
     </div>
-
-    <!-- Grill / Smoker follow-up -->
-    <% if (isYes(data.solid_fuel) && data.solid_fuel_details) { %>
-      <div class="row">
-        <div class="cell label w30">Grill / Smoker details</div>
-        <div class="cell w70"><%= data.solid_fuel_details %></div>
-      </div>
-    <% } else if (isYes(data.solid_fuel)) { %>
-      <div class="row">
-        <div class="cell label w30">Grill / Smoker in use</div>
-        <div class="cell w70">Yes (solid fuel within 10 ft)</div>
-      </div>
-    <% } %>
+    <div class="row">
+      <div class="cell label w25">RADIUS > 5 MILES?</div>
+      <div class="cell w10 center"><%= yn(del_radius_gt5) %></div>
+      <div class="cell label w20">IF YES, EXPLAIN</div>
+      <div class="cell w45 wrap"><%= data.del_radius_explain %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">HOURS PAST 10 PM?</div>
+      <div class="cell w10 center"><%= yn(del_after_10pm) %></div>
+      <div class="cell label w20">IF YES, EXPLAIN</div>
+      <div class="cell w45 wrap"><%= data.del_after_10pm_explain %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w45">18. IF AUTO COVERAGE IS RATED — SHUTTLE SERVICES?</div>
+      <div class="cell w10 center"><%= yn(shuttle_services) %></div>
+      <div class="cell label w15">IF YES, EXPLAIN</div>
+      <div class="cell w30 wrap"><%= data.shuttle_explanation %></div>
+    </div>
   </div>
 
-  <!-- ENTERTAINMENT & RECREATION -->
-  <div class="subbar">ENTERTAINMENT & RECREATION</div>
+  <!-- 19 LIQUOR -->
+  <div class="subbar">LIQUOR VIOLATIONS</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w35">14. Entertainment other than ambience/background, karaoke, trivia?</div>
-      <div class="cell w15"><%= yesno(data.entertainment_other) %></div>
-      <div class="cell label w15">Details</div>
-      <div class="cell w35"><%= data.entertainment_details || "" %></div>
+      <div class="cell label w45">19. ANY LIQUOR LAW VIOLATIONS IN LAST 3 YEARS?</div>
+      <div class="cell w10 center"><%= yn(data.liquor_lapse) %></div>
+      <div class="cell label w15">IF YES, DESCRIBE</div>
+      <div class="cell w30 wrap"><%= data.liquor_claims %></div>
     </div>
-    <% if (isYes(data.entertainment_other) && data.entertainment_details) { %>
-      <div class="row">
-        <div class="cell label w30">Entertainment details (expanded)</div>
-        <div class="cell w70"><%= data.entertainment_details %></div>
-      </div>
-    <% } %>
-
-    <div class="row">
-      <div class="cell label w35">15. Recreational activities (besides darts, bag toss, ≤5 pool, horseshoes, volleyball)?</div>
-      <div class="cell w15"><%= yesno(data.recreational_activites) %></div>
-      <div class="cell label w15">Details</div>
-      <div class="cell w35"><%= data.recreational_details || "" %></div>
-    </div>
-    <% if (isYes(data.recreational_activites) && data.recreational_details) { %>
-      <div class="row">
-        <div class="cell label w30">Recreational details (expanded)</div>
-        <div class="cell w70"><%= data.recreational_details %></div>
-      </div>
-    <% } %>
   </div>
 
-  <!-- SECURITY -->
-  <div class="subbar">SECURITY</div>
+  <!-- REMARKS -->
+  <div class="subbar">REMARKS</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w25">16. Bouncers / security present?</div>
-      <div class="cell w25"><%= yesno(data.security_present) %></div>
-      <div class="cell label w25">Background checks?</div>
-      <div class="cell w25"><%= yesno(data.ComboBox22) %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w25">Armed?</div>
-      <div class="cell w25"><%= yesno(data.ComboBox23) %></div>
-      <div class="cell label w25">Conflict-resolution trained?</div>
-      <div class="cell w25"><%= yesno(data.ComboBox24) %></div>
-    </div>
-
-    <% if (isYes(data.security_present)) { %>
-      <div class="row">
-        <div class="cell label w30">Bouncer/Security summary</div>
-        <div class="cell w70">
-          <%= [
-                `Background checks: ${yesno(data.ComboBox22)}`,
-                `Armed: ${yesno(data.ComboBox23)}`,
-                `Conflict training: ${yesno(data.ComboBox24)}`
-              ].join("  |  ") %>
-        </div>
-      </div>
-    <% } %>
-
-    <% if (isYes(data.security_present) && (data.security_count || data.security_hours)) { %>
-      <div class="row">
-        <div class="cell label w30">Security staffing</div>
-        <div class="cell w70">
-          <%= [
-                data.security_count ? `Count: ${data.security_count}` : "",
-                data.security_hours ? `Hours: ${data.security_hours}` : ""
-              ].filter(Boolean).join("  |  ") %>
-        </div>
-      </div>
-    <% } %>
-  </div>
-
-  <!-- Optional: SECURITY & CONTROLS (Door/TIPS/Incident) -->
-  <% if (typeof data.id_checking !== "undefined" ||
-         typeof data.tips_training !== "undefined" ||
-         typeof data.servsafe !== "undefined" ||
-         typeof data.incident_log !== "undefined") { %>
-    <div class="subbar">SECURITY & CONTROLS</div>
-    <div class="block">
-      <% if (typeof data.id_checking !== "undefined") { %>
-        <div class="row">
-          <div class="cell label w40">ID check at door</div>
-          <div class="cell w60"><%= yesno(data.id_checking) %></div>
-        </div>
-      <% } %>
-
-      <% if (typeof data.tips_training !== "undefined" || typeof data.servsafe !== "undefined") { %>
-        <div class="row">
-          <div class="cell label w40">Server training (TIPS/ServSafe)</div>
-          <div class="cell w60">
-            <% const hasTips = typeof data.tips_training !== "undefined" ? yesno(data.tips_training) : ""; %>
-            <% const hasSS  = typeof data.servsafe      !== "undefined" ? yesno(data.servsafe)      : ""; %>
-            <%= [ hasTips ? `TIPS: ${hasTips}` : "", hasSS ? `ServSafe: ${hasSS}` : "" ].filter(Boolean).join("  |  ") %>
-          </div>
-        </div>
-      <% } %>
-
-      <% if (typeof data.incident_log !== "undefined") { %>
-        <div class="row">
-          <div class="cell label w40">Incident log maintained</div>
-          <div class="cell w60"><%= yesno(data.incident_log) %></div>
-        </div>
-      <% } %>
-    </div>
-  <% } %>
-</div>
-
-<!-- ===== PAGE 2 ===== -->
-<div class="page pagebreak">
-  <div class="carrierbar">
-    <div class="brand">SOCIETY INSURANCE</div>
-    <div class="title">SPECIAL PROGRAM SUPPLEMENTAL APPLICATION</div>
-  </div>
-
-  <!-- DELIVERY -->
-  <div class="subbar">DELIVERY</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w25">17. Delivery offered?</div>
-      <div class="cell w25"><%= yesno(data.delivery_offered) %></div>
-      <div class="cell label w25">Owned autos?</div>
-      <div class="cell w25"><%= yesno(data.ComboBox13) %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w25">Employee autos?</div>
-      <div class="cell w25"><%= yesno(data.ComboBox14) %></div>
-      <div class="cell label w25">3rd-party services?</div>
-      <div class="cell w25"><%= yesno(data.ComboBox15) %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w40">Delivery sales (owned or employee autos)</div>
-      <div class="cell w20"><%= moneyUSD(data.TextField0) %></div>
-      <div class="cell label w25">>20% at any one location?</div>
-      <div class="cell w15"><%= yesno(data.ComboBox16) %></div>
-    </div>
-    <% if (isYes(data.ComboBox16) && data.TextField12) { %>
-      <div class="row">
-        <div class="cell label w30">If >20% at one location, explain</div>
-        <div class="cell w70"><%= data.TextField12 %></div>
-      </div>
-    <% } %>
-
-    <div class="row">
-      <div class="cell label w25">Radius > 5 miles?</div>
-      <div class="cell w25"><%= yesno(data.ComboBox17) %></div>
-      <div class="cell label w25">Hours past 10 PM?</div>
-      <div class="cell w25"><%= yesno(data.ComboBox18) %></div>
-    </div>
-    <% if (isYes(data.ComboBox17) && data.TextField11) { %>
-      <div class="row">
-        <div class="cell label w30">Delivery radius explanation</div>
-        <div class="cell w70"><%= data.TextField11 %></div>
-      </div>
-    <% } %>
-    <% if (isYes(data.ComboBox18) && data.TextField13) { %>
-      <div class="row">
-        <div class="cell label w30">After 10 PM delivery explanation</div>
-        <div class="cell w70"><%= data.TextField13 %></div>
-      </div>
-    <% } %>
-
-    <% if (isYes(data.delivery_offered)) { %>
-      <div class="row">
-        <div class="cell label w30">Delivery methods</div>
-        <div class="cell w70">
-          <%= [
-                isYes(data.ComboBox13) ? "Owned autos"     : "",
-                isYes(data.ComboBox14) ? "Employee autos"  : "",
-                isYes(data.ComboBox15) ? "3rd-party svc"   : ""
-              ].filter(Boolean).join("  |  ") %>
-        </div>
-      </div>
-    <% } %>
-  </div>
-
-  <!-- AUTO / SHUTTLE -->
-  <div class="subbar">AUTO / SHUTTLE</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w40">18. If auto rated, does business provide shuttle?</div>
-      <div class="cell w20"><%= yesno(data.ComboBox19) %></div>
-      <div class="cell label w15">Details</div>
-      <div class="cell w25"><%= data.shuttle_explanation || "" %></div>
-    </div>
-    <% if (isYes(data.ComboBox19) && data.shuttle_explanation) { %>
-      <div class="row">
-        <div class="cell label w30">Shuttle details (expanded)</div>
-        <div class="cell w70"><%= data.shuttle_explanation %></div>
-      </div>
-    <% } %>
-    <div class="row">
-      <div class="cell label w60">Other auto policies in force for the named insured(s)?</div>
-      <div class="cell w40"><%= yesno(data.ComboBox1) %></div>
-    </div>
-  </div>
-
-  <!-- VIOLATIONS & CLAIMS -->
-  <div class="subbar">LIQUOR VIOLATIONS & CLAIMS (Last 3 Years)</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w40">19. Liquor law violations?</div>
-      <div class="cell w20"><%= yesno(data.liquor_lapse) %></div>
-      <div class="cell w40"><%= data.liquor_claims || "" %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w30">Total claims</div>
-      <div class="cell w20"><%= data.claim_count || "" %></div>
-      <div class="cell w50">
-        <% if (data.claim_count==="2_or_less" && data.claims_details_2_or_less) { %>
-          <%= data.claims_details_2_or_less %>
-        <% } else if (data.claim_count==="3_or_more" && data.claims_details_3_or_more) { %>
-          <%= data.claims_details_3_or_more %>
-        <% } %>
-      </div>
-    </div>
-  </div>
-
-  <!-- PAYMENT PLAN -->
-  <div class="subbar">PAYMENT PLAN</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell w50"><span class="check"><%= isYes(data.payment_plan_Monthly) ? "✓" : "" %></span> Monthly</div>
-      <div class="cell w50"><span class="check"><%= isYes(data.payment_plan_Annual) ? "✓" : "" %></span> Annual</div>
+      <div class="cell w100 wrap" style="min-height:72px;"><%= data.remarks || "" %></div>
     </div>
   </div>
 
   <!-- AGENCY FOOTER -->
-  <div class="subbar">AGENCY</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w25">Agency</div>
-      <div class="cell w75"><%= data.TextField16 || "All Access Insurance dba Commercial Insurance Direct, LLC 70025M" %></div>
+      <div class="cell label w20">AGENCY</div>
+      <div class="cell w35 wrap"><%= defaults.agencyName %></div>
+      <div class="cell label w10">CODE</div>
+      <div class="cell w10"><%= defaults.agencyCode %></div>
+      <div class="cell label w10">AGENT</div>
+      <div class="cell w15"><%= defaults.agentName %></div>
     </div>
     <div class="row">
-      <div class="cell label w25">Agent</div>
-      <div class="cell w25"><%= data.TextField17 || "Rick Cline" %></div>
-      <div class="cell label w25">Agent Email</div>
-      <div class="cell w25"><%= data.TextField18 || "quote@barinsurancedirect.com" %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w25">Agent Phone</div>
-      <div class="cell w25"><%= data.TextField19 || "303-932-1700" %></div>
-      <div class="cell label w25">Date</div>
-      <div class="cell w25"><%= data.Date || "" %></div>
+      <div class="cell label w20">EMAIL</div>
+      <div class="cell w35"><%= defaults.agentEmail %></div>
+      <div class="cell label w10">PHONE</div>
+      <div class="cell w10"><%= defaults.agentPhone %></div>
+      <div class="cell label w10">DATE</div>
+      <div class="cell w15"><%= formatDate(dateShown) %></div>
     </div>
   </div>
 
-  <!-- SIGNATURE -->
-  <div class="subbar">SIGNATURE</div>
+  <div class="footnote">
+    SPS-1 (10/2020) &nbsp;&nbsp; Page 1 of 2 &nbsp;&nbsp; Society Insurance — Field-name mapping aligned to your sheet.
+  </div>
+</div>
+
+<!-- ====================== PAGE 2 (Overflow for long explanations) ====================== -->
+<div class="page">
+  <div class="headerbar">
+    <div class="brand">SPS-1</div>
+    <div class="title">
+      <div class="line1"><%= defaults.programTitle %></div>
+      <div class="line2">Continuation / Additional Details</div>
+    </div>
+  </div>
+
+  <div class="subbar">ADDITIONAL DETAILS</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w30">Applicant’s Signature</div>
-      <div class="cell w70">&nbsp;</div>
+      <div class="cell label w30">OPENING PLAN DETAILS</div>
+      <div class="cell w70 wrap" style="min-height:50px;"><%= data.open_60_days_details %></div>
     </div>
     <div class="row">
-      <div class="cell label w30">Title</div>
-      <div class="cell w30">&nbsp;</div>
-      <div class="cell label w20">Date</div>
-      <div class="cell w20"><%= data.Date || "" %></div>
+      <div class="cell label w30">PRIOR EXPERIENCE DETAILS</div>
+      <div class="cell w70 wrap" style="min-height:50px;"><%= data.ownership_experience_details %></div>
     </div>
     <div class="row">
-      <div class="cell w100">
-        <div class="legal">The applicant affirms the accuracy and completeness of the information provided…</div>
-      </div>
+      <div class="cell label w30">ENTERTAINMENT DETAILS</div>
+      <div class="cell w70 wrap" style="min-height:50px;"><%= data.entertainment_details %></div>
     </div>
+    <div class="row">
+      <div class="cell label w30">RECREATIONAL DETAILS</div>
+      <div class="cell w70 wrap" style="min-height:50px;"><%= data.recreational_details %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w30">DELIVERY >20% EXPLANATION</div>
+      <div class="cell w70 wrap" style="min-height:50px;"><%= del_pct_explain %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w30">RADIUS >5 MILES EXPLANATION</div>
+      <div class="cell w70 wrap" style="min-height:50px;"><%= data.del_radius_explain %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w30">AFTER 10PM EXPLANATION</div>
+      <div class="cell w70 wrap" style="min-height:50px;"><%= data.del_after_10pm_explain %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w30">SHUTTLE EXPLANATION</div>
+      <div class="cell w70 wrap" style="min-height:50px;"><%= data.shuttle_explanation %></div>
+    </div>
+  </div>
+
+  <div class="footnote">
+    SPS-1 (10/2020) &nbsp;&nbsp; Page 2 of 2 &nbsp;&nbsp; Society — Supplemental continuation.
   </div>
 </div>
 
 </body>
 </html>
-
-
