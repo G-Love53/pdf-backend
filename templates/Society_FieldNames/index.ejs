@@ -204,10 +204,18 @@ const smoker_spark_yn = yn( yeslike(data.smoker_spark_arrestor)  || hoodSystemYe
       <div class="cell w20"><%= formatDate(dateShown) %></div>
     </div>
     <div class="row">
-      <div class="cell label w20">PREMISES ADDRESS</div>
-      <div class="cell w80 wrap"><%= data.premise_address %></div>
-    </div>
+  <div class="cell label w20">PREMISES ADDRESS</div>
+  <div class="cell w80 wrap">
+    <%
+      const cityState = [data.premise_city, data.premise_state].filter(Boolean).join(", ");
+      const fullPremise = [data.premise_address, cityState, data.premise_zip]
+        .map(v => (v ?? "").toString().trim())
+        .filter(v => v.length)
+        .join(" ");
+    %>
+    <%= fullPremise %>
   </div>
+</div>
 
   <!-- 1–3 OPEN/EXPERIENCE/CLOSING -->
   <div class="subbar">OPERATIONS STATUS & EXPERIENCE</div>
