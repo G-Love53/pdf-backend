@@ -30,66 +30,65 @@ const defaults = {
   website: "",
   businessPhone: "",
 
-  // ===== NEW: Status of Submission =====
+  // Status of Submission
   status_quote: true,
   status_issuePolicy: false,
   status_bound: false,
-  status_boundDate: "",         // if status_bound = true
-  status_assignedRisk: false,   // “Assigned Risk (attach ACORD 133)”
+  status_boundDate: "",
+  status_assignedRisk: false,
 
-  // ===== Billing / Audit Information (already had most) =====
-  billingPlan: "",              // Agency Bill / Direct Bill / Assigned Risk
-  paymentPlan: "",              // Annual / Semi-Annual / Quarterly / Monthly
-  methodOfPayment: "",          // free text if you want
-  audit: "AT EXPIRATION",       // At Expiration / Semi-Annual / Quarterly / Monthly
+  // Billing / Audit (plan & method still user-fillable)
+  billingPlan: "",
+  paymentPlan: "",
+  methodOfPayment: "",
   deposit: "",
 
-  // ===== Policy Information =====
+  // Policy Information (dates still user-fillable)
   proposedEffDate: "",
   proposedExpDate: "",
-  ratingEffectiveDate: "",      // (if applicable)
-  anniversaryRatingDate: "",    // (if applicable)
-  retroPlan: "NON-PARTICIPATING", // PARTICIPATING | NON-PARTICIPATING
-  deduct_medical: "",           // e.g., "N/A in WI"
-  deduct_indemnity: "",         // e.g., "N/A in WI"
-  deduct_amountPct: "",         // Amount or %
-  dividendPlanSafetyGroup: "",  // free text
-  managedCareOption: false,
-  foreignCoverage: false,
-  voluntaryComp: false,
+  ratingEffectiveDate: "",
+  anniversaryRatingDate: "",
+  dividendPlanSafetyGroup: "",
   otherCoverages: "",
 
-  // ===== Locations (table one) =====
-  locations: [
-    // {
-    //   loc: "1",
-    //   address1: "123 Main St",
-    //   city: "Littleton",
-    //   county: "Arapahoe",
-    //   state: "CO",
-    //   zip: "80123",
-    //   floorHighest: "1",
-    //   // classification rows used on page 2 worksheet:
-    //   classRows: [
-    //     { classCode:"9084", description:"Bar/Tavern", ftEmployees:"8", ptEmployees:"6", annualRemuneration:"440000", rate:"", estimatedAnnualPremium:"" },
-    //     { classCode:"8810", description:"Clerical", ftEmployees:"2", ptEmployees:"",  annualRemuneration:"90000",  rate:"", estimatedAnnualPremium:"" }
-    //   ],
-    //   includeOvertime: true
-    // }
-  ],
+  // Locations & classifications (for worksheet)
+  locations: [],
 
-  // ===== Coverage (Part One/Two/Three) =====
-  wc_coveredStates: ["CO"],     // array of postal abbreviations
-  wc_otherStatesText: "",
-  el_eachAccident: "1,000,000",
-  el_diseasePolicyLimit: "1,000,000",
-  el_diseaseEachEmployee: "1,000,000",
+  // Experience / prior carriers
+  expMod: "",
+  expModEffective: "",
+  priorCarrier: [],
 
-  // ===== State Rating Worksheet (page 2 totals) =====
-  ratingState: "CO",
+  // Officers / owners
+  officers: [],
+
+  // Waivers / leased / volunteer comp
+  blanketWaiver: false,
+  specificWaivers: [],
+  leasedEmployees: false,
+  laborInterchange: false,
+  volunteerComp: false,
+
+  // General info
+  gi_hasPriorWC: "",
+  gi_anySubcontractors: "",
+  gi_performWorkOutOfState: "",
+  gi_tempEmployees: "",
+  gi_drivers: "",
+  gi_athletics: "",
+  gi_federalActCoverage: "",
+  gi_pastLossControl: "",
+  gi_futureChanges: "",
+  gi_explain: "",
+
+  // Loss history
+  losses: [],
+  noLosses: false,
+
+  // Worksheet totals (optional)
   sw_standardPremium: "",
   sw_scheduleRating: "",
-  sw_scheduleRatingFactor: "",  // if you want to show factor separately
+  sw_scheduleRatingFactor: "",
   sw_ccpap: "",
   sw_ccpapFactor: "",
   sw_modification: "",
@@ -107,45 +106,6 @@ const defaults = {
   sw_depositPremium: "",
   sw_minimumPremium: "",
   sw_totalEstimatedAnnualPremium: "",
-
-  // Experience Mod / Prior Carrier
-  expMod: "",
-  expModEffective: "",
-  priorCarrier: [
-    // { year: "2024", carrier:"ABC", policyNumber:"", premium:"", effective:"", expiration:"" }
-  ],
-
-  // Officers / Owners
-  officers: [
-    // { name:"Jane Founder", title:"Member", ownershipPct:"50", duties:"Mgmt", classCode:"8810", include:true, remuneration:"70000" }
-  ],
-
-  // Waivers / Leased / Volunteer Comp
-  blanketWaiver: false,
-  specificWaivers: [
-    // { name:"Landlord LLC", state:"CO", description:"Premises-related waiver" }
-  ],
-  leasedEmployees: false,
-  laborInterchange: false,
-  volunteerComp: false,
-
-  // General Info (yes/no)
-  gi_hasPriorWC: "",
-  gi_anySubcontractors: "",
-  gi_performWorkOutOfState: "",
-  gi_tempEmployees: "",
-  gi_drivers: "",
-  gi_athletics: "",
-  gi_federalActCoverage: "",
-  gi_pastLossControl: "",
-  gi_futureChanges: "",
-  gi_explain: "",
-
-  // Loss history
-  losses: [
-    // { year:"2024", claimCount:"0", amountPaid:"", amountReserved:"", description:"" }
-  ],
-  noLosses: false,
 
   // Remarks
   remarks: ""
@@ -296,7 +256,7 @@ const formatDate = (d) => {
       <div class="cell label w15">METHOD OF PAYMENT</div>
       <div class="cell w20"><%= data.methodOfPayment %></div>
       <div class="cell label w10">AUDIT</div>
-      <div class="cell w10"><%= data.audit %></div>
+      <div class="cell w10">AT EXPIRATION</div>
       <div class="cell label w5">DEPOSIT</div>
       <div class="cell w5 right">$<%= moneyUSD(data.deposit) %></div>
     </div>
@@ -317,25 +277,25 @@ const formatDate = (d) => {
       <div class="cell label w20">ANNIVERSARY RATING DATE</div>
       <div class="cell w15"><%= formatDate(data.anniversaryRatingDate) %></div>
       <div class="cell label w20">RETRO PLAN</div>
-      <div class="cell w15"><%= data.retroPlan %></div>
+      <div class="cell w15">NON-PARTICIPATING</div>
       <div class="cell label w20">DIVIDEND PLAN / SAFETY GROUP</div>
       <div class="cell w10"><%= data.dividendPlanSafetyGroup %></div>
     </div>
     <div class="row">
       <div class="cell label w15">DEDUCTIBLES</div>
-      <div class="cell w28 small">MEDICAL: <%= data.deduct_medical %></div>
-      <div class="cell w28 small">INDEMNITY: <%= data.deduct_indemnity %></div>
-      <div class="cell w29 small">AMOUNT / %: <%= data.deduct_amountPct %></div>
+      <div class="cell w28 small">MEDICAL: N/A in WI</div>
+      <div class="cell w28 small">INDEMNITY: N/A in WI</div>
+      <div class="cell w29 small">AMOUNT / %:</div>
     </div>
     <div class="row">
       <div class="cell w25 small">
-        MANAGED CARE OPTION <span class="check check-xs"><%= yes(data.managedCareOption) ? "X" : "" %></span>
+        MANAGED CARE OPTION <span class="check check-xs"><%= yes(false) ? "X" : "" %></span>
       </div>
       <div class="cell w25 small">
-        FOREIGN COVERAGE <span class="check check-xs"><%= yes(data.foreignCoverage) ? "X" : "" %></span>
+        FOREIGN COVERAGE <span class="check check-xs"><%= yes(false) ? "X" : "" %></span>
       </div>
       <div class="cell w25 small">
-        VOLUNTARY COMP <span class="check check-xs"><%= yes(data.voluntaryComp) ? "X" : "" %></span>
+        VOLUNTARY COMP <span class="check check-xs"><%= yes(false) ? "X" : "" %></span>
       </div>
       <div class="cell w25 small">
         OTHER COVERAGES: <%= data.otherCoverages %>
@@ -384,7 +344,7 @@ const formatDate = (d) => {
   <div class="block">
     <div class="row">
       <div class="cell label w25">RATING INFORMATION — STATE</div>
-      <div class="cell w25"><%= data.ratingState || "" %></div>
+      <div class="cell w25">CO</div>
       <div class="cell label w25">AGENCY CUSTOMER ID</div>
       <div class="cell w25"><%= data.agencyCustomerId || "" %></div>
     </div>
@@ -489,24 +449,24 @@ const formatDate = (d) => {
     <div class="formno">130</div>
   </div>
 
-  <!-- COVERAGE (Part One / Two / Three) -->
+  <!-- COVERAGE -->
   <div class="subbar">COVERAGE</div>
   <div class="block">
     <div class="row">
       <div class="cell label w20">PART ONE — WC INSURANCE (STATES)</div>
-      <div class="cell w80 wrap"><%= (Array.isArray(data.wc_coveredStates)?data.wc_coveredStates:[]).join(", ") %></div>
+      <div class="cell w80 wrap">CO</div>
     </div>
     <div class="row">
       <div class="cell label w20">PART TWO — EMPLOYERS LIABILITY</div>
       <div class="cell label w20">BODILY INJURY — EACH ACCIDENT</div>
-      <div class="cell w15 right">$<%= data.el_eachAccident %></div>
+      <div class="cell w15 right">$1,000,000</div>
       <div class="cell label w25">BODILY INJURY — DISEASE — POLICY LIMIT</div>
-      <div class="cell w20 right">$<%= data.el_diseasePolicyLimit %></div>
+      <div class="cell w20 right">$1,000,000</div>
     </div>
     <div class="row">
       <div class="cell w20"></div>
       <div class="cell label w25">BODILY INJURY — DISEASE — EACH EMPLOYEE</div>
-      <div class="cell w15 right">$<%= data.el_diseaseEachEmployee %></div>
+      <div class="cell w15 right">$1,000,000</div>
       <div class="cell w20"></div>
       <div class="cell w20"></div>
     </div>
@@ -516,7 +476,7 @@ const formatDate = (d) => {
     </div>
   </div>
 
-  <!-- EXPERIENCE MOD & PRIOR CARRIER -->
+  <!-- EXPERIENCE MOD & PRIOR CARRIER (3 YEARS) -->
   <div class="subbar">EXPERIENCE MOD & PRIOR CARRIER (3 YEARS)</div>
   <div class="block">
     <div class="row">
@@ -698,7 +658,7 @@ const formatDate = (d) => {
     </div>
   </div>
 
-  <!-- STATE FRAUD NOTICES (same block style as your other forms) -->
+  <!-- STATE FRAUD NOTICES -->
   <div class="subbar">STATE FRAUD NOTICES</div>
   <div class="block">
     <div class="row"><div class="cell w100 small legal wrap" style="padding:4px;">
