@@ -1,20 +1,13 @@
 {
-    "applicant_name": "applicant_name",
-    "premises_name": "premises_name",
-    "premise_address": "premise_address",
-    "business_personal_property": "business_personal_property",
-    "construction_type": "construction_type",
-    "year_built": "year_built",
-    "number_of_stories": "number_of_stories",
-    "automatic_sprinkler": "automatic_sprinkler",
-    "building_quote": "building_quote",
-    "solid_fuel": "solid_fuel",
-    "regularly_maintained": "regularly_maintained",
-    "professionally_installed": "professionally_installed",
-    "storage_10_feet": "storage_10_feet",
-    "hood_ul300": "hood_ul300",
-    "fire_extinguisher_20_feet": "fire_extinguisher_20_feet",
-    "vent_cleaned_monthly": "vent_cleaned_monthly",
-    "cleaned_scraped_weekly": "cleaned_scraped_weekly",
-    "ashes_removed_daily": "ashes_removed_daily"
+  "applicant_name": "applicant_name",
+  "premises_name": "premises_name",
+  "premise_address": "premise_address",
+
+  "business_personal_property": "business_personal_property",
+  "building_quote": "building_quote",
+
+  "construction_type": "construction_type",
+  "year_built": "year_built",
+  "number_of_stories": "number_of_stories",
+  "automatic_sprinkler": "automatic_sprinkler"
 }
