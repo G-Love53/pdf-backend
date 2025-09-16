@@ -1,3 +1,4 @@
+<%
 /* ===== Helpers & Defaults (tiny, safe) ===== */
 const defaults = {
   // Producer / Agency defaults
@@ -6,23 +7,8 @@ const defaults = {
   producerAddress2: "Littleton, CO 80123",
   producerContact: "Rick Cline or Gerry Jones",
   producerPhone: "(555) 123-4567",
-  producerFax: "(555) 123-4568",
-  producerEmail: "quote@barinsurancedirect.com",
-
-  // ⬇︎ keep all your other default keys here (dates, LOB toggles, etc.)
-}; // ← closes defaults
-
-// Merge incoming form data once (delete any duplicate const data below in the file)
-const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
-
-// Helper: Organization-type checkbox match
-const eqOrg = (needle) => {
-  const src = String(
-    data.organization_type || data.org_type || data.business?.entityType || ""
-  ).toLowerCase();
-  return src.includes(String(needle || "").toLowerCase());
-};
-
+  producerFax:    "(555) 123-4568",
+  producerEmail:  "quote@barinsurancedirect.com",
 
   // Dates / transaction
   date: "09/11/2025",
@@ -74,11 +60,24 @@ const eqOrg = (needle) => {
   restaurant: false,
 };
 
+// Merge incoming form data once
+const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
+
+// Helper: Organization-type checkbox match (used by the later ORG block)
+const eqOrg = (needle) => {
+  const src = String(
+    data.organization_type || data.org_type || data.business?.entityType || ""
+  ).toLowerCase();
+  return src.includes(String(needle || "").toLowerCase());
+};
+
+// Common helpers
 const yes = (v) => ["yes","true","1","on","checked","y"].includes(String(v ?? "").toLowerCase()) || v === true || v === 1;
-const yn = (v) => yes(v) ? "Y" : (v === false || String(v).toLowerCase() === "n" ? "N" : "");
+const yn  = (v) => yes(v) ? "Y" : (v === false || String(v).toLowerCase() === "n" ? "N" : "");
 const money = (v) => {
   if (v === null || v === undefined || v === "") return "";
-  const n = Number(v); if (Number.isNaN(n)) return "";
+  const n = Number(String(v).replace(/[^0-9.-]/g,""));
+  if (Number.isNaN(n)) return "";
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 const moneyUSD = (v) => money(v);
@@ -95,6 +94,7 @@ const formatDate = (d) => {
   } catch { return String(d ?? ""); }
 };
 %>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -375,14 +375,6 @@ const formatDate = (d) => {
       <div class="cell w15"></div>
       <div class="cell label w20">AGENCY CUSTOMER ID</div>
       <div class="cell w30"><%= data.agencyCustomerId || "" %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w20">ORGANIZATION TYPE</div>
-      <div class="cell w80">
-        <span class="check"><%= yes(data.org_type_corporation || (data.business?.entityType === "CORPORATION")) ? "X" : "" %></span> Corporation
-        <span class="check"><%= yes(data.org_type_llc || (data.business?.entityType === "LLC")) ? "X" : "" %></span> LLC
-        <span class="check"><%= yes(data.org_type_individual || (data.business?.entityType === "INDIVIDUAL")) ? "X" : "" %></span> Individual / Sole Prop
-      </div>
     </div>
     <div class="row">
       <div class="cell label w20">STATUS OF TRANSACTION</div>
