@@ -10,6 +10,10 @@ const defaults = {
   producerFax: "(555) 123-4568",
   producerEmail: "quote@barinsurancedirect.com",
 
+const eqOrg = (label) => String(data.organization_type || "")
+  .toLowerCase()
+  .includes(String(label || "").toLowerCase());
+
   // Dates / transaction
   date: "09/11/2025",
   effectiveDate: "09/11/2025",
@@ -19,7 +23,7 @@ const defaults = {
   // LOB toggles
   boilerMachinery: false,
   cyberPrivacy: false,
-  hiredNonOwnedAuto: false,
+  hiredNonOwnedAuto: true,
   businessAuto: false,
   fiduciaryLiability: false,
   businessOwners: false,
@@ -536,96 +540,129 @@ const formatDate = (d) => {
   </div>
 
   <div class="subbar">APPLICANT INFORMATION</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w25">NAME (FIRST NAMED INSURED) AND MAILING ADDRESS</div>
-      <div class="cell w55 wrap">
-        <%= data.applicant_name || data.businessName || (data.namedInsured && data.namedInsured.legalName) || "" %><br/>
-        <%= (data.namedInsured && data.namedInsured.mailAddress1) || data.mailingAddress || data.businessAddress || data.premise_address || "" %><br/>
-        <%= (data.namedInsured && data.namedInsured.city) || data.mailingCity || data.premise_city || "" %>, 
-        <%= (data.namedInsured && data.namedInsured.state) || data.mailingState || data.premise_state || "" %>
-        <%= (data.namedInsured && data.namedInsured.zip) || data.mailingZip || data.premise_zip || "" %>
-      </div>
-      <div class="cell label w10">GL CODE</div>
-      <div class="cell w5"><%= data.glCode || "" %></div>
-      <div class="cell label w5">SIC</div>
+<div class="block">
+  <div class="row">
+    <div class="cell label w25">NAME (FIRST NAMED INSURED) AND MAILING ADDRESS</div>
+    <div class="cell w50 wrap">
+      <%= data.applicant_name || "" %><br/>
+      <%= data.mailing_address1 || data.applicant_mailing_address1 || data.premise_address || "" %>
+      <% if (data.mailing_address2) { %><br/><%= data.mailing_address2 %><% } %><br/>
+      <%= data.mailing_city || data.premise_city || "" %>, 
+      <%= data.mailing_state || data.premise_state || "" %> 
+      <%= data.mailing_zip || data.premise_zip || "" %>
     </div>
-    <div class="row">
-      <div class="cell label w15">BUSINESS PHONE #</div>
-      <div class="cell w15"><%= data.business_phone || data.businessPhone || (data.contacts && data.contacts.primary && data.contacts.primary.phone) || "" %></div>
-      <div class="cell label w10">NAICS</div>
-      <div class="cell w10"><%= data.naicsCode || "" %></div>
-      <div class="cell label w15">FEIN OR SOC SEC #</div>
-      <div class="cell w15"><%= data.fein || data.taxId || "" %></div>
-      <div class="cell label w10">WEBSITE ADDRESS</div>
-      <div class="cell w10"><%= data.website || (data.business && data.business.website) || "" %></div>
-    </div>
-    <div class="row">
-      <div class="cell w100">
-        <span class="check"><%= (data.business?.entityType || data.entityType) === "CORPORATION" ? "X" : "" %></span> CORPORATION
-        <span class="check"><%= (data.business?.entityType || data.entityType) === "INDIVIDUAL" ? "X" : "" %></span> INDIVIDUAL
-        <span class="check"><%= (data.business?.entityType || data.entityType) === "LLC" ? "X" : "" %></span> LLC
-        <span class="check"><%= (data.business?.entityType || data.entityType) === "JOINT_VENTURE" ? "X" : "" %></span> JOINT VENTURE
-        <span class="check"><%= (data.business?.entityType || data.entityType) === "PARTNERSHIP" ? "X" : "" %></span> PARTNERSHIP
-        <span class="check"><%= (data.business?.entityType || data.entityType) === "NOT_FOR_PROFIT" ? "X" : "" %></span> NOT FOR PROFIT ORG
-        <span class="check"><%= (data.business?.entityType || data.entityType) === "SUBCHAPTER_S" ? "X" : "" %></span> SUBCHAPTER "S" CORPORATION
-        <span class="check"><%= (data.business?.entityType || data.entityType) === "TRUST" ? "X" : "" %></span> TRUST
-        <span class="check"><%= (data.business?.entityType || data.entityType) === "OTHER" ? "X" : "" %></span> OTHER
-      </div>
-    </div>
-    <div class="row">
-      <div class="cell label w25">NO. OF MEMBERS/MANAGERS</div>
-      <div class="cell w25"><%= data.numberOfMembers || data.business?.membersManagers || "" %></div>
-      <div class="cell label w25">NO. OF PARTNERS/OFFICERS</div>
-      <div class="cell w25"><%= data.partnersOfficers || data.trustManagers || "" %></div>
-    </div>
+    <div class="cell label w10">GL CODE</div><div class="cell w7"></div>
+    <div class="cell label w8">SIC</div><div class="cell w5"></div>
   </div>
 
-  <div class="subbar">CONTACT INFORMATION</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w15">CONTACT TYPE</div>
-      <div class="cell label w20">CONTACT NAME</div>
-      <div class="cell label w15">PRIMARY PHONE</div>
-      <div class="cell label w15">SECONDARY PHONE</div>
-      <div class="cell label w35">E-MAIL</div>
-    </div>
-    <div class="row">
-      <div class="cell w15">PRIMARY</div>
-      <div class="cell w20"><%= data.primaryContactName || data.contacts?.primary?.name || "" %></div>
-      <div class="cell w15"><%= data.primaryContactPhone || data.contacts?.primary?.phone || "" %></div>
-      <div class="cell w15"><%= data.primaryContactCell || data.contacts?.primary?.mobile || "" %></div>
-      <div class="cell w35"><%= data.primaryContactEmail || data.contacts?.primary?.email || "" %></div>
-    </div>
-    <div class="row">
-      <div class="cell w15">SECONDARY</div>
-      <div class="cell w20"><%= data.secondaryContactName || data.contacts?.accounting?.name || "" %></div>
-      <div class="cell w15"><%= data.secondaryContactPhone || data.contacts?.accounting?.phone || "" %></div>
-      <div class="cell w15"><%= data.secondaryContactCell || data.contacts?.accounting?.mobile || "" %></div>
-      <div class="cell w35"><%= data.secondaryContactEmail || data.contacts?.accounting?.email || "" %></div>
-    </div>
+  <div class="row">
+    <div class="cell label w20">BUSINESS PHONE #</div>
+    <div class="cell w15"><%= data.business_phone || data.businessPhone || "" %></div>
+    <div class="cell label w10">NAICS</div>
+    <div class="cell w10"><%= data.naics || "" %></div>
+    <div class="cell label w15">FEIN OR SOC SEC #</div>
+    <div class="cell w10"><%= data.fein || "" %></div>
+    <div class="cell label w10">WEBSITE ADDRESS</div>
+    <div class="cell w20 wrap"><%= data.premises_website || data.website || "" %></div>
   </div>
+
+  <div class="row"><div class="cell w100 small">
+    <span class="check"><%= eqOrg("Corporation") ? "X" : "" %></span> CORPORATION
+    <span class="check"><%= eqOrg("Individual") || eqOrg("Sole") ? "X" : "" %></span> INDIVIDUAL / SOLE PROP
+    <span class="check"><%= eqOrg("LLC") ? "X" : "" %></span> LLC
+    <span class="check"><%= eqOrg("Joint Venture") ? "X" : "" %></span> JOINT VENTURE
+    <span class="check"><%= eqOrg("Partnership") ? "X" : "" %></span> PARTNERSHIP
+    <span class="check"><%= eqOrg("Not For Profit") ? "X" : "" %></span> NOT FOR PROFIT ORG
+    <span class="check"><%= eqOrg("Subchapter S") || eqOrg("S Corp") ? "X" : "" %></span> SUBCHAPTER "S" CORPORATION
+    <span class="check"><%= eqOrg("Trust") ? "X" : "" %></span> TRUST
+    <span class="check"><%= eqOrg("Other") ? "X" : "" %></span> OTHER
+  </div></div>
+</div>
+
+<div class="subbar">APPLICANT INFORMATION</div>
+<div class="block">
+  <div class="row">
+    <div class="cell label w25">NAME (FIRST NAMED INSURED) AND MAILING ADDRESS</div>
+    <div class="cell w50 wrap">
+      <%= data.applicant_name || "" %><br/>
+      <%= data.mailing_address1 || data.applicant_mailing_address1 || data.premise_address || "" %>
+      <% if (data.mailing_address2) { %><br/><%= data.mailing_address2 %><% } %><br/>
+      <%= data.mailing_city || data.premise_city || "" %>, 
+      <%= data.mailing_state || data.premise_state || "" %> 
+      <%= data.mailing_zip || data.premise_zip || "" %>
+    </div>
+    <div class="cell label w10">GL CODE</div><div class="cell w7"></div>
+    <div class="cell label w8">SIC</div><div class="cell w5"></div>
+  </div>
+
+  <div class="row">
+    <div class="cell label w20">BUSINESS PHONE #</div>
+    <div class="cell w15"><%= data.business_phone || data.businessPhone || "" %></div>
+    <div class="cell label w10">NAICS</div>
+    <div class="cell w10"><%= data.naics || "" %></div>
+    <div class="cell label w15">FEIN OR SOC SEC #</div>
+    <div class="cell w10"><%= data.fein || "" %></div>
+    <div class="cell label w10">WEBSITE ADDRESS</div>
+    <div class="cell w20 wrap"><%= data.premises_website || data.website || "" %></div>
+  </div>
+
+  <div class="row"><div class="cell w100 small">
+    <span class="check"><%= eqOrg("Corporation") ? "X" : "" %></span> CORPORATION
+    <span class="check"><%= eqOrg("Individual") || eqOrg("Sole") ? "X" : "" %></span> INDIVIDUAL / SOLE PROP
+    <span class="check"><%= eqOrg("LLC") ? "X" : "" %></span> LLC
+    <span class="check"><%= eqOrg("Joint Venture") ? "X" : "" %></span> JOINT VENTURE
+    <span class="check"><%= eqOrg("Partnership") ? "X" : "" %></span> PARTNERSHIP
+    <span class="check"><%= eqOrg("Not For Profit") ? "X" : "" %></span> NOT FOR PROFIT ORG
+    <span class="check"><%= eqOrg("Subchapter S") || eqOrg("S Corp") ? "X" : "" %></span> SUBCHAPTER "S" CORPORATION
+    <span class="check"><%= eqOrg("Trust") ? "X" : "" %></span> TRUST
+    <span class="check"><%= eqOrg("Other") ? "X" : "" %></span> OTHER
+  </div></div>
+</div>
+
+
+  <div class="subbar">CONTACT INFORMATION</div>
+<div class="block">
+  <div class="row">
+    <div class="cell label w15">CONTACT TYPE</div>
+    <div class="cell label w35">CONTACT NAME</div>
+    <div class="cell label w20">PRIMARY PHONE</div>
+    <div class="cell label w15">SECONDARY PHONE</div>
+    <div class="cell label w15">E-MAIL</div>
+  </div>
+  <div class="row">
+    <div class="cell w15">PRIMARY</div>
+    <div class="cell w35"><%= data.applicant_name || "" %></div>
+    <div class="cell w20"><%= data.business_phone || data.businessPhone || "" %></div>
+    <div class="cell w15"></div>
+    <div class="cell w15"><%= data.contact_email || data.email || "" %></div>
+  </div>
+  <div class="row">
+    <div class="cell w15">SECONDARY</div>
+    <div class="cell w35"></div>
+    <div class="cell w20"></div>
+    <div class="cell w15"></div>
+    <div class="cell w15"></div>
+  </div>
+</div>
 
   <div class="subbar">PREMISES INFORMATION (ATTACH ACORD 823 FOR ADDITIONAL PREMISES)</div>
   <div class="block">
-    <div class="row">
-      <div class="cell label w5">LOC #</div>
-      <div class="cell w5"><%= data.locations?.[0]?.loc || data.locationLoc || "" %></div>
-      <div class="cell label w5">BLDG</div>
-      <div class="cell w5"><%= data.locations?.[0]?.building || data.locationBuilding || "" %></div>
-      <div class="cell label w10">STREET</div>
-      <div class="cell w70 wrap"><%= data.locations?.[0]?.address1 || data.location1Address || data.businessAddress || data.premise_address || "" %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w10">CITY</div>
-      <div class="cell w20 wrap"><%= data.locations?.[0]?.city || data.locationCity || data.businessCity || data.premise_city || "" %></div>
-      <div class="cell label w10">COUNTY</div>
-      <div class="cell w20 wrap"><%= data.locations?.[0]?.county || data.locationCounty || "" %></div>
-      <div class="cell label w10">STATE</div>
-      <div class="cell w15"><%= data.locations?.[0]?.state || data.locationState || data.businessState || data.premise_state || "" %></div>
-      <div class="cell label w5">ZIP</div>
-      <div class="cell w10"><%= data.locations?.[0]?.zip || data.locationZip || data.businessZip || data.premise_zip || "" %></div>
-    </div>
+    <!-- LOC 1 ADDRESS (Applicant/Mailing) -->
+<div class="row">
+  <div class="cell label w8">LOC #</div><div class="cell w5 center">1</div>
+  <div class="cell label w10">BLDG</div><div class="cell w7"></div>
+  <div class="cell label w10">STREET</div>
+  <div class="cell w60 wrap">
+    <%= data.mailing_address1 || data.applicant_mailing_address1 || data.premise_address || "" %>
+    <% if (data.mailing_address2) { %><br/><%= data.mailing_address2 %><% } %>
+  </div>
+</div>
+<div class="row">
+  <div class="cell label w10">CITY</div><div class="cell w20"><%= data.mailing_city || data.premise_city || "" %></div>
+  <div class="cell label w10">STATE</div><div class="cell w15"><%= data.mailing_state || data.premise_state || "" %></div>
+  <div class="cell label w10">ZIP</div><div class="cell w15"><%= data.mailing_zip || data.premise_zip || "" %></div>
+  <div class="cell label w10">BLDG DESCRIPTION</div><div class="cell w10 wrap"><%= data.bldgDescription || "" %></div>
+</div>
     <div class="row">
       <div class="cell label w20">CITY LIMITS</div>
       <div class="cell w30">
@@ -640,25 +677,18 @@ const formatDate = (d) => {
         <span class="check check-xs"><%= String(li).toUpperCase()==="TENANT" ? "X" : "" %></span> Tenant
       </div>
     </div>
-    <div class="row">
-      <div class="cell label w25">FULL TIME EMPLOY</div>
-      <div class="cell w25 num"><%= data.locations?.[0]?.fullTimeEmployees  ?? data.locationFullTimeEmployees  ?? "" %></div>
-      <div class="cell label w25">PART TIME EMPLOY</div>
-      <div class="cell w25 num"><%= data.locations?.[0]?.partTimeEmployees ?? data.locationPartTimeEmployees ?? "" %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w25">ANNUAL REVENUES</div>
-      <div class="cell w25 num">$<%= moneyUSD(data.annual_revenues || data.annualRevenues) %></div>
-      <div class="cell label w25">% TOTAL BUILDING AREA</div>
-      <div class="cell w25 num"><%= data.total_area_percent || data.total_area_pct || "" %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w30">TOTAL BUILDING AREA (SQ FT)</div>
-      <div class="cell w20 num"><%= data.total_building_area_sqft || data.total_area_sqft || "" %></div>
-      <div class="cell label w25">OPEN TO PUBLIC</div>
-      <div class="cell w25 num"><%= (data.locations?.[0]?.openToPublic ?? data.locationOpenToPublic ?? "") %> SQ FT</div>
-    </div>
-  </div>
+    
+      <!-- Totals / Employees / Area -->
+<div class="row">
+  <div class="cell label w12">FULL TIME EMPLOY</div>
+  <div class="cell w8 right"><%= data.full_time_employees || "" %></div>
+  <div class="cell label w12">PART TIME EMPLOY</div>
+  <div class="cell w8 right"><%= data.part_time_employees || "" %></div>
+  <div class="cell label w18">ANNUAL REVENUES</div>
+  <div class="cell w12 right">$<%= moneyUSD(data.total_sales) %></div>
+  <div class="cell label w20">TOTAL BUILDING AREA (SQ FT)</div>
+  <div class="cell w10 right"><%= data.square_footage || "" %></div>
+</div>
 
   <div class="subbar">NATURE OF BUSINESS</div>
   <div class="block">
@@ -683,7 +713,7 @@ const formatDate = (d) => {
         <span class="check"><%= (data.business?.type || data.businessType) === "INSTITUTIONAL" ? "X" : "" %></span> INSTITUTIONAL
         <span class="check"><%= (data.business?.type || data.businessType) === "MANUFACTURING" ? "X" : "" %></span> MANUFACTURING
         <span class="check"><%= (data.business?.type || data.businessType) === "OFFICE" ? "X" : "" %></span> OFFICE
-        <span class="check"><%= (data.business?.type || data.businessType) === "RESTAURANT" ? "X" : "" %></span> RESTAURANT
+        <span class="check"><%= (data.business?.type || data.businessType) === "RESTAURANT" ? "X" : "" %>X</span> RESTAURANT
         <span class="check"><%= (data.business?.type || data.businessType) === "RETAIL" ? "X" : "" %></span> RETAIL
         <span class="check"><%= (data.business?.type || data.businessType) === "SERVICE" ? "X" : "" %></span> SERVICE
         <span class="check"><%= (data.business?.type || data.businessType) === "WHOLESALE" ? "X" : "" %></span> WHOLESALE
@@ -740,7 +770,7 @@ const formatDate = (d) => {
       <div class="cell label w10">DESCRIPTION</div>
       <div class="cell w10"><%= data.parentDescription || data.org?.parent?.description || "" %></div>
       <div class="cell label w5">% OWNED</div>
-      <div class="cell w5"><%= data.parentPercentOwned || data.org?.parent?.percentOwned || "" %></div>
+      <div class="cell w5"><%= data.parentPercentOwned || data.org?.parent?.percentOwned || "" %>N</div>
     </div>
 
     <!-- Subsidiary (first) -->
@@ -752,14 +782,14 @@ const formatDate = (d) => {
       <div class="cell label w10">DESCRIPTION</div>
       <div class="cell w10"><%= data.subsidiaryDescription || data.subsidiaries?.[0]?.description || "" %></div>
       <div class="cell label w5">% OWNED</div>
-      <div class="cell w5"><%= data.subsidiaryPercentOwned || data.subsidiaries?.[0]?.percentOwned || "" %></div>
+      <div class="cell w5"><%= data.subsidiaryPercentOwned || data.subsidiaries?.[0]?.percentOwned || "" %>N</div>
     </div>
 
     <!-- 2 -->
     <div class="row">
       <div class="cell label w5">2.</div>
       <div class="cell w45">IS A FORMAL SAFETY PROGRAM IN OPERATION?</div>
-      <div class="cell w5"><%= yn(data.hasSafetyProgram) %></div>
+      <div class="cell w5">N<%= yn(data.hasSafetyProgram) %></div>
       <div class="cell w45">
         <span class="check"><%= yes(data.safetyManual) ? "X" : "" %></span> SAFETY MANUAL
         <span class="check"><%= yes(data.safetyPosition) ? "X" : "" %></span> SAFETY POSITION
@@ -772,14 +802,14 @@ const formatDate = (d) => {
     <div class="row">
       <div class="cell label w5">3.</div>
       <div class="cell w90">ANY EXPOSURE TO FLAMMABLES, EXPLOSIVES, CHEMICALS?</div>
-      <div class="cell w5"><%= yn(data.hazardousExposure) %></div>
+      <div class="cell w5"><%= yn(data.hazardousExposure) %>N</div>
     </div>
 
     <!-- 4 -->
     <div class="row">
       <div class="cell label w5">4.</div>
       <div class="cell w55">ANY OTHER INSURANCE WITH THIS COMPANY? (LIST POLICY NUMBERS)</div>
-      <div class="cell w5"><%= yn(data.otherInsurance) %></div>
+      <div class="cell w5"><%= yn(data.otherInsurance) %>N</div>
       <div class="cell w35"><%= data.otherPolicyNumbers || "" %></div>
     </div>
 
@@ -787,7 +817,7 @@ const formatDate = (d) => {
     <div class="row">
       <div class="cell label w5">5.</div>
       <div class="cell w90">ANY POLICY OR COVERAGE DECLINED, CANCELLED OR NON-RENEWED DURING THE PRIOR THREE (3) YEARS?</div>
-      <div class="cell w5"><%= yn(data.coverageDeclined) %></div>
+      <div class="cell w5"><%= yn(data.coverageDeclined) %>N</div>
     </div>
     <div class="row">
       <div class="cell w25"><span class="check"><%= (data.declineReason === "NON-PAYMENT") ? "X" : "" %></span> NON-PAYMENT</div>
@@ -800,35 +830,35 @@ const formatDate = (d) => {
     <div class="row">
       <div class="cell label w5">6.</div>
       <div class="cell w90">ANY PAST LOSSES OR CLAIMS RELATING TO SEXUAL ABUSE OR MOLESTATION ALLEGATIONS, DISCRIMINATION OR NEGLIGENT HIRING?</div>
-      <div class="cell w5"><%= yn(data.sexualAbuseClaims) %></div>
+      <div class="cell w5"><%= yn(data.sexualAbuseClaims) %>N</div>
     </div>
 
     <!-- 7 -->
     <div class="row">
       <div class="cell label w5">7.</div>
       <div class="cell w90">DURING THE LAST FIVE YEARS (TEN IN RI), HAS ANY APPLICANT BEEN INDICTED FOR OR CONVICTED OF ANY DEGREE OF THE CRIME OF FRAUD, BRIBERY, ARSON OR ANY OTHER ARSON-RELATED CRIME?</div>
-      <div class="cell w5"><%= yn(data.criminalConviction) %></div>
+      <div class="cell w5"><%= yn(data.criminalConviction) %>N</div>
     </div>
 
     <!-- 8 -->
     <div class="row">
       <div class="cell label w5">8.</div>
       <div class="cell w90">ANY UNCORRECTED FIRE AND/OR SAFETY CODE VIOLATIONS?</div>
-      <div class="cell w5"><%= yn(data.codeViolations) %></div>
+      <div class="cell w5"><%= yn(data.codeViolations) %>N</div>
     </div>
 
     <!-- 9 -->
     <div class="row">
       <div class="cell label w5">9.</div>
       <div class="cell w90">HAS THE APPLICANT HAD A FORECLOSURE FILED AGAINST THEM, HAD A FORECLOSURE, REPOSSESSION, BANKRUPTCY OR FILED FOR BANKRUPTCY DURING THE LAST FIVE (5) YEARS?</div>
-      <div class="cell w5"><%= yn(data.bankruptcy) %></div>
+      <div class="cell w5"><%= yn(data.bankruptcy) %>N</div>
     </div>
 
     <!-- 10 -->
     <div class="row">
       <div class="cell label w5">10.</div>
       <div class="cell w90">HAS APPLICANT HAD A JUDGMENT OR LIEN DURING THE LAST FIVE (5) YEARS?</div>
-      <div class="cell w5"><%= yn(data.judgementOrLien || data.judgmentOrLien) %></div>
+      <div class="cell w5"><%= yn(data.judgementOrLien || data.judgmentOrLien) %>N</div>
     </div>
 
     <!-- 11 -->
@@ -837,35 +867,35 @@ const formatDate = (d) => {
       <div class="cell w60">HAS BUSINESS BEEN PLACED IN A TRUST?</div>
       <div class="cell w5"><%= yn(data.inTrust) %></div>
       <div class="cell label w15">NAME OF TRUST</div>
-      <div class="cell w15"><%= data.trustName || "" %></div>
+      <div class="cell w15"><%= data.trustName || "" %>N</div>
     </div>
 
     <!-- 12 -->
     <div class="row">
       <div class="cell label w5">12.</div>
       <div class="cell w90">ANY FOREIGN OPERATIONS, FOREIGN PRODUCTS DISTRIBUTED IN USA, OR US PRODUCTS SOLD/DISTRIBUTED IN FOREIGN COUNTRIES?</div>
-      <div class="cell w5"><%= yn(data.foreignOperations) %></div>
+      <div class="cell w5"><%= yn(data.foreignOperations) %>N</div>
     </div>
 
     <!-- 13 -->
     <div class="row">
       <div class="cell label w5">13.</div>
       <div class="cell w90">DOES APPLICANT HAVE OTHER BUSINESS VENTURES FOR WHICH COVERAGE IS NOT REQUESTED?</div>
-      <div class="cell w5"><%= yn(data.otherBusinessVentures) %></div>
+      <div class="cell w5"><%= yn(data.otherBusinessVentures) %>N</div>
     </div>
 
     <!-- 14 -->
     <div class="row">
       <div class="cell label w5">14.</div>
       <div class="cell w90">DOES APPLICANT OWN/LEASE/OPERATE ANY DRONES?</div>
-      <div class="cell w5"><%= yn(data.ownDrones) %></div>
+      <div class="cell w5"><%= yn(data.ownDrones) %>N</div>
     </div>
 
     <!-- 15 -->
     <div class="row">
       <div class="cell label w5">15.</div>
       <div class="cell w90">DOES APPLICANT HIRE OTHERS TO OPERATE DRONES?</div>
-      <div class="cell w5"><%= yn(data.hireDroneOperators) %></div>
+      <div class="cell w5"><%= yn(data.hireDroneOperators) %>N</div>
     </div>
 
     <!-- Explain YES -->
