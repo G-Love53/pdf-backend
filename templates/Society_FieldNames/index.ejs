@@ -254,7 +254,7 @@ const smoker_spark_yn = yn( yeslike(data.smoker_spark_arrestor)  || hoodSystemYe
     <div class="row">
       <div class="cell label w35">8. MANUFACTURE ALCOHOL?</div>
       <div class="cell w10 center"><%= yn(data.alcohol_manufactured) %></div>
-      <div class="cell label w40">IF YES, &gt; 25% FOR ON-PREMISE?</div>
+      <div class="cell label w40">IF YES, More than 25% FOR ON-PREMISE?</div>
       <div class="cell w15 center"><%= yn(data.percent_consumed) %></div>
     </div>
     <div class="row">
@@ -278,9 +278,9 @@ const smoker_spark_yn = yn( yeslike(data.smoker_spark_arrestor)  || hoodSystemYe
     <div class="row">
       <div class="cell label w35">11. INFUSE PRODUCTS WITH CANNABIS?</div>
       <div class="cell w10 center"><%= yn(data.infused_with_cannabis) %></div>
-      <div class="cell label w30">12. ANY SOLID FUEL WITHIN 10 FT?</div>
+      <div class="cell label w30">12. Solid Fuel 10 FT from unit?</div>
       <div class="cell w10 center"><%= yn(data.solid_fuel) %></div>
-      <div class="cell label w15">13. ANY NON-UL300 SURFACES?</div>
+      <div class="cell label w15">13. Any cooking surfaces NOT covered by UL300 fire suppression?</div>
       <div class="cell w10 center"><%= yn(data.non_UL300) %></div>
     </div>
   </div>
@@ -300,16 +300,27 @@ const smoker_spark_yn = yn( yeslike(data.smoker_spark_arrestor)  || hoodSystemYe
       <div class="cell w75 small">
         <span class="check"><%= yeslike(data.cleaned_scraped_weekly) ? "X" : "" %></span> Scraped Weekly
         <span class="check"><%= yeslike(data.vent_cleaned_monthly) ? "X" : "" %></span> Vent/Exhaust Inspected/Cleaned Monthly
-        <span class="check"><%= yeslike(data.ashes_removed_daily) ? "X" : "" %></span> Ashes Removed Daily
+        <span class="check"><%= yeslike(data.ashes_removed_daily) ? "X" : "" %></span> Ashes Removed Daily into a metal container
       </div>
     </div>
 
     <div class="row">
       <div class="cell label w60">IS FUEL / PELLETS / WOOD MORE THAN 10' FROM UNIT?</div>
       <div class="cell w10 center"><%= yn(data.storage_10_feet) %></div>
-      <div class="cell label w20">ASH IN METAL CONTAINER W/ LID?</div>
-      <div class="cell w10 center"><%= yn(data.smoker_ash_metal_container) %></div>
-    </div>
+      
+   <div class="row">
+      <div class="cell label w45">CLASS K OR 2A EXTINGUISHER WITHIN 20 FT?</div>
+      <div class="cell w10 center"><%= yn(data.fire_extinguisher_20_feet) %></div>
+      <div class="cell w45"></div>
+   </div>
+
+<%
+  // Force cascade: if hood/UL300 is YES, the three rows below must all print Y
+  const hoodYes = yes(data.hood_ul300);
+  const smoker_ul300_yn = hoodYes ? "Y" : yn(data.smoker_ul300);
+  const smoker_hood_yn  = hoodYes ? "Y" : yn(data.smoker_hood);
+  const smoker_spark_yn = hoodYes ? "Y" : yn(data.smoker_spark);
+%>
 
     <div class="row">
       <div class="cell label w45">UL / SUPPRESSION OVER COOKING?</div>
@@ -373,7 +384,7 @@ const smoker_spark_yn = yn( yeslike(data.smoker_spark_arrestor)  || hoodSystemYe
       <div class="cell w10 center"><%= yn(del_third_party) %></div>
       <div class="cell label w35">DELIVERY SALES (INSURED/EMP AUTOS)</div>
       <div class="cell w15 right">$<%= money(del_sales_owned_emp) %></div>
-      <div class="cell label w15">&gt;20% OF LOCATION SALES?</div>
+      <div class="cell label w15">More than 20% OF LOCATION SALES?</div>
       <div class="cell w10 center"><%= yn(del_pct_over_20) %></div>
     </div>
     <div class="row">
