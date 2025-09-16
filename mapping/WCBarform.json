@@ -1,20 +1,21 @@
 {
-  "date": "2025-09-15",
-  "effectiveDate": "2025-10-01",
+  "date": "date",
+  "effectiveDate": "effectiveDate",
   "expirationDate": "2026-10-01",
   "carrier": "Demo Carrier",
   "naicCode": "12345",
   "policyNumber": "WC-TEST-001",
   "agencyCustomerId": "CID-999",
 
-  "applicant_name": "Sample Bar LLC",
-  "mailing_address1": "123 Main St",
-  "mailing_city": "Denver",
-  "mailing_state": "CO",
-  "mailing_zip": "80202",
+  "applicant_name": "applicant_name",
+  "mailing_address1": "mailing_address1",
+  "mailing_address2": "mailing_address2",
+  "mailing_city": "mailing_city",
+  "mailing_state": "mailing_state",
+  "mailing_zip": "mailing_zip",
   "fein": "12-3456789",
-  "website": "www.samplebar.com",
-  "businessPhone": "303-555-0111",
+  "website": "premises_website",
+  "businessPhone": "business_phone",
 
   "status_quote": true,
   "billingPlan_directBill": true,
@@ -22,7 +23,7 @@
   "paymentPlan_downPct": "10%",
   "audit_atExpiration": true,
 
-  "proposedEffDate": "2025-10-01",
+  "proposedEffDate": "effective_date",
   "proposedExpDate": "2026-10-01",
   "ratingEffectiveDate": "2025-10-01",
   "anniversaryRatingDate": "2025-10-01",
@@ -40,6 +41,23 @@
   "cov_managedCare": true,
   "dividendPlan_safetyGroup": "Safety Group A",
   "additionalCoveragesText": "Waiver of Subrogation where required by written contract.",
+
+  "wc_has_bar_tavern": "wc_bar_tavern_checkbox",
+"wc_has_restaurant_noc": "wc_restaurant_noc_checkbox",
+"wc_has_outside_sales_clerical": "wc_outside_sales_clerical_checkbox",
+
+"wc_bar_tavern_ft": "wc_bar_tavern_ft",
+"wc_bar_tavern_pt": "wc_bar_tavern_pt",
+"wc_bar_tavern_payroll": "wc_bar_tavern_payroll",
+
+"wc_restaurant_ft": "wc_restaurant_ft",
+"wc_restaurant_pt": "wc_restaurant_pt",
+"wc_restaurant_payroll": "wc_restaurant_payroll",
+
+"wc_clerical_ft": "wc_clerical_ft",
+"wc_clerical_pt": "wc_clerical_pt",
+"wc_clerical_payroll": "wc_clerical_payroll"
+
 
   "locations": [
     { "loc": "1", "street": "123 Main St", "city": "Denver", "county": "Denver", "state": "CO", "zip": "80202", "floorHighest": "2" }
