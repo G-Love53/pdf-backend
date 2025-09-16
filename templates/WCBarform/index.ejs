@@ -199,57 +199,39 @@ const rowYN = (text, val) => (
   </div>
 
   <!-- PRODUCER / APPLICANT -->
-  <div class="subbar">PRODUCER / APPLICANT</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w15">AGENCY</div>
-      <div class="cell w35 wrap">
-        <%= data.producerName %><br/>
-        <%= data.producerAddress1 %><br/>
-        <%= data.producerAddress2 %>
-      </div>
-      <div class="cell label w15">AGENCY CUSTOMER ID</div>
-      <div class="cell w15"><%= data.agencyCustomerId || "" %></div>
-      <div class="cell label w10">DATE (MM/DD/YYYY)</div>
-      <div class="cell w10"><%= formatDate(data.date) %></div>
+<div class="subbar">PRODUCER / APPLICANT</div>
+<div class="block">
+  <div class="row">
+    <div class="cell label w15">AGENCY</div>
+    <div class="cell w35 wrap">
+      <%= data.producerName %><br/>
+      <%= data.producerAddress1 %><br/>
+      <%= data.producerAddress2 %>
     </div>
-    <div class="row">
-      <div class="cell label w20">APPLICANT / FIRST NAMED INSURED</div>
-      <div class="cell w40 wrap">
-        <%= data.applicant_name || "" %><br/>
-        <%= data.mailing_address1 || "" %><% if (data.mailing_address2) { %><br/><%= data.mailing_address2 %><% } %><br/>
-        <%= data.mailing_city || "" %>, <%= data.mailing_state || "" %> <%= data.mailing_zip || "" %>
-      </div>
-      <div class="cell label w10">CARRIER</div>
-      <div class="cell w10"><%= data.carrier %></div>
-      <div class="cell label w10">NAIC CODE</div>
-      <div class="cell w10"><%= data.naicCode %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w15">POLICY NUMBER</div>
-      <div class="cell w15"><%= data.policyNumber %></div>
-      <div class="cell label w15">EFFECTIVE DATE</div>
-      <div class="cell w15"><%= formatDate(data.effectiveDate) %></div>
-      <div class="cell label w15">EXPIRATION DATE</div>
-      <div class="cell w15"><%= formatDate(data.expirationDate) %></div>
-      <div class="cell label w10">PHONE</div>
-      <div class="cell w10"><%= data.businessPhone %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w10">FEIN</div>
-      <div class="cell w15"><%= data.fein %></div>
-      <div class="cell label w10">WEBSITE</div>
-      <div class="cell w25"><%= data.website %></div>
+    <div class="cell label w15">AGENCY CUSTOMER ID</div>
+    <div class="cell w15"><%= data.agencyCustomerId || "" %></div>
+    <div class="cell label w10">DATE (MM/DD/YYYY)</div>
+    <div class="cell w10"><%= formatDate(data.date) %></div>
+  </div>
 
-      <div class="cell label w12">BILLING PLAN</div>
-      <div class="cell w8 small">
-        <span class="check check-xs"><%= (String(data.billingPlan).toUpperCase()==="AGENCY BILL") ? "X" : "" %></span>AGENCY BILL
-      </div>
-      <div class="cell w10 small">
-        <span class="check check-xs"><%= (String(data.billingPlan).toUpperCase()==="DIRECT BILL") ? "X" : "" %></span>DIRECT BILL
-      </div>
+  <div class="row">
+    <div class="cell label w15">APPLICANT / FIRST NAMED INSURED</div>
+    <div class="cell w35 wrap"><%= data.applicant_name || "" %></div>
+    <div class="cell label w15">PHONE</div>
+    <div class="cell w15"><%= data.businessPhone || "" %></div>
+    <div class="cell label w10">WEBSITE</div>
+    <div class="cell w10"><%= data.website || "" %></div>
+  </div>
+
+  <div class="row">
+    <div class="cell label w15">MAILING ADDRESS</div>
+    <div class="cell w85 wrap">
+      <%= [data.mailing_address1, data.mailing_address2].filter(Boolean).join(", ") %><br/>
+      <%= [data.mailing_city, data.mailing_state, data.mailing_zip].filter(Boolean).join(", ") %>
     </div>
   </div>
+</div>
+
 
   <!-- STATUS OF SUBMISSION + BILLING / AUDIT INFORMATION -->
   <div class="subbar">STATUS OF SUBMISSION</div>
