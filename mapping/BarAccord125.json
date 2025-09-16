@@ -19,5 +19,13 @@
     "fine_dining": "fine_dining",
     "counter_service": "counter_service",
     "payment_plan_Monthly": "payment_plan_Monthly",
-    "payment_plan_Annual": "payment_plan_Annual"
+    "payment_plan_Annual": "payment_plan_Annual",
+    "full_time_employees": "full_time_employees",
+    "part_time_employees": "part_time_employees",
+    "mailing_address1": "mailing_address1",
+    "mailing_address2": "mailing_address2",
+    "mailing_city": "mailing_city",
+    "mailing_state": "mailing_state",
+    "mailing_zip": "mailing_zip",
+    "bldgDescription": "bldgDescription"
 }
