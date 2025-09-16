@@ -1,4 +1,3 @@
-<%
 /* ===== Helpers & Defaults (tiny, safe) ===== */
 const defaults = {
   // Producer / Agency defaults
@@ -10,9 +9,20 @@ const defaults = {
   producerFax: "(555) 123-4568",
   producerEmail: "quote@barinsurancedirect.com",
 
-const eqOrg = (label) => String(data.organization_type || "")
-  .toLowerCase()
-  .includes(String(label || "").toLowerCase());
+  // ⬇︎ keep all your other default keys here (dates, LOB toggles, etc.)
+}; // ← closes defaults
+
+// Merge incoming form data once (delete any duplicate const data below in the file)
+const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
+
+// Helper: Organization-type checkbox match
+const eqOrg = (needle) => {
+  const src = String(
+    data.organization_type || data.org_type || data.business?.entityType || ""
+  ).toLowerCase();
+  return src.includes(String(needle || "").toLowerCase());
+};
+
 
   // Dates / transaction
   date: "09/11/2025",
@@ -63,8 +73,6 @@ const eqOrg = (label) => String(data.organization_type || "")
   electronicData: false,
   restaurant: false,
 };
-
-const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
 
 const yes = (v) => ["yes","true","1","on","checked","y"].includes(String(v ?? "").toLowerCase()) || v === true || v === 1;
 const yn = (v) => yes(v) ? "Y" : (v === false || String(v).toLowerCase() === "n" ? "N" : "");
@@ -566,18 +574,18 @@ const formatDate = (d) => {
     <div class="cell w20 wrap"><%= data.premises_website || data.website || "" %></div>
   </div>
 
-  <div class="row"><div class="cell w100 small">
-    <span class="check"><%= eqOrg("Corporation") ? "X" : "" %></span> CORPORATION
-    <span class="check"><%= eqOrg("Individual") || eqOrg("Sole") ? "X" : "" %></span> INDIVIDUAL / SOLE PROP
-    <span class="check"><%= eqOrg("LLC") ? "X" : "" %></span> LLC
-    <span class="check"><%= eqOrg("Joint Venture") ? "X" : "" %></span> JOINT VENTURE
-    <span class="check"><%= eqOrg("Partnership") ? "X" : "" %></span> PARTNERSHIP
-    <span class="check"><%= eqOrg("Not For Profit") ? "X" : "" %></span> NOT FOR PROFIT ORG
-    <span class="check"><%= eqOrg("Subchapter S") || eqOrg("S Corp") ? "X" : "" %></span> SUBCHAPTER "S" CORPORATION
-    <span class="check"><%= eqOrg("Trust") ? "X" : "" %></span> TRUST
-    <span class="check"><%= eqOrg("Other") ? "X" : "" %></span> OTHER
-  </div></div>
-</div>
+<!-- ORGANIZATION TYPE -->
+<div class="row"><div class="cell w100 small">
+  <span class="check"><%= eqOrg("Corporation") ? "X" : "" %></span> CORPORATION
+  <span class="check"><%= eqOrg("Individual") || eqOrg("Sole") ? "X" : "" %></span> INDIVIDUAL / SOLE PROP
+  <span class="check"><%= eqOrg("LLC") ? "X" : "" %></span> LLC
+  <span class="check"><%= eqOrg("Joint Venture") ? "X" : "" %></span> JOINT VENTURE
+  <span class="check"><%= eqOrg("Partnership") ? "X" : "" %></span> PARTNERSHIP
+  <span class="check"><%= eqOrg("Not For Profit") ? "X" : "" %></span> NOT FOR PROFIT ORG
+  <span class="check"><%= eqOrg("Subchapter S") || eqOrg("S Corp") ? "X" : "" %></span> SUBCHAPTER "S" CORPORATION
+  <span class="check"><%= eqOrg("Trust") ? "X" : "" %></span> TRUST
+  <span class="check"><%= eqOrg("Other") ? "X" : "" %></span> OTHER
+</div></div>
 
 <div class="subbar">APPLICANT INFORMATION</div>
 <div class="block">
@@ -605,20 +613,6 @@ const formatDate = (d) => {
     <div class="cell label w10">WEBSITE ADDRESS</div>
     <div class="cell w20 wrap"><%= data.premises_website || data.website || "" %></div>
   </div>
-
-  <div class="row"><div class="cell w100 small">
-    <span class="check"><%= eqOrg("Corporation") ? "X" : "" %></span> CORPORATION
-    <span class="check"><%= eqOrg("Individual") || eqOrg("Sole") ? "X" : "" %></span> INDIVIDUAL / SOLE PROP
-    <span class="check"><%= eqOrg("LLC") ? "X" : "" %></span> LLC
-    <span class="check"><%= eqOrg("Joint Venture") ? "X" : "" %></span> JOINT VENTURE
-    <span class="check"><%= eqOrg("Partnership") ? "X" : "" %></span> PARTNERSHIP
-    <span class="check"><%= eqOrg("Not For Profit") ? "X" : "" %></span> NOT FOR PROFIT ORG
-    <span class="check"><%= eqOrg("Subchapter S") || eqOrg("S Corp") ? "X" : "" %></span> SUBCHAPTER "S" CORPORATION
-    <span class="check"><%= eqOrg("Trust") ? "X" : "" %></span> TRUST
-    <span class="check"><%= eqOrg("Other") ? "X" : "" %></span> OTHER
-  </div></div>
-</div>
-
 
   <div class="subbar">CONTACT INFORMATION</div>
 <div class="block">
