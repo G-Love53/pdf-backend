@@ -314,14 +314,6 @@ const smoker_spark_yn = yn( yeslike(data.smoker_spark_arrestor)  || hoodSystemYe
       <div class="cell w45"></div>
    </div>
 
-<%
-  // Force cascade: if hood/UL300 is YES, the three rows below must all print Y
-  const hoodYes = yes(data.hood_ul300);
-  const smoker_ul300_yn = hoodYes ? "Y" : yn(data.smoker_ul300);
-  const smoker_hood_yn  = hoodYes ? "Y" : yn(data.smoker_hood);
-  const smoker_spark_yn = hoodYes ? "Y" : yn(data.smoker_spark);
-%>
-
     <div class="row">
       <div class="cell label w45">UL / SUPPRESSION OVER COOKING?</div>
       <div class="cell w10 center"><%= smoker_ul300_yn %></div>
