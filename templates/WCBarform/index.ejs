@@ -267,28 +267,24 @@ const rowYN = (text, val) => (
   </div>
 
   <!-- LOCATIONS -->
-  <div class="subbar">LOCATIONS</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w7 center">LOC #</div>
-      <div class="cell label w13 center">HIGHEST FLOOR?</div>
-      <div class="cell label w80 center">STREET, CITY, COUNTY, STATE, ZIP CODE</div>
-    </div>
-    <%
-      var locRows = Array.isArray(data.locations)?data.locations:[];
-      var maxLoc = Math.max(locRows.length, 6);
-      for (var i=0; i<maxLoc; i++){
-        var L = locRows[i] || {};
-        var addr = [L.address1, L.city, L.county ? (L.county + " County") : "", L.state, L.zip]
-                    .filter(Boolean).join(", ");
-    %>
-      <div class="row">
-        <div class="cell w7 center"><%= L.loc || (i+1) %></div>
-        <div class="cell w13 center"><%= L.highestFloor || "" %></div>
-        <div class="cell w80 wrap"><%= addr %></div>
-      </div>
-    <% } %>
+<div class="subbar">LOCATIONS</div>
+<div class="block">
+  <div class="row">
+    <div class="cell label w10 center">LOC #</div>
+    <div class="cell label w15 center">HIGHEST FLOOR</div>
+    <div class="cell label w75 center">STREET, CITY, COUNTY, STATE, ZIP CODE</div>
   </div>
+  <div class="row">
+    <div class="cell w10 center">1</div>
+    <div class="cell w15 center"></div>
+    <div class="cell w75 wrap">
+      <%= [data.mailing_address1, data.mailing_address2].filter(Boolean).join(", ") %>
+      <br/>
+      <%= [data.mailing_city, data.mailing_state, data.mailing_zip].filter(Boolean).join(", ") %>
+    </div>
+  </div>
+</div>
+
 
   <!-- POLICY INFORMATION -->
   <div class="subbar">POLICY INFORMATION</div>
@@ -316,30 +312,34 @@ const rowYN = (text, val) => (
       <div class="cell w5 right">$<%= moneyUSD(data.deduct_indemnity) %></div>
     </div>
 
-    <div class="row">
-      <div class="cell label w20">PART 1 — WORKERS COMPENSATION (STATES)</div>
-      <div class="cell w80 wrap"><%= (Array.isArray(data.wc_coveredStates)?data.wc_coveredStates:[]).join(", ") %></div>
-    </div>
+    <!-- COVERAGE -->
+<div class="subbar">COVERAGE</div>
+<div class="block">
+  <div class="row">
+    <div class="cell label w20">PART ONE — WC INSURANCE (STATES)</div>
+    <div class="cell w80 wrap"><%= (Array.isArray(data.wc_coveredStates)?data.wc_coveredStates:[]).join(", ") %></div>
+  </div>
 
-    <div class="row">
-      <div class="cell label w20">PART 2 — EMPLOYER'S LIABILITY</div>
-      <div class="cell label w20">EACH ACCIDENT</div>
-      <div class="cell w15 right">$<%= data.el_eachAccident %></div>
-      <div class="cell label w25">DISEASE — POLICY LIMIT</div>
-      <div class="cell w20 right">$<%= data.el_diseasePolicyLimit %></div>
-    </div>
-    <div class="row">
-      <div class="cell w20"></div>
-      <div class="cell label w25">DISEASE — EACH EMPLOYEE</div>
-      <div class="cell w15 right">$<%= data.el_diseaseEachEmployee %></div>
-      <div class="cell w20"></div>
-      <div class="cell w20"></div>
-    </div>
+  <div class="row">
+    <div class="cell label w20">PART TWO — EMPLOYERS LIABILITY</div>
+    <div class="cell label w25">BODILY INJURY — EACH ACCIDENT</div>
+    <div class="cell w15 right">$<%= data.el_eachAccident || "1,000,000" %></div>
+    <div class="cell label w25">BODILY INJURY — DISEASE — POLICY LIMIT</div>
+    <div class="cell w15 right">$<%= data.el_diseasePolicyLimit || "1,000,000" %></div>
+  </div>
 
-    <div class="row">
-      <div class="cell label w20">PART 3 — OTHER STATES</div>
-      <div class="cell w80 wrap"><%= data.wc_otherStatesText %></div>
-    </div>
+  <div class="row">
+    <div class="cell w20"></div>
+    <div class="cell label w25">BODILY INJURY — DISEASE — EACH EMPLOYEE</div>
+    <div class="cell w15 right">$<%= data.el_diseaseEachEmployee || "1,000,000" %></div>
+    <div class="cell w40"></div>
+  </div>
+
+  <div class="row">
+    <div class="cell label w20">PART THREE — OTHER STATES</div>
+    <div class="cell w80 wrap"><%= data.wc_otherStatesText || "" %></div>
+  </div>
+</div>
 
     <div class="row">
       <div class="cell label w30">DIVIDEND PLAN / SAFETY GROUP</div>
@@ -372,74 +372,82 @@ const rowYN = (text, val) => (
   </div>
 
   <!-- STATE RATING WORKSHEET -->
-  <div class="subbar">STATE RATING WORKSHEET</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w15">STATE RATING SHEET #</div>
-      <div class="cell w10"></div>
-      <div class="cell label w7">OF SHEETS</div>
-      <div class="cell w10"></div>
-      <div class="cell label w20">AGENCY CUSTOMER ID</div>
-      <div class="cell w38"><%= data.agencyCustomerId || "" %></div>
-    </div>
-
-    <div class="row">
-      <div class="cell label w20">RATING INFORMATION — STATE:</div>
-      <div class="cell w80"></div>
-    </div>
-
-    <div class="row">
-      <div class="cell label w5 center">LOC</div>
-      <div class="cell label w10 center">CLASS CODE</div>
-      <div class="cell label w10 center">DESCR CODE</div>
-      <div class="cell label w25 center">CATEGORIES, DUTIES, CLASSIFICATIONS</div>
-      <div class="cell label w7 center"># EMP FT</div>
-      <div class="cell label w7 center"># EMP PT</div>
-      <div class="cell label w6 center">SIC</div>
-      <div class="cell label w6 center">NAICS</div>
-      <div class="cell label w12 center">EST. ANNUAL REMUN / PAYROLL</div>
-      <div class="cell label w6 center">RATE</div>
-      <div class="cell label w6 center">EST. ANNUAL MANUAL PREMIUM</div>
-    </div>
-
-    <%
-      var rows = [];
-      (Array.isArray(data.locations)?data.locations:[]).forEach(function(L){
-        (Array.isArray(L.classRows)?L.classRows:[]).forEach(function(R){
-          rows.push({
-            loc: L.loc || "",
-            classCode: R.classCode || "",
-            descrCode: R.descrCode || "",
-            description: R.description || "",
-            ft: R.ftEmployees || "",
-            pt: R.ptEmployees || "",
-            sic: R.sic || "",
-            naics: R.naics || "",
-            payroll: R.annualRemuneration || "",
-            rate: R.rate || "",
-            estPrem: R.estimatedAnnualPremium || ""
-          });
-        });
-      });
-      var maxRows = Math.max(rows.length, 14);
-      for (var i=0; i<maxRows; i++){
-        var R = rows[i] || {};
-    %>
-      <div class="row">
-        <div class="cell w5 center"><%= R.loc %></div>
-        <div class="cell w10 center"><%= R.classCode %></div>
-        <div class="cell w10 center"><%= R.descrCode %></div>
-        <div class="cell w25 wrap"><%= R.description %></div>
-        <div class="cell w7 center"><%= R.ft %></div>
-        <div class="cell w7 center"><%= R.pt %></div>
-        <div class="cell w6 center"><%= R.sic %></div>
-        <div class="cell w6 center"><%= R.naics %></div>
-        <div class="cell w12 right">$<%= moneyUSD(R.payroll) %></div>
-        <div class="cell w6 right"><%= R.rate %></div>
-        <div class="cell w6 right">$<%= moneyUSD(R.estPrem) %></div>
-      </div>
-    <% } %>
+<div class="subbar">STATE RATING WORKSHEET</div>
+<div class="block">
+  <div class="row">
+    <div class="cell label w5 center">LOC #</div>
+    <div class="cell label w10 center">CLASS CODE</div>
+    <div class="cell label w10 center">DESCR CODE</div>
+    <div class="cell label w25 center">CATEGORIES, DUTIES, CLASSIFICATIONS</div>
+    <div class="cell label w8 center"># EMP FT</div>
+    <div class="cell label w8 center"># EMP PT</div>
+    <div class="cell label w12 center">EST. ANNUAL REMUN/PAYROLL</div>
+    <div class="cell label w7 center">RATE</div>
+    <div class="cell label w15 center">EST. ANNUAL MANUAL PREMIUM</div>
   </div>
+
+  <% 
+    // Build rows from WC checkboxes + counts/payroll from form
+    const rows = [];
+
+    if (yes(data.wc_has_bar_tavern)) {
+      rows.push({
+        classCode: "9084",
+        descrCode: "",
+        category: "BAR TAVERN",
+        ft: data.wc_bar_tavern_ft,
+        pt: data.wc_bar_tavern_pt,
+        payroll: data.wc_bar_tavern_payroll,
+        rate: "",
+        manualPrem: ""
+      });
+    }
+    if (yes(data.wc_has_restaurant_noc)) {
+      rows.push({
+        classCode: "9083",
+        descrCode: "",
+        category: "RESTAURANT NOC",
+        ft: data.wc_restaurant_ft,
+        pt: data.wc_restaurant_pt,
+        payroll: data.wc_restaurant_payroll,
+        rate: "",
+        manualPrem: ""
+      });
+    }
+    if (yes(data.wc_has_outside_sales_clerical)) {
+      rows.push({
+        classCode: "8810",
+        descrCode: "",
+        category: "OUTSIDE SALES CLERICAL",
+        ft: data.wc_clerical_ft,
+        pt: data.wc_clerical_pt,
+        payroll: data.wc_clerical_payroll,
+        rate: "",
+        manualPrem: ""
+      });
+    }
+
+    // If no boxes checked, still render 3 rows blank (hard-coded layout)
+    while (rows.length < 3) rows.push({
+      classCode:"", descrCode:"", category:"", ft:"", pt:"", payroll:"", rate:"", manualPrem:""
+    });
+  %>
+
+  <% rows.forEach(function(R){ %>
+    <div class="row">
+      <div class="cell w5 center">1</div>
+      <div class="cell w10 center"><%= R.classCode %></div>
+      <div class="cell w10 center"><%= R.descrCode %></div>
+      <div class="cell w25 wrap"><%= R.category %></div>
+      <div class="cell w8 center"><%= R.ft || "" %></div>
+      <div class="cell w8 center"><%= R.pt || "" %></div>
+      <div class="cell w12 right">$<%= moneyUSD(R.payroll) %></div>
+      <div class="cell w7 center"><%= R.rate %></div>
+      <div class="cell w15 right">$<%= moneyUSD(R.manualPrem) %></div>
+    </div>
+  <% }) %>
+</div>
+
 
   <!-- PREMIUM -->
   <div class="subbar">PREMIUM</div>
