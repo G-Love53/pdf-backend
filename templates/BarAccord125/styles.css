@@ -138,12 +138,12 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
   .page { min-height: 10.5in !important; padding: 0.125in !important; margin: 0 !important; }
   .headerbar { height: 40px !important; }
 
+  @media print {
+  .small.legal.wrap { break-inside: avoid; page-break-inside: avoid; }
+}
+
   /* don't split critical rows across pages */
   .no-break { break-inside: avoid; page-break-inside: avoid; }
-
-  /* fraud/legal block: 2 columns so it fits one page */
-  .fraud-notices { column-count: 2; column-gap: 12pt; font-size: 6.5pt; line-height: 1.2; padding: 5pt; }
-  .fraud-block { break-inside: avoid; page-break-inside: avoid; }
 
   /* ==== ACORD normalization pack (align with WC/140) ==== */
 
