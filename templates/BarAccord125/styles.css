@@ -1,27 +1,28 @@
-/* ===== ACORD 125 Print-Fidelity Styles (Drop-in) ===== */
+/* ===== ACORD 125 — Clean Print CSS (drop-in) ===== */
 
-/* Adjust this to 0.5in if your printer clips borders */
-
-.page  {
-  width: 100%;  /* Fill whatever space Puppeteer gives us */
-  max-width: none;
-  min-height: auto;
-  margin: 0;
-  padding: 0;
-}
-
-* {
-  box-sizing: border-box;
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
-}
-
+/* Page + print foundation */
+@page { size: Letter; margin: 0.5in; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
 body {
   font-family: Arial, Helvetica, sans-serif;
   color:#000;
   font-size: 8pt;
   line-height: 1.15;
+  margin: 0;
+}
+
+.page  {
+  width: 7.5in;                 /* 8.5 - .5 - .5 */
+  min-height: 10.5in;           /* 11 - .5 - .5 */
+  margin: 0 auto;
+  padding: .125in;
+  background: #fff;
+}
+
+@media print {
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
 }
 
 /* ===== ACORD header ===== */
@@ -54,9 +55,9 @@ body {
   padding: 2pt 0;
 }
 
-/* ===== Section title bar ===== */
+/* ===== Section bar ===== */
 .subbar {
-  background: #e6e6e6;     /* Holds up in print/scan */
+  background: #e6e6e6;
   border: 1pt solid #000;
   padding: 4pt 6pt;
   font-weight: 700;
@@ -69,46 +70,92 @@ body {
   border: 1pt solid #000;
   border-top: none;
 }
-
 .block .row {
   display: grid;
-  grid-template-columns: repeat(20, 1fr);  /* 20-column micro-grid */
-  border-top: 1pt solid #000;              /* Solid black row rules */
+  grid-template-columns: repeat(20, minmax(0,1fr)); /* 20-col micro-grid */
+  border-top: 1pt solid #000;
 }
-
-.block .row:first-child {
-  border-top: none;
-}
+.block .row:first-child { border-top: none; }
 
 .cell {
-  padding: 3pt 4pt;                        /* Tight ACORD spacing */
-  border-left: 1pt solid #000;             /* Solid black column rules */
-  min-height: 14pt;                        /* Keeps rows consistent */
+  padding: 3pt 4pt;
+  border-left: 1pt solid #000;
+  min-height: 14pt;
   display: flex;
   align-items: center;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
 }
-
-.cell:first-child {
-  border-left: none;
-}
+.cell:first-child { border-left: none; }
 
 /* ===== Labels ===== */
 .label {
-  background: #f5f5f5;     /* Slightly lighter than subbar */
+  background: #f5f5f5;
   font-weight: 700;
-  font-size: 7pt;
-  letter-spacing: 0.2pt;
-  text-transform: uppercase; /* ACORD-style captions */
+  font-size: 6.5pt;
+  letter-spacing: 0.15pt;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 /* ===== Utilities ===== */
-.right { text-align: right; }
-.center { text-align: center; }
+.right  { text-align: right;  justify-content: flex-end; }
+.center { text-align: center; justify-content: center; }
 .nowrap { white-space: nowrap; }
+.wrap  { white-space: normal; overflow-wrap: anywhere; word-break: break-word; hyphens: auto; }
+.small { font-size: 7pt; line-height: 1.15; }
+.num   { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* keep a row/section from splitting across pages */
+.no-break,
+.block .row.no-break {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+}
+
+/* Optional tighter rows when needed */
+.tight .cell { min-height: 12pt; padding: 2pt 3pt; }
+
+/* ===== Width utilities (20-col grid) ===== */
+.w5  { grid-column: span 1; }
+.w10 { grid-column: span 2; }
+.w15 { grid-column: span 3; }
+.w20 { grid-column: span 4; }
+.w25 { grid-column: span 5; }
+.w30 { grid-column: span 6; }
+.w35 { grid-column: span 7; }
+.w40 { grid-column: span 8; }
+.w45 { grid-column: span 9; }
+.w50 { grid-column: span 10; }
+.w55 { grid-column: span 11; }
+.w60 { grid-column: span 12; }
+.w65 { grid-column: span 13; }
+.w70 { grid-column: span 14; }
+.w75 { grid-column: span 15; }
+.w80 { grid-column: span 16; }
+.w85 { grid-column: span 17; }
+.w90 { grid-column: span 18; }
+.w95 { grid-column: span 19; }
+.w100{ grid-column: span 20; }
+
+/* ===== Checkboxes ===== */
+.check{
+  display:inline-block;
+  width:11pt; height:11pt; line-height:11pt;
+  border:1px solid #000;
+  text-align:center; font-weight:700; font-size:9pt;
+  margin:0 6pt 0 10pt; vertical-align:middle;
+  transform: translateY(1px);
+}
+.check-xs { width:10pt; height:10pt; line-height:10pt; font-size:8pt; }
+
 /* ===== Section-specific hooks ===== */
 
 /* Pg 1 – Attachments line */
-.attachments .field, .attachments .cell {
+.attachments .cell,
+.attachments .field {
   font-size: 7pt;
   line-height: 1.25;
 }
@@ -146,101 +193,18 @@ body {
   hyphens: auto;
 }
 
-
-/* Width utilities mapped to 20-column grid */
-.w5  { grid-column: span 1; }
-.w10 { grid-column: span 2; }
-.w15 { grid-column: span 3; }
-.w20 { grid-column: span 4; }
-.w25 { grid-column: span 5; }
-.w30 { grid-column: span 6; }
-.w35 { grid-column: span 7; }
-.w40 { grid-column: span 8; }
-.w45 { grid-column: span 9; }
-.w50 { grid-column: span 10; }
-.w55 { grid-column: span 11; }
-.w60 { grid-column: span 12; }
-.w65 { grid-column: span 13; }
-.w70 { grid-column: span 14; }
-.w75 { grid-column: span 15; }
-.w80 { grid-column: span 16; }
-.w85 { grid-column: span 17; }
-.w90 { grid-column: span 18; }
-.w95 { grid-column: span 19; }
-.w100{ grid-column: span 20; }
-
-/* ===== Checkboxes (square, legible X) ===== */
-.check{
-  display:inline-block; width:11pt; height:11pt; line-height:11pt;
-  border:1px solid #000; text-align:center; font-weight:700; font-size:9pt;
-  margin:0 6pt 0 10pt; vertical-align:middle;
-}
-/* Global wrap utilities */
-.field, .cell { word-break: break-word; hyphens: auto; }
-.label, .nowrap { white-space: nowrap; }
-
-/* Slightly comfier spacing everywhere */
-.field, .cell { min-height: 16pt; padding: 3pt 5pt; }
-
-/* Keep grid columns flexible */
-.block .row { grid-template-columns: repeat(20, minmax(0,1fr)); }
-
-/* Checkbox visual tweak */
-.check { transform: translateY(1px); }
-
-/* ===== Wrapping utilities ===== */
-.wrap { white-space: normal; overflow-wrap: anywhere; word-break: break-word; hyphens: auto; }
-.label { white-space: nowrap; }   /* keep captions compact */
-.small { font-size: 7pt; line-height: 1.15; }  /* for dense text blocks */
-.tight .cell { min-height: 12pt; } /* optional: tighter rows in specific blocks */
-
-/* keep a row/section from splitting across pages */
-.block .row.no-break,
-.no-break {
-  break-inside: avoid;
-  page-break-inside: avoid;
-  -webkit-column-break-inside: avoid; /* Chrome/WebKit fallback */
-  
-  /* --- Compact rows when space is tight --- */
-.compact .cell { padding: 2pt 3pt; min-height: 12pt; }
-
-/* --- Slightly smaller labels everywhere (helps titles not spill) --- */
-.label { font-size: 6.5pt; letter-spacing: 0.15pt; }
-
-/* --- Long text wrappers --- */
-.wrap       { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
-.wrap-tight { white-space: normal; overflow-wrap: anywhere; word-break: break-word; line-height: 1.1; }
-
-/* --- Numbers (right aligned, tidy width) --- */
-.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-
-/* --- Tiny checkboxes (Inside/Outside, Owner/Tenant, etc.) --- */
-.check-xs { width: 10pt; height: 10pt; line-height: 10pt; font-size: 8pt; }
-
-/* --- Small text helper (use on busy rows/blocks) --- */
-.small { font-size: 6.8pt; line-height: 1.15; }
-
-}
-
-
-/* ===== Legal/footer ===== */
+/* ===== Footer ===== */
 .legal {
   font-size: 7pt;
   line-height: 1.2;
   padding: 4pt 3pt;
 }
-
 .footnote {
   margin-top: 8pt;
   font-size: 7pt;
   color: #000;
-  text-align: center;        /* ACORD-style centered footer */
+  text-align: center;
 }
 
-/* Page break helper for multipage output */
+/* Manual page-break helper */
 .pagebreak { break-before: page; }
-
-@media print {
-  .page { page-break-after: always; }
-  .page:last-child { page-break-after: auto; }
-}
