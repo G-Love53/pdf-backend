@@ -65,6 +65,8 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
 }
 .block .row:first-child { border-top:none; }
 
+.block .row { align-items: stretch; }
+
 .cell {
   padding:3pt 4pt;
   border-left:1pt solid #000;
