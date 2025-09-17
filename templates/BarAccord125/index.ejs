@@ -229,23 +229,25 @@ const formatDate = (d) => {
     body {
       font-family: Arial, Helvetica, sans-serif;
       color: #000;
-      font-size: 8pt;
-      line-height: 1.15;
+      font-size: 7.5pt;
+      line-height: 1.1;
       margin: 0;
       padding: 0;
     }
 
     .page {
-      width: 8.5in;
-      min-height: 11in;
-      padding: 0.5in;
+      width: 8in;
+      min-height: 10.5in;
+      padding: 0.125in;
       margin: 0 auto;
-      background: white;
+      background: #fff;
+      border: 1px solid #ccc;
+      position: relative;
       page-break-after: always;
     }
 
     /* ===== ACORD header ===== */
-    .headerbar {
+    .headerbar { height: 40px;
       display: grid;
       grid-template-columns: 0.95in 1fr 0.65in;
       align-items: center;
@@ -418,9 +420,9 @@ const formatDate = (d) => {
     }
 
     @media print {
-      .page { 
-        padding: 0.5in;
-        page-break-after: always; 
+   @page { margin: 0.25in; size: letter; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
       }
       .page:last-child { 
         page-break-after: auto; 
