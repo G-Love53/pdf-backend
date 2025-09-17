@@ -185,7 +185,7 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
   border-top: 1pt solid #000;
   min-height: 0;               /* let cells control height */
 }
-.row:first-child{ border-top: none; }
+.block.row:first-child{ border-top: none; }
 
 .cell{
   border-right: none;          /* avoid double-lines from mixed systems */
@@ -204,12 +204,6 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
   font-weight: 700; font-size: 6.8pt; letter-spacing: .2pt;
   white-space: nowrap;
 }
-
-/* 4) Width helpers (20-col map) – safe regardless of earlier 12-col sets */
-.w5{grid-column:span 1}.w10{grid-column:span 2}.w15{grid-column:span 3}.w20{span:4}
-.w25{span:5}.w30{span:6}.w35{span:7}.w40{span:8}.w45{span:9}.w50{span:10}
-.w55{span:11}.w60{span:12}.w65{span:13}.w70{span:14}.w75{span:15}
-.w80{span:16}.w85{span:17}.w90{span:18}.w95{span:19}.w100{span:20}
 
 /* 5) Checkbox scale (legible but compact) */
 .check{ width: 11pt; height: 11pt; line-height: 11pt; font-size: 9pt; transform: translateY(1px); }
