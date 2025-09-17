@@ -1,53 +1,52 @@
-/* ===== ACORD 125 — Print-Fidelity CSS (clean drop-in) ===== */
+/* ===== ACORD 125 — Print-Fidelity CSS (final clean drop-in) ===== */
 
-/* Page + print setup */
+/* --- Print sheet + page breaks --- */
 @media print {
-  @page { size: letter; margin: 0.25in; }
+  @page { size: letter; margin: 0.25in; }         /* 0.25" outer margins */
   .page { page-break-after: always; }
   .page:last-child { page-break-after: auto; }
 }
 
-/* Global reset */
+/* --- Global reset --- */
 * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 html, body { margin: 0; padding: 0; }
 body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; line-height: 1.15; }
 
-/* ==== Page box (keep THIS one; remove any older `.page { width:8.5in... }`) ==== */
-.page {
-  width: 100%;          /* Let the renderer decide width; consistent in browsers/Puppeteer */
+/* --- Page box (keep this; remove any older `.page { width:8.5in... }`) --- */
+.page{
+  width: 100%;
   max-width: none;
-  min-height: 10.5in;   /* Gives breathing room under the 11in sheet with margins */
+  min-height: 10.5in;               /* breathing room prevents orphan spillovers */
   background: #fff;
-  padding: 0.125in;     /* Small inner padding like your working version */
+  padding: 0.125in;                  /* matches your “good” build */
   margin: 0;
-  position: relative;   /* enables footers if you need absolute positioning */
+  position: relative;
 }
 
 /* ===== Header bar (your working flex version) ===== */
 .headerbar{
-  display:flex;
-  align-items:center;
-  border:2px solid #000;
-  background:#fff;
-  margin-bottom:2px;
-  height:40px;
+  display:flex; align-items:center;
+  border:2px solid #000; background:#fff;
+  margin-bottom:2px; height:40px;
+  break-inside: avoid; page-break-inside: avoid;
 }
 .headerbar .acord{
   background:#000; color:#fff; font-weight:700; font-size:16pt;
-  width:80px; display:flex; align-items:center; justify-content:center; height:100%;
+  width:80px; height:100%; display:flex; align-items:center; justify-content:center;
 }
 .headerbar .title{
   flex:1; font-weight:700; font-size:12pt; text-align:center; padding:0 10px;
 }
 .headerbar .formno{
   background:#000; color:#fff; font-weight:700; font-size:16pt;
-  width:60px; display:flex; align-items:center; justify-content:center; height:100%;
+  width:60px; height:100%; display:flex; align-items:center; justify-content:center;
 }
 
 /* ===== Section bars ===== */
 .subbar{
-  background:#e6e6e6; border:1pt solid #000; font-weight:700; font-size:8pt;
-  padding:3pt 6pt; margin-top:6pt;
+  background:#e6e6e6; border:1pt solid #000;
+  font-weight:700; font-size:8pt; padding:3pt 6pt; margin-top:6pt;
+  break-inside: avoid; page-break-inside: avoid;
 }
 
 /* ===== Boxed grid blocks ===== */
@@ -62,26 +61,44 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
 .cell{
   padding:3pt 4pt;
   border-left:1pt solid #000;
-  min-height:14pt;
+  min-height:13pt;
   display:flex; align-items:center;
   word-break: break-word; overflow-wrap: anywhere; hyphens: auto;
 }
 .cell:first-child{ border-left:none; }
+
 .label{
   background:#f5f5f5; font-weight:700; font-size:6.8pt; letter-spacing:.2pt;
   white-space:nowrap;
 }
+
 .center{ text-align:center; justify-content:center; }
-.right{ text-align:right; justify-content:flex-end; }
-.wrap{ white-space:normal; }
+.right { text-align:right; justify-content:flex-end; }
+.wrap  { white-space:normal; }
 
-/* Width utilities (20-col map) */
-.w5{grid-column:span 1}.w10{span:2}.w15{span:3}.w20{span:4}.w25{span:5}.w30{span:6}
-.w35{grid-column:span 7}.w40{span:8}.w45{span:9}.w50{span:10}.w55{span:11}.w60{span:12}
-.w65{grid-column:span 13}.w70{span:14}.w75{span:15}.w80{span:16}.w85{span:17}.w90{span:18}
-.w95{grid-column:span 19}.w100{grid-column:span 20}
+/* ===== Width utilities (correct 20-col spans) ===== */
+.w5  { grid-column: span 1; }
+.w10 { grid-column: span 2; }
+.w15 { grid-column: span 3; }
+.w20 { grid-column: span 4; }
+.w25 { grid-column: span 5; }
+.w30 { grid-column: span 6; }
+.w35 { grid-column: span 7; }
+.w40 { grid-column: span 8; }
+.w45 { grid-column: span 9; }
+.w50 { grid-column: span 10; }
+.w55 { grid-column: span 11; }
+.w60 { grid-column: span 12; }
+.w65 { grid-column: span 13; }
+.w70 { grid-column: span 14; }
+.w75 { grid-column: span 15; }
+.w80 { grid-column: span 16; }
+.w85 { grid-column: span 17; }
+.w90 { grid-column: span 18; }
+.w95 { grid-column: span 19; }
+.w100{ grid-column: span 20; }
 
-/* Checkboxes */
+/* ===== Checkboxes ===== */
 .check{
   display:inline-block; width:11pt; height:11pt; line-height:11pt;
   border:1pt solid #000; text-align:center; font-weight:700; font-size:9pt;
@@ -89,37 +106,43 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
 }
 .check-xs{ width:9pt; height:9pt; line-height:9pt; font-size:8pt; }
 
-/* Attachments row (denser text) */
+/* ===== Denser rows where needed ===== */
 .attachments .cell{ font-size:7pt; line-height:1.2; }
+.small { font-size: 6.8pt; line-height: 1.15; }
+.tight .cell { min-height: 11pt; padding: 2pt 3pt; }
 
-/* Nature-of-business / remarks long text */
-.nature-desc, .remarks-long{ min-height:48pt; }
-
-/* Keep important things from splitting */
-.no-break, .block .row.no-break, .headerbar, .subbar{
+/* ===== Keep important things from splitting ===== */
+.no-break,
+.block .row.no-break{
   break-inside: avoid; page-break-inside: avoid;
 }
 
-/* ===== FRAUD / STATE NOTICES (fit-on-one-page, neat) =====
-   Apply .fraud-block to the container .block on Page 5 and .fraud-notices to the text cell. */
-.fraud-block{ break-inside: avoid; page-break-inside: avoid; }
+/* ===== Long text helpers ===== */
+.nature-desc, .remarks-long { min-height:48pt; }
+
+/* ===== Numbers (tabular) ===== */
+.num{ text-align:right; white-space:nowrap; font-variant-numeric: tabular-nums; }
+
+/* ===== FRAUD / STATE NOTICES (squeeze to one page) =====
+   - Add class .fraud-block to the outer .block
+   - Add class .fraud-notices to the text cell
+*/
+.fraud-block{
+  break-inside: avoid; page-break-inside: avoid;
+}
 .fraud-notices{
   font-size:6.6pt; line-height:1.22; padding:5pt;
-  column-count: 2; column-gap: 12pt;           /* <- squeezes content back onto one page */
-  column-fill: balance;
+  column-count: 2; column-gap: 12pt; column-fill: balance;
   word-break: break-word; overflow-wrap: anywhere; hyphens: auto;
 }
 .fraud-notices h6{ margin: 0 0 2pt 0; font-size: 6.7pt; }
 
-/* Tiny utility for number columns */
-.num{ text-align:right; white-space:nowrap; font-variant-numeric: tabular-nums; }
-
-/* Footer */
+/* ===== Footer ===== */
 .footnote{
   margin-top:8pt; font-size:7pt; text-align:center;
 }
 
-/* On-screen nice shadow (ignored by print) */
+/* --- On-screen nicety (ignored by print) --- */
 @media screen{
   .page{ margin-bottom:20px; box-shadow:0 0 10px rgba(0,0,0,.08); }
 }
