@@ -116,15 +116,6 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
   break-inside: avoid; page-break-inside: avoid;
 }
 
-/* --- Fraud / State Notices: squeeze to one page (like WC) --- */
-/* Add class="fraud-block" to the container .block and class="fraud-notices" to the text cell */
-.fraud-block   { break-inside: avoid; page-break-inside: avoid; }
-.fraud-notices {
-  font-size:6.6pt; line-height:1.22; padding:5pt;
-  column-count: 2; column-gap: 12pt; column-fill: balance;
-  word-break: break-word; overflow-wrap: anywhere; hyphens: auto;
-}
-
 /* --- Footer pinned (does not push content) --- */
 .footnote {
   position:absolute; left:0.125in; right:0.125in; bottom:0.125in;
@@ -138,4 +129,19 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
 /* --- On-screen pleasant shadow (ignored by print) --- */
 @media screen {
   .page{ margin-bottom:20px; box-shadow:0 0 10px rgba(0,0,0,.08); }
+
+/* === ACORD print overrides (safe, add-only) === */
+@media print {
+  /* keep pages tight so content doesn't spill */
+  .page { min-height: 10.5in !important; padding: 0.125in !important; margin: 0 !important; }
+  .headerbar { height: 40px !important; }
+
+  /* don't split critical rows across pages */
+  .no-break { break-inside: avoid; page-break-inside: avoid; }
+
+  /* fraud/legal block: 2 columns so it fits one page */
+  .fraud-notices { column-count: 2; column-gap: 12pt; font-size: 6.6pt; line-height: 1.22; padding: 5pt; }
+  .fraud-block { break-inside: avoid; page-break-inside: avoid; }
 }
+  
+
