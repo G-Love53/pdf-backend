@@ -1334,19 +1334,19 @@ const formatDate = (d) => {
         THE UNDERSIGNED IS AN AUTHORIZED REPRESENTATIVE OF THE APPLICANT AND REPRESENTS THAT REASONABLE INQUIRY HAS BEEN MADE TO OBTAIN THE ANSWERS TO QUESTIONS ON THIS APPLICATION. HE/SHE REPRESENTS THAT THE ANSWERS ARE TRUE, CORRECT AND COMPLETE TO THE BEST OF HIS/HER KNOWLEDGE.
       </div>
     </div>
-    <div class="row">
+    <div class="row no-break">
       <div class="cell label w25">PRODUCER'S SIGNATURE</div>
       <div class="cell w25"></div>
       <div class="cell label w25">PRODUCER'S NAME (PLEASE PRINT)</div>
       <div class="cell w25"><%= data.producerSignatureName %></div>
     </div>
-    <div class="row">
+    <div class="row no-break">
       <div class="cell label w25">STATE PRODUCER LICENSE NO</div>
       <div class="cell w25"><%= data.stateProducerLicense %></div>
       <div class="cell label w25">NATIONAL PRODUCER NUMBER</div>
       <div class="cell w25"><%= data.nationalProducerNumber %></div>
     </div>
-    <div class="row">
+    <div class="row no-break">
       <div class="cell label w25">APPLICANT'S SIGNATURE</div>
       <div class="cell w50"></div>
       <div class="cell label w10">DATE</div>
@@ -1373,9 +1373,9 @@ const formatDate = (d) => {
 
   <!-- STATE FRAUD NOTICES -->
 <div class="subbar">STATE FRAUD NOTICES</div>
-<div class="block">
+<div class="block fraud-block">
   <div class="row">
-    <div class="cell w100 small legal wrap fraud">  <!-- add 'fraud' here -->
+    <div class="cell w100 small legal wrap fraud-notices" ...>  <!-- the long fraud text lives here -->
       <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong>
       Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.
       <br/><br/>
