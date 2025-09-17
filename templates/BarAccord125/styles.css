@@ -140,7 +140,7 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
   .no-break { break-inside: avoid; page-break-inside: avoid; }
 
   /* fraud/legal block: 2 columns so it fits one page */
-  .fraud-notices { column-count: 2; column-gap: 12pt; font-size: 6.6pt; line-height: 1.22; padding: 5pt; }
+  .fraud-notices { column-count: 2; column-gap: 12pt; font-size: 6.5pt; line-height: 1.2; padding: 5pt; }
   .fraud-block { break-inside: avoid; page-break-inside: avoid; }
 }
   
