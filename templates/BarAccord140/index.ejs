@@ -6,114 +6,214 @@ var defaults = {
   producerAddress1: "9200 W Cross Drive #515",
   producerAddress2: "Littleton, CO 80123",
   producerContact: "Rick Cline or Gerry Jones",
-  producerPhone: "(555) 123-4567",
-  producerFax: "(555) 123-4568",
-  producerEmail: "quote@barinsurancedirect.com",
-
+  
   // Header / Policy meta
-  date: "",
+  date: "8/7/2025",
   effectiveDate: "",
   carrier: "",
   naicCode: "",
   policyNumber: "",
   agencyCustomerId: "",
-
+  
   // Applicant / Named Insured
   applicant_name: "",
-  premises_name: "",
+  namedInsured: "",
+  
+  // Premises info (page 1)
+  premises_number: "",
+  building_number: "",
   premise_address: "",
   premise_city: "",
   premise_state: "",
   premise_zip: "",
-
-  // Premises info (page 1)
-  premises_number: "1",
-  building_number: "1",
   bldg_description: "",
-  fire_district: "",
-  fire_code: "",
-  exposure_front: "",
-  exposure_right: "",
-  exposure_left: "",
-  exposure_rear: "",
-  dist_front: "",
-  dist_right: "",
-  dist_left: "",
-  dist_rear: "",
-
-  // Subject of Insurance amounts (your requested mappings)
-  building_quote: "",
-  business_personal_property: "",
-
-  // Construction / Protection (page 2)
+  
+  // Blanket Summary
+  blanket1_amount: "",
+  blanket1_type: "",
+  blanket2_amount: "",
+  blanket2_type: "",
+  
+  // Subject of Insurance - full 10-column table
+  // Row 1 - Building
+  building_amount: "",
+  building_valuation: "",
+  building_coins: "",
+  building_causes: "",
+  building_ded: "",
+  building_premium: "",
+  building_blkt: "",
+  building_infl: "",
+  building_ded_type: "",
+  
+  // Row 2 - Business Personal Property
+  bpp_amount: "100,000",
+  bpp_valuation: "",
+  bpp_coins: "",
+  bpp_causes: "",
+  bpp_ded: "$2500",
+  bpp_premium: "",
+  bpp_blkt: "",
+  bpp_infl: "",
+  bpp_ded_type: "",
+  
+  // Row 3 - Business Income
+  bi_amount: "",
+  bi_valuation: "",
+  bi_coins: "",
+  bi_causes: "",
+  bi_ded: "",
+  bi_premium: "",
+  bi_blkt: "",
+  bi_infl: "",
+  bi_ded_type: "",
+  
+  // Additional rows for other subjects
+  other1_subject: "",
+  other1_amount: "",
+  other1_valuation: "",
+  other1_coins: "",
+  other1_causes: "",
+  other1_ded: "",
+  other1_premium: "",
+  other1_blkt: "",
+  other1_infl: "",
+  other1_ded_type: "",
+  
+  // Additional Information section
+  business_income_extra_expense: "",
+  value_reporting_info: "",
+  
+  // Additional Coverages
+  spoilage_coverage: "",
+  spoilage_limit: "",
+  spoilage_ded: "",
+  spoilage_refrig_maint: "",
+  spoilage_yes: "",
+  
+  breakdown_contamination: "",
+  power_outage: "",
+  selling_price: "",
+  
+  // Sinkhole/Mine Subsidence
+  sinkhole_accept: "",
+  sinkhole_reject: "",
+  sinkhole_limit: "",
+  sinkhole_type: "",
+  sinkhole_ded: "",
+  
+  mine_subsidence_accept: "",
+  mine_subsidence_reject: "",
+  mine_subsidence_limit: "",
+  
+  // Construction Details
   construction_type: "",
-  year_built: "",
-  number_of_stories: "",
-  square_footage: "",
-  automatic_sprinkler: "", // % or Y/N text you pass
+  distance_hydrant: "",
+  distance_fire_stat: "",
+  fire_district: "",
+  code_number: "",
+  prot_class: "",
+  num_stories: "2",
+  num_basements: "",
+  year_built: "2020",
+  total_area: "2500",
+  
+  tax_code: "",
   roof_type: "",
+  other_occupancies: "",
+  bldg_code: "",
+  grade: "",
+  wind_class: "",
+  
+  // Building Improvements Years
   wiring_year: "",
   roofing_year: "",
   plumbing_year: "",
   heating_year: "",
-
-  // Protection / Alarms
-  protection_class: "",
+  other_year: "",
+  
+  // Sprinkler System
+  percent_sprinkler: "Yes",
+  central_station_sprinkler: "",
+  local_gong_sprinkler: "",
+  
+  // Fire Protection
+  fire_alarm_manufacturer: "",
+  fire_alarm_type: "",
+  
+  // Heating Source
+  heating_source_wood: "",
+  stove_fireplace: "",
+  manufacturer: "",
+  date_installed: "",
+  
+  primary_heat_boiler: "",
+  primary_heat_solid_fuel: "",
+  primary_heat_insurance: "",
+  
+  secondary_heat_boiler: "",
+  secondary_heat_solid_fuel: "",
+  secondary_heat_insurance: "",
+  
+  // Open Sides
+  num_open_sides: "",
+  
+  // Exposures
+  front_exposure: "",
+  front_distance: "",
+  right_exposure: "",
+  right_distance: "",
+  left_exposure: "",
+  left_distance: "",
+  rear_exposure: "",
+  rear_distance: "",
+  
+  // Burglar Alarm
   burglar_alarm_type: "",
   burglar_alarm_cert: "",
   burglar_alarm_exp: "",
-  central_station: "",
-  fire_alarm_type: "",
-  fire_alarm_cert: "",
-  fire_alarm_exp: "",
+  burglar_alarm_installer: "",
+  burglar_alarm_extent: "",
+  burglar_alarm_grade: "",
+  central_station_burglar: "",
   with_keys: "",
-  guards_clock_hourly: "",
-
-  // Business Income / Reporting
-  business_income_coverage: "",
-  business_income_limit: "",
-  business_income_months: "",
-  extra_expense_limit: "",
-  reporting_required: "",
-
-  // Additional coverages/options/restrictions (common rows)
-  spoilage_coverage: "",
-  spoilage_ded: "",
-  spoilage_yes: "",
-  breakdown_contam: "",
-  breakdown_ded: "",
-  breakdown_yes: "",
-  refrig_maint_agreement: "",
-  refrig_maint_yes: "",
-  power_outage: "",
-  power_outage_ded: "",
-  power_outage_yes: "",
-  ordinance_or_law: "",
-  ordinance_limit: "",
-  ordinance_ded: "",
-  ordinance_yes: "",
-
-  // Accept / Reject bands (mine subsidence / sinkhole)
-  mine_subsidence_accept: "",
-  mine_subsidence_reject: "",
-  sinkhole_accept: "",
-  sinkhole_reject: "",
-
-  // Additional Premises info
+  num_guards: "",
+  clock_hourly: "",
+  
+  // Historical Landmark
+  historical_landmark: "",
+  
+  // Additional Interest
+  interest_type: "", // ADDITIONAL_INSURED, LOSS_PAYEE, MORTGAGEE, LIENHOLDER, LENDERS_LOSS
+  interest_name: "",
+  interest_address: "",
+  interest_rank: "",
+  interest_evidence: "",
+  interest_cert: "",
+  interest_reference: "",
+  interest_location: "",
+  interest_building: "",
+  interest_item_class: "",
+  interest_item_desc: "",
+  
+  // Additional Premises (Page 2)
   addl_premises_notes: "",
-
-  // Additional Interests (we’ll show first two on page 2)
-  interests: [
-    // { type:"ADDITIONAL_INSURED|LOSS_PAYEE|MORTGAGEE|LIENHOLDER|LENDERS_LOSS",
-    //   name:"", address:"", city:"", state:"", zip:"",
-    //   rank:"", evidence:"", loanNumber:"",
-    //   itemType:"LOCATION|BUILDING|VEHICLE|BOAT|EQUIPMENT",
-    //   itemClass:"", itemDescription:""
-    // }
-  ],
-
-  // Remarks (page 2)
-  remarks: ""
+  
+  // Smoker/Grill Questions (Page 2)
+  smoker_within_10ft: "",
+  smoker_professionally_installed: "",
+  smoker_cleaned_weekly: "",
+  smoker_ashes_removed: "",
+  smoker_vent_cleaned_monthly: "",
+  smoker_wood_stored_10ft: "",
+  smoker_hood_system_ul300: "",
+  smoker_extinguisher_20ft: "",
+  
+  // Remarks
+  remarks: "",
+  
+  // Signature
+  producerSignatureName: "Rick Cline"
 };
 
 var data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
@@ -146,32 +246,198 @@ function formatDate(d){
   <meta charset="utf-8"/>
   <title>ACORD 140 - Property Section</title>
   <style>
-    /* ===== Shared layout ===== */
-    @media print { @page { margin: 0.25in; size: letter; } .page { page-break-after: always; } .page:last-child{ page-break-after: auto; } }
+    /* ACORD 140 Specific Styles - Exact Match */
+    @media print { 
+      @page { margin: 0.25in; size: letter; } 
+      .page { page-break-after: always; } 
+      .page:last-child{ page-break-after: auto; } 
+    }
     * { box-sizing: border-box; margin:0; padding:0; }
-    body { font-family: Arial, sans-serif; font-size: 8pt; line-height:1.1; color:#000; }
-    .page { width:100%; min-height:10.5in; padding:0.125in; border:1px solid #ccc; position:relative; }
-    .headerbar{ display:flex; border:2px solid #000; background:#fff; margin-bottom:2px; align-items:center; height:40px; }
-    .headerbar .acord, .headerbar .formno { background:#000; color:#fff; font-weight:bold; font-size:16pt; width:60px; text-align:center; height:100%; display:flex; align-items:center; justify-content:center; }
-    .headerbar .acord{ width:80px; }
-    .headerbar .title{ flex:1; font-weight:bold; font-size:12pt; text-align:center; padding:0 10px; }
-    .subbar{ background:#000; color:#fff; font-weight:bold; font-size:9pt; padding:3px 8px; margin:2px 0; text-align:left; }
-    .block{ border:1px solid #000; margin-bottom:2px; }
-    .row{ display:flex; border-bottom:1px solid #000; min-height:18px; }
-    .row:last-child{ border-bottom:none; }
-    .cell{ border-right:1px solid #000; padding:1px 3px; display:flex; align-items:center; overflow-wrap:break-word; }
-    .cell:last-child{ border-right:none; }
-    .cell.label{ background:#f0f0f0; font-weight:bold; font-size:6.5pt; }
-    .cell.center{ justify-content:center; text-align:center; }
-    .cell.right{ justify-content:flex-end; text-align:right; }
-    .cell.wrap{ flex-wrap:wrap; align-items:flex-start; }
-    .cell.small{ font-size:7pt; }
-    .cell.legal{ font-size:6pt; line-height:1.2; }
-    .check{ display:inline-block; width:10px; height:10px; border:1px solid #000; text-align:center; line-height:8px; font-size:8pt; margin-right:5px; vertical-align:middle; }
-    .check-xs{ width:8px; height:8px; font-size:6pt; line-height:6px; }
-    .footnote{ position:absolute; bottom:0.125in; left:0.125in; right:0.125in; font-size:6pt; border-top:1px solid #000; padding-top:2px; text-align:center; }
-    .w5{width:5%}.w6{width:6%}.w7{width:7%}.w8{width:8%}.w9{width:9%}.w10{width:10%}.w12{width:12%}.w13{width:13%}.w14{width:14%}.w15{width:15%}.w18{width:18%}.w20{width:20%}.w22{width:22%}.w25{width:25%}.w28{width:28%}.w30{width:30%}.w33{width:33%}.w35{width:35%}.w40{width:40%}.w45{width:45%}.w50{width:50%}.w60{width:60%}.w65{width:65%}.w70{width:70%}.w75{width:75%}.w80{width:80%}.w85{width:85%}.w90{width:90%}.w100{width:100%}
-    @media screen{ .page{ margin-bottom:20px; box-shadow:0 0 10px rgba(0,0,0,.1);} }
+    body { 
+      font-family: Arial, sans-serif; 
+      font-size: 7.5pt; 
+      line-height:1.1; 
+      color:#000; 
+    }
+    .page { 
+      width:8in; 
+      min-height:10.5in; 
+      padding:0.125in; 
+      border:1px solid #ccc; 
+      position:relative; 
+      margin: 0 auto;
+    }
+    
+    /* ACORD Header */
+    .headerbar{ 
+      display:flex; 
+      border:2px solid #000; 
+      background:#fff; 
+      margin-bottom:2px; 
+      align-items:center; 
+      height:38px; 
+    }
+    .headerbar .acord { 
+      background:#000; 
+      color:#fff; 
+      font-weight:bold; 
+      font-size:14pt; 
+      width:80px; 
+      text-align:center; 
+      height:100%; 
+      display:flex; 
+      align-items:center; 
+      justify-content:center; 
+    }
+    .headerbar .title{ 
+      flex:1; 
+      font-weight:bold; 
+      font-size:11pt; 
+      text-align:center; 
+      padding:0 10px; 
+    }
+    .headerbar .formno { 
+      background:#000; 
+      color:#fff; 
+      font-weight:bold; 
+      font-size:14pt; 
+      width:60px; 
+      text-align:center; 
+      height:100%; 
+      display:flex; 
+      align-items:center; 
+      justify-content:center; 
+    }
+    
+    /* Section bars */
+    .subbar{ 
+      background:#000; 
+      color:#fff; 
+      font-weight:bold; 
+      font-size:8pt; 
+      padding:2px 8px; 
+      margin:2px 0; 
+      text-align:left; 
+    }
+    
+    /* Blocks and rows */
+    .block{ 
+      border:1px solid #000; 
+      margin-bottom:2px; 
+    }
+    .row{ 
+      display:flex; 
+      border-bottom:1px solid #000; 
+      min-height:16px; 
+    }
+    .row:last-child{ 
+      border-bottom:none; 
+    }
+    
+    /* Cells */
+    .cell{ 
+      border-right:1px solid #000; 
+      padding:1px 2px; 
+      display:flex; 
+      align-items:center; 
+      overflow:hidden;
+      font-size: 7pt;
+    }
+    .cell:last-child{ 
+      border-right:none; 
+    }
+    .cell.label{ 
+      background:#f0f0f0; 
+      font-weight:bold; 
+      font-size:6.5pt; 
+      white-space: nowrap;
+    }
+    .cell.center{ 
+      justify-content:center; 
+      text-align:center; 
+    }
+    .cell.right{ 
+      justify-content:flex-end; 
+      text-align:right; 
+    }
+    .cell.wrap{ 
+      flex-wrap:wrap; 
+      align-items:flex-start; 
+      white-space: pre-wrap;
+    }
+    .cell.small{ 
+      font-size:6.5pt; 
+    }
+    .cell.legal{ 
+      font-size:5.5pt; 
+      line-height:1.2; 
+    }
+    
+    /* Special table for Subject of Insurance */
+    .subject-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .subject-table th,
+    .subject-table td {
+      border: 1px solid #000;
+      padding: 1px 2px;
+      font-size: 6.5pt;
+      text-align: center;
+    }
+    .subject-table th {
+      background: #f0f0f0;
+      font-weight: bold;
+    }
+    .subject-table td:first-child {
+      text-align: left;
+      font-weight: bold;
+    }
+    
+    /* Checkboxes */
+    .check{ 
+      display:inline-block; 
+      width:9px; 
+      height:9px; 
+      border:1px solid #000; 
+      text-align:center; 
+      line-height:8px; 
+      font-size:7pt; 
+      margin-right:4px; 
+      vertical-align:middle; 
+    }
+    .check-xs{ 
+      width:8px; 
+      height:8px; 
+      font-size:6pt; 
+      line-height:6px; 
+    }
+    
+    /* Footer */
+    .footnote{ 
+      position:absolute; 
+      bottom:0.125in; 
+      left:0.125in; 
+      right:0.125in; 
+      font-size:6pt; 
+      border-top:1px solid #000; 
+      padding-top:2px; 
+      text-align:center; 
+    }
+    
+    /* Width utilities */
+    .w5{width:5%}.w6{width:6%}.w7{width:7%}.w8{width:8%}.w9{width:9%}.w10{width:10%}
+    .w12{width:12%}.w13{width:13%}.w14{width:14%}.w15{width:15%}.w18{width:18%}.w20{width:20%}
+    .w22{width:22%}.w25{width:25%}.w28{width:28%}.w30{width:30%}.w33{width:33%}.w35{width:35%}
+    .w40{width:40%}.w45{width:45%}.w50{width:50%}.w60{width:60%}.w65{width:65%}.w70{width:70%}
+    .w75{width:75%}.w80{width:80%}.w85{width:85%}.w90{width:90%}.w100{width:100%}
+    
+    @media screen{ 
+      .page{ 
+        margin-bottom:20px; 
+        box-shadow:0 0 10px rgba(0,0,0,.1);
+      } 
+    }
   </style>
 </head>
 <body>
@@ -189,31 +455,31 @@ function formatDate(d){
   <div class="block">
     <div class="row">
       <div class="cell label w15">AGENCY</div>
-      <div class="cell w35 wrap">
+      <div class="cell w35">
         <%= data.producerName %><br/>
         <%= data.producerAddress1 %><br/>
         <%= data.producerAddress2 %>
       </div>
-      <div class="cell label w15">AGENCY CUSTOMER ID</div>
+      <div class="cell label w20">AGENCY CUSTOMER ID</div>
       <div class="cell w15"><%= data.agencyCustomerId %></div>
-      <div class="cell label w10">DATE (MM/DD/YYYY)</div>
-      <div class="cell w10"><%= formatDate(data.date) %></div>
+      <div class="cell label w15">DATE (MM/DD/YYYY)</div>
+      <div class="cell w15"><%= formatDate(data.date) %></div>
     </div>
     <div class="row">
-      <div class="cell label w20">APPLICANT / FIRST NAMED INSURED</div>
-      <div class="cell w40 wrap"><%= data.applicant_name %></div>
+      <div class="cell label w25">APPLICANT / FIRST NAMED INSURED</div>
+      <div class="cell w35"><%= data.applicant_name %></div>
       <div class="cell label w10">CARRIER</div>
-      <div class="cell w10"><%= data.carrier %></div>
+      <div class="cell w15"><%= data.carrier %></div>
       <div class="cell label w10">NAIC CODE</div>
-      <div class="cell w10"><%= data.naicCode %></div>
+      <div class="cell w15"><%= data.naicCode %></div>
     </div>
     <div class="row">
-      <div class="cell label w20">POLICY NUMBER</div>
-      <div class="cell w20"><%= data.policyNumber %></div>
+      <div class="cell label w15">POLICY NUMBER</div>
+      <div class="cell w25"><%= data.policyNumber %></div>
       <div class="cell label w20">EFFECTIVE DATE</div>
       <div class="cell w20"><%= formatDate(data.effectiveDate) %></div>
       <div class="cell label w10">PREMISES #</div>
-      <div class="cell w10"><%= data.premises_number %></div>
+      <div class="cell w10"><%= data.premises_number || "1" %></div>
     </div>
   </div>
 
@@ -221,103 +487,140 @@ function formatDate(d){
   <div class="subbar">PREMISES INFORMATION</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w15">BUILDING #</div>
-      <div class="cell w10"><%= data.building_number %></div>
-      <div class="cell label w15">BUILDING DESCRIPTION</div>
-      <div class="cell w60 wrap"><%= data.bldg_description %></div>
+      <div class="cell label w10">BUILDING #</div>
+      <div class="cell w10"><%= data.building_number || "1" %></div>
+      <div class="cell label w20">BUILDING DESCRIPTION</div>
+      <div class="cell w60"><%= data.bldg_description %></div>
     </div>
     <div class="row">
-      <div class="cell label w20">STREET ADDRESS</div>
-      <div class="cell w80 wrap"><%= [data.premise_address, data.premise_city && (data.premise_city + ", " + data.premise_state + " " + data.premise_zip)].filter(Boolean).join(" • ") %></div>
+      <div class="cell label w15">STREET ADDRESS</div>
+      <div class="cell w85">
+        <%= data.premise_address %>
+        <% if(data.premise_city) { %>
+          • <%= data.premise_city %>, <%= data.premise_state %> <%= data.premise_zip %>
+        <% } %>
+      </div>
     </div>
     <div class="row">
       <div class="cell label w20">FIRE DISTRICT / CODE #</div>
-      <div class="cell w30"><%= [data.fire_district, data.fire_code].filter(Boolean).join(" / ") %></div>
-      <div class="cell label w25">PROTECTION CLASS</div>
-      <div class="cell w25"><%= data.protection_class %></div>
+      <div class="cell w30"><%= data.fire_district %> <%= data.code_number %></div>
+      <div class="cell label w20">PROTECTION CLASS</div>
+      <div class="cell w30"><%= data.prot_class %></div>
     </div>
     <div class="row">
-      <div class="cell label w15">EXPOSURE</div>
-      <div class="cell label w20 center">FRONT</div>
-      <div class="cell label w20 center">RIGHT</div>
-      <div class="cell label w20 center">LEFT</div>
-      <div class="cell label w25 center">REAR</div>
+      <div class="cell label w10">EXPOSURE</div>
+      <div class="cell label w22 center">FRONT</div>
+      <div class="cell label w22 center">RIGHT</div>
+      <div class="cell label w22 center">LEFT</div>
+      <div class="cell label w24 center">REAR</div>
     </div>
     <div class="row">
-      <div class="cell label w15">ADJACENT / DISTANCE</div>
-      <div class="cell w20 center"><%= data.exposure_front %><% if (data.dist_front) { %> — <%= data.dist_front %> ft<% } %></div>
-      <div class="cell w20 center"><%= data.exposure_right %><% if (data.dist_right) { %> — <%= data.dist_right %> ft<% } %></div>
-      <div class="cell w20 center"><%= data.exposure_left %><% if (data.dist_left) { %> — <%= data.dist_left %> ft<% } %></div>
-      <div class="cell w25 center"><%= data.exposure_rear %><% if (data.dist_rear) { %> — <%= data.dist_rear %> ft<% } %></div>
+      <div class="cell label w10 small">ADJACENT / DISTANCE</div>
+      <div class="cell w22 center small">
+        <%= data.front_exposure %><% if(data.front_distance) { %> — <%= data.front_distance %> ft<% } %>
+      </div>
+      <div class="cell w22 center small">
+        <%= data.right_exposure %><% if(data.right_distance) { %> — <%= data.right_distance %> ft<% } %>
+      </div>
+      <div class="cell w22 center small">
+        <%= data.left_exposure %><% if(data.left_distance) { %> — <%= data.left_distance %> ft<% } %>
+      </div>
+      <div class="cell w24 center small">
+        <%= data.rear_exposure %><% if(data.rear_distance) { %> — <%= data.rear_distance %> ft<% } %>
+      </div>
     </div>
   </div>
 
   <!-- SUBJECT OF INSURANCE -->
   <div class="subbar">SUBJECT OF INSURANCE</div>
+  <div class="block" style="padding:0;">
+    <table class="subject-table">
+      <thead>
+        <tr>
+          <th style="width:18%">SUBJECT</th>
+          <th style="width:12%">AMOUNT</th>
+          <th style="width:9%">VALUATION</th>
+          <th style="width:8%">CO-INS</th>
+          <th style="width:11%">CAUSE OF LOSS</th>
+          <th style="width:9%">DED</th>
+          <th style="width:9%">PREMIUM</th>
+          <th style="width:8%">BLKT #</th>
+          <th style="width:8%">INFL %</th>
+          <th style="width:8%">TYPE OF DED</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>BUILDING</td>
+          <td class="right">$<%= money(data.building_amount) %></td>
+          <td><%= data.building_valuation %></td>
+          <td><%= data.building_coins %></td>
+          <td><%= data.building_causes %></td>
+          <td><%= data.building_ded %></td>
+          <td class="right"><%= data.building_premium %></td>
+          <td><%= data.building_blkt %></td>
+          <td><%= data.building_infl %></td>
+          <td><%= data.building_ded_type %></td>
+        </tr>
+        <tr>
+          <td>BUSINESS PERSONAL PROPERTY</td>
+          <td class="right">$<%= money(data.bpp_amount) %></td>
+          <td><%= data.bpp_valuation %></td>
+          <td><%= data.bpp_coins %></td>
+          <td><%= data.bpp_causes %></td>
+          <td><%= data.bpp_ded %></td>
+          <td class="right"><%= data.bpp_premium %></td>
+          <td><%= data.bpp_blkt %></td>
+          <td><%= data.bpp_infl %></td>
+          <td><%= data.bpp_ded_type %></td>
+        </tr>
+        <tr>
+          <td>BUSINESS INCOME</td>
+          <td class="right">$<%= money(data.bi_amount) %></td>
+          <td><%= data.bi_valuation %></td>
+          <td><%= data.bi_coins %></td>
+          <td><%= data.bi_causes %></td>
+          <td><%= data.bi_ded %></td>
+          <td class="right"><%= data.bi_premium %></td>
+          <td><%= data.bi_blkt %></td>
+          <td><%= data.bi_infl %></td>
+          <td><%= data.bi_ded_type %></td>
+        </tr>
+        <% if(data.other1_subject) { %>
+        <tr>
+          <td><%= data.other1_subject %></td>
+          <td class="right">$<%= money(data.other1_amount) %></td>
+          <td><%= data.other1_valuation %></td>
+          <td><%= data.other1_coins %></td>
+          <td><%= data.other1_causes %></td>
+          <td><%= data.other1_ded %></td>
+          <td class="right"><%= data.other1_premium %></td>
+          <td><%= data.other1_blkt %></td>
+          <td><%= data.other1_infl %></td>
+          <td><%= data.other1_ded_type %></td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MINE SUBSIDENCE / SINKHOLE -->
   <div class="block">
     <div class="row">
-      <div class="cell label w18 center">SUBJECT</div>
-      <div class="cell label w12 center">AMOUNT</div>
-      <div class="cell label w9 center">VALUATION</div>
-      <div class="cell label w8 center">CO-INS</div>
-      <div class="cell label w10 center">CAUSE OF LOSS</div>
-      <div class="cell label w9 center">DED</div>
-      <div class="cell label w9 center">PREMIUM</div>
-      <div class="cell label w8 center">BLKT #</div>
-      <div class="cell label w9 center">INFL %</div>
-      <div class="cell label w8 center">TYPE OF DED</div>
-    </div>
-
-    <!-- Building -->
-    <div class="row">
-      <div class="cell w18">BUILDING</div>
-      <div class="cell w12 right">$<%= money(data.building_quote) %></div>
-      <div class="cell w9 center"></div>
-      <div class="cell w8 center"></div>
-      <div class="cell w10 center"></div>
-      <div class="cell w9 center"></div>
-      <div class="cell w9 right"></div>
-      <div class="cell w8 center"></div>
-      <div class="cell w9 center"></div>
-      <div class="cell w8 center"></div>
-    </div>
-
-    <!-- Business Personal Property (with hard-coded $2,500 Deductible) -->
-    <div class="row">
-      <div class="cell w18">BUSINESS PERSONAL PROPERTY</div>
-      <div class="cell w12 right">$<%= money(data.business_personal_property) %></div>
-      <div class="cell w9 center"></div>
-      <div class="cell w8 center"></div>
-      <div class="cell w10 center"></div>
-      <div class="cell w9 center">$2,500</div>
-      <div class="cell w9 right"></div>
-      <div class="cell w8 center"></div>
-      <div class="cell w9 center"></div>
-      <div class="cell w8 center"></div>
-    </div>
-
-    <!-- Business Income / Extra Expense (blank placeholders) -->
-    <div class="row">
-      <div class="cell w18">BUSINESS INCOME</div>
-      <div class="cell w12 right">$<%= money(data.business_income_limit) %></div>
-      <div class="cell w9 center"></div>
-      <div class="cell w8 center"></div>
-      <div class="cell w10 center"></div>
-      <div class="cell w9 center"></div>
-      <div class="cell w9 right"></div>
-      <div class="cell w8 center"></div>
-      <div class="cell w9 center"></div>
-      <div class="cell w8 center"></div>
-    </div>
-
-    <!-- Accept / Reject bars -->
-    <div class="row">
-      <div class="cell label w25">MINE SUBSIDENCE</div>
-      <div class="cell w15"><span class="check"><%= yes(data.mine_subsidence_accept) ? "X" : "" %></span> ACCEPT</div>
-      <div class="cell w15"><span class="check"><%= yes(data.mine_subsidence_reject) ? "X" : "" %></span> REJECT</div>
-      <div class="cell label w25">SINKHOLE</div>
-      <div class="cell w10"><span class="check"><%= yes(data.sinkhole_accept) ? "X" : "" %></span> ACCEPT</div>
-      <div class="cell w10"><span class="check"><%= yes(data.sinkhole_reject) ? "X" : "" %></span> REJECT</div>
+      <div class="cell label w20">MINE SUBSIDENCE</div>
+      <div class="cell w15">
+        <span class="check"><%= yes(data.mine_subsidence_accept) ? "X" : "" %></span> ACCEPT
+      </div>
+      <div class="cell w15">
+        <span class="check"><%= yes(data.mine_subsidence_reject) ? "X" : "" %></span> REJECT
+      </div>
+      <div class="cell label w20">SINKHOLE</div>
+      <div class="cell w15">
+        <span class="check"><%= yes(data.sinkhole_accept) ? "X" : "" %></span> ACCEPT
+      </div>
+      <div class="cell w15">
+        <span class="check"><%= yes(data.sinkhole_reject) ? "X" : "" %></span> REJECT
+      </div>
     </div>
   </div>
 
@@ -325,37 +628,39 @@ function formatDate(d){
   <div class="subbar">ADDITIONAL COVERAGES / OPTIONS / RESTRICTIONS</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w25">SPOILAGE COVERAGE</div>
-      <div class="cell w20">LIMIT: $<%= money(data.spoilage_coverage) %></div>
+      <div class="cell label w20">SPOILAGE COVERAGE</div>
+      <div class="cell w20">LIMIT: $<%= money(data.spoilage_limit) %></div>
       <div class="cell w20">DED: $<%= money(data.spoilage_ded) %></div>
-      <div class="cell w35">APPLY? <span class="check"><%= yes(data.spoilage_yes) ? "X" : "" %></span></div>
+      <div class="cell w40">APPLY? <span class="check"><%= yes(data.spoilage_yes) ? "X" : "" %></span></div>
     </div>
     <div class="row">
-      <div class="cell label w25">BREAKDOWN / CONTAMINATION</div>
-      <div class="cell w20">LIMIT: $<%= money(data.breakdown_contam) %></div>
-      <div class="cell w20">DED: $<%= money(data.breakdown_ded) %></div>
-      <div class="cell w35">APPLY? <span class="check"><%= yes(data.breakdown_yes) ? "X" : "" %></span></div>
+      <div class="cell label w20">BREAKDOWN / CONTAMINATION</div>
+      <div class="cell w20">LIMIT: $<%= money(data.breakdown_contamination) %></div>
+      <div class="cell w20">DED: $</div>
+      <div class="cell w40">APPLY? <span class="check"></span></div>
     </div>
     <div class="row">
-      <div class="cell label w25">REFRIGERATION MAINT AGREEMENT</div>
-      <div class="cell w35">AGREEMENT #: <%= data.refrig_maint_agreement %></div>
-      <div class="cell w40">IN FORCE? <span class="check"><%= yes(data.refrig_maint_yes) ? "X" : "" %></span></div>
+      <div class="cell label w30">REFRIGERATION MAINT AGREEMENT</div>
+      <div class="cell w30">AGREEMENT #: <%= data.spoilage_refrig_maint %></div>
+      <div class="cell w40">IN FORCE? <span class="check"></span></div>
     </div>
     <div class="row">
-      <div class="cell label w25">POWER OUTAGE (OFF PREMISES)</div>
+      <div class="cell label w30">POWER OUTAGE (OFF PREMISES)</div>
       <div class="cell w20">LIMIT: $<%= money(data.power_outage) %></div>
-      <div class="cell w20">DED: $<%= money(data.power_outage_ded) %></div>
-      <div class="cell w35">APPLY? <span class="check"><%= yes(data.power_outage_yes) ? "X" : "" %></span></div>
+      <div class="cell w20">DED: $</div>
+      <div class="cell w30">APPLY? <span class="check"></span></div>
     </div>
     <div class="row">
-      <div class="cell label w25">ORDINANCE OR LAW</div>
-      <div class="cell w20">LIMIT: $<%= money(data.ordinance_limit) %></div>
-      <div class="cell w20">DED: $<%= money(data.ordinance_ded) %></div>
-      <div class="cell w35">APPLY? <span class="check"><%= yes(data.ordinance_yes) ? "X" : "" %></span></div>
+      <div class="cell label w20">ORDINANCE OR LAW</div>
+      <div class="cell w20">LIMIT: $</div>
+      <div class="cell w20">DED: $</div>
+      <div class="cell w40">APPLY? <span class="check"></span></div>
     </div>
   </div>
 
-  <div class="footnote">ACORD 140 (Bar Layout) &nbsp;&nbsp;&nbsp; Page 1 of 3</div>
+  <div class="footnote">
+    ACORD 140 (Bar Layout) &nbsp;&nbsp;&nbsp; Page 1 of 3
+  </div>
 </div>
 
 <!-- ====================== PAGE 2 ====================== -->
@@ -370,32 +675,33 @@ function formatDate(d){
   <div class="subbar">CONSTRUCTION DETAILS</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w20">CONSTRUCTION TYPE</div>
+      <div class="cell label w15">CONSTRUCTION TYPE</div>
       <div class="cell w20"><%= data.construction_type %></div>
-      <div class="cell label w15">YEAR BUILT</div>
+      <div class="cell label w10">YEAR BUILT</div>
       <div class="cell w10"><%= data.year_built %></div>
-      <div class="cell label w15"># OF STORIES</div>
-      <div class="cell w10"><%= data.number_of_stories %></div>
+      <div class="cell label w10"># OF STORIES</div>
+      <div class="cell w10"><%= data.num_stories %></div>
       <div class="cell label w10">% SPRINK</div>
-      <div class="cell w10"><%= data.automatic_sprinkler %></div>
+      <div class="cell w15"><%= data.percent_sprinkler %></div>
     </div>
     <div class="row">
       <div class="cell label w20">TOTAL AREA (SQ FT)</div>
-      <div class="cell w20 right"><%= data.square_footage %></div>
+      <div class="cell w15 right"><%= data.total_area %></div>
       <div class="cell label w15">ROOF TYPE</div>
-      <div class="cell w15"><%= data.roof_type %></div>
+      <div class="cell w20"><%= data.roof_type %></div>
       <div class="cell label w15">PROTECTION CLASS</div>
-      <div class="cell w15"><%= data.protection_class %></div>
+      <div class="cell w15"><%= data.prot_class %></div>
     </div>
     <div class="row">
-      <div class="cell label w20">WIRING (YR)</div>
+      <div class="cell label w10">WIRING (YR)</div>
       <div class="cell w10"><%= data.wiring_year %></div>
-      <div class="cell label w20">ROOFING (YR)</div>
+      <div class="cell label w15">ROOFING (YR)</div>
       <div class="cell w10"><%= data.roofing_year %></div>
-      <div class="cell label w20">PLUMBING (YR)</div>
+      <div class="cell label w15">PLUMBING (YR)</div>
       <div class="cell w10"><%= data.plumbing_year %></div>
-      <div class="cell label w20">HEATING (YR)</div>
+      <div class="cell label w15">HEATING (YR)</div>
       <div class="cell w10"><%= data.heating_year %></div>
+      <div class="cell w15"></div>
     </div>
   </div>
 
@@ -403,28 +709,32 @@ function formatDate(d){
   <div class="subbar">PROTECTION / ALARMS</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w20">BURGLAR ALARM</div>
-      <div class="cell w20"><%= data.burglar_alarm_type %></div>
-      <div class="cell label w15">CERT #</div>
+      <div class="cell label w15">BURGLAR ALARM</div>
+      <div class="cell w25"><%= data.burglar_alarm_type %></div>
+      <div class="cell label w10">CERT #</div>
       <div class="cell w15"><%= data.burglar_alarm_cert %></div>
-      <div class="cell label w15">EXP</div>
-      <div class="cell w15"><%= data.burglar_alarm_exp %></div>
+      <div class="cell label w10">EXP</div>
+      <div class="cell w25"><%= data.burglar_alarm_exp %></div>
     </div>
     <div class="row">
-      <div class="cell label w20">FIRE ALARM</div>
-      <div class="cell w20"><%= data.fire_alarm_type %></div>
-      <div class="cell label w15">CERT #</div>
-      <div class="cell w15"><%= data.fire_alarm_cert %></div>
-      <div class="cell label w15">EXP</div>
-      <div class="cell w15"><%= data.fire_alarm_exp %></div>
+      <div class="cell label w15">FIRE ALARM</div>
+      <div class="cell w25"><%= data.fire_alarm_type %></div>
+      <div class="cell label w10">CERT #</div>
+      <div class="cell w15"></div>
+      <div class="cell label w10">EXP</div>
+      <div class="cell w25"></div>
     </div>
     <div class="row">
-      <div class="cell label w25">CENTRAL STATION</div>
-      <div class="cell w25"><%= data.central_station %></div>
-      <div class="cell label w25">WITH KEYS?</div>
-      <div class="cell w10"><span class="check"><%= yes(data.with_keys) ? "X" : "" %></span></div>
-      <div class="cell label w15">GUARDS/CLOCK HOURLY?</div>
-      <div class="cell w10"><span class="check"><%= yes(data.guards_clock_hourly) ? "X" : "" %></span></div>
+      <div class="cell label w20">CENTRAL STATION</div>
+      <div class="cell w20"><%= data.central_station_burglar %></div>
+      <div class="cell label w15">WITH KEYS?</div>
+      <div class="cell w10">
+        <span class="check"><%= yes(data.with_keys) ? "X" : "" %></span>
+      </div>
+      <div class="cell label w20">GUARDS/CLOCK HOURLY?</div>
+      <div class="cell w15">
+        <span class="check"><%= yes(data.clock_hourly) ? "X" : "" %></span>
+      </div>
     </div>
   </div>
 
@@ -433,79 +743,89 @@ function formatDate(d){
   <div class="block">
     <div class="row">
       <div class="cell label w25">BUSINESS INCOME COVERAGE</div>
-      <div class="cell w25"><%= data.business_income_coverage %></div>
-      <div class="cell label w25"># OF MONTHS</div>
-      <div class="cell w25"><%= data.business_income_months %></div>
+      <div class="cell w25"></div>
+      <div class="cell label w15"># OF MONTHS</div>
+      <div class="cell w35"></div>
     </div>
     <div class="row">
       <div class="cell label w25">EXTRA EXPENSE LIMIT</div>
-      <div class="cell w25 right">$<%= money(data.extra_expense_limit) %></div>
+      <div class="cell w25 right">$</div>
       <div class="cell label w25">REPORTING REQUIRED?</div>
-      <div class="cell w25"><span class="check"><%= yes(data.reporting_required) ? "X" : "" %></span></div>
+      <div class="cell w25">
+        <span class="check"></span>
+      </div>
     </div>
   </div>
 
   <!-- ADDITIONAL PREMISES INFORMATION -->
   <div class="subbar">ADDITIONAL PREMISES INFORMATION</div>
   <div class="block">
-    <div class="row">
-      <div class="cell w100 wrap" style="min-height:36px;"><%= data.addl_premises_notes %></div>
+    <div class="row" style="min-height:100px;">
+      <div class="cell w100 wrap">
+        <div style="margin-bottom:10px;font-weight:bold;">Do you have a Smoker/Grill within 10 Feet of the Building?</div>
+        <div style="margin-bottom:5px;">Is the equipment Professionally Installed?</div>
+        <div style="margin-bottom:5px;">Is it regularly maintained? Cleaned and Scraped weekly? Ashes Removed Daily? Vent/Exhaust system inspected & cleaned monthly?</div>
+        <div style="margin-bottom:5px;">Other than the days supply, Do you store wood/pellets, etc more than 10ft away from the cooker?</div>
+        <div style="margin-bottom:5px;">Do you have a Hood System and UL 300 extinguishing system in place?</div>
+        <div style="margin-bottom:5px;">Do you have a Class K or 2A fire extinguisher within 20ft of each cooker?</div>
+        <div style="margin-top:10px;"><%= data.addl_premises_notes %></div>
+      </div>
     </div>
   </div>
 
-  <!-- ADDITIONAL INTEREST / CERTIFICATE RECIPIENT (ENDS PAGE 2) -->
+  <!-- ADDITIONAL INTEREST / CERTIFICATE RECIPIENT -->
   <div class="subbar">ADDITIONAL INTEREST / CERTIFICATE RECIPIENT</div>
   <div class="block">
-    <% var A = Array.isArray(data.interests) ? data.interests.slice(0,2) : []; %>
-    <% A.forEach(function(I,idx){ %>
-      <div class="row">
-        <div class="cell label w10">TYPE</div>
-        <div class="cell w40">
-          <span class="check"><%= (String(I.type||"").toUpperCase()==="ADDITIONAL_INSURED") ? "X" : "" %></span> ADDITIONAL INSURED
-          <span class="check"><%= (String(I.type||"").toUpperCase()==="LOSS_PAYEE") ? "X" : "" %></span> LOSS PAYEE
-          <span class="check"><%= (String(I.type||"").toUpperCase()==="MORTGAGEE") ? "X" : "" %></span> MORTGAGEE
-          <span class="check"><%= (String(I.type||"").toUpperCase()==="LIENHOLDER") ? "X" : "" %></span> LIENHOLDER
-          <span class="check"><%= (String(I.type||"").toUpperCase()==="LENDERS_LOSS") ? "X" : "" %></span> LENDER'S LOSS PAYABLE
-        </div>
-        <div class="cell label w10">RANK</div>
-        <div class="cell w10"><%= I.rank || "" %></div>
-        <div class="cell label w10">EVIDENCE</div>
-        <div class="cell w10"><%= I.evidence || "" %></div>
+    <div class="row">
+      <div class="cell label w10">TYPE</div>
+      <div class="cell w90">
+        <span class="check"></span> ADDITIONAL INSURED
+        <span class="check"></span> LOSS PAYEE
+        <span class="check"></span> MORTGAGEE
+        <span class="check"></span> LIENHOLDER
+        <span class="check"></span> LENDER'S LOSS PAYABLE
       </div>
-      <div class="row">
-        <div class="cell label w15">NAME & ADDRESS</div>
-        <div class="cell w45 wrap">
-          <%= I.name || "" %><br/>
-          <%= I.address || "" %><% if (I.city){ %><br/><%= I.city %>, <%= I.state || "" %> <%= I.zip || "" %><% } %>
-        </div>
-        <div class="cell label w15">REFERENCE / LOAN #</div>
-        <div class="cell w25"><%= I.loanNumber || "" %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w20">NAME AND ADDRESS</div>
+      <div class="cell w40"><%= data.interest_name %></div>
+      <div class="cell label w10">RANK</div>
+      <div class="cell w10"><%= data.interest_rank %></div>
+      <div class="cell label w10">EVIDENCE</div>
+      <div class="cell w10">
+        <span class="check"></span> CERTIFICATE
       </div>
-      <div class="row">
-        <div class="cell label w10">ITEM</div>
-        <div class="cell w40">
-          <span class="check"><%= (String(I.itemType||"").toUpperCase()==="LOCATION") ? "X" : "" %></span> LOCATION
-          <span class="check"><%= (String(I.itemType||"").toUpperCase()==="BUILDING") ? "X" : "" %></span> BUILDING
-          <span class="check"><%= (String(I.itemType||"").toUpperCase()==="VEHICLE") ? "X" : "" %></span> VEHICLE
-          <span class="check"><%= (String(I.itemType||"").toUpperCase()==="BOAT") ? "X" : "" %></span> BOAT
-          <span class="check"><%= (String(I.itemType||"").toUpperCase()==="EQUIPMENT") ? "X" : "" %></span> EQUIPMENT
-        </div>
-        <div class="cell label w15">ITEM CLASS</div>
-        <div class="cell w15"><%= I.itemClass || "" %></div>
-        <div class="cell label w10">ITEM DESCRIPTION</div>
-        <div class="cell w10"><%= I.itemDescription || "" %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w15">REFERENCE / LOAN #</div>
+      <div class="cell w85"><%= data.interest_reference %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w10">ITEM</div>
+      <div class="cell w50">
+        <span class="check"></span> LOCATION
+        <span class="check"></span> BUILDING
+        <span class="check"></span> VEHICLE
+        <span class="check"></span> BOAT
       </div>
-      <% if (idx < A.length-1) { %><div class="row"><div class="cell w100" style="border-top:1px dashed #000;"></div></div><% } %>
-    <% }); %>
+      <div class="cell label w15">ITEM CLASS</div>
+      <div class="cell w10"><%= data.interest_item_class %></div>
+      <div class="cell label w15">ITEM DESCRIPTION</div>
+      <div class="cell w10"><%= data.interest_item_desc %></div>
+    </div>
   </div>
 
   <!-- REMARKS -->
   <div class="subbar">REMARKS</div>
   <div class="block">
-    <div class="row"><div class="cell w100 wrap" style="min-height:48px;"><%= data.remarks %></div></div>
+    <div class="row" style="min-height:60px;">
+      <div class="cell w100 wrap"><%= data.remarks %></div>
+    </div>
   </div>
 
-  <div class="footnote">ACORD 140 (Bar Layout) &nbsp;&nbsp;&nbsp; Page 2 of 3</div>
+  <div class="footnote">
+    ACORD 140 (Bar Layout) &nbsp;&nbsp;&nbsp; Page 2 of 3
+  </div>
 </div>
 
 <!-- ====================== PAGE 3 ====================== -->
@@ -522,14 +842,15 @@ function formatDate(d){
     <div class="row">
       <div class="cell w100 small wrap" style="padding:6px;">
         THE UNDERSIGNED IS AN AUTHORIZED REPRESENTATIVE OF THE APPLICANT AND REPRESENTS THAT REASONABLE INQUIRY HAS BEEN MADE TO OBTAIN THE
-        ANSWERS TO QUESTIONS ON THIS APPLICATION. HE/SHE REPRESENTS THAT THE ANSWERS ARE TRUE, CORRECT AND COMPLETE TO THE BEST OF HIS/HER KNOWLEDGE.
+        ANSWERS TO QUESTIONS ON THIS APPLICATION. HE/SHE REPRESENTS THAT THE ANSWERS ARE TRUE, CORRECT AND COMPLETE TO THE BEST OF HIS/HER
+        KNOWLEDGE.
       </div>
     </div>
     <div class="row">
       <div class="cell label w25">PRODUCER'S SIGNATURE</div>
       <div class="cell w25" style="border-bottom:1px solid #000;"></div>
       <div class="cell label w25">PRODUCER'S NAME (PLEASE PRINT)</div>
-      <div class="cell w25"><%= data.producerContact %></div>
+      <div class="cell w25"><%= data.producerSignatureName %></div>
     </div>
     <div class="row">
       <div class="cell label w25">STATE PRODUCER LICENSE NO</div>
@@ -538,44 +859,58 @@ function formatDate(d){
       <div class="cell w25"></div>
     </div>
     <div class="row">
-      <div class="cell label w30">APPLICANT'S SIGNATURE</div>
-      <div class="cell w40">&nbsp;</div>
-      <div class="cell label w15">DATE</div>
+      <div class="cell label w25">APPLICANT'S SIGNATURE</div>
+      <div class="cell w50"></div>
+      <div class="cell label w10">DATE</div>
       <div class="cell w15"><%= formatDate(data.date) %></div>
     </div>
   </div>
 
-  <!-- STATE FRAUD NOTICES (long set) -->
+  <!-- STATE FRAUD NOTICES -->
   <div class="subbar">STATE FRAUD NOTICES</div>
   <div class="block">
-    <div class="row"><div class="cell w100 small legal wrap" style="padding:4px;">
-      <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong>
-      Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.
-      <br/><br/>
-      <strong>Applicable in CA:</strong> For your protection, California law requires the following to appear on this form: Any person who knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.
-      <br/><br/>
-      <strong>Applicable in CO:</strong> It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.
-      <br/><br/>
-      <strong>Applicable in DC:</strong> WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance benefits if false information materially related to a claim was provided by the applicant.
-      <br/><br/>
-      <strong>Applicable in FL and OK:</strong> Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in FL Only.
-      <br/><br/>
-      <strong>Applicable in KS:</strong> Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.
-      <br/><br/>
-      <strong>Applicable in KY, OH and PA:</strong> Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties.
-      <br/><br/>
-      <strong>Applicable in ME, TN, VA and WA:</strong> It is a crime to knowingly provide false, incomplete or misleading information to an insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance benefits. *Applies in ME Only.
-      <br/><br/>
-      <strong>Applicable in NJ:</strong> Any person who includes any false or misleading information on an application for an insurance policy is subject to criminal and civil penalties.
-      <br/><br/>
-      <strong>Applicable in NY:</strong> Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.
-      <br/><br/>
-      <strong>Applicable in OR:</strong> Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by submitting an application containing a false statement as to any material fact may be violating state law.
-      <br/><br/>
-      <strong>Applicable in PR:</strong> Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum of two (2) years.
-    </div></div>
+    <div class="row">
+      <div class="cell w100 small legal wrap" style="padding:4px;min-height:200px;">
+        <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong>
+        Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.
+        <br/><br/>
+        <strong>Applicable in CA:</strong>
+        For your protection, California law requires the following to appear on this form: Any person who knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.
+        <br/><br/>
+        <strong>Applicable in CO:</strong>
+        It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.
+        <br/><br/>
+        <strong>Applicable in DC:</strong>
+        WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance benefits if false information materially related to a claim was provided by the applicant.
+        <br/><br/>
+        <strong>Applicable in FL and OK:</strong>
+        Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in FL Only.
+        <br/><br/>
+        <strong>Applicable in KS:</strong>
+        Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.
+        <br/><br/>
+        <strong>Applicable in KY, OH and PA:</strong>
+        Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties.
+        <br/><br/>
+        <strong>Applicable in ME, TN, VA and WA:</strong>
+        It is a crime to knowingly provide false, incomplete or misleading information to an insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance benefits. *Applies in ME Only.
+        <br/><br/>
+        <strong>Applicable in NJ:</strong>
+        Any person who includes any false or misleading information on an application for an insurance policy is subject to criminal and civil penalties.
+        <br/><br/>
+        <strong>Applicable in NY:</strong>
+        Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.
+        <br/><br/>
+        <strong>Applicable in OR:</strong>
+        Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by submitting an application containing a false statement as to any material fact may be violating state law.
+        <br/><br/>
+        <strong>Applicable in PR:</strong>
+        Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum of two (2) years.
+      </div>
+    </div>
   </div>
 
+  <!-- Agency Customer ID at bottom -->
   <div class="block">
     <div class="row">
       <div class="cell label w25">AGENCY CUSTOMER ID</div>
@@ -583,7 +918,9 @@ function formatDate(d){
     </div>
   </div>
 
-  <div class="footnote">ACORD 140 (Bar Layout) &nbsp;&nbsp;&nbsp; Page 3 of 3</div>
+  <div class="footnote">
+    ACORD 140 (Bar Layout) &nbsp;&nbsp;&nbsp; Page 3 of 3
+  </div>
 </div>
 
 </body>
