@@ -67,6 +67,10 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
 
 .block .row { align-items: stretch; }
 
+.cell.small { font-size: 7pt; }            /* WC130 uses ~7pt small */
+.cell.legal { font-size: 6pt; line-height: 1.2; }  /* legal is tighter */
+.cell.wrap  { flex-wrap: wrap; align-items: flex-start; }
+
 .cell {
   padding:3pt 4pt;
   border-left:1pt solid #000;
@@ -102,7 +106,7 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
 .check-xs{ width:9pt; height:9pt; line-height:9pt; font-size:8pt; }
 
 /* --- Denser rows where needed --- */
-.small   { font-size: 6.8pt; line-height: 1.15; }
+.small   { font-size: 7pt; line-height: 1.15; }
 .tight .cell { min-height: 12pt; padding: 2pt 3pt; }
 .num { text-align:right; white-space:nowrap; font-variant-numeric: tabular-nums; }
 
@@ -214,14 +218,6 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
 /* 6) Keep critical elements from splitting */
 .no-break, .block .row.no-break, .headerbar, .subbar{
   break-inside: avoid; page-break-inside: avoid;
-}
-
-/* 7) Fraud / legal (two columns, fits like WC/140) */
-.fraud-block{ break-inside: avoid; page-break-inside: avoid; }
-.fraud-notices{
-  font-size: 6.6pt; line-height: 1.22;
-  column-count: 2; column-gap: 12pt; column-fill: balance;
-  padding: 5pt;                   /* this is fine; keeps it readable */
 }
 
 /* 8) Footnote pinned; won’t push content */
