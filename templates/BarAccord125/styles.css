@@ -142,6 +142,100 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
   /* fraud/legal block: 2 columns so it fits one page */
   .fraud-notices { column-count: 2; column-gap: 12pt; font-size: 6.5pt; line-height: 1.2; padding: 5pt; }
   .fraud-block { break-inside: avoid; page-break-inside: avoid; }
+
+  /* ==== ACORD normalization pack (align with WC/140) ==== */
+
+/* 1) Page + margins (same as WC) */
+@page { size: Letter; margin: 0.5in; }
+.page {
+  width: 7.5in;              /* 8.5 - 0.5 - 0.5 */
+  min-height: 10in;          /* 11 - 0.5 - 0.5 */
+  margin: 0 auto;
+  padding: 0;                /* keep padding on content blocks, not the page */
+  background: #fff;
+  position: relative;
+}
+
+/* 2) Header/Subbar consistency */
+.headerbar { height: 40px; break-inside: avoid; page-break-inside: avoid; }
+.subbar{
+  background: #e6e6e6; color: #000; border: 1pt solid #000;
+  padding: 3pt 6pt; margin: 6pt 0 2pt; font-weight: 700; font-size: 8pt;
+  break-inside: avoid; page-break-inside: avoid;
+}
+
+/* 3) Blocks/rows/cells (kill grey, gaps, radius; make borders ACORD-black) */
+.block{
+  border: 1pt solid #000;
+  border-top: none;           /* rows draw the horizontals */
+  margin: 0 0 4pt 0;
+  border-radius: 0;
+  padding: 0;                 /* IMPORTANT: padding here causes the grey halo */
+}
+.row{
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0,1fr)); /* unify on 20-col */
+  gap: 0;                      /* ACORD is tight; gaps create misalignments */
+  border-top: 1pt solid #000;
+  min-height: 0;               /* let cells control height */
+}
+.row:first-child{ border-top: none; }
+
+.cell{
+  border-right: none;          /* avoid double-lines from mixed systems */
+  border-left: 1pt solid #000; /* vertical rules */
+  padding: 3pt 4pt;
+  min-height: 14pt;
+  display: flex; align-items: center;
+  word-break: break-word; overflow-wrap: anywhere; hyphens: auto;
+  border-radius: 0;            /* kill rounded look */
+  background: transparent;     /* no grey cells unless label */
+}
+.cell:first-child{ border-left: none; }
+
+.label{
+  background: #f5f5f5;
+  font-weight: 700; font-size: 6.8pt; letter-spacing: .2pt;
+  white-space: nowrap;
+}
+
+/* 4) Width helpers (20-col map) – safe regardless of earlier 12-col sets */
+.w5{grid-column:span 1}.w10{grid-column:span 2}.w15{grid-column:span 3}.w20{span:4}
+.w25{span:5}.w30{span:6}.w35{span:7}.w40{span:8}.w45{span:9}.w50{span:10}
+.w55{span:11}.w60{span:12}.w65{span:13}.w70{span:14}.w75{span:15}
+.w80{span:16}.w85{span:17}.w90{span:18}.w95{span:19}.w100{span:20}
+
+/* 5) Checkbox scale (legible but compact) */
+.check{ width: 11pt; height: 11pt; line-height: 11pt; font-size: 9pt; transform: translateY(1px); }
+.check-xs{ width: 9pt; height: 9pt; line-height: 9pt; font-size: 8pt; }
+
+/* 6) Keep critical elements from splitting */
+.no-break, .block .row.no-break, .headerbar, .subbar{
+  break-inside: avoid; page-break-inside: avoid;
+}
+
+/* 7) Fraud / legal (two columns, fits like WC/140) */
+.fraud-block{ break-inside: avoid; page-break-inside: avoid; }
+.fraud-notices{
+  font-size: 6.6pt; line-height: 1.22;
+  column-count: 2; column-gap: 12pt; column-fill: balance;
+  padding: 5pt;                   /* this is fine; keeps it readable */
+}
+
+/* 8) Footnote pinned; won’t push content */
+.footnote{
+  position: absolute; left: 0; right: 0; bottom: 0;
+  font-size: 7pt; text-align: center; border-top: 1px solid #000; padding: 2pt 0;
+}
+
+/* 9) Screen-only chrome off for print clarity */
+@media screen{
+  .page{ box-shadow: 0 0 10px rgba(0,0,0,.08); }
+}
+
+/* 10) Print exact colors for bars/labels */
+*{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
 }
   
 
