@@ -1,8 +1,8 @@
-/* ===== ACORD 125 — Print-Fidelity CSS (final clean drop-in) ===== */
+/* ===== ACORD 125 — Print-Fidelity CSS (drop-in) ===== */
 
-/* --- Print sheet + page breaks --- */
+/* --- Print page setup --- */
 @media print {
-  @page { size: letter; margin: 0.25in; }         /* 0.25" outer margins */
+  @page { size: letter; margin: 0.25in; }         /* identical to WC */
   .page { page-break-after: always; }
   .page:last-child { page-break-after: auto; }
 }
@@ -12,93 +12,86 @@
 html, body { margin: 0; padding: 0; }
 body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; line-height: 1.15; }
 
-/* --- Page box (keep this; remove any older `.page { width:8.5in... }`) --- */
-.page{
+/* --- Page box (same proportions as WC) --- */
+/* Remove/override any older `.page { width:8.5in; min-height:11in; padding:0.5in; ... }` */
+.page {
   width: 100%;
   max-width: none;
-  min-height: 10.5in;               /* breathing room prevents orphan spillovers */
-  background: #fff;
-  padding: 0.125in;                  /* matches your “good” build */
+  min-height: 10.5in;         /* leaves room for margins; prevents spillover */
+  padding: 0.125in;           /* same inner gutter as WC */
   margin: 0;
-  position: relative;
+  background: #fff;
+  position: relative;         /* allows pinned footers */
 }
 
-/* ===== Header bar (your working flex version) ===== */
-.headerbar{
-  display:flex; align-items:center;
-  border:2px solid #000; background:#fff;
-  margin-bottom:2px; height:40px;
+/* --- Header bar (WC-style fill) --- */
+.headerbar {
+  display: flex;
+  align-items: center;
+  border: 2pt solid #000;
+  background: #fff;
+  margin-bottom: 2pt;
+  height: 40px;
   break-inside: avoid; page-break-inside: avoid;
 }
-.headerbar .acord{
+.headerbar .acord {
   background:#000; color:#fff; font-weight:700; font-size:16pt;
   width:80px; height:100%; display:flex; align-items:center; justify-content:center;
 }
-.headerbar .title{
+.headerbar .title {
   flex:1; font-weight:700; font-size:12pt; text-align:center; padding:0 10px;
 }
-.headerbar .formno{
+.headerbar .formno {
   background:#000; color:#fff; font-weight:700; font-size:16pt;
   width:60px; height:100%; display:flex; align-items:center; justify-content:center;
 }
 
-/* ===== Section bars ===== */
-.subbar{
-  background:#e6e6e6; border:1pt solid #000;
-  font-weight:700; font-size:8pt; padding:3pt 6pt; margin-top:6pt;
+/* --- Section bars --- */
+.subbar {
+  background:#e6e6e6;       /* prints clean, matches WC vibe */
+  border:1pt solid #000;
+  font-weight:700; font-size:8pt;
+  padding:3pt 6pt;
+  margin-top:6pt;
   break-inside: avoid; page-break-inside: avoid;
 }
 
-/* ===== Boxed grid blocks ===== */
-.block{ border:1pt solid #000; border-top:none; }
-.block .row{
-  display:grid;
-  grid-template-columns: repeat(20, minmax(0,1fr));  /* 20-col micro grid */
+/* --- Boxed grid blocks --- */
+.block { border:1pt solid #000; border-top:none; margin:0 0 2pt 0; }
+.block .row {
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0,1fr));  /* 20-col micro grid (fills width like WC) */
   border-top:1pt solid #000;
 }
-.block .row:first-child{ border-top:none; }
+.block .row:first-child { border-top:none; }
 
-.cell{
+.cell {
   padding:3pt 4pt;
   border-left:1pt solid #000;
-  min-height:13pt;
+  min-height:14pt;
   display:flex; align-items:center;
   word-break: break-word; overflow-wrap: anywhere; hyphens: auto;
 }
-.cell:first-child{ border-left:none; }
+.cell:first-child { border-left:none; }
 
-.label{
-  background:#f5f5f5; font-weight:700; font-size:6.8pt; letter-spacing:.2pt;
+.label {
+  background:#f5f5f5;
+  font-weight:700; font-size:6.8pt; letter-spacing:.2pt;
   white-space:nowrap;
 }
 
-.center{ text-align:center; justify-content:center; }
-.right { text-align:right; justify-content:flex-end; }
-.wrap  { white-space:normal; }
+.center { text-align:center; justify-content:center; }
+.right  { text-align:right;  justify-content:flex-end; }
+.wrap   { white-space:normal; }
 
-/* ===== Width utilities (correct 20-col spans) ===== */
-.w5  { grid-column: span 1; }
-.w10 { grid-column: span 2; }
-.w15 { grid-column: span 3; }
-.w20 { grid-column: span 4; }
-.w25 { grid-column: span 5; }
-.w30 { grid-column: span 6; }
-.w35 { grid-column: span 7; }
-.w40 { grid-column: span 8; }
-.w45 { grid-column: span 9; }
-.w50 { grid-column: span 10; }
-.w55 { grid-column: span 11; }
-.w60 { grid-column: span 12; }
-.w65 { grid-column: span 13; }
-.w70 { grid-column: span 14; }
-.w75 { grid-column: span 15; }
-.w80 { grid-column: span 16; }
-.w85 { grid-column: span 17; }
-.w90 { grid-column: span 18; }
-.w95 { grid-column: span 19; }
-.w100{ grid-column: span 20; }
+/* --- Width utilities mapped to 20-col grid --- */
+.w5 {grid-column:span 1}.w10{grid-column:span 2}.w15{grid-column:span 3}.w20{grid-column:span 4}
+.w25{grid-column:span 5}.w30{grid-column:span 6}.w35{grid-column:span 7}.w40{grid-column:span 8}
+.w45{grid-column:span 9}.w50{grid-column:span 10}.w55{grid-column:span 11}.w60{grid-column:span 12}
+.w65{grid-column:span 13}.w70{grid-column:span 14}.w75{grid-column:span 15}.w80{grid-column:span 16}
+.w85{grid-column:span 17}.w90{grid-column:span 18}.w95{grid-column:span 19}.w100{grid-column:span 20}
 
-/* ===== Checkboxes ===== */
+/* --- Checkboxes --- */
 .check{
   display:inline-block; width:11pt; height:11pt; line-height:11pt;
   border:1pt solid #000; text-align:center; font-weight:700; font-size:9pt;
@@ -106,43 +99,43 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; li
 }
 .check-xs{ width:9pt; height:9pt; line-height:9pt; font-size:8pt; }
 
-/* ===== Denser rows where needed ===== */
-.attachments .cell{ font-size:7pt; line-height:1.2; }
-.small { font-size: 6.8pt; line-height: 1.15; }
-.tight .cell { min-height: 11pt; padding: 2pt 3pt; }
+/* --- Denser rows where needed --- */
+.small   { font-size: 6.8pt; line-height: 1.15; }
+.tight .cell { min-height: 12pt; padding: 2pt 3pt; }
+.num { text-align:right; white-space:nowrap; font-variant-numeric: tabular-nums; }
 
-/* ===== Keep important things from splitting ===== */
-.no-break,
-.block .row.no-break{
-  break-inside: avoid; page-break-inside: avoid;
-}
+/* --- Attachments line (denser) --- */
+.attachments .cell { font-size:7pt; line-height:1.2; }
 
-/* ===== Long text helpers ===== */
+/* --- Long text helpers --- */
 .nature-desc, .remarks-long { min-height:48pt; }
+.wrap-tight { white-space: normal; overflow-wrap:anywhere; word-break:break-word; line-height:1.1; }
 
-/* ===== Numbers (tabular) ===== */
-.num{ text-align:right; white-space:nowrap; font-variant-numeric: tabular-nums; }
-
-/* ===== FRAUD / STATE NOTICES (squeeze to one page) =====
-   - Add class .fraud-block to the outer .block
-   - Add class .fraud-notices to the text cell
-*/
-.fraud-block{
+/* --- Keep these from splitting --- */
+.no-break, .block .row.no-break, .subbar, .headerbar {
   break-inside: avoid; page-break-inside: avoid;
 }
-.fraud-notices{
+
+/* --- Fraud / State Notices: squeeze to one page (like WC) --- */
+/* Add class="fraud-block" to the container .block and class="fraud-notices" to the text cell */
+.fraud-block   { break-inside: avoid; page-break-inside: avoid; }
+.fraud-notices {
   font-size:6.6pt; line-height:1.22; padding:5pt;
   column-count: 2; column-gap: 12pt; column-fill: balance;
   word-break: break-word; overflow-wrap: anywhere; hyphens: auto;
 }
-.fraud-notices h6{ margin: 0 0 2pt 0; font-size: 6.7pt; }
 
-/* ===== Footer ===== */
-.footnote{
-  margin-top:8pt; font-size:7pt; text-align:center;
+/* --- Footer pinned (does not push content) --- */
+.footnote {
+  position:absolute; left:0.125in; right:0.125in; bottom:0.125in;
+  font-size:7pt; text-align:center;
+  border-top:1px solid #000; padding-top:2pt;
 }
 
-/* --- On-screen nicety (ignored by print) --- */
-@media screen{
+/* --- Page break helper --- */
+.pagebreak { break-before: page; }
+
+/* --- On-screen pleasant shadow (ignored by print) --- */
+@media screen {
   .page{ margin-bottom:20px; box-shadow:0 0 10px rgba(0,0,0,.08); }
 }
