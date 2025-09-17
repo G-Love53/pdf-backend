@@ -1,244 +1,97 @@
-/* ===== ACORD 125 — Print-Fidelity CSS (drop-in) ===== */
+/* ===== ACORD 125 — clean WC-style print CSS ===== */
 
 /* --- Print page setup --- */
 @media print {
-  @page { size: letter; margin: 0.25in; }         /* identical to WC */
-  .page { page-break-after: always; }
-  .page:last-child { page-break-after: auto; }
+  @page { size: Letter; margin: 0.25in; }
 }
 
 /* --- Global reset --- */
 * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 html, body { margin: 0; padding: 0; }
-body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; line-height: 1.15; }
+body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size:8pt; line-height:1.15; }
 
-/* --- Page box (same proportions as WC) --- */
-/* Remove/override any older `.page { width:8.5in; min-height:11in; padding:0.5in; ... }` */
-.page {
-  width: 100%;
-  max-width: none;
-  min-height: 10.5in;         /* leaves room for margins; prevents spillover */
-  padding: 0.125in;           /* same inner gutter as WC */
-  margin: 0;
-  background: #fff;
-  position: relative;         /* allows pinned footers */
+/* --- Page box (WC-style) --- */
+.page{
+  width:100%;
+  min-height:10.5in;
+  padding:0.125in;
+  margin:0;
+  background:#fff;
+  position:relative;
 }
 
-/* --- Header bar (WC-style fill) --- */
-.headerbar {
-  display: flex;
-  align-items: center;
-  border: 2pt solid #000;
-  background: #fff;
-  margin-bottom: 2pt;
-  height: 40px;
-  break-inside: avoid; page-break-inside: avoid;
+/* --- Header bar --- */
+.headerbar{
+  display:flex; align-items:center;
+  border:2pt solid #000; background:#fff;
+  margin-bottom:2pt; height:40px;
+  break-inside:avoid; page-break-inside:avoid;
 }
-.headerbar .acord {
-  background:#000; color:#fff; font-weight:700; font-size:16pt;
-  width:80px; height:100%; display:flex; align-items:center; justify-content:center;
-}
-.headerbar .title {
-  flex:1; font-weight:700; font-size:12pt; text-align:center; padding:0 10px;
-}
-.headerbar .formno {
+.headerbar .acord,
+.headerbar .formno{
   background:#000; color:#fff; font-weight:700; font-size:16pt;
   width:60px; height:100%; display:flex; align-items:center; justify-content:center;
 }
+.headerbar .acord{ width:80px; }
+.headerbar .title{ flex:1; font-weight:700; font-size:12pt; text-align:center; padding:0 10px; }
 
 /* --- Section bars --- */
-.subbar {
-  background:#e6e6e6;       /* prints clean, matches WC vibe */
-  border:1pt solid #000;
-  font-weight:700; font-size:8pt;
-  padding:3pt 6pt;
-  margin-top:6pt;
-  break-inside: avoid; page-break-inside: avoid;
-}
-
-/* --- Boxed grid blocks --- */
-.block { border:1pt solid #000; border-top:none; margin:0 0 2pt 0; }
-.block .row {
-  display: grid;
-  grid-template-columns: repeat(20, minmax(0,1fr));  /* 20-col micro grid (fills width like WC) */
-  border-top:1pt solid #000;
-}
-.block .row:first-child { border-top:none; }
-
-.block .row { align-items: stretch; }
-
-.cell.small { font-size: 7pt; }            /* WC130 uses ~7pt small */
-.cell.legal { font-size: 6pt; line-height: 1.2; }  /* legal is tighter */
-.cell.wrap  { flex-wrap: wrap; align-items: flex-start; }
-
-.cell {
-  padding:3pt 4pt;
-  border-left:1pt solid #000;
-  min-height:14pt;
-  display:flex; align-items:center;
-  word-break: break-word; overflow-wrap: anywhere; hyphens: auto;
-}
-.cell:first-child { border-left:none; }
-
-.label {
-  background:#f5f5f5;
-  font-weight:700; font-size:6.8pt; letter-spacing:.2pt;
-  white-space:nowrap;
-}
-
-.center { text-align:center; justify-content:center; }
-.right  { text-align:right;  justify-content:flex-end; }
-.wrap   { white-space:normal; }
-
-/* --- Width utilities mapped to 20-col grid --- */
-.w5 {grid-column:span 1}.w10{grid-column:span 2}.w15{grid-column:span 3}.w20{grid-column:span 4}
-.w25{grid-column:span 5}.w30{grid-column:span 6}.w35{grid-column:span 7}.w40{grid-column:span 8}
-.w45{grid-column:span 9}.w50{grid-column:span 10}.w55{grid-column:span 11}.w60{grid-column:span 12}
-.w65{grid-column:span 13}.w70{grid-column:span 14}.w75{grid-column:span 15}.w80{grid-column:span 16}
-.w85{grid-column:span 17}.w90{grid-column:span 18}.w95{grid-column:span 19}.w100{grid-column:span 20}
-
-/* --- Checkboxes --- */
-.check{
-  display:inline-block; width:11pt; height:11pt; line-height:11pt;
-  border:1pt solid #000; text-align:center; font-weight:700; font-size:9pt;
-  margin:0 6pt 0 8pt; vertical-align:middle; transform: translateY(1px);
-}
-.check-xs{ width:9pt; height:9pt; line-height:9pt; font-size:8pt; }
-
-/* --- Denser rows where needed --- */
-.small   { font-size: 7pt; line-height: 1.15; }
-.tight .cell { min-height: 12pt; padding: 2pt 3pt; }
-.num { text-align:right; white-space:nowrap; font-variant-numeric: tabular-nums; }
-
-/* --- Attachments line (denser) --- */
-.attachments .cell { font-size:7pt; line-height:1.2; }
-
-/* --- Long text helpers --- */
-.nature-desc, .remarks-long { min-height:48pt; }
-.wrap-tight { white-space: normal; overflow-wrap:anywhere; word-break:break-word; line-height:1.1; }
-
-/* --- Keep these from splitting --- */
-.no-break, .block .row.no-break, .subbar, .headerbar {
-  break-inside: avoid; page-break-inside: avoid;
-}
-
-/* --- Footer pinned (does not push content) --- */
-.footnote {
-  position:absolute; left:0.125in; right:0.125in; bottom:0.125in;
-  font-size:7pt; text-align:center;
-  border-top:1px solid #000; padding-top:2pt;
-}
-
-/* --- Page break helper --- */
-.pagebreak { break-before: page; }
-
-/* --- On-screen pleasant shadow (ignored by print) --- */
-@media screen {
-  .page{ margin-bottom:20px; box-shadow:0 0 10px rgba(0,0,0,.08); }
-
-/* === ACORD print overrides (safe, add-only) === */
-@media print {
-  /* keep pages tight so content doesn't spill */
-  .page { min-height: 10.5in !important; padding: 0.125in !important; margin: 0 !important; }
-  .headerbar { height: 40px !important; }
-
-  @media print {
-  .small.legal.wrap { break-inside: avoid; page-break-inside: avoid; }
-}
-
-  /* don't split critical rows across pages */
-  .no-break { break-inside: avoid; page-break-inside: avoid; }
-
-  /* ==== ACORD normalization pack (align with WC/140) ==== */
-
-/* 1) Page + margins (same as WC) */
-@page { size: Letter; margin: 0.5in; }
-.page {
-  width: 7.5in;              /* 8.5 - 0.5 - 0.5 */
-  min-height: 10in;          /* 11 - 0.5 - 0.5 */
-  margin: 0 auto;
-  padding: 0;                /* keep padding on content blocks, not the page */
-  background: #fff;
-  position: relative;
-}
-
-/* 2) Header/Subbar consistency */
-.headerbar { height: 40px; break-inside: avoid; page-break-inside: avoid; }
 .subbar{
-  background: #e6e6e6; color: #000; border: 1pt solid #000;
-  padding: 3pt 6pt; margin: 6pt 0 2pt; font-weight: 700; font-size: 8pt;
-  break-inside: avoid; page-break-inside: avoid;
+  background:#e6e6e6; border:1pt solid #000;
+  font-weight:700; font-size:8pt; padding:3pt 6pt;
+  margin:6pt 0 2pt;
+  break-inside:avoid; page-break-inside:avoid;
 }
 
-/* 3) Blocks/rows/cells (kill grey, gaps, radius; make borders ACORD-black) */
-.block{
-  border: 1pt solid #000;
-  border-top: none;           /* rows draw the horizontals */
-  margin: 0 0 4pt 0;
-  border-radius: 0;
-  padding: 0;                 /* IMPORTANT: padding here causes the grey halo */
+/* --- Blocks / rows / cells (20-col grid like WC) --- */
+.block{ border:1pt solid #000; border-top:none; margin:0 0 2pt 0; }
+.block .row{
+  display:grid;
+  grid-template-columns:repeat(20, minmax(0,1fr));
+  gap:0;
+  border-top:1pt solid #000;
+  min-height:0;
 }
-.row{
-  display: grid;
-  grid-template-columns: repeat(20, minmax(0,1fr)); /* unify on 20-col */
-  gap: 0;                      /* ACORD is tight; gaps create misalignments */
-  border-top: 1pt solid #000;
-  min-height: 0;               /* let cells control height */
-}
-.block.row:first-child{ border-top: none; }
+.block .row:first-child{ border-top:none; }
 
 .cell{
-  border-right: none;          /* avoid double-lines from mixed systems */
-  border-left: 1pt solid #000; /* vertical rules */
-  padding: 3pt 4pt;
-  min-height: 14pt;
-  display: flex; align-items: center;
-  word-break: break-word; overflow-wrap: anywhere; hyphens: auto;
-  border-radius: 0;            /* kill rounded look */
-  background: transparent;     /* no grey cells unless label */
+  display:flex; align-items:center;
+  padding:3pt 4pt; min-height:14pt;
+  border-left:1pt solid #000;
+  word-break:break-word; overflow-wrap:anywhere; hyphens:auto;
+  background:transparent;
 }
-.cell:first-child{ border-left: none; }
+.cell:first-child{ border-left:none; }
+.cell.small{ font-size:7pt; }
+.cell.legal{ font-size:6pt; line-height:1.2; }
+.cell.wrap{ align-items:flex-start; white-space:normal; }
+.label{ background:#f5f5f5; font-weight:700; font-size:6.8pt; letter-spacing:.2pt; white-space:nowrap; }
+.center{ justify-content:center; text-align:center; }
+.right{ justify-content:flex-end; text-align:right; }
 
-.label{
-  background: #f5f5f5;
-  font-weight: 700; font-size: 6.8pt; letter-spacing: .2pt;
-  white-space: nowrap;
-}
+/* --- Width utilities (map to 20-col grid) --- */
+.w5  { grid-column:span 1 } .w10 { grid-column:span 2 } .w15 { grid-column:span 3 } .w20 { grid-column:span 4 }
+.w25 { grid-column:span 5 } .w30 { grid-column:span 6 } .w35 { grid-column:span 7 } .w40 { grid-column:span 8 }
+.w45 { grid-column:span 9 } .w50 { grid-column:span 10} .w55 { grid-column:span 11} .w60 { grid-column:span 12}
+.w65 { grid-column:span 13} .w70 { grid-column:span 14} .w75 { grid-column:span 15} .w80 { grid-column:span 16}
+.w85 { grid-column:span 17} .w90 { grid-column:span 18} .w95 { grid-column:span 19} .w100{ grid-column:span 20}
 
-/* 5) Checkbox scale (legible but compact) */
-.check{ width: 11pt; height: 11pt; line-height: 11pt; font-size: 9pt; transform: translateY(1px); }
-.check-xs{ width: 9pt; height: 9pt; line-height: 9pt; font-size: 8pt; }
+/* --- Checks, helpers --- */
+.check{ display:inline-block; width:11pt; height:11pt; line-height:11pt; border:1pt solid #000; text-align:center; font-weight:700; font-size:9pt; margin:0 6pt 0 8pt; vertical-align:middle; transform:translateY(1px); }
+.check-xs{ width:9pt; height:9pt; line-height:9pt; font-size:8pt; }
+.tight .cell{ min-height:12pt; padding:2pt 3pt; }
+.num{ text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.no-break, .block .row.no-break, .headerbar, .subbar{ break-inside:avoid; page-break-inside:avoid; }
 
-/* 6) Keep critical elements from splitting */
-.no-break, .block .row.no-break, .headerbar, .subbar{
-  break-inside: avoid; page-break-inside: avoid;
-}
-
-  <!-- STATE FRAUD NOTICES (WC-style: single flowing text box) -->
-<div class="subbar">STATE FRAUD NOTICES</div>
-<div class="block fraud">
-  <div class="row">
-    <div class="cell small legal wrap">
-      <!-- paste the long fraud text here, exactly as you have it -->
-    </div>
-  </div>
-</div>
-
-
-/* 8) Footnote pinned; won’t push content */
+/* --- Footnote --- */
 .footnote{
-  position: absolute; left: 0; right: 0; bottom: 0;
-  font-size: 7pt; text-align: center; border-top: 1px solid #000; padding: 2pt 0;
+  position:absolute; left:0.125in; right:0.125in; bottom:0.125in;
+  font-size:7pt; text-align:center; border-top:1px solid #000; padding-top:2pt;
 }
 
-/* 9) Screen-only chrome off for print clarity */
-@media screen{
-  .page{ box-shadow: 0 0 10px rgba(0,0,0,.08); }
-}
+/* --- Screen nicety --- */
+@media screen{ .page{ margin-bottom:20px; box-shadow:0 0 10px rgba(0,0,0,.08); } }
 
-/* 10) Print exact colors for bars/labels */
-*{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-
-}
-  
-
+/* ===== Fraud section: single wide box, normal wrapping ===== */
+.fraud .row{ grid-template-columns:repeat(20, minmax(0,1fr)); }
+.fraud .cell{ grid-column:span 20; }
