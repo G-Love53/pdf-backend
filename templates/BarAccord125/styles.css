@@ -45,12 +45,8 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size:8pt; lin
 
 /* --- Blocks / rows / cells (20-col grid like WC) --- */
 .block{ border:1pt solid #000; border-top:none; margin:0 0 2pt 0; }
-.block .row{
-  display:grid;
-  grid-template-columns:repeat(20, minmax(0,1fr));
-  gap:0;
-  border-top:1pt solid #000;
-  min-height:0;
+.block .row.fraud-row {
+  display: flex !important;
 }
 .block .row:first-child{ border-top:none; }
 
@@ -92,6 +88,3 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size:8pt; lin
 /* --- Screen nicety --- */
 @media screen{ .page{ margin-bottom:20px; box-shadow:0 0 10px rgba(0,0,0,.08); } }
 
-/* ===== Fraud section: single wide box, normal wrapping ===== */
-.fraud .row{ grid-template-columns:repeat(20, minmax(0,1fr)); }
-.fraud .cell{ grid-column:span 20; }
