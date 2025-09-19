@@ -72,6 +72,17 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size:8pt; lin
 .w65 { grid-column:span 13} .w70 { grid-column:span 14} .w75 { grid-column:span 15} .w80 { grid-column:span 16}
 .w85 { grid-column:span 17} .w90 { grid-column:span 18} .w95 { grid-column:span 19} .w100{ grid-column:span 20}
 
+/* FRAUD block: render as simple lines inside a single cell */
+.block.fraud-block .cell { align-items: flex-start; }
+.fraud-list { font-size: 6.6pt; line-height: 1.22; }
+.fraud-line { display: flex; gap: 6pt; margin-bottom: 3pt; break-inside: avoid; }
+.fraud-line .jur { font-weight: 700; white-space: nowrap; }
+.fraud-line .txt { flex: 1 1 auto; }
+@media print {
+  .block.fraud-block { break-inside: auto; page-break-inside: auto; }
+  .fraud-line { break-inside: avoid; }
+}
+
 /* --- Checks, helpers --- */
 .check{ display:inline-block; width:11pt; height:11pt; line-height:11pt; border:1pt solid #000; text-align:center; font-weight:700; font-size:9pt; margin:0 6pt 0 8pt; vertical-align:middle; transform:translateY(1px); }
 .check-xs{ width:9pt; height:9pt; line-height:9pt; font-size:8pt; }
