@@ -18,6 +18,7 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size:8pt; lin
   width:100%;
   min-height:10.5in;
   padding:0.125in;
+  padding-bottom: 0.35in; /* you can tweak this */
   margin:0;
   background:#fff;
   position:relative;
@@ -75,8 +76,7 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size:8pt; lin
 .label{ background:#f5f5f5; font-weight:700; font-size:6.8pt; letter-spacing:.2pt; white-space:nowrap; }
 .center{ justify-content:center; text-align:center; }
 .right{ justify-content:flex-end; text-align:right; }
-
-
+.cell { min-width: 0; }           /* prevent grid overflow pushing rows */
 
 /* --- Width utilities (map to 20-col grid) --- */
 .w5  { grid-column:span 1 } .w10 { grid-column:span 2 } .w15 { grid-column:span 3 } .w20 { grid-column:span 4 }
@@ -84,6 +84,11 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size:8pt; lin
 .w45 { grid-column:span 9 } .w50 { grid-column:span 10} .w55 { grid-column:span 11} .w60 { grid-column:span 12}
 .w65 { grid-column:span 13} .w70 { grid-column:span 14} .w75 { grid-column:span 15} .w80 { grid-column:span 16}
 .w85 { grid-column:span 17} .w90 { grid-column:span 18} .w95 { grid-column:span 19} .w100{ grid-column:span 20}
+
+/* Width utilities missing for LOB rows */
+.w8 { grid-column: span 2; }  /* ~8% => 2 of 20 columns */
+.w9 { grid-column: span 1; }  /* last premium column: 1 of 20 */
+
 
 /* FRAUD block: render as simple lines inside a single cell */
 .block.fraud-block .cell { align-items: flex-start; }
