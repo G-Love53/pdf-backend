@@ -3,7 +3,10 @@
 /* --- Print page setup --- */
 @media print {
   @page { size: Letter; margin: 0.25in; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
 }
+
 
 /* --- Global reset --- */
 * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
