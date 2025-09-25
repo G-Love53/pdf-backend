@@ -1460,9 +1460,8 @@ const formatDate = (d) => {
   <div class="row">
     <div class="cell w100 small legal">
       <div class="fraud-list">
-        <div class="fraud-list">
-  <%
-    // 1) Group states by identical notice text
+  <% 
+    // Group states by identical notice text
     const byText = {};
     Object.entries(stateFraudNotices).forEach(([abbr, msg]) => {
       if (!msg) return;
@@ -1470,7 +1469,7 @@ const formatDate = (d) => {
       byText[msg].push(abbr);
     });
 
-    // 2) Helper to render state lists nicely
+    // Join states nicely: "AL and AK" or "AL, AK and AZ"
     const joinStates = (arr) => {
       const a = arr.slice().sort();
       if (a.length <= 1) return a.join("");
@@ -1478,16 +1477,14 @@ const formatDate = (d) => {
       return a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
     };
 
-    // 3) Optional filter: only show selected states if provided
+    // Optional filter to only show selected states if provided
     const allowed = Array.isArray(data.fraud_states) && data.fraud_states.length
       ? new Set(data.fraud_states)
       : null;
 
-    // 4) Build sorted groups
+    // Build sorted groups
     const groups = Object.entries(byText)
-      .map(([text, states]) => allowed
-        ? [text, states.filter(s => allowed.has(s))]
-        : [text, states])
+      .map(([text, states]) => allowed ? [text, states.filter(s => allowed.has(s))] : [text, states])
       .filter(([, states]) => states.length > 0)
       .sort((a, b) => a[1][0].localeCompare(b[1][0]));
   %>
@@ -1504,9 +1501,11 @@ const formatDate = (d) => {
   <% }) %>
 </div>
 
-    </div>
-  </div>
-</div>
+
+    </div>   <!-- /.cell -->
+  </div>     <!-- /.row -->
+</div>       <!-- /.block -->
+
 
     
 
