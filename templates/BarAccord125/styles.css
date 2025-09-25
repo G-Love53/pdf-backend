@@ -65,6 +65,8 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size:8pt; lin
 .center{ justify-content:center; text-align:center; }
 .right{ justify-content:flex-end; text-align:right; }
 
+
+
 /* --- Width utilities (map to 20-col grid) --- */
 .w5  { grid-column:span 1 } .w10 { grid-column:span 2 } .w15 { grid-column:span 3 } .w20 { grid-column:span 4 }
 .w25 { grid-column:span 5 } .w30 { grid-column:span 6 } .w35 { grid-column:span 7 } .w40 { grid-column:span 8 }
