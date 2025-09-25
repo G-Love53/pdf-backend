@@ -1511,25 +1511,9 @@ const formatDate = (d) => {
   </div>
 </div>
 
-  <% groups.forEach(([text, states]) => { %>
-    <div class="fraud-line">
-      <span class="jur">
-        <%= states.length > 1
-              ? ("Applicable in " + joinStates(states) + ":")
-              : (states[0] + ":") %>
-      </span>
-      <span class="txt"><%= text %></span>
-    </div>
-  <% }) %>
-</div>
-
-
     </div>   <!-- /.cell -->
   </div>     <!-- /.row -->
 </div>       <!-- /.block -->
-
-
-    
 
   <!-- Footer -->
   <div class="footnote">
