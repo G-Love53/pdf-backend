@@ -220,7 +220,7 @@ const firstInterest = (() => {
     <div class="cell w25 right num">$<%= data.limit_generalAggregate %></div>
     <div class="cell label w25">PREMIUMS</div>
   </div>
-  <div class="row">
+  <div class="row limits-inline">
     <div class="cell w10">
       <span class="check"><%= data.gl_form === "CLAIMS_MADE" ? "X" : "" %></span> CLAIMS MADE
     </div>
@@ -257,7 +257,7 @@ const firstInterest = (() => {
     <div class="cell w25 right num">$<%= data.limit_personalAdvInjury %></div>
     <div class="cell w25"></div>
   </div>
-  <div class="row">
+  <div class="row limits-inline">
     <div class="cell label w10">PROPERTY DAMAGE</div>
     <div class="cell w15 right num">$<%= data.deductible_propertyDamage %></div>
     <div class="cell label w10">PER CLAIM</div>
