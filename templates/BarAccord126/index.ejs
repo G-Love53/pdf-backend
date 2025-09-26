@@ -312,61 +312,69 @@ const firstInterest = (() => {
   </div>
 
   <!-- SCHEDULE OF HAZARDS -->
-  <div class="subbar">SCHEDULE OF HAZARDS (ACORD 211, Schedule of Hazards, may be attached if more space is required)</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w5 center small">LOC #</div>
-      <div class="cell label w5 center small">HAZ #</div>
-      <div class="cell label w10 center small">CLASS CODE</div>
-      <div class="cell label w20 center small">PREMIUM BASIS</div>
-      <div class="cell label w15 center small">CLASSIFICATION DESCRIPTION</div>
-      <div class="cell label w10 center small">EXPOSURE</div>
-      <div class="cell label w5 center small">TERR</div>
-      <div class="cell label w10 center small">RATE<br/>PREM/OPS</div>
-      <div class="cell label w10 center small">PRODUCTS</div>
-      <div class="cell label w10 center small">PREMIUM<br/>PREM/OPS</div>
-      <div class="cell label w10 center small">PRODUCTS</div>
-    </div>
-    <div class="row">
-      <div class="cell w5 center">1</div>
-      <div class="cell w5 center">1</div>
-      <div class="cell w10 center"></div>
-      <div class="cell w20 center">GROSS REV</div>
-      <div class="cell w15"></div>
-      <div class="cell w10 right">$<%= money(data.total_sales) %></div>
-      <div class="cell w5"></div>
-      <div class="cell w10"></div>
-      <div class="cell w10"></div>
-      <div class="cell w10"></div>
-      <div class="cell w10"></div>
-    </div>
-    <div class="row">
-      <div class="cell w5 center">1</div>
-      <div class="cell w5 center">2</div>
-      <div class="cell w10 center"></div>
-      <div class="cell w20 center">LIQ REV</div>
-      <div class="cell w15"></div>
-      <div class="cell w10 right">$<%= money(data.alcohol_sales) %></div>
-      <div class="cell w5"></div>
-      <div class="cell w10"></div>
-      <div class="cell w10"></div>
-      <div class="cell w10"></div>
-      <div class="cell w10"></div>
-    </div>
-    <div class="row">
-      <div class="cell w5 center">1</div>
-      <div class="cell w5 center">3</div>
-      <div class="cell w10 center"></div>
-      <div class="cell w20 center">SQUARE FT</div>
-      <div class="cell w15"></div>
-      <div class="cell w10 right"><%= data.square_footage || "" %></div>
-      <div class="cell w5"></div>
-      <div class="cell w10"></div>
-      <div class="cell w10"></div>
-      <div class="cell w10"></div>
-      <div class="cell w10"></div>
-    </div>
+<div class="subbar">SCHEDULE OF HAZARDS (ACORD 211, Schedule of Hazards, may be attached if more space is required)</div>
+<div class="block">
+  <div class="row">
+    <div class="cell label w5  center small">LOC #</div>              
+    <div class="cell label w5  center small">HAZ #</div>              
+    <div class="cell label w10 center small">CLASS CODE</div>         
+    <div class="cell label w20 center small">PREMIUM BASIS</div>      
+    <div class="cell label w20 center small">CLASSIFICATION DESCRIPTION</div>
+    <div class="cell label w10 center small">EXPOSURE</div>           
+    <div class="cell label w5  center small">TERR</div>               
+    <div class="cell label w10 center small">RATE<br/>PREM/OPS</div>  
+    <div class="cell label w5  center small">RATE<br/>PRODS</div>     
+    <div class="cell label w5  center small">PREMIUM<br/>PREM/OPS</div>
+    <div class="cell label w5  center small">PREMIUM<br/>PRODS</div>  
   </div>
+
+  <!-- Row 1: GROSS REV -->
+  <div class="row">
+    <div class="cell w5  center">1</div>
+    <div class="cell w5  center">1</div>
+    <div class="cell w10 center"></div>
+    <div class="cell w20 center">GROSS REV</div>
+    <div class="cell w20"></div>
+    <div class="cell w10 right num">$<%= money(data.total_sales) %></div>
+    <div class="cell w5  center"></div>
+    <div class="cell w10 center num"></div>
+    <div class="cell w5  center num"></div>
+    <div class="cell w5  right num"></div>
+    <div class="cell w5  right num"></div>
+  </div>
+
+  <!-- Row 2: LIQ REV -->
+  <div class="row">
+    <div class="cell w5  center">1</div>
+    <div class="cell w5  center">2</div>
+    <div class="cell w10 center"></div>
+    <div class="cell w20 center">LIQ REV</div>
+    <div class="cell w20"></div>
+    <div class="cell w10 right num">$<%= money(data.alcohol_sales) %></div>
+    <div class="cell w5  center"></div>
+    <div class="cell w10 center num"></div>
+    <div class="cell w5  center num"></div>
+    <div class="cell w5  right num"></div>
+    <div class="cell w5  right num"></div>
+  </div>
+
+  <!-- Row 3: SQUARE FT -->
+  <div class="row">
+    <div class="cell w5  center">1</div>
+    <div class="cell w5  center">3</div>
+    <div class="cell w10 center"></div>
+    <div class="cell w20 center">SQUARE FT</div>
+    <div class="cell w20"></div>
+    <div class="cell w10 right num"><%= data.square_footage || "" %></div>
+    <div class="cell w5  center"></div>
+    <div class="cell w10 center num"></div>
+    <div class="cell w5  center num"></div>
+    <div class="cell w5  right num"></div>
+    <div class="cell w5  right num"></div>
+  </div>
+</div>
+
+
 
   <div class="footnote">
     ACORD 126 (2016/09) &nbsp;&nbsp;&nbsp; Page 1 of 4 &nbsp;&nbsp;&nbsp; © 1993-2016 ACORD CORPORATION. All rights reserved.
