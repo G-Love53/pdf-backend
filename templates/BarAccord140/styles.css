@@ -74,4 +74,28 @@ html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; c
 .u-mt10 { margin-top: 10pt; }
 .bold   { font-weight: 700; }
 
+/* Stack text nicely in a cell and stop weird hyphenation */
+.cell { min-width: 0; }
+.cell.vstack { display: block; }
+.no-hyphen { hyphens: none; word-break: normal; overflow-wrap: break-word; }
+
+/* Spacing helpers */
+.u-mb5 { margin-bottom: 5pt; }
+.u-mb8 { margin-bottom: 8pt; }
+.u-mb10 { margin-bottom: 10pt; }
+.u-mt10 { margin-top: 10pt; }
+
+/* Inline answer groups */
+.yn { display:inline-flex; gap:8pt; align-items:center; margin-left:8pt; }
+.chkgrp { display:inline-flex; gap:10pt; align-items:center; margin-left:8pt; }
+
+/* --- Page break hardening --- */
+.page { page-break-after: always; break-after: page; }
+.page:last-child { page-break-after: auto; break-after: auto; }
+/* Ensure every page after the first *begins* on a new sheet */
+.page:not(:first-child) { break-before: page; page-break-before: always; }
+/* Avoid accidental splits inside large rows/blocks */
+.no-break, .block, .row { break-inside: avoid; page-break-inside: avoid; }
+
+
 
