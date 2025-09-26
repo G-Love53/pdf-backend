@@ -1,117 +1,124 @@
-/* === Base / Print === */
-@page { size: Letter; margin: 0.25in; }
-.page { width: 7.5in; margin: 0 auto; }
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; font-size: 8pt; color: #000; background: #fff; }
-.page { page-break-after: always; }
-.page:last-child { page-break-after: auto; }
-.right { text-align: right; }
-.center { text-align: center; }
-.small { font-size: 7pt; }
-.legal { font-size: 6pt; line-height: 1.2; }
-.wrap { white-space: pre-wrap; word-wrap: break-word; }
+/* ===== ACORD shared layout (WC130) ===== */
+@media print {
+  @page { margin: 0.25in; size: letter; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+}
 
-/* === Header Bars === */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Arial, sans-serif;
+  font-size: 8pt;
+  line-height: 1.1;
+  background: #fff;
+  color: #000;
+}
+
+/* Page */
+.page {
+  width: 100%;
+  min-height: 10.5in;
+  padding: 0.125in;
+  border: 1px solid #ccc;
+  position: relative;
+}
+@media screen {
+  .page { margin-bottom: 20px; box-shadow: 0 0 10px rgba(0,0,0,.1); }
+}
+
+/* Header bar */
 .headerbar {
-  display: grid;
-  grid-template-columns: 80px 1fr 80px;
-  align-items: center;
-  gap: 12px;
+  display: flex;
   border: 2px solid #000;
   background: #fff;
+  margin-bottom: 2px;
+  align-items: center;
   height: 40px;
-  margin-bottom: 6px;
 }
 .headerbar .acord,
 .headerbar .formno {
   background: #000;
   color: #fff;
   font-weight: bold;
-  font-size: 14pt;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 16pt;
+  width: 60px;
+  text-align: center;
   height: 100%;
+  display: flex; align-items: center; justify-content: center;
 }
-.headerbar .title { font-weight: bold; font-size: 12pt; text-align: center; }
+.headerbar .acord { width: 80px; }
+.headerbar .title {
+  flex: 1;
+  font-weight: bold;
+  font-size: 12pt;
+  text-align: center;
+  padding: 0 10px;
+}
 
-/* === Section Bars === */
+/* Section title bars */
 .subbar {
   background: #000;
   color: #fff;
   font-weight: bold;
   font-size: 9pt;
   padding: 3px 8px;
-  margin: 4px 0;
+  margin: 2px 0;
   text-align: left;
 }
 
-/* === Blocks / Rows / Cells === */
-.block {
-  border: 1px solid #000;
-  margin-bottom: 4px;
-}
-.row {
-  display: grid;
-  grid-template-columns: repeat(20, 1fr);
-  border-bottom: 1px solid #000;
-  min-height: 16px;
-}
+/* Blocks and grid rows */
+.block { border: 1px solid #000; margin-bottom: 2px; }
+.row { display: flex; border-bottom: 1px solid #000; min-height: 18px; }
 .row:last-child { border-bottom: none; }
 .cell {
   border-right: 1px solid #000;
-  padding: 2px 3px;
+  padding: 1px 3px;
   display: flex;
   align-items: center;
-  min-width: 0;
+  overflow-wrap: break-word;
 }
 .cell:last-child { border-right: none; }
-.cell.label { background: #f0f0f0; font-weight: bold; }
-.cell.num { text-align: right; font-variant-numeric: tabular-nums; }
 
-/* === Width Helpers (20-col grid) === */
-.w5{grid-column:span 1}.w10{grid-column:span 2}.w15{grid-column:span 3}
-.w20{grid-column:span 4}.w25{grid-column:span 5}.w30{grid-column:span 6}
-.w35{grid-column:span 7}.w40{grid-column:span 8}.w45{grid-column:span 9}
-.w50{grid-column:span 10}.w55{grid-column:span 11}.w60{grid-column:span 12}
-.w65{grid-column:span 13}.w70{grid-column:span 14}.w75{grid-column:span 15}
-.w80{grid-column:span 16}.w85{grid-column:span 17}.w90{grid-column:span 18}
-.w95{grid-column:span 19}.w100{grid-column:span 20}
+/* Cell variants */
+.cell.label { background: #f0f0f0; font-weight: bold; font-size: 6.5pt; }
+.cell.center { justify-content: center; text-align: center; }
+.cell.right { justify-content: flex-end; text-align: right; }
+.cell.wrap { flex-wrap: wrap; align-items: flex-start; }
+.cell.small { font-size: 7pt; }
+.cell.legal { font-size: 6pt; line-height: 1.2; }
 
-/* === Checkboxes === */
+/* Width utilities (percent-of-row) */
+.w5{width:5%}.w6{width:6%}.w7{width:7%}.w8{width:8%}.w9{width:9%}
+.w10{width:10%}.w12{width:12%}.w13{width:13%}.w14{width:14%}.w15{width:15%}
+.w18{width:18%}.w20{width:20%}.w22{width:22%}.w25{width:25%}.w28{width:28%}
+.w30{width:30%}.w33{width:33%}.w35{width:35%}.w38{width:38%}.w40{width:40%}
+.w45{width:45%}.w50{width:50%}.w55{width:55%}.w60{width:60%}.w65{width:65%}
+.w70{width:70%}.w75{width:75%}.w80{width:80%}.w85{width:85%}.w90{width:90%}
+.w95{width:95%}.w100{width:100%}
+
+/* Checkboxes (visual only) */
 .check {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 10px; height: 10px;
   border: 1px solid #000;
   text-align: center;
-  line-height: 9px;
-  font-size: 7pt;
-  margin-right: 4px;
+  line-height: 8px;
+  font-size: 8pt;
+  margin-right: 5px;
+  vertical-align: middle;
 }
+.check-xs { width: 8px; height: 8px; font-size: 6pt; line-height: 6px; }
 
-/* === Footer === */
+/* Footnote */
 .footnote {
   position: absolute;
   bottom: 0.125in;
-  left: 0.125in;
-  right: 0.125in;
+  left: 0.125in; right: 0.125in;
   font-size: 6pt;
   border-top: 1px solid #000;
   padding-top: 2px;
   text-align: center;
 }
 
-/* === Pagebreak utility === */
-.pagebreak { page-break-before: always; }
-
-/* === Print polish === */
-@media print {
-  .headerbar,
-  .subbar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-}
-
-/* === Screen polish === */
-@media screen {
-  .page { margin-bottom: 20px; box-shadow: 0 0 10px rgba(0,0,0,.1); }
-}
+/* Keep blocks together when possible */
+.no-break { page-break-inside: avoid; }
