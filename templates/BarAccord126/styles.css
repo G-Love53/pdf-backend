@@ -330,4 +330,14 @@ body {
 .coverages .cell { padding: 2pt 3pt; }
 
 /* slightly smaller labels just in this grid */
-.coverages .label { font-size: 6.6pt; }
+.coverages .label { font-size: 6pt; }
+
+/* 126 — keep micro option groups on one line */
+.row.limits-inline .cell { padding: 2pt 3pt; }              /* slightly tighter just for these rows */
+.row.limits-inline .check {                                  /* smaller check so words fit */
+  width: 9pt; height: 9pt; line-height: 9pt; font-size: 8pt;
+  margin: 0 4pt 0 0; transform: translateY(0);
+}
+.row.limits-inline .cell { white-space: nowrap; }            /* no wrapping inside any cell in that row */
+.row.limits-inline .cell.wrap { white-space: normal; }       /* (safety: if you ever mark a cell .wrap) */
+
