@@ -8,7 +8,7 @@
   margin:0;
   position:relative;
   padding:0.125in;            /* top/right/left */
-  padding-bottom:26pt;        /* reserve space for footer (exact) */
+  padding-bottom:24pt;        /* reserve space for footer (exact) */
   page-break-after: always;
 }
 .page:last-child{ page-break-after: auto; }
