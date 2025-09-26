@@ -210,82 +210,83 @@ const firstInterest = (() => {
   </div>
 
   <!-- COVERAGES / LIMITS -->
-  <div class="subbar">COVERAGES / LIMITS</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell w25">
-        <span class="check">X</span> COMMERCIAL GENERAL LIABILITY
-      </div>
-      <div class="cell label w25">GENERAL AGGREGATE</div>
-      <div class="cell w25 right">$<%= data.limit_generalAggregate %></div>
-      <div class="cell label w25">PREMIUMS</div>
+<div class="subbar">COVERAGES / LIMITS</div>
+<div class="block">
+  <div class="row">
+    <div class="cell w25">
+      <span class="check">X</span> COMMERCIAL GENERAL LIABILITY
     </div>
-    <div class="row">
-      <div class="cell w12">
-        <span class="check"><%= data.gl_form === "CLAIMS_MADE" ? "X" : "" %></span> CLAIMS MADE
-      </div>
-      <div class="cell w13">
-        <span class="check"><%= data.gl_form === "OCCURRENCE" ? "X" : "" %></span> OCCURRENCE
-      </div>
-      <div class="cell label w25">LIMIT APPLIES PER:</div>
-      <div class="cell w25">
-        <span class="check">X</span> POLICY
-        <span class="check"></span> LOCATION
-        <span class="check"></span> PROJECT
-      </div>
-      <div class="cell label w25">PREMISES/OPERATIONS</div>
-    </div>
-    <div class="row">
-      <div class="cell w25">
-        <span class="check"><%= yes(data.ownersContractorsProtective) ? "X" : "" %></span> OWNER'S & CONTRACTOR'S PROTECTIVE
-      </div>
-      <div class="cell w25"></div>
-      <div class="cell label w10">OTHER:</div>
-      <div class="cell w15"></div>
-      <div class="cell label w25"></div>
-    </div>
-    <div class="row">
-      <div class="cell w25"></div>
-      <div class="cell label w25">PRODUCTS & COMPLETED OPERATIONS AGGREGATE</div>
-      <div class="cell w25 right">$<%= data.limit_productsAgg %></div>
-      <div class="cell label w25">PRODUCTS</div>
-    </div>
-    <div class="row">
-      <div class="cell label w10">DEDUCTIBLES</div>
-      <div class="cell w15"></div>
-      <div class="cell label w25">PERSONAL & ADVERTISING INJURY</div>
-      <div class="cell w25 right">$<%= data.limit_personalAdvInjury %></div>
-      <div class="cell w25"></div>
-    </div>
-    <div class="row">
-      <div class="cell label w12">PROPERTY DAMAGE</div>
-      <div class="cell w13 right">$<%= data.deductible_propertyDamage %></div>
-      <div class="cell label w10">PER CLAIM</div>
-      <div class="cell label w15">EACH OCCURRENCE</div>
-      <div class="cell w25 right">$<%= data.limit_eachOccurrence %></div>
-      <div class="cell label w25">OTHER</div>
-    </div>
-    <div class="row">
-      <div class="cell label w12">BODILY INJURY</div>
-      <div class="cell w13 right">$<%= data.deductible_bodilyInjury %></div>
-      <div class="cell label w10">PER OCCURRENCE</div>
-      <div class="cell label w15">DAMAGE TO RENTED PREMISES (each occurrence)</div>
-      <div class="cell w25 right">$<%= data.limit_damageToPremises %></div>
-      <div class="cell w25"></div>
-    </div>
-    <div class="row">
-      <div class="cell w25"></div>
-      <div class="cell label w25">MEDICAL EXPENSE (Any one person)</div>
-      <div class="cell w25 right">$<%= data.limit_medicalExpense %></div>
-      <div class="cell w25"></div>
-    </div>
-    <div class="row">
-      <div class="cell w25"></div>
-      <div class="cell label w25">EMPLOYEE BENEFITS</div>
-      <div class="cell w25 right">$<%= data.limit_employeeBenefits %></div>
-      <div class="cell label w25">TOTAL</div>
-    </div>
+    <div class="cell label w25">GENERAL AGGREGATE</div>
+    <div class="cell w25 right num">$<%= data.limit_generalAggregate %></div>
+    <div class="cell label w25">PREMIUMS</div>
   </div>
+  <div class="row">
+    <div class="cell w10">
+      <span class="check"><%= data.gl_form === "CLAIMS_MADE" ? "X" : "" %></span> CLAIMS MADE
+    </div>
+    <div class="cell w15">
+      <span class="check"><%= data.gl_form === "OCCURRENCE" ? "X" : "" %></span> OCCURRENCE
+    </div>
+    <div class="cell label w25">LIMIT APPLIES PER:</div>
+    <div class="cell w25">
+      <span class="check">X</span> POLICY
+      <span class="check"></span> LOCATION
+      <span class="check"></span> PROJECT
+    </div>
+    <div class="cell label w25">PREMISES/OPERATIONS</div>
+  </div>
+  <div class="row">
+    <div class="cell w25">
+      <span class="check"><%= yes(data.ownersContractorsProtective) ? "X" : "" %></span> OWNER'S & CONTRACTOR'S PROTECTIVE
+    </div>
+    <div class="cell w25"></div>
+    <div class="cell label w10">OTHER:</div>
+    <div class="cell w15"></div>
+    <div class="cell label w25"></div>
+  </div>
+  <div class="row">
+    <div class="cell w25"></div>
+    <div class="cell label w25">PRODUCTS & COMPLETED OPERATIONS AGGREGATE</div>
+    <div class="cell w25 right num">$<%= data.limit_productsAgg %></div>
+    <div class="cell label w25">PRODUCTS</div>
+  </div>
+  <div class="row">
+    <div class="cell label w10">DEDUCTIBLES</div>
+    <div class="cell w15"></div>
+    <div class="cell label w25">PERSONAL & ADVERTISING INJURY</div>
+    <div class="cell w25 right num">$<%= data.limit_personalAdvInjury %></div>
+    <div class="cell w25"></div>
+  </div>
+  <div class="row">
+    <div class="cell label w10">PROPERTY DAMAGE</div>
+    <div class="cell w15 right num">$<%= data.deductible_propertyDamage %></div>
+    <div class="cell label w10">PER CLAIM</div>
+    <div class="cell label w15">EACH OCCURRENCE</div>
+    <div class="cell w25 right num">$<%= data.limit_eachOccurrence %></div>
+    <div class="cell label w25">OTHER</div>
+  </div>
+  <div class="row">
+    <div class="cell label w10">BODILY INJURY</div>
+    <div class="cell w15 right num">$<%= data.deductible_bodilyInjury %></div>
+    <div class="cell label w10">PER OCCURRENCE</div>
+    <div class="cell label w15">DAMAGE TO RENTED PREMISES (each occurrence)</div>
+    <div class="cell w25 right num">$<%= data.limit_damageToPremises %></div>
+    <div class="cell w25"></div>
+  </div>
+  <div class="row">
+    <div class="cell w25"></div>
+    <div class="cell label w25">MEDICAL EXPENSE (Any one person)</div>
+    <div class="cell w25 right num">$<%= data.limit_medicalExpense %></div>
+    <div class="cell w25"></div>
+  </div>
+  <div class="row">
+    <div class="cell w25"></div>
+    <div class="cell label w25">EMPLOYEE BENEFITS</div>
+    <div class="cell w25 right num">$<%= data.limit_employeeBenefits %></div>
+    <div class="cell label w25">TOTAL</div>
+  </div>
+</div>
+
 
   <!-- OTHER COVERAGES -->
   <div class="block">
