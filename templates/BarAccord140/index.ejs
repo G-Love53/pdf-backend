@@ -261,25 +261,27 @@ function formatDate(d){
   <div class="subbar">PRODUCER / APPLICANT</div>
   <div class="block">
     <div class="row">
-      <div class="cell label w15">AGENCY</div>
-      <div class="cell w35">
-        <%= data.producerName %><br/>
-        <%= data.producerAddress1 %><br/>
-        <%= data.producerAddress2 %>
-      </div>
-      <div class="cell label w20">AGENCY CUSTOMER ID</div>
-      <div class="cell w15"><%= data.agencyCustomerId %></div>
-      <div class="cell label w15">DATE (MM/DD/YYYY)</div>
-      <div class="cell w15"><%= formatDate(data.date) %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w25">APPLICANT / FIRST NAMED INSURED</div>
-      <div class="cell w35"><%= data.applicant_name %></div>
-      <div class="cell label w10">CARRIER</div>
-      <div class="cell w15"><%= data.carrier %></div>
-      <div class="cell label w10">NAIC CODE</div>
-      <div class="cell w15"><%= data.naicCode %></div>
-    </div>
+  <div class="cell label w20">AGENCY</div>
+  <div class="cell w45">
+    <%= data.producerName %><br/>
+    <%= data.producerAddress1 %><br/>
+    <%= data.producerAddress2 %>
+  </div>
+  <div class="cell label w15">AGENCY CUSTOMER ID</div>
+  <div class="cell w10"><%= data.agencyCustomerId %></div>
+  <div class="cell label w5">DATE</div>
+  <div class="cell w5"><%= formatDate(data.date) %></div>
+</div>
+
+<div class="row">
+  <div class="cell label w25">APPLICANT / FIRST NAMED INSURED</div>
+  <div class="cell w45"><%= data.applicant_name %></div>
+  <div class="cell label w10">CARRIER</div>
+  <div class="cell w10"><%= data.carrier %></div>
+  <div class="cell label w5">NAIC</div>
+  <div class="cell w5"><%= data.naicCode %></div>
+</div>
+
     <div class="row">
       <div class="cell label w15">POLICY NUMBER</div>
       <div class="cell w25"><%= data.policyNumber %></div>
@@ -514,16 +516,15 @@ function formatDate(d){
       <div class="cell w15"><%= data.prot_class %></div>
     </div>
     <div class="row">
-      <div class="cell label w10">WIRING (YR)</div>
-      <div class="cell w10"><%= data.wiring_year %></div>
-      <div class="cell label w15">ROOFING (YR)</div>
-      <div class="cell w10"><%= data.roofing_year %></div>
-      <div class="cell label w15">PLUMBING (YR)</div>
-      <div class="cell w10"><%= data.plumbing_year %></div>
-      <div class="cell label w15">HEATING (YR)</div>
-      <div class="cell w10"><%= data.heating_year %></div>
-      <div class="cell w15"></div>
-    </div>
+  <div class="cell label w15">WIRING (YR)</div>
+  <div class="cell w10 right num"><%= data.wiring_year %></div>
+  <div class="cell label w15">ROOFING (YR)</div>
+  <div class="cell w10 right num"><%= data.roofing_year %></div>
+  <div class="cell label w15">PLUMBING (YR)</div>
+  <div class="cell w10 right num"><%= data.plumbing_year %></div>
+  <div class="cell label w15">HEATING (YR)</div>
+  <div class="cell w10 right num"><%= data.heating_year %></div>
+  </div>
   </div>
 
   <!-- PROTECTION / ALARMS -->
@@ -579,21 +580,20 @@ function formatDate(d){
   </div>
 
   <!-- ADDITIONAL PREMISES INFORMATION -->
-  <div class="subbar">ADDITIONAL PREMISES INFORMATION</div>
+<div class="subbar">ADDITIONAL PREMISES INFORMATION</div>
 <div class="block">
   <div class="row no-break">
-    <div class="cell w100 wrap">
+    <div class="cell w100 vstack no-hyphen">
       <div class="u-mb10 bold">Do you have a Smoker/Grill within 10 Feet of the Building?</div>
       <div class="u-mb5">Is the equipment Professionally Installed?</div>
-      <div class="u-mb5">Is it regularly maintained? Cleaned and Scraped weekly? Ashes Removed Daily? Vent/Exhaust system inspected &amp; cleaned monthly?</div>
-      <div class="u-mb5">Other than the days supply, do you store wood/pellets, etc more than 10ft away from the cooker?</div>
+      <div class="u-mb5">Is it regularly maintained? Cleaned and scraped weekly? Ashes removed daily? Vent/Exhaust system inspected &amp; cleaned monthly?</div>
+      <div class="u-mb5">Other than the days supply, do you store wood/pellets, etc. more than 10 ft away from the cooker?</div>
       <div class="u-mb5">Do you have a Hood System and UL 300 extinguishing system in place?</div>
-      <div class="u-mb5">Do you have a Class K or 2A fire extinguisher within 20ft of each cooker?</div>
+      <div class="u-mb5">Do you have a Class K or 2A fire extinguisher within 20 ft of each cooker?</div>
       <div class="u-mt10"><%= data.addl_premises_notes %></div>
     </div>
   </div>
 </div>
-
 
   <!-- ADDITIONAL INTEREST / CERTIFICATE RECIPIENT -->
   <div class="subbar">ADDITIONAL INTEREST / CERTIFICATE RECIPIENT</div>
@@ -623,18 +623,19 @@ function formatDate(d){
       <div class="cell w85"><%= data.interest_reference %></div>
     </div>
     <div class="row">
-      <div class="cell label w10">ITEM</div>
-      <div class="cell w50">
-        <span class="check"></span> LOCATION
-        <span class="check"></span> BUILDING
-        <span class="check"></span> VEHICLE
-        <span class="check"></span> BOAT
-      </div>
-      <div class="cell label w15">ITEM CLASS</div>
-      <div class="cell w10"><%= data.interest_item_class %></div>
-      <div class="cell label w15">ITEM DESCRIPTION</div>
-      <div class="cell w10"><%= data.interest_item_desc %></div>
-    </div>
+  <div class="cell label w10">ITEM</div>
+  <div class="cell w40">
+    <span class="check"></span> LOCATION
+    <span class="check"></span> BUILDING
+    <span class="check"></span> VEHICLE
+    <span class="check"></span> BOAT
+  </div>
+  <div class="cell label w15">ITEM CLASS</div>
+  <div class="cell w10"><%= data.interest_item_class %></div>
+  <div class="cell label w15">ITEM DESCRIPTION</div>
+  <div class="cell w10"><%= data.interest_item_desc %></div>
+</div>
+
   </div>
 
   <!-- REMARKS -->
