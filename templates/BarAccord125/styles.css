@@ -155,14 +155,26 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size:8pt; lin
 .num{ text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
 .no-break, .block .row.no-break, .headerbar, .subbar{ break-inside:avoid; page-break-inside:avoid; }
 
-.footnote{
-  position:absolute;
-  left:0.125in; right:0.125in; bottom:0.125in;
-  font-size:7pt; text-align:center;
-  border-top:1px solid #000;
-  padding-top:2pt;
-  height: 0.3in;   /* NEW: reserve consistent space */
+/* --- 125: lock footer + reserve space --- */
+.page{
+  position: relative;
+  /* reserve a little more room than the footer height */
+  padding-bottom: 0.55in;       /* was ~0.35in */
 }
+
+.footnote{
+  position: absolute;
+  left: 0.125in; right: 0.125in;
+  bottom: 0.125in;              /* keep inside printable area */
+  border-top: 1px solid #000;
+  padding-top: 2pt;
+  font-size: 7pt;
+  height: 0.30in;               /* fixed height so the space above is predictable */
+}
+
+/* if a long block sits just above the footer, don't split it */
+.no-break, .block, .row{ break-inside: avoid; page-break-inside: avoid; }
+
 
 
 /* --- Screen nicety --- */
