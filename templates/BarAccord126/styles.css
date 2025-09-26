@@ -221,6 +221,51 @@ body {
 /* --- Small text helper (use on busy rows/blocks) --- */
 .small { font-size: 6.8pt; line-height: 1.15; }
 
+/* ====== PATCH: print stability + off-grid width aliases + numeric util ====== */
+
+/* 1) Anchor footers so they don't drift */
+.page { position: relative; padding-bottom: 28pt; } /* reserve space for footer */
+.footnote {
+  position: absolute;
+  left: 0; right: 0; bottom: 6pt;
+  text-align: center;
+}
+
+/* 2) Keep legal/fraud blocks from splitting across pages */
+.legal, .legalese { 
+  break-inside: avoid; 
+  page-break-inside: avoid; 
+  -webkit-column-break-inside: avoid; 
+}
+
+/* 3) Numeric utility (use anywhere with money, counts, exposure, rates, premiums) */
+.num { 
+  text-align: right; 
+  white-space: nowrap; 
+  font-variant-numeric: tabular-nums; 
+}
+
+/* 4) Off-grid width aliases to avoid editing HTML spans
+   Your base utilities are in 5% (1-column) steps.
+   These aliases map common "w12 / w13" typos to valid 20-col spans.
+   - w12 ≈ 12%  -> span 2 columns (closest fit)
+   - w13 ≈ 13%  -> span 3 columns (closest fit)
+   This keeps rows summing to 20 without touching the templates.
+*/
+.w12 { grid-column: span 2; }  /* ≈10%+ */
+.w13 { grid-column: span 3; }  /* ≈15%- */
+
+/* (Optional, only if you find more off-grid widths in old templates)
+.w7  { grid-column: span 1; }
+.w8  { grid-column: span 2; }
+.w9  { grid-column: span 2; }
+.w11 { grid-column: span 2; }
+.w17 { grid-column: span 3; }
+.w18 { grid-column: span 4; }
+.w19 { grid-column: span 4; }
+*/
+
+
 
 
 /* ===== Legal/footer ===== */
