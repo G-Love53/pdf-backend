@@ -247,200 +247,6 @@ function formatDate(d){
   <title>BarAccord140 – Property Section</title>
   <style><%- styles %></style>
 </head>
-
-    @media print { 
-      @page { margin: 0.25in; size: letter; } 
-      .page { page-break-after: always; } 
-      .page:last-child{ page-break-after: auto; } 
-    }
-    * { box-sizing: border-box; margin:0; padding:0; }
-    body { 
-      font-family: Arial, sans-serif; 
-      font-size: 7.5pt; 
-      line-height:1.1; 
-      color:#000; 
-    }
-    .page { 
-      width:8in; 
-      min-height:10.5in; 
-      padding:0.125in; 
-      border:1px solid #ccc; 
-      position:relative; 
-      margin: 0 auto;
-    }
-    
-    /* ACORD Header */
-    .headerbar{ 
-      display:flex; 
-      border:2px solid #000; 
-      background:#fff; 
-      margin-bottom:2px; 
-      align-items:center; 
-      height:38px; 
-    }
-    .headerbar .acord { 
-      background:#000; 
-      color:#fff; 
-      font-weight:bold; 
-      font-size:14pt; 
-      width:80px; 
-      text-align:center; 
-      height:100%; 
-      display:flex; 
-      align-items:center; 
-      justify-content:center; 
-    }
-    .headerbar .title{ 
-      flex:1; 
-      font-weight:bold; 
-      font-size:11pt; 
-      text-align:center; 
-      padding:0 10px; 
-    }
-    .headerbar .formno { 
-      background:#000; 
-      color:#fff; 
-      font-weight:bold; 
-      font-size:14pt; 
-      width:60px; 
-      text-align:center; 
-      height:100%; 
-      display:flex; 
-      align-items:center; 
-      justify-content:center; 
-    }
-    
-    /* Section bars */
-    .subbar{ 
-      background:#000; 
-      color:#fff; 
-      font-weight:bold; 
-      font-size:8pt; 
-      padding:2px 8px; 
-      margin:2px 0; 
-      text-align:left; 
-    }
-    
-    /* Blocks and rows */
-    .block{ 
-      border:1px solid #000; 
-      margin-bottom:2px; 
-    }
-    .row{ 
-      display:flex; 
-      border-bottom:1px solid #000; 
-      min-height:16px; 
-    }
-    .row:last-child{ 
-      border-bottom:none; 
-    }
-    
-    /* Cells */
-    .cell{ 
-      border-right:1px solid #000; 
-      padding:1px 2px; 
-      display:flex; 
-      align-items:center; 
-      overflow:hidden;
-      font-size: 7pt;
-    }
-    .cell:last-child{ 
-      border-right:none; 
-    }
-    .cell.label{ 
-      background:#f0f0f0; 
-      font-weight:bold; 
-      font-size:6.5pt; 
-      white-space: nowrap;
-    }
-    .cell.center{ 
-      justify-content:center; 
-      text-align:center; 
-    }
-    .cell.right{ 
-      justify-content:flex-end; 
-      text-align:right; 
-    }
-    .cell.wrap{ 
-      flex-wrap:wrap; 
-      align-items:flex-start; 
-      white-space: pre-wrap;
-    }
-    .cell.small{ 
-      font-size:6.5pt; 
-    }
-    .cell.legal{ 
-      font-size:5.5pt; 
-      line-height:1.2; 
-    }
-    
-    /* Special table for Subject of Insurance */
-    .subject-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .subject-table th,
-    .subject-table td {
-      border: 1px solid #000;
-      padding: 1px 2px;
-      font-size: 6.5pt;
-      text-align: center;
-    }
-    .subject-table th {
-      background: #f0f0f0;
-      font-weight: bold;
-    }
-    .subject-table td:first-child {
-      text-align: left;
-      font-weight: bold;
-    }
-    
-    /* Checkboxes */
-    .check{ 
-      display:inline-block; 
-      width:9px; 
-      height:9px; 
-      border:1px solid #000; 
-      text-align:center; 
-      line-height:8px; 
-      font-size:7pt; 
-      margin-right:4px; 
-      vertical-align:middle; 
-    }
-    .check-xs{ 
-      width:8px; 
-      height:8px; 
-      font-size:6pt; 
-      line-height:6px; 
-    }
-    
-    /* Footer */
-    .footnote{ 
-      position:absolute; 
-      bottom:0.125in; 
-      left:0.125in; 
-      right:0.125in; 
-      font-size:6pt; 
-      border-top:1px solid #000; 
-      padding-top:2px; 
-      text-align:center; 
-    }
-    
-    /* Width utilities */
-    .w5{width:5%}.w6{width:6%}.w7{width:7%}.w8{width:8%}.w9{width:9%}.w10{width:10%}
-    .w12{width:12%}.w13{width:13%}.w14{width:14%}.w15{width:15%}.w18{width:18%}.w20{width:20%}
-    .w22{width:22%}.w25{width:25%}.w28{width:28%}.w30{width:30%}.w33{width:33%}.w35{width:35%}
-    .w40{width:40%}.w45{width:45%}.w50{width:50%}.w60{width:60%}.w65{width:65%}.w70{width:70%}
-    .w75{width:75%}.w80{width:80%}.w85{width:85%}.w90{width:90%}.w100{width:100%}
-    
-    @media screen{ 
-      .page{ 
-        margin-bottom:20px; 
-        box-shadow:0 0 10px rgba(0,0,0,.1);
-      } 
-    }
-  </style>
-</head>
 <body>
 
 <!-- ====================== PAGE 1 ====================== -->
@@ -509,28 +315,28 @@ function formatDate(d){
       <div class="cell w30"><%= data.prot_class %></div>
     </div>
     <div class="row">
-      <div class="cell label w10">EXPOSURE</div>
-      <div class="cell label w22 center">FRONT</div>
-      <div class="cell label w22 center">RIGHT</div>
-      <div class="cell label w22 center">LEFT</div>
-      <div class="cell label w24 center">REAR</div>
-    </div>
-    <div class="row">
-      <div class="cell label w10 small">ADJACENT / DISTANCE</div>
-      <div class="cell w22 center small">
-        <%= data.front_exposure %><% if(data.front_distance) { %> — <%= data.front_distance %> ft<% } %>
-      </div>
-      <div class="cell w22 center small">
-        <%= data.right_exposure %><% if(data.right_distance) { %> — <%= data.right_distance %> ft<% } %>
-      </div>
-      <div class="cell w22 center small">
-        <%= data.left_exposure %><% if(data.left_distance) { %> — <%= data.left_distance %> ft<% } %>
-      </div>
-      <div class="cell w24 center small">
-        <%= data.rear_exposure %><% if(data.rear_distance) { %> — <%= data.rear_distance %> ft<% } %>
-      </div>
-    </div>
+  <div class="cell label w20">EXPOSURE</div>
+  <div class="cell label w20 center">FRONT</div>
+  <div class="cell label w20 center">RIGHT</div>
+  <div class="cell label w20 center">LEFT</div>
+  <div class="cell label w20 center">REAR</div>
+</div>
+<div class="row">
+  <div class="cell label w20 small">ADJACENT / DISTANCE</div>
+  <div class="cell w20 center small">
+    <%= data.front_exposure %><% if(data.front_distance){ %> — <%= data.front_distance %> ft<% } %>
   </div>
+  <div class="cell w20 center small">
+    <%= data.right_exposure %><% if(data.right_distance){ %> — <%= data.right_distance %> ft<% } %>
+  </div>
+  <div class="cell w20 center small">
+    <%= data.left_exposure %><% if(data.left_distance){ %> — <%= data.left_distance %> ft<% } %>
+  </div>
+  <div class="cell w20 center small">
+    <%= data.rear_exposure %><% if(data.rear_distance){ %> — <%= data.rear_distance %> ft<% } %>
+  </div>
+</div>
+
 
   <!-- SUBJECT OF INSURANCE (20-col; two-row per item for clean fit) -->
 <div class="subbar">SUBJECT OF INSURANCE</div>
@@ -774,19 +580,20 @@ function formatDate(d){
 
   <!-- ADDITIONAL PREMISES INFORMATION -->
   <div class="subbar">ADDITIONAL PREMISES INFORMATION</div>
-  <div class="block">
-    <div class="row" style="min-height:100px;">
-      <div class="cell w100 wrap">
-        <div style="margin-bottom:10px;font-weight:bold;">Do you have a Smoker/Grill within 10 Feet of the Building?</div>
-        <div style="margin-bottom:5px;">Is the equipment Professionally Installed?</div>
-        <div style="margin-bottom:5px;">Is it regularly maintained? Cleaned and Scraped weekly? Ashes Removed Daily? Vent/Exhaust system inspected & cleaned monthly?</div>
-        <div style="margin-bottom:5px;">Other than the days supply, Do you store wood/pellets, etc more than 10ft away from the cooker?</div>
-        <div style="margin-bottom:5px;">Do you have a Hood System and UL 300 extinguishing system in place?</div>
-        <div style="margin-bottom:5px;">Do you have a Class K or 2A fire extinguisher within 20ft of each cooker?</div>
-        <div style="margin-top:10px;"><%= data.addl_premises_notes %></div>
-      </div>
+<div class="block">
+  <div class="row no-break">
+    <div class="cell w100 wrap">
+      <div class="u-mb10 bold">Do you have a Smoker/Grill within 10 Feet of the Building?</div>
+      <div class="u-mb5">Is the equipment Professionally Installed?</div>
+      <div class="u-mb5">Is it regularly maintained? Cleaned and Scraped weekly? Ashes Removed Daily? Vent/Exhaust system inspected &amp; cleaned monthly?</div>
+      <div class="u-mb5">Other than the days supply, do you store wood/pellets, etc more than 10ft away from the cooker?</div>
+      <div class="u-mb5">Do you have a Hood System and UL 300 extinguishing system in place?</div>
+      <div class="u-mb5">Do you have a Class K or 2A fire extinguisher within 20ft of each cooker?</div>
+      <div class="u-mt10"><%= data.addl_premises_notes %></div>
     </div>
   </div>
+</div>
+
 
   <!-- ADDITIONAL INTEREST / CERTIFICATE RECIPIENT -->
   <div class="subbar">ADDITIONAL INTEREST / CERTIFICATE RECIPIENT</div>
@@ -842,16 +649,6 @@ function formatDate(d){
     ACORD 140 (Bar Layout) &nbsp;&nbsp;&nbsp; Page 2 of 3
   </div>
 </div>
-
-<!-- examples -->
-<div class="cell label w20">TOTAL AREA (SQ FT)</div>
-<div class="cell w15 right num"><%= data.total_area %></div>
-
-<div class="cell label w10">YEAR BUILT</div>
-<div class="cell w10 right num"><%= data.year_built %></div>
-
-<div class="cell label w10"># OF STORIES</div>
-<div class="cell w10 right num"><%= data.num_stories %></div>
 
 
 <!-- ====================== PAGE 3 ====================== -->
