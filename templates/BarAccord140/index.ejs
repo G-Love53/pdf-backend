@@ -270,7 +270,7 @@ function formatDate(d){
   <div class="cell label w15">AGENCY CUSTOMER ID</div>
   <div class="cell w10"><%= data.agencyCustomerId %></div>
   <div class="cell label w5">DATE</div>
-  <div class="cell w5"><%= formatDate(data.date) %></div>
+  <div class="cell w5 right num"><%= formatDate(data.date) %></div>
 </div>
 
 <div class="row">
@@ -654,14 +654,14 @@ function formatDate(d){
       </div>
     </div>
     <div class="row">
-      <div class="cell label w20">NAME AND ADDRESS</div>
-      <div class="cell w40"><%= data.interest_name %></div>
-      <div class="cell label w10">RANK</div>
-      <div class="cell w10"><%= data.interest_rank %></div>
-      <div class="cell label w10">EVIDENCE</div>
-      <div class="cell w10">
-        <span class="check"></span> CERTIFICATE
-      </div>
+  <div class="cell label w20">NAME AND ADDRESS</div>
+  <div class="cell w45 wrap"><%= data.interest_name %></div>
+  <div class="cell label w10">RANK</div>
+  <div class="cell w10"><%= data.interest_rank %></div>
+  <div class="cell label w5">EVIDENCE</div>
+  <div class="cell w10"><span class="check"></span> <span class="nowrap">CERTIFICATE</span></div>
+</div>
+
     </div>
     <div class="row">
       <div class="cell label w15">REFERENCE / LOAN #</div>
@@ -669,17 +669,18 @@ function formatDate(d){
     </div>
     <div class="row">
   <div class="cell label w10">ITEM</div>
-  <div class="cell w40">
-    <span class="check"></span> LOCATION
-    <span class="check"></span> BUILDING
-    <span class="check"></span> VEHICLE
-    <span class="check"></span> BOAT
+  <div class="cell w45">
+    <span class="check"></span> <span class="nowrap">LOCATION</span>
+    <span class="check"></span> <span class="nowrap">BUILDING</span>
+    <span class="check"></span> <span class="nowrap">VEHICLE</span>
+    <span class="check"></span> <span class="nowrap">BOAT</span>
   </div>
   <div class="cell label w15">ITEM CLASS</div>
   <div class="cell w10"><%= data.interest_item_class %></div>
-  <div class="cell label w15">ITEM DESCRIPTION</div>
+  <div class="cell label w10">ITEM DESC</div>
   <div class="cell w10"><%= data.interest_item_desc %></div>
 </div>
+
 
   </div>
 
