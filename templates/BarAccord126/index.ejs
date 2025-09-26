@@ -212,44 +212,44 @@ const firstInterest = (() => {
   <!-- COVERAGES / LIMITS -->
 <div class="subbar">COVERAGES / LIMITS</div>
 <div class="block coverages">
-  <div class="row">
-    <div class="cell w25">
-      <span class="check">X</span> COMMERCIAL GENERAL LIABILITY
-    </div>
-    <div class="cell label w25">GENERAL AGGREGATE</div>
-    <div class="cell w25 right num">$<%= data.limit_generalAggregate %></div>
-    <div class="cell label w25">PREMIUMS</div>
+  <div class="row limits-inline">
+  <div class="cell w25">
+    <span class="check">X</span> COMMERCIAL GENERAL LIABILITY
   </div>
+  <div class="cell label w25">GENERAL AGGREGATE</div>
+  <div class="cell w25 right num">$<%= data.limit_generalAggregate %></div>
+  <div class="cell label w25">PREMIUMS</div>
+</div>
   <div class="row limits-inline">
     <div class="cell w10">
   <span class="inline-choices">
     <span class="opt"><span class="check"><%= data.gl_form === "CLAIMS_MADE" ? "X" : "" %></span>CLAIMS MADE</span>
   </span>
 </div>
-<div class="cell w15">
-  <span class="inline-choices">
-    <span class="opt"><span class="check"><%= data.gl_form === "OCCURRENCE" ? "X" : "" %></span>OCCURRENCE</span>
-  </span>
-</div>
-    <div class="cell label w25">LIMIT APPLIES PER:</div>
-    <div class="cell w25">
-  <span class="inline-choices">
-    <span class="opt"><span class="check">X</span>POLICY</span>
-    <span class="opt"><span class="check"></span>LOCATION</span>
-    <span class="opt"><span class="check"></span>PROJECT</span>
-  </span>
-</div>
-    <div class="cell label w25">PREMISES/OPERATIONS</div>
+<div class="row limits-inline">
+  <div class="cell w10">
+    <span class="check"><%= data.gl_form === "CLAIMS_MADE" ? "X" : "" %></span> CLAIMS MADE
   </div>
-  <div class="row">
-    <div class="cell w25">
-      <span class="check"><%= yes(data.ownersContractorsProtective) ? "X" : "" %></span> OWNER'S & CONTRACTOR'S PROTECTIVE
-    </div>
-    <div class="cell w25"></div>
-    <div class="cell label w10">OTHER:</div>
-    <div class="cell w15"></div>
-    <div class="cell label w25"></div>
+  <div class="cell w15">
+    <span class="check"><%= data.gl_form === "OCCURRENCE" ? "X" : "" %></span> OCCURRENCE
   </div>
+  <div class="cell label w25">LIMIT APPLIES PER:</div>
+  <div class="cell w25">
+    <span class="check">X</span> POLICY
+    <span class="check"></span> LOCATION
+    <span class="check"></span> PROJECT
+  </div>
+  <div class="cell label w25">PREMISES/OPERATIONS</div>
+</div>
+  <div class="row limits-inline">
+  <div class="cell w25">
+    <span class="check"><%= yes(data.ownersContractorsProtective) ? "X" : "" %></span> OWNER'S & CONTRACTOR'S PROTECTIVE
+  </div>
+  <div class="cell w25"></div>
+  <div class="cell label w10">OTHER:</div>
+  <div class="cell w15"></div>
+  <div class="cell label w25"></div>
+</div>
   <div class="row">
     <div class="cell w25"></div>
     <div class="cell label w25">PRODUCTS & COMPLETED OPERATIONS AGGREGATE</div>
