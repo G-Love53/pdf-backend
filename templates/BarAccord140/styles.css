@@ -1,92 +1,57 @@
-/* === Base / Print === */
-@page { size: Letter; margin: 0.5in; }  /* single source of truth for margins */
-.page { width: 7.5in; margin: 0 auto; } /* 8.5 - 0.5 - 0.5 = 7.5in content width */
+/* ===== ACORD Print-Fidelity (20-col) – shared baseline ===== */
 
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; color: #222; }
+/* Page + footer lock */
+@page { size: Letter; margin: 0.5in; }
+.page { width: 100%; margin: 0; position: relative; }
+.footnote {
+  position: absolute; left: 0; right: 0; bottom: 6pt;
+  text-align: center; font-size: 6.6pt; border-top: 1pt solid #000; padding-top: 2pt;
+}
+
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; line-height: 1.15; }
 .page { page-break-after: always; }
 .page:last-child { page-break-after: auto; }
-.right { text-align: right; }
 
-/* === Header Bars === */
+/* Header bar (black/white ACORD) */
 .headerbar {
-  display: grid;
-  grid-template-columns: 80px 1fr 80px;
-  align-items: center;
-  gap: 12px;
-  background: #0e5ba6;
-  color: #fff;
-  padding: 10px 12px;
-  border-radius: 6px;
-  margin-bottom: 10px;
+  display: grid; grid-template-columns: .95in 1fr .65in; align-items: center;
+  border: 2pt solid #000; background:#fff; margin-bottom: 6pt;
 }
-.headerbar .acord { font-weight: 700; font-size: 18px; letter-spacing: 1px; }
-.headerbar .title { font-weight: 700; font-size: 16px; text-align: center; }
-.headerbar .formno { font-weight: 700; font-size: 16px; text-align: right; }
+.headerbar .acord { font-weight: 800; font-size: 12pt; text-align:center; border-right:1pt solid #000; padding: 4pt 0; background:#000; color:#fff; }
+.headerbar .title { font-weight:700; letter-spacing:.3pt; text-align:center; font-size:11pt; padding: 2pt; }
+.headerbar .formno{ font-weight:700; font-size:11pt; text-align:center; border-left:1pt solid #000; padding:2pt 0; background:#000; color:#fff; }
 
-.subbar {
-  background: #eaf3ff;
-  color: #0e5ba6;
-  border: 1px solid #cfe2ff;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-weight: 700;
-  margin: 14px 0 6px;
-}
+/* Section title bar */
+.subbar { background:#e6e6e6; border:1pt solid #000; padding:4pt 6pt; font-weight:700; font-size:8pt; margin:8pt 0 4pt; }
 
-/* === Blocks / Rows / Cells === */
-.block {
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 8px 8px 4px;
-}
-.row {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 6px;
-  align-items: center;
-  margin-bottom: 6px;
-}
-.cell {
-  border: 1px solid #eee;
-  border-radius: 4px;
-  padding: 6px 8px;
-  min-height: 28px;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  word-break: break-word;
-}
-.label {
-  background: #fafafa;
-  color: #444;
-  font-weight: 700;
-}
+/* Boxed blocks */
+.block { border:1pt solid #000; border-top:none; }
+.block .row { display:grid; grid-template-columns: repeat(20, minmax(0,1fr)); border-top:1pt solid #000; }
+.block .row:first-child { border-top:none; }
 
-/* === Width Helpers (12-col grid) === */
-.w10{grid-column:span 1}.w15{grid-column:span 2}.w20{grid-column:span 3}
-.w25{grid-column:span 3}.w30{grid-column:span 4}.w33{grid-column:span 4}
-.w40{grid-column:span 5}.w45{grid-column:span 6}.w50{grid-column:span 6}
-.w55{grid-column:span 7}.w60{grid-column:span 8}.w65{grid-column:span 8}
-.w70{grid-column:span 9}.w75{grid-column:span 9}.w80{grid-column:span 10}
-.w90{grid-column:span 11}.w100{grid-column:span 12}
+.cell { padding:3pt 4pt; border-left:1pt solid #000; min-height:14pt; display:flex; align-items:center; overflow:hidden; word-break: break-word; }
+.cell:first-child { border-left:none; }
 
-/* === Small UI Bits === */
-.check { display:inline-block; width:16px; text-align:center; font-weight:700; }
+.label { background:#f5f5f5; font-weight:700; font-size:6.7pt; letter-spacing:.15pt; white-space:nowrap; }
 
-/* === Tables (if used) === */
-.table { width: 100%; border-collapse: collapse; margin: 6px 0; }
-.table th, .table td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
-.table th { background: #f5f7fa; font-weight: 700; }
+/* Utilities */
+.right{ text-align:right; } .center{ text-align:center; } .nowrap{ white-space:nowrap; }
+.wrap{ white-space:normal; overflow-wrap:anywhere; word-break: break-word; hyphens:auto; }
+.small{ font-size:6.7pt; line-height:1.15; }
+.num { text-align:right; white-space:nowrap; font-variant-numeric: tabular-nums; }
 
-/* === Legal / Notes === */
-.legal { font-size: 11px; line-height: 1.35; color: #444; }
+/* Width helpers (20-col grid) */
+.w5{grid-column:span 1}.w10{grid-column:span 2}.w15{grid-column:span 3}.w20{grid-column:span 4}.w25{grid-column:span 5}
+.w30{grid-column:span 6}.w35{grid-column:span 7}.w40{grid-column:span 8}.w45{grid-column:span 9}.w50{grid-column:span 10}
+.w55{grid-column:span 11}.w60{grid-column:span 12}.w65{grid-column:span 13}.w70{grid-column:span 14}.w75{grid-column:span 15}
+.w80{grid-column:span 16}.w85{grid-column:span 17}.w90{grid-column:span 18}.w95{grid-column:span 19}.w100{grid-column:span 20}
 
-/* === Pagebreak utility === */
-.pagebreak { page-break-before: always; }
+/* Checkboxes */
+.check{ display:inline-block; width:11pt; height:11pt; line-height:11pt; border:1pt solid #000; text-align:center; font-weight:700; font-size:9pt; margin:0 6pt; vertical-align:middle; }
 
-/* === Print polish === */
-@media print {
-  .headerbar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .subbar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-}
+/* Fraud notices – compact, no grid chrome, won’t split */
+.fraud { border:1pt solid #000; padding:6pt; font-size:6.6pt; line-height:1.22; }
+.fraud p{ margin:0 0 6pt 0; } .fraud p:last-child{ margin-bottom:0; }
+.fraud, .legal { break-inside: avoid; page-break-inside: avoid; }
+.fraud.start-new-page { break-before: page; page-break-before: always; }
