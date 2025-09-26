@@ -419,93 +419,98 @@ const firstInterest = (() => {
   </div>
 
   <!-- EMPLOYEE BENEFITS LIABILITY -->
-  <div class="subbar">EMPLOYEE BENEFITS LIABILITY</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w25">1. DEDUCTIBLE PER CLAIM</div>
-      <div class="cell w25 right">$<%= data.ebl_deductiblePerClaim %></div>
-      <div class="cell label w25">3. NUMBER OF EMPLOYEES COVERED BY EMPLOYEE BENEFITS PLANS</div>
-      <div class="cell w25 right"><%= data.ebl_numEmployeesCovered %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w25">2. NUMBER OF EMPLOYEES</div>
-      <div class="cell w25 right"><%= data.ebl_numEmployees %></div>
-      <div class="cell label w25">4. RETROACTIVE DATE</div>
-      <div class="cell w25"><%= formatDate(data.ebl_retroDate) %></div>
-    </div>
+<div class="subbar">EMPLOYEE BENEFITS LIABILITY</div>
+<div class="block">
+  <div class="row">
+    <div class="cell label w25">1. DEDUCTIBLE PER CLAIM</div>
+    <div class="cell w25 right num">$<%= data.ebl_deductiblePerClaim %></div>
+    <div class="cell label w25">3. NUMBER OF EMPLOYEES COVERED BY EMPLOYEE BENEFITS PLANS</div>
+    <div class="cell w25 right num"><%= data.ebl_numEmployeesCovered %></div>
   </div>
+  <div class="row">
+    <div class="cell label w25">2. NUMBER OF EMPLOYEES</div>
+    <div class="cell w25 right num"><%= data.ebl_numEmployees %></div>
+    <div class="cell label w25">4. RETROACTIVE DATE</div>
+    <div class="cell w25"><%= formatDate(data.ebl_retroDate) %></div>
+  </div>
+</div>
+
 
   <!-- CONTRACTORS -->
-  <div class="subbar">CONTRACTORS</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w95 small">EXPLAIN ALL "YES" RESPONSES (For all past or present operations)</div>
-      <div class="cell label w5 center small">Y/N</div>
-    </div>
-    <div class="row">
-      <div class="cell w95 small">1. DOES APPLICANT DRAW PLANS, DESIGNS, OR SPECIFICATIONS FOR OTHERS?</div>
-      <div class="cell w5 center"><%= yn(data.c_drawPlansDesigns) %></div>
-    </div>
-    <div class="row">
-      <div class="cell w95 small">2. DO ANY OPERATIONS INCLUDE BLASTING OR UTILIZE OR STORE EXPLOSIVE MATERIAL?</div>
-      <div class="cell w5 center"><%= yn(data.c_blastingExplosives) %></div>
-    </div>
-    <div class="row">
-      <div class="cell w95 small">3. DO ANY OPERATIONS INCLUDE EXCAVATION, TUNNELING, UNDERGROUND WORK OR EARTH MOVING?</div>
-      <div class="cell w5 center"><%= yn(data.c_excavationTunneling) %></div>
-    </div>
-    <div class="row">
-      <div class="cell w95 small">4. DO YOUR SUBCONTRACTORS CARRY COVERAGES OR LIMITS LESS THAN YOURS?</div>
-      <div class="cell w5 center"><%= yn(data.c_subsLowerLimits) %></div>
-    </div>
-    <div class="row">
-      <div class="cell w95 small">5. ARE SUBCONTRACTORS ALLOWED TO WORK WITHOUT PROVIDING YOU WITH A CERTIFICATE OF INSURANCE?</div>
-      <div class="cell w5 center"><%= yn(data.c_subsWithoutCOI) %></div>
-    </div>
-    <div class="row">
-      <div class="cell w95 small">6. DOES APPLICANT LEASE EQUIPMENT TO OTHERS WITH OR WITHOUT OPERATORS?</div>
-      <div class="cell w5 center"><%= yn(data.c_leaseEquipToOthers) %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w15 small"># FULL-TIME STAFF</div>
-      <div class="cell w10 center"><%= data.c_fullTimeStaff %></div>
-      <div class="cell label w15 small"># PART-TIME STAFF</div>
-      <div class="cell w10 center"><%= data.c_partTimeStaff %></div>
-      <div class="cell label w20 small">% OF WORK SUBCONTRACTED</div>
-      <div class="cell w10 center"><%= data.c_percentSubcontracted %></div>
-      <div class="cell label w10 small">$ PAID TO SUB-CONTRACTORS</div>
-      <div class="cell w10 right">$<%= money(data.c_paidToSubs) %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w30 small">DESCRIBE THE TYPE OF WORK SUBCONTRACTED</div>
-      <div class="cell w70 wrap"><%= data.c_typeOfWorkSubcontracted %></div>
-    </div>
+<div class="subbar">CONTRACTORS</div>
+<div class="block">
+  <div class="row">
+    <div class="cell label w95 small">EXPLAIN ALL "YES" RESPONSES (For all past or present operations)</div>
+    <div class="cell label w5 center small">Y/N</div>
+  </div>
+  <div class="row">
+    <div class="cell w95 small">1. DOES APPLICANT DRAW PLANS, DESIGNS, OR SPECIFICATIONS FOR OTHERS?</div>
+    <div class="cell w5 center"><%= yn(data.c_drawPlansDesigns) %></div>
+  </div>
+  <div class="row">
+    <div class="cell w95 small">2. DO ANY OPERATIONS INCLUDE BLASTING OR UTILIZE OR STORE EXPLOSIVE MATERIAL?</div>
+    <div class="cell w5 center"><%= yn(data.c_blastingExplosives) %></div>
+  </div>
+  <div class="row">
+    <div class="cell w95 small">3. DO ANY OPERATIONS INCLUDE EXCAVATION, TUNNELING, UNDERGROUND WORK OR EARTH MOVING?</div>
+    <div class="cell w5 center"><%= yn(data.c_excavationTunneling) %></div>
+  </div>
+  <div class="row">
+    <div class="cell w95 small">4. DO YOUR SUBCONTRACTORS CARRY COVERAGES OR LIMITS LESS THAN YOURS?</div>
+    <div class="cell w5 center"><%= yn(data.c_subsLowerLimits) %></div>
+  </div>
+  <div class="row">
+    <div class="cell w95 small">5. ARE SUBCONTRACTORS ALLOWED TO WORK WITHOUT PROVIDING YOU WITH A CERTIFICATE OF INSURANCE?</div>
+    <div class="cell w5 center"><%= yn(data.c_subsWithoutCOI) %></div>
+  </div>
+  <div class="row">
+    <div class="cell w95 small">6. DOES APPLICANT LEASE EQUIPMENT TO OTHERS WITH OR WITHOUT OPERATORS?</div>
+    <div class="cell w5 center"><%= yn(data.c_leaseEquipToOthers) %></div>
   </div>
 
-  <!-- PRODUCTS / COMPLETED OPERATIONS -->
-  <div class="subbar">PRODUCTS / COMPLETED OPERATIONS</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w20 center small">PRODUCTS</div>
-      <div class="cell label w15 center small">ANNUAL GROSS SALES</div>
-      <div class="cell label w10 center small"># OF UNITS</div>
-      <div class="cell label w10 center small">TIME IN MARKET</div>
-      <div class="cell label w15 center small">EXPECTED LIFE</div>
-      <div class="cell label w15 center small">INTENDED USE</div>
-      <div class="cell label w15 center small">PRINCIPAL COMPONENTS</div>
-    </div>
-    <% (Array.isArray(data.products)?data.products:[]).forEach(function(p){ %>
-    <div class="row">
-      <div class="cell w20 wrap"><%= p.name || "" %></div>
-      <div class="cell w15 right">$<%= money(p.annualGrossSales) %></div>
-      <div class="cell w10 right"><%= p.units || "" %></div>
-      <div class="cell w10 center"><%= p.timeInMarket || "" %></div>
-      <div class="cell w15 center"><%= p.lifeExpected || "" %></div>
-      <div class="cell w15 wrap"><%= p.intendedUse || "" %></div>
-      <div class="cell w15 wrap"><%= p.principalComponents || "" %></div>
-    </div>
-    <% }) %>
+  <div class="row">
+    <div class="cell label w15 small"># FULL-TIME STAFF</div>
+    <div class="cell w10 center num"><%= data.c_fullTimeStaff %></div>
+    <div class="cell label w15 small"># PART-TIME STAFF</div>
+    <div class="cell w10 center num"><%= data.c_partTimeStaff %></div>
+    <div class="cell label w20 small">% OF WORK SUBCONTRACTED</div>
+    <div class="cell w10 center num"><%= data.c_percentSubcontracted %></div>
+    <div class="cell label w10 small">$ PAID TO SUB-CONTRACTORS</div>
+    <div class="cell w10 right num">$<%= money(data.c_paidToSubs) %></div>
   </div>
+
+  <div class="row">
+    <div class="cell label w30 small">DESCRIBE THE TYPE OF WORK SUBCONTRACTED</div>
+    <div class="cell w70 wrap"><%= data.c_typeOfWorkSubcontracted %></div>
+  </div>
+</div>
+
+
+  <!-- PRODUCTS / COMPLETED OPERATIONS -->
+<div class="subbar">PRODUCTS / COMPLETED OPERATIONS</div>
+<div class="block">
+  <div class="row">
+    <div class="cell label w20 center small">PRODUCTS</div>
+    <div class="cell label w15 center small">ANNUAL GROSS SALES</div>
+    <div class="cell label w10 center small"># OF UNITS</div>
+    <div class="cell label w10 center small">TIME IN MARKET</div>
+    <div class="cell label w15 center small">EXPECTED LIFE</div>
+    <div class="cell label w15 center small">INTENDED USE</div>
+    <div class="cell label w15 center small">PRINCIPAL COMPONENTS</div>
+  </div>
+  <% (Array.isArray(data.products)?data.products:[]).forEach(function(p){ %>
+  <div class="row">
+    <div class="cell w20 wrap"><%= p.name || "" %></div>
+    <div class="cell w15 right num">$<%= money(p.annualGrossSales) %></div>
+    <div class="cell w10 right num"><%= p.units || "" %></div>
+    <div class="cell w10 center"><%= p.timeInMarket || "" %></div>
+    <div class="cell w15 center"><%= p.lifeExpected || "" %></div>
+    <div class="cell w15 wrap"><%= p.intendedUse || "" %></div>
+    <div class="cell w15 wrap"><%= p.principalComponents || "" %></div>
+  </div>
+  <% }) %>
+</div>
+
 
   <div class="footnote">
     ACORD 126 (2016/09) &nbsp;&nbsp;&nbsp; Page 2 of 4 &nbsp;&nbsp;&nbsp; © 1993-2016 ACORD CORPORATION. All rights reserved.
