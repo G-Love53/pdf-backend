@@ -510,6 +510,36 @@ const firstInterest = (() => {
   </div>
   <% }) %>
 </div>
+<div class="block">
+  <!-- Header -->
+  <div class="row small">
+    <div class="cell label w20 center">PRODUCTS</div>
+    <div class="cell label w15 center">ANNUAL GROSS SALES</div>
+    <div class="cell label w10 center"># OF UNITS</div>
+    <div class="cell label w10 center">TIME IN MARKET</div>
+    <div class="cell label w10 center">EXPECTED LIFE</div>
+    <div class="cell label w15 center">INTENDED USE</div>
+    <div class="cell label w20 center">PRINCIPAL COMPONENTS</div>
+  </div>
+
+  <% 
+    // render 5 empty rows unless data.products exists
+    const prods = Array.isArray(data.productsCompletedOps) ? data.productsCompletedOps : [];
+    const rows = prods.length ? prods : Array.from({length:5},()=>({}));
+    rows.forEach(function(P){ 
+  %>
+    <div class="row tight">
+      <div class="cell w20 wrap"><%= P.product || "" %></div>
+      <div class="cell w15 right num"><%= P.annualGrossSales || "" %></div>
+      <div class="cell w10 center"><%= P.units || "" %></div>
+      <div class="cell w10 center"><%= P.timeInMarket || "" %></div>
+      <div class="cell w10 center"><%= P.expectedLife || "" %></div>
+      <div class="cell w15 wrap"><%= P.intendedUse || "" %></div>
+      <div class="cell w20 wrap"><%= P.principalComponents || "" %></div>
+    </div>
+  <% }) %>
+</div>
+
 
 
   <div class="footnote">
