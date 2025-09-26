@@ -341,3 +341,9 @@ body {
 .row.limits-inline .cell { white-space: nowrap; }            /* no wrapping inside any cell in that row */
 .row.limits-inline .cell.wrap { white-space: normal; }       /* (safety: if you ever mark a cell .wrap) */
 
+/* --- Inline titles for stacked limit rows --- */
+.limits-inline .cell.label {
+  font-size: 6.2pt;       /* just a touch smaller */
+  line-height: 1.1;       /* tighter lines */
+  white-space: nowrap;    /* keep phrases on one line */
+}
