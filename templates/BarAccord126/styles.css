@@ -311,3 +311,10 @@ body {
   .page { page-break-after: always; }
   .page:last-child { page-break-after: auto; }
 }
+/* --- 126: stop long captions from crashing into fields --- */
+.label{ white-space: normal; }          /* allow wrap inside label cells */
+.label.nowrap{ white-space: nowrap; }   /* opt-in if any single caption must not wrap */
+
+/* Densify only the busy rows where captions wrap */
+.tight .cell{ padding:2pt 3pt; min-height:12pt; line-height:1.1; }
+
