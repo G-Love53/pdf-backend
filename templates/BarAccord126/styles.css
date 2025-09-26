@@ -318,3 +318,16 @@ body {
 /* Densify only the busy rows where captions wrap */
 .tight .cell{ padding:2pt 3pt; min-height:12pt; line-height:1.1; }
 
+/* --- 126: keep words intact in COVERAGES/LIMITS grid --- */
+.coverages .cell,
+.coverages .label {
+  overflow-wrap: normal;   /* no emergency breaks */
+  word-break: normal;      /* don't split inside words */
+  hyphens: none;           /* no auto-hyphenation */
+}
+
+/* a touch tighter so captions fit without breaking weirdly */
+.coverages .cell { padding: 2pt 3pt; }
+
+/* slightly smaller labels just in this grid */
+.coverages .label { font-size: 6.6pt; }
