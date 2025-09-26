@@ -54,6 +54,27 @@ body { font-family: Arial, Helvetica, sans-serif; color:#000; font-size:8pt; lin
   margin:0 0 2pt 0; 
 }
 
+/* Every row = 20-column grid (this is the missing piece) */
+.block .row{
+  display:grid;
+  grid-template-columns: repeat(20, 1fr);
+  border-top:1pt solid #000;
+}
+.block .row:first-child{ border-top:none; }
+
+/* Cells stay flex for vertical centering — leave as-is */
+.cell{
+  display:flex;
+  align-items:center;
+  padding:3pt 4pt;
+  min-height:14pt;
+  border-left:1pt solid #000;
+  overflow-wrap: break-word;
+  background:transparent;
+}
+.cell:first-child{ border-left:none; }
+
+
 /* Default: all rows are 20-col grid */
 .block .row {
   display: grid;
