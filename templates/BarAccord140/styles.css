@@ -1,12 +1,32 @@
 /* ===== ACORD Print-Fidelity (20-col) – shared baseline ===== */
 
-/* Page + footer lock */
+/* --- Page + footer lock (ACORD-140) --- */
 @page { size: Letter; margin: 0.35in; }
-.page { width: 100%; margin: 0; position: relative; }
-.footnote {
-  position: absolute; left: 0; right: 0; bottom: 6pt;
-  text-align: center; font-size: 6.6pt; border-top: 1pt solid #000; padding-top: 2pt;
+
+.page{
+  width:100%;
+  margin:0;
+  position:relative;
+  padding:0.125in;            /* top/right/left */
+  padding-bottom:26pt;        /* reserve space for footer (exact) */
+  page-break-after: always;
 }
+.page:last-child{ page-break-after: auto; }
+
+.footnote{
+  position:absolute;
+  left:0.125in;
+  right:0.125in;
+  bottom:0.125in;
+  font-size:6.6pt;
+  text-align:center;
+  border-top:1pt solid #000;
+  padding-top:2pt;
+}
+
+/* hard page break utility */
+.pagebreak{ break-before: page; page-break-before: always; }
+
 
 * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 html, body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; color:#000; font-size: 8pt; line-height: 1.15; }
