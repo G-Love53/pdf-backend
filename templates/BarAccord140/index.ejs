@@ -244,9 +244,10 @@ function formatDate(d){
 <html>
 <head>
   <meta charset="utf-8"/>
-  <title>ACORD 140 - Property Section</title>
-  <style>
-    /* ACORD 140 Specific Styles - Exact Match */
+  <title>BarAccord140 – Property Section</title>
+  <style><%- styles %></style>
+</head>
+
     @media print { 
       @page { margin: 0.25in; size: letter; } 
       .page { page-break-after: always; } 
@@ -531,78 +532,92 @@ function formatDate(d){
     </div>
   </div>
 
-  <!-- SUBJECT OF INSURANCE -->
-  <div class="subbar">SUBJECT OF INSURANCE</div>
-  <div class="block" style="padding:0;">
-    <table class="subject-table">
-      <thead>
-        <tr>
-          <th style="width:18%">SUBJECT</th>
-          <th style="width:12%">AMOUNT</th>
-          <th style="width:9%">VALUATION</th>
-          <th style="width:8%">CO-INS</th>
-          <th style="width:11%">CAUSE OF LOSS</th>
-          <th style="width:9%">DED</th>
-          <th style="width:9%">PREMIUM</th>
-          <th style="width:8%">BLKT #</th>
-          <th style="width:8%">INFL %</th>
-          <th style="width:8%">TYPE OF DED</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>BUILDING</td>
-          <td class="right">$<%= money(data.building_amount) %></td>
-          <td><%= data.building_valuation %></td>
-          <td><%= data.building_coins %></td>
-          <td><%= data.building_causes %></td>
-          <td><%= data.building_ded %></td>
-          <td class="right"><%= data.building_premium %></td>
-          <td><%= data.building_blkt %></td>
-          <td><%= data.building_infl %></td>
-          <td><%= data.building_ded_type %></td>
-        </tr>
-        <tr>
-          <td>BUSINESS PERSONAL PROPERTY</td>
-          <td class="right">$<%= money(data.bpp_amount) %></td>
-          <td><%= data.bpp_valuation %></td>
-          <td><%= data.bpp_coins %></td>
-          <td><%= data.bpp_causes %></td>
-          <td><%= data.bpp_ded %></td>
-          <td class="right"><%= data.bpp_premium %></td>
-          <td><%= data.bpp_blkt %></td>
-          <td><%= data.bpp_infl %></td>
-          <td><%= data.bpp_ded_type %></td>
-        </tr>
-        <tr>
-          <td>BUSINESS INCOME</td>
-          <td class="right">$<%= money(data.bi_amount) %></td>
-          <td><%= data.bi_valuation %></td>
-          <td><%= data.bi_coins %></td>
-          <td><%= data.bi_causes %></td>
-          <td><%= data.bi_ded %></td>
-          <td class="right"><%= data.bi_premium %></td>
-          <td><%= data.bi_blkt %></td>
-          <td><%= data.bi_infl %></td>
-          <td><%= data.bi_ded_type %></td>
-        </tr>
-        <% if(data.other1_subject) { %>
-        <tr>
-          <td><%= data.other1_subject %></td>
-          <td class="right">$<%= money(data.other1_amount) %></td>
-          <td><%= data.other1_valuation %></td>
-          <td><%= data.other1_coins %></td>
-          <td><%= data.other1_causes %></td>
-          <td><%= data.other1_ded %></td>
-          <td class="right"><%= data.other1_premium %></td>
-          <td><%= data.other1_blkt %></td>
-          <td><%= data.other1_infl %></td>
-          <td><%= data.other1_ded_type %></td>
-        </tr>
-        <% } %>
-      </tbody>
-    </table>
+  <!-- SUBJECT OF INSURANCE (20-col; two-row per item for clean fit) -->
+<div class="subbar">SUBJECT OF INSURANCE</div>
+<div class="block">
+  <!-- Header A -->
+  <div class="row small label">
+    <div class="cell w35">SUBJECT</div>
+    <div class="cell w20 center">AMOUNT</div>
+    <div class="cell w15 center">VALUATION</div>
+    <div class="cell w10 center">CO-INS</div>
+    <div class="cell w20 center">CAUSE OF LOSS</div>
   </div>
+  <!-- Header B -->
+  <div class="row small label">
+    <div class="cell w15">DED</div>
+    <div class="cell w15">PREMIUM</div>
+    <div class="cell w10 center">BLKT #</div>
+    <div class="cell w10 center">INFL %</div>
+    <div class="cell w50">TYPE OF DED</div>
+  </div>
+
+  <!-- BUILDING -->
+  <div class="row">
+    <div class="cell w35">BUILDING</div>
+    <div class="cell w20 right num">$<%= money(data.building_amount) %></div>
+    <div class="cell w15 center"><%= data.building_valuation %></div>
+    <div class="cell w10 center"><%= data.building_coins %></div>
+    <div class="cell w20 center"><%= data.building_causes %></div>
+  </div>
+  <div class="row">
+    <div class="cell w15 right num"><%= data.building_ded %></div>
+    <div class="cell w15 right num"><%= data.building_premium %></div>
+    <div class="cell w10 center"><%= data.building_blkt %></div>
+    <div class="cell w10 right num"><%= data.building_infl %></div>
+    <div class="cell w50"><%= data.building_ded_type %></div>
+  </div>
+
+  <!-- BUSINESS PERSONAL PROPERTY -->
+  <div class="row">
+    <div class="cell w35">BUSINESS PERSONAL PROPERTY</div>
+    <div class="cell w20 right num">$<%= money(data.bpp_amount) %></div>
+    <div class="cell w15 center"><%= data.bpp_valuation %></div>
+    <div class="cell w10 center"><%= data.bpp_coins %></div>
+    <div class="cell w20 center"><%= data.bpp_causes %></div>
+  </div>
+  <div class="row">
+    <div class="cell w15 right num"><%= data.bpp_ded %></div>
+    <div class="cell w15 right num"><%= data.bpp_premium %></div>
+    <div class="cell w10 center"><%= data.bpp_blkt %></div>
+    <div class="cell w10 right num"><%= data.bpp_infl %></div>
+    <div class="cell w50"><%= data.bpp_ded_type %></div>
+  </div>
+
+  <!-- BUSINESS INCOME -->
+  <div class="row">
+    <div class="cell w35">BUSINESS INCOME</div>
+    <div class="cell w20 right num">$<%= money(data.bi_amount) %></div>
+    <div class="cell w15 center"><%= data.bi_valuation %></div>
+    <div class="cell w10 center"><%= data.bi_coins %></div>
+    <div class="cell w20 center"><%= data.bi_causes %></div>
+  </div>
+  <div class="row">
+    <div class="cell w15 right num"><%= data.bi_ded %></div>
+    <div class="cell w15 right num"><%= data.bi_premium %></div>
+    <div class="cell w10 center"><%= data.bi_blkt %></div>
+    <div class="cell w10 right num"><%= data.bi_infl %></div>
+    <div class="cell w50"><%= data.bi_ded_type %></div>
+  </div>
+
+  <% if(data.other1_subject) { %>
+  <div class="row">
+    <div class="cell w35"><%= data.other1_subject %></div>
+    <div class="cell w20 right num">$<%= money(data.other1_amount) %></div>
+    <div class="cell w15 center"><%= data.other1_valuation %></div>
+    <div class="cell w10 center"><%= data.other1_coins %></div>
+    <div class="cell w20 center"><%= data.other1_causes %></div>
+  </div>
+  <div class="row">
+    <div class="cell w15 right num"><%= data.other1_ded %></div>
+    <div class="cell w15 right num"><%= data.other1_premium %></div>
+    <div class="cell w10 center"><%= data.other1_blkt %></div>
+    <div class="cell w10 right num"><%= data.other1_infl %></div>
+    <div class="cell w50"><%= data.other1_ded_type %></div>
+  </div>
+  <% } %>
+</div>
+
 
   <!-- MINE SUBSIDENCE / SINKHOLE -->
   <div class="block">
@@ -828,6 +843,17 @@ function formatDate(d){
   </div>
 </div>
 
+<!-- examples -->
+<div class="cell label w20">TOTAL AREA (SQ FT)</div>
+<div class="cell w15 right num"><%= data.total_area %></div>
+
+<div class="cell label w10">YEAR BUILT</div>
+<div class="cell w10 right num"><%= data.year_built %></div>
+
+<div class="cell label w10"># OF STORIES</div>
+<div class="cell w10 right num"><%= data.num_stories %></div>
+
+
 <!-- ====================== PAGE 3 ====================== -->
 <div class="page">
   <div class="headerbar">
@@ -867,48 +893,33 @@ function formatDate(d){
   </div>
 
   <!-- STATE FRAUD NOTICES -->
-  <div class="subbar">STATE FRAUD NOTICES</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell w100 small legal wrap" style="padding:4px;min-height:200px;">
-        <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong>
-        Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.
-        <br/><br/>
-        <strong>Applicable in CA:</strong>
-        For your protection, California law requires the following to appear on this form: Any person who knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.
-        <br/><br/>
-        <strong>Applicable in CO:</strong>
-        It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.
-        <br/><br/>
-        <strong>Applicable in DC:</strong>
-        WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance benefits if false information materially related to a claim was provided by the applicant.
-        <br/><br/>
-        <strong>Applicable in FL and OK:</strong>
-        Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in FL Only.
-        <br/><br/>
-        <strong>Applicable in KS:</strong>
-        Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.
-        <br/><br/>
-        <strong>Applicable in KY, OH and PA:</strong>
-        Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties.
-        <br/><br/>
-        <strong>Applicable in ME, TN, VA and WA:</strong>
-        It is a crime to knowingly provide false, incomplete or misleading information to an insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance benefits. *Applies in ME Only.
-        <br/><br/>
-        <strong>Applicable in NJ:</strong>
-        Any person who includes any false or misleading information on an application for an insurance policy is subject to criminal and civil penalties.
-        <br/><br/>
-        <strong>Applicable in NY:</strong>
-        Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.
-        <br/><br/>
-        <strong>Applicable in OR:</strong>
-        Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by submitting an application containing a false statement as to any material fact may be violating state law.
-        <br/><br/>
-        <strong>Applicable in PR:</strong>
-        Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum of two (2) years.
-      </div>
-    </div>
-  </div>
+<div class="subbar">STATE FRAUD NOTICES</div>
+<div class="fraud legal wrap">
+  <p><strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong> Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.</p>
+
+  <p><strong>Applicable in CA:</strong> For your protection, California law requires the following to appear on this form: Any person who knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.</p>
+
+  <p><strong>Applicable in CO:</strong> It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.</p>
+
+  <p><strong>Applicable in DC:</strong> WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance benefits if false information materially related to a claim was provided by the applicant.</p>
+
+  <p><strong>Applicable in FL and OK:</strong> Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in FL Only.</p>
+
+  <p><strong>Applicable in KS:</strong> Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.</p>
+
+  <p><strong>Applicable in KY, OH and PA:</strong> Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties.</p>
+
+  <p><strong>Applicable in ME, TN, VA and WA:</strong> It is a crime to knowingly provide false, incomplete or misleading information to an insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance benefits. *Applies in ME Only.</p>
+
+  <p><strong>Applicable in NJ:</strong> Any person who includes any false or misleading information on an application for an insurance policy is subject to criminal and civil penalties.</p>
+
+  <p><strong>Applicable in NY:</strong> Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.</p>
+
+  <p><strong>Applicable in OR:</strong> Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by submitting an application containing a false statement as to any material fact may be violating state law.</p>
+
+  <p><strong>Applicable in PR:</strong> Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus established may be increased to a maximum of five (5) years; if extenuating circumstances are present, it may be reduced to a minimum of two (2) years.</p>
+</div>
+
 
   <!-- Agency Customer ID at bottom -->
   <div class="block">
