@@ -211,51 +211,49 @@ const firstInterest = (() => {
 
   <!-- COVERAGES / LIMITS -->
 <div class="subbar">COVERAGES / LIMITS</div>
-<div class="block coverages">
-  <div class="row limits-inline">
-  <div class="cell w25">
-    <span class="check">X</span> COMMERCIAL GENERAL LIABILITY
+<div class="block">
+  <div class="row">
+    <div class="cell w25">
+      <span class="check">X</span> COMMERCIAL GENERAL LIABILITY
+    </div>
+    <div class="cell label w25">GENERAL AGGREGATE</div>
+    <div class="cell w25 right num">$<%= data.limit_generalAggregate %></div>
+    <div class="cell label w25">PREMIUMS</div>
   </div>
-  <div class="cell label w25">GENERAL AGGREGATE</div>
-  <div class="cell w25 right num">$<%= data.limit_generalAggregate %></div>
-  <div class="cell label w25">PREMIUMS</div>
-</div>
-  <div class="row limits-inline">
+
+  <div class="row">
     <div class="cell w10">
-  <span class="inline-choices">
-    <span class="opt"><span class="check"><%= data.gl_form === "CLAIMS_MADE" ? "X" : "" %></span>CLAIMS MADE</span>
-  </span>
-</div>
-<div class="row limits-inline">
-  <div class="cell w10">
-    <span class="check"><%= data.gl_form === "CLAIMS_MADE" ? "X" : "" %></span> CLAIMS MADE
+      <span class="check"><%= data.gl_form === "CLAIMS_MADE" ? "X" : "" %></span> CLAIMS MADE
+    </div>
+    <div class="cell w15">
+      <span class="check"><%= data.gl_form === "OCCURRENCE" ? "X" : "" %></span> OCCURRENCE
+    </div>
+    <div class="cell label w25">LIMIT APPLIES PER:</div>
+    <div class="cell w25">
+      <span class="check">X</span> POLICY
+      <span class="check"></span> LOCATION
+      <span class="check"></span> PROJECT
+    </div>
+    <div class="cell label w25">PREMISES/OPERATIONS</div>
   </div>
-  <div class="cell w15">
-    <span class="check"><%= data.gl_form === "OCCURRENCE" ? "X" : "" %></span> OCCURRENCE
+
+  <div class="row">
+    <div class="cell w25">
+      <span class="check"><%= yes(data.ownersContractorsProtective) ? "X" : "" %></span> OWNER'S & CONTRACTOR'S PROTECTIVE
+    </div>
+    <div class="cell w25"></div>
+    <div class="cell label w10">OTHER:</div>
+    <div class="cell w15"></div>
+    <div class="cell label w25"></div>
   </div>
-  <div class="cell label w25">LIMIT APPLIES PER:</div>
-  <div class="cell w25">
-    <span class="check">X</span> POLICY
-    <span class="check"></span> LOCATION
-    <span class="check"></span> PROJECT
-  </div>
-  <div class="cell label w25">PREMISES/OPERATIONS</div>
-</div>
-  <div class="row limits-inline">
-  <div class="cell w25">
-    <span class="check"><%= yes(data.ownersContractorsProtective) ? "X" : "" %></span> OWNER'S & CONTRACTOR'S PROTECTIVE
-  </div>
-  <div class="cell w25"></div>
-  <div class="cell label w10">OTHER:</div>
-  <div class="cell w15"></div>
-  <div class="cell label w25"></div>
-</div>
+
   <div class="row">
     <div class="cell w25"></div>
     <div class="cell label w25">PRODUCTS & COMPLETED OPERATIONS AGGREGATE</div>
     <div class="cell w25 right num">$<%= data.limit_productsAgg %></div>
     <div class="cell label w25">PRODUCTS</div>
   </div>
+
   <div class="row">
     <div class="cell label w10">DEDUCTIBLES</div>
     <div class="cell w15"></div>
@@ -263,7 +261,8 @@ const firstInterest = (() => {
     <div class="cell w25 right num">$<%= data.limit_personalAdvInjury %></div>
     <div class="cell w25"></div>
   </div>
-  <div class="row limits-inline">
+
+  <div class="row">
     <div class="cell label w10">PROPERTY DAMAGE</div>
     <div class="cell w15 right num">$<%= data.deductible_propertyDamage %></div>
     <div class="cell label w10">PER CLAIM</div>
@@ -271,6 +270,7 @@ const firstInterest = (() => {
     <div class="cell w25 right num">$<%= data.limit_eachOccurrence %></div>
     <div class="cell label w25">OTHER</div>
   </div>
+
   <div class="row">
     <div class="cell label w10">BODILY INJURY</div>
     <div class="cell w15 right num">$<%= data.deductible_bodilyInjury %></div>
@@ -279,12 +279,14 @@ const firstInterest = (() => {
     <div class="cell w25 right num">$<%= data.limit_damageToPremises %></div>
     <div class="cell w25"></div>
   </div>
+
   <div class="row">
     <div class="cell w25"></div>
     <div class="cell label w25">MEDICAL EXPENSE (Any one person)</div>
     <div class="cell w25 right num">$<%= data.limit_medicalExpense %></div>
     <div class="cell w25"></div>
   </div>
+
   <div class="row">
     <div class="cell w25"></div>
     <div class="cell label w25">EMPLOYEE BENEFITS</div>
@@ -292,7 +294,6 @@ const firstInterest = (() => {
     <div class="cell label w25">TOTAL</div>
   </div>
 </div>
-
 
   <!-- OTHER COVERAGES -->
   <div class="block">
