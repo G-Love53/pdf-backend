@@ -517,113 +517,72 @@ const formatDate = (d) => {
   </div>
 
   <!-- Lines of Business -->
+<div class="subbar">LINES OF BUSINESS</div>
+<div class="block">
   <div class="row">
-  <div class="cell label w100 center">
-    INDICATE LINES OF BUSINESS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PREMIUM
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PREMIUM
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PREMIUM
+    <div class="cell label w100 center">
+      INDICATE LINES OF BUSINESS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PREMIUM
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PREMIUM
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PREMIUM
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell w25"><span class="check"><%= data.boilerMachinery ? "X" : "" %></span> BOILER & MACHINERY</div>
+    <div class="cell w8 right">$<%= money(data.boilerMachineryPremium) %></div>
+
+    <div class="cell w25"><span class="check"><%= data.cyberPrivacy ? "X" : "" %></span> CYBER AND PRIVACY</div>
+    <div class="cell w8 right">$<%= money(data.cyberPrivacyPremium) %></div>
+
+    <div class="cell w25"><span class="check"><%= data.hiredNonOwnedAuto ? "X" : "" %></span> HIRED & NONOWNED AUTO</div>
+    <div class="cell w9 right">$<%= money(data.hiredNonOwnedAutoPremium) %></div>
+  </div>
+
+  <div class="row">
+    <div class="cell w25"><span class="check"><%= data.businessAuto ? "X" : "" %></span> BUSINESS AUTO</div>
+    <div class="cell w8 right">$<%= money(data.businessAutoPremium) %></div>
+
+    <div class="cell w25"><span class="check"><%= data.fiduciaryLiability ? "X" : "" %></span> FIDUCIARY LIABILITY</div>
+    <div class="cell w8 right">$<%= money(data.fiduciaryLiabilityPremium) %></div>
+
+    <div class="cell w25"><span class="check"><%= data.businessOwners ? "X" : "" %></span> BUSINESS OWNERS</div>
+    <div class="cell w9 right">$<%= money(data.businessOwnersPremium) %></div>
+  </div>
+
+  <div class="row">
+    <div class="cell w25"><span class="check"><%= data.garageDealers ? "X" : "" %></span> GARAGE AND DEALERS</div>
+    <div class="cell w8 right">$<%= money(data.garageDealersPremium) %></div>
+
+    <div class="cell w25"><span class="check"><%= data.commercialGeneralLiability ? "X" : "" %></span> COMMERCIAL GENERAL LIABILITY</div>
+    <div class="cell w8 right">$<%= money(data.commercialGeneralLiabilityPremium) %></div>
+
+    <div class="cell w25"><span class="check"><%= data.liquorLiability ? "X" : "" %></span> LIQUOR LIABILITY</div>
+    <div class="cell w9 right">$<%= money(data.liquorLiabilityPremium) %></div>
+  </div>
+
+  <div class="row">
+    <div class="cell w25"><span class="check"><%= data.commercialInlandMarine ? "X" : "" %></span> COMMERCIAL INLAND MARINE</div>
+    <div class="cell w8 right">$<%= money(data.commercialInlandMarinePremium) %></div>
+
+    <div class="cell w25"><span class="check"><%= data.motorCarrier ? "X" : "" %></span> MOTOR CARRIER</div>
+    <div class="cell w8 right">$<%= money(data.motorCarrierPremium) %></div>
+
+    <div class="cell w25"><span class="check"><%= data.truckers ? "X" : "" %></span> TRUCKERS</div>
+    <div class="cell w9 right">$<%= money(data.truckersPremium) %></div>
+  </div>
+
+  <div class="row">
+    <div class="cell w25"><span class="check"><%= data.commercialProperty ? "X" : "" %></span> COMMERCIAL PROPERTY</div>
+    <div class="cell w8 right">$<%= money(data.commercialPropertyPremium) %></div>
+
+    <div class="cell w25"><span class="check"><%= data.crime ? "X" : "" %></span> CRIME</div>
+    <div class="cell w8 right">$<%= money(data.crimePremium) %></div>
+
+    <div class="cell w25"><span class="check"><%= data.umbrella ? "X" : "" %></span> UMBRELLA</div>
+    <div class="cell w9 right">$<%= money(data.umbrellaPremium) %></div>
   </div>
 </div>
 
-<!-- Row 1 -->
-<div class="row">
-  <div class="cell w20">
-    <span class="check"><%= data.boilerMachinery ? "X" : "" %></span> BOILER & MACHINERY
-  </div>
-  <div class="cell w10 right">$<%= money(data.boilerMachineryPremium) %></div>
-
-  <div class="cell w20">
-    <span class="check"><%= data.cyberPrivacy ? "X" : "" %></span> CYBER AND PRIVACY
-  </div>
-  <div class="cell w10 right">$<%= money(data.cyberPrivacyPremium) %></div>
-
-  <div class="cell w20">
-    <span class="check"><%= data.hiredNonOwnedAuto ? "X" : "" %></span> HIRED & NONOWNED AUTO
-  </div>
-  <div class="cell w10 right">$<%= money(data.hiredNonOwnedAutoPremium) %></div>
-
-  <div class="cell w10"></div> <!-- spacer to reach 20 cols -->
-</div>
-
-<!-- Row 2 -->
-<div class="row">
-  <div class="cell w20">
-    <span class="check"><%= data.businessAuto ? "X" : "" %></span> BUSINESS AUTO
-  </div>
-  <div class="cell w10 right">$<%= money(data.businessAutoPremium) %></div>
-
-  <div class="cell w20">
-    <span class="check"><%= data.fiduciaryLiability ? "X" : "" %></span> FIDUCIARY LIABILITY
-  </div>
-  <div class="cell w10 right">$<%= money(data.fiduciaryLiabilityPremium) %></div>
-
-  <div class="cell w20">
-    <span class="check"><%= data.businessOwners ? "X" : "" %></span> BUSINESS OWNERS
-  </div>
-  <div class="cell w10 right">$<%= money(data.businessOwnersPremium) %></div>
-
-  <div class="cell w10"></div>
-</div>
-
-<!-- Row 3 -->
-<div class="row">
-  <div class="cell w20">
-    <span class="check"><%= data.garageDealers ? "X" : "" %></span> GARAGE AND DEALERS
-  </div>
-  <div class="cell w10 right">$<%= money(data.garageDealersPremium) %></div>
-
-  <div class="cell w20">
-    <span class="check"><%= data.commercialGeneralLiability ? "X" : "" %></span> COMMERCIAL GENERAL LIABILITY
-  </div>
-  <div class="cell w10 right">$<%= money(data.commercialGeneralLiabilityPremium) %></div>
-
-  <div class="cell w20">
-    <span class="check"><%= data.liquorLiability ? "X" : "" %></span> LIQUOR LIABILITY
-  </div>
-  <div class="cell w10 right">$<%= money(data.liquorLiabilityPremium) %></div>
-
-  <div class="cell w10"></div>
-</div>
-
-<!-- Row 4 -->
-<div class="row">
-  <div class="cell w20">
-    <span class="check"><%= data.commercialInlandMarine ? "X" : "" %></span> COMMERCIAL INLAND MARINE
-  </div>
-  <div class="cell w10 right">$<%= money(data.commercialInlandMarinePremium) %></div>
-
-  <div class="cell w20">
-    <span class="check"><%= data.motorCarrier ? "X" : "" %></span> MOTOR CARRIER
-  </div>
-  <div class="cell w10 right">$<%= money(data.motorCarrierPremium) %></div>
-
-  <div class="cell w20">
-    <span class="check"><%= data.truckers ? "X" : "" %></span> TRUCKERS
-  </div>
-  <div class="cell w10 right">$<%= money(data.truckersPremium) %></div>
-
-  <div class="cell w10"></div>
-</div>
-
-<!-- Row 5 -->
-<div class="row">
-  <div class="cell w20">
-    <span class="check"><%= data.commercialProperty ? "X" : "" %></span> COMMERCIAL PROPERTY
-  </div>
-  <div class="cell w10 right">$<%= money(data.commercialPropertyPremium) %></div>
-
-  <div class="cell w20">
-    <span class="check"><%= data.crime ? "X" : "" %></span> CRIME
-  </div>
-  <div class="cell w10 right">$<%= money(data.crimePremium) %></div>
-
-  <div class="cell w20">
-    <span class="check"><%= data.umbrella ? "X" : "" %></span> UMBRELLA
-  </div>
-  <div class="cell w10 right">$<%= money(data.umbrellaPremium) %></div>
-
-  <div class="cell w10"></div>
-</div>
 
   <!-- Attachments -->
   <div class="subbar">ATTACHMENTS</div>
