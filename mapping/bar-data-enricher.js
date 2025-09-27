@@ -81,4 +81,4 @@ function mapClaimCount(claimCount) {
   return '0';
 }
 
-module.exports = enrichBarFormData;
+module default enrichBarFormData;
