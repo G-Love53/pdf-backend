@@ -1,116 +1,35 @@
 {
-  "date": "date",
-  "effectiveDate": "effectiveDate",
-  "expirationDate": "2026-10-01",
-  "carrier": "Demo Carrier",
-  "naicCode": "12345",
-  "policyNumber": "WC-TEST-001",
-  "agencyCustomerId": "CID-999",
-
   "applicant_name": "applicant_name",
   "mailing_address1": "mailing_address1",
   "mailing_address2": "mailing_address2",
   "mailing_city": "mailing_city",
   "mailing_state": "mailing_state",
   "mailing_zip": "mailing_zip",
-  "fein": "12-3456789",
+  "business_phone": "business_phone",
   "website": "premises_website",
-  "businessPhone": "business_phone",
-
-  "status_quote": true,
-  "billingPlan_directBill": true,
-  "paymentPlan": "MONTHLY",
-  "paymentPlan_downPct": "10%",
-  "audit_atExpiration": true,
-
-  "proposedEffDate": "effective_date",
-  "proposedExpDate": "2026-10-01",
-  "ratingEffectiveDate": "2025-10-01",
-  "anniversaryRatingDate": "2025-10-01",
-  "retroPlan_participating": false,
-  "deduct_medical": "0",
-  "deduct_indemnity": "0",
-
-  "wc_coveredStates": ["CO"],
-  "el_eachAccident": "1,000,000",
-  "el_diseasePolicyLimit": "1,000,000",
-  "el_diseaseEachEmployee": "1,000,000",
-  "otherStatesText": "AZ, NM, UT",
-  "cov_uslh": false,
-  "cov_foreignVoluntary": false,
-  "cov_managedCare": true,
-  "dividendPlan_safetyGroup": "Safety Group A",
-  "additionalCoveragesText": "Waiver of Subrogation where required by written contract.",
-
-  "wc_has_bar_tavern": "wc_bar_tavern_checkbox",
-"wc_has_restaurant_noc": "wc_restaurant_noc_checkbox",
-"wc_has_outside_sales_clerical": "wc_outside_sales_clerical_checkbox",
-
-"wc_bar_tavern_ft": "wc_bar_tavern_ft",
-"wc_bar_tavern_pt": "wc_bar_tavern_pt",
-"wc_bar_tavern_payroll": "wc_bar_tavern_payroll",
-
-"wc_restaurant_ft": "wc_restaurant_ft",
-"wc_restaurant_pt": "wc_restaurant_pt",
-"wc_restaurant_payroll": "wc_restaurant_payroll",
-
-"wc_clerical_ft": "wc_clerical_ft",
-"wc_clerical_pt": "wc_clerical_pt",
-"wc_clerical_payroll": "wc_clerical_payroll"
-
-
-  "locations": [
-    { "loc": "1", "street": "123 Main St", "city": "Denver", "county": "Denver", "state": "CO", "zip": "80202", "floorHighest": "2" }
-  ],
-
-  "contact_info":      { "name": "Owner Name", "officePhone": "303-555-0100", "mobile": "303-555-0199", "email": "owner@samplebar.com" },
-  "contact_claims":    { "name": "Claims Lead", "officePhone": "303-555-0101", "mobile": "", "email": "claims@samplebar.com" },
-  "contact_accounting":{ "name": "AP Contact", "officePhone": "303-555-0102", "mobile": "", "email": "ap@samplebar.com" },
-  "contact_inspection":{ "name": "Ops Manager", "officePhone": "303-555-0103", "mobile": "", "email": "ops@samplebar.com" },
-
-  "officers": [
-    { "name": "Jane Owner", "title": "Member", "dob": "1985-04-12", "ownershipPct": "100", "duties": "Mgmt", "include": true, "classCode": "8810", "remuneration": "80000", "loc": "1", "state": "CO" }
-  ],
-
-  "ratingSheets": [
-    {
-      "state": "CO",
-      "sheetNo": "1",
-      "ofSheets": "1",
-      "rows": [
-        { "loc": "1", "classCode": "9084", "description": "Bars, Nightclubs", "sic": "5813", "naics": "722410", "fullTime": "8", "partTime": "6", "annualRemuneration": "440000", "rate": "3.25", "estManualPremium": "14300" },
-        { "loc": "1", "classCode": "8810", "description": "Clerical Office Employees", "fullTime": "2", "partTime": "0", "annualRemuneration": "90000", "rate": "0.35", "estManualPremium": "315" }
-      ],
-      "increasedLimits": "0",
-      "deductible": "0",
-      "ccpap": "",
-      "scheduleRatingFactor": "",
-      "experienceMod": "0.95",
-      "premiumDiscount": "0",
-      "expenseConstant": "160",
-      "assignedRiskSurcharge": "",
-      "arap": "",
-      "taxesAssessments": "250",
-      "standardPremium": "14615",
-      "factoredPremium": "13884",
-      "totalEstimatedAnnualPremium": "14134",
-      "minimumPremium": "0",
-      "depositPremium": "1413"
-    }
-  ],
-
-  "business_description": "Bar & grill with live music on weekends. No delivery; limited catering.",
-  "priorCarrier": [
-    { "year": "2024", "carrier": "ABC Ins", "policyNumber": "WC123", "annualPremium": "12000", "mod": "0.98", "claimCount": "0", "amountPaid": "0", "amountReserved": "0", "description": "" },
-    { "year": "2023", "carrier": "XYZ Ins", "policyNumber": "WC456", "annualPremium": "11500", "mod": "1.03", "claimCount": "1", "amountPaid": "1500", "amountReserved": "0", "description": "Minor cut; closed" }
-  ],
-
-  "gi_6_subcontractors": true,
-  "gi_6_percentSubcontracted": "10",
-  "gi_8_writtenSafetyProgram": true,
-  "gi_14_travelOutOfState": true,
-  "gi_14_travelStates": "WY, NE",
-  "gi_18_declinedCancelledNonRenewed3yrs": false,
-  "gi_22_predominantlyWorkAtHome": false,
-  "gi_explain": ""
+  "date": "current_date",
+  "effective_date": "effective_date",
+  "effectiveDate": "effective_date",
+  "expiration_date": "expiration_date",
+  "expirationDate": "expiration_date",
+  
+  "wc_has_bar_tavern": "wc_bar_tavern",
+  "wc_has_restaurant_noc": "wc_restaurant",
+  "wc_has_outside_sales_clerical": "wc_outside_sales_clerical",
+  
+  "wc_bar_tavern_ft": "wc_bar_tavern_ft",
+  "wc_bar_tavern_pt": "wc_bar_tavern_pt",
+  "wc_bar_tavern_payroll": "wc_bar_tavern_payroll",
+  
+  "wc_restaurant_ft": "wc_restaurant_ft",
+  "wc_restaurant_pt": "wc_restaurant_pt",
+  "wc_restaurant_payroll": "wc_restaurant_payroll",
+  
+  "wc_clerical_ft": "wc_clerical_ft",
+  "wc_clerical_pt": "wc_clerical_pt",
+  "wc_clerical_payroll": "wc_clerical_payroll",
+  
+  "wc_employees_ft": "wc_employees_ft",
+  "wc_employees_pt": "wc_employees_pt",
+  "wc_annual_payroll": "wc_annual_payroll"
 }
