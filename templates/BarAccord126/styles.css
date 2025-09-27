@@ -332,4 +332,15 @@ body {
 /* slightly smaller labels just in this grid */
 .coverages .label { font-size: 6pt; }
 
+/* Fix for 126 Coverage section - give labels more room */
+.coverages .label { 
+  font-size: 6.5pt;  /* slightly smaller text */
+  letter-spacing: 0;  /* tighter spacing */
+}
 
+/* Fix for 126 Schedule of Hazards - prevent stacking */
+.schedule-hazards .label {
+  font-size: 6pt;     /* smaller headers */
+  line-height: 1;      /* single line */
+  padding: 2pt 2pt;    /* less padding */
+}
