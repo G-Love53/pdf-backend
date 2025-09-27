@@ -199,16 +199,6 @@ var defaults = {
   // Additional Premises (Page 2)
   addl_premises_notes: "",
   
-  // Smoker/Grill Questions (Page 2)
-  smoker_within_10ft: "",
-  smoker_professionally_installed: "",
-  smoker_cleaned_weekly: "",
-  smoker_ashes_removed: "",
-  smoker_vent_cleaned_monthly: "",
-  smoker_wood_stored_10ft: "",
-  smoker_hood_system_ul300: "",
-  smoker_extinguisher_20ft: "",
-  
   // Remarks
   remarks: "",
   
@@ -585,55 +575,6 @@ function formatDate(d){
 <div class="block">
   <div class="row no-break">
     <div class="cell w100 vstack no-hyphen">
-
-      <div class="u-mb8">
-        <span class="bold">Do you have a Smoker/Grill within 10 Feet of the Building?</span>
-        <span class="yn">
-          <span class="check"><%= yes(data.smoker_within_10ft) ? "X" : "" %></span> YES
-          <span class="check"><%= (String(data.smoker_within_10ft||"").length && !yes(data.smoker_within_10ft)) ? "X" : "" %></span> NO
-        </span>
-      </div>
-
-      <div class="u-mb8">
-        <span>Is the equipment Professionally Installed?</span>
-        <span class="yn">
-          <span class="check"><%= yes(data.smoker_professionally_installed) ? "X" : "" %></span> YES
-          <span class="check"><%= (String(data.smoker_professionally_installed||"").length && !yes(data.smoker_professionally_installed)) ? "X" : "" %></span> NO
-        </span>
-      </div>
-
-      <div class="u-mb8">
-        <span>Is it regularly maintained?</span>
-        <span class="chkgrp">
-          <span><span class="check"><%= yes(data.smoker_cleaned_weekly) ? "X" : "" %></span> Cleaned &amp; scraped weekly</span>
-          <span><span class="check"><%= yes(data.smoker_ashes_removed) ? "X" : "" %></span> Ashes removed daily</span>
-          <span><span class="check"><%= yes(data.smoker_vent_cleaned_monthly) ? "X" : "" %></span> Vent/exhaust cleaned monthly</span>
-        </span>
-      </div>
-
-      <div class="u-mb8">
-        <span>Other than the days supply, do you store wood/pellets, etc. more than 10 ft away from the cooker?</span>
-        <span class="yn">
-          <span class="check"><%= yes(data.smoker_wood_stored_10ft) ? "X" : "" %></span> YES
-          <span class="check"><%= (String(data.smoker_wood_stored_10ft||"").length && !yes(data.smoker_wood_stored_10ft)) ? "X" : "" %></span> NO
-        </span>
-      </div>
-
-      <div class="u-mb8">
-        <span>Do you have a Hood System and UL 300 extinguishing system in place?</span>
-        <span class="yn">
-          <span class="check"><%= yes(data.smoker_hood_system_ul300) ? "X" : "" %></span> YES
-          <span class="check"><%= (String(data.smoker_hood_system_ul300||"").length && !yes(data.smoker_hood_system_ul300)) ? "X" : "" %></span> NO
-        </span>
-      </div>
-
-      <div class="u-mb8">
-        <span>Do you have a Class K or 2A fire extinguisher within 20 ft of each cooker?</span>
-        <span class="yn">
-          <span class="check"><%= yes(data.smoker_extinguisher_20ft) ? "X" : "" %></span> YES
-          <span class="check"><%= (String(data.smoker_extinguisher_20ft||"").length && !yes(data.smoker_extinguisher_20ft)) ? "X" : "" %></span> NO
-        </span>
-      </div>
 
       <!-- Free-text notes area -->
       <div class="u-mt10"><%= data.addl_premises_notes %></div>
