@@ -5,6 +5,7 @@ import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { renderPdf } from "./pdf.js";           // <- make sure this is your actual renderer
 import { sendWithGmail } from "./email.js";
+import enrichBarFormData from '../mapping/bar-data-enricher.js';
 
 const FILENAME_MAP = {
   Society_FieldNames: "Society-Supplement.pdf",
@@ -17,7 +18,7 @@ const FILENAME_MAP = {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const enrichBarFormData = require('../mapping/bar-data-enricher');
+
 
 const APP = express();
 APP.use(express.json({ limit: "20mb" }));
