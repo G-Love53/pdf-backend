@@ -344,3 +344,8 @@ body {
   line-height: 1;      /* single line */
   padding: 2pt 2pt;    /* less padding */
 }
+/* Fix for 126 Additional Interest section */
+.additional-interest .cell {
+  font-size: 6.5pt;
+  padding: 2pt 3pt;
+}
