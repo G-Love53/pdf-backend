@@ -9,4 +9,7 @@
   "number_of_stories": "number_of_stories",
   "sprinkler_system": "automatic_sprinkler_system",
   "sprinkler_extent": "automatic_sprinkler_system_extent"
+  "additional_insured_name": "additional_insured_name",
+"additional_insured_address": "additional_insured_address",
+"additional_insured_rank": "additional_insured_rank"
 }
