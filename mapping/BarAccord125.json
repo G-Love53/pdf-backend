@@ -5,6 +5,10 @@
     "premise_city": "premise_city",
     "premise_state": "premise_state",
     "premise_zip": "premise_zip",
+    "organization_type": "organization_type",
+    "construction_type": "construction_type",
+    "expiration_date": "expiration_date",
+    "total_employees": "total_employees"
     "business_phone": "business_phone",
     "org_type_corporation": "org_type_corporation",
     "org_type_llc": "org_type_llc",
