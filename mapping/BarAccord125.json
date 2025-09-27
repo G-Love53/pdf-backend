@@ -38,4 +38,13 @@
     "mailing_state": "mailing_state",
     "mailing_zip": "mailing_zip",
     "bldgDescription": "bldgDescription"
+    "applicant_name": "applicant_name",
+"legal_business_name": "legal_business_name",
+"dba_name": "dba_name",
+"contact_name": "contact_name",
+"contact_phone": "contact_phone",
+"contact_email": "contact_email",
+"business_description": "business_description",
+"date_business_started": "date_business_started",
+"federal_tax_id": "federal_tax_id"
 }
