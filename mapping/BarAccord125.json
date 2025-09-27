@@ -5,6 +5,13 @@
     "premise_city": "premise_city",
     "premise_state": "premise_state",
     "premise_zip": "premise_zip",
+    "applicant_address": "applicant_mailing_address",
+    "applicant_city": "applicant_city",
+    "applicant_state": "applicant_state", 
+    "applicant_zip": "applicant_zip",
+    "entity_type": "organization_type",
+    "business_phone": "business_phone",
+    "business_email": "inspection_contact_email"
     "organization_type": "organization_type",
     "construction_type": "construction_type",
     "expiration_date": "expiration_date",
