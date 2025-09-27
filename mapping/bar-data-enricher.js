@@ -30,7 +30,7 @@ function enrichBarFormData(formData) {
     
     // Building Information (ACORD 140)
     year_built: formData.year_built || '',
-    automatic_sprinkler_system: formData.automatic_sprinkler_system || 'No',
+    automatic_sprinkler_system: formData.automatic_sprinkler || 'No',
     automatic_sprinkler_system_extent: formData.automatic_sprinkler_system_extent || '',
     number_of_stories: formData.number_of_stories || '1',
     
@@ -39,6 +39,13 @@ function enrichBarFormData(formData) {
     applicant_city: formData.applicant_city || formData.mailing_city || '',
     applicant_state: formData.applicant_state || formData.mailing_state || '',
     applicant_zip: formData.applicant_zip || formData.mailing_zip || '',
+    
+    // Mailing Address Fields (for ACORD 130 - maps from premise address)
+    mailing_address1: formData.premise_address || '',
+    mailing_address2: formData.mailing_address2 || '',
+    mailing_city: formData.premise_city || '',
+    mailing_state: formData.premise_state || '',
+    mailing_zip: formData.premise_zip || '',
     
     // Contact Information
     inspection_contact_email: formData.inspection_contact_email || formData.contact_email || '',
@@ -55,13 +62,37 @@ function enrichBarFormData(formData) {
     full_time_employees: formData.wc_employees_ft || formData.full_time_employees || '',
     part_time_employees: formData.wc_employees_pt || formData.part_time_employees || '',
     
+    // Workers Comp specific fields
+    wc_employees_ft: formData.wc_employees_ft || '',
+    wc_employees_pt: formData.wc_employees_pt || '',
+    wc_annual_payroll: formData.wc_annual_payroll || '',
+    
+    // WC Classification checkboxes (pass through as-is)
+    wc_bar_tavern: formData.wc_bar_tavern || '',
+    wc_restaurant: formData.wc_restaurant || '',
+    wc_outside_sales_clerical: formData.wc_outside_sales_clerical || '',
+    
+    // WC Classification employee counts and payroll
+    wc_bar_tavern_ft: formData.wc_bar_tavern ? formData.wc_employees_ft : '',
+    wc_bar_tavern_pt: formData.wc_bar_tavern ? formData.wc_employees_pt : '',
+    wc_bar_tavern_payroll: formData.wc_bar_tavern ? formData.wc_annual_payroll : '',
+    
+    wc_restaurant_ft: formData.wc_restaurant ? formData.wc_employees_ft : '',
+    wc_restaurant_pt: formData.wc_restaurant ? formData.wc_employees_pt : '',
+    wc_restaurant_payroll: formData.wc_restaurant ? formData.wc_annual_payroll : '',
+    
+    wc_clerical_ft: '0', // Default for clerical
+    wc_clerical_pt: '0',
+    wc_clerical_payroll: '0',
+    
     // Claims
     total_claims: mapClaimCount(formData.claim_count),
     
     // Additional Common Fields
     square_footage: formData.square_footage || '',
     premises_name: formData.premises_name || formData.dba_name || '',
-    applicant_name: formData.applicant_name || formData.legal_business_name || ''
+    applicant_name: formData.applicant_name || formData.legal_business_name || '',
+    premises_website: formData.premises_website || ''
   };
   
   return enrichedData;
