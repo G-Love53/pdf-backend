@@ -569,46 +569,46 @@ const firstInterest = (() => {
 
   <!-- ADDITIONAL INTEREST / CERTIFICATE RECIPIENT -->
 <div class="subbar">ADDITIONAL INTEREST / CERTIFICATE RECIPIENT &nbsp;&nbsp;&nbsp; <span class="small">ACORD 45 attached for additional names</span></div>
-<div class="additional-interest"> <!-- ADD WRAPPER -->
+<div class="additional-interest">
 <div class="block">
   <div class="row">
     <div class="cell label w10">INTEREST</div>
-    <div class="cell w12"> <!-- Slightly smaller -->
-      <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="ADDITIONAL_INSURED") ? "X" : "" %></span> ADDITIONAL INSURED
+    <div class="cell w15">
+      <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="ADDITIONAL_INSURED") ? "X" : "" %></span> ADDITIONAL<br/>INSURED
     </div>
-    <div class="cell w12"> <!-- w12 instead of w15 -->
-      <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="LOSS_PAYEE") ? "X" : "" %></span> LOSS PAYEE
+    <div class="cell w13">
+      <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="LOSS_PAYEE") ? "X" : "" %></span> LOSS<br/>PAYEE
     </div>
-    <div class="cell w12"> <!-- w12 -->
+    <div class="cell w14">
       <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="MORTGAGEE") ? "X" : "" %></span> MORTGAGEE
     </div>
-    <div class="cell w12"> <!-- w12 -->
+    <div class="cell w14">
       <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="LIENHOLDER") ? "X" : "" %></span> LIENHOLDER
     </div>
+    <div class="cell w17">
+      <span class="check"></span> EMPLOYEE<br/>AS LESSOR
+    </div>
+    <div class="cell w17">
+      <span class="check"></span> LENDER'S LOSS<br/>PAYABLE
+    </div>
+  </div>
+  <div class="row">
+    <div class="cell label w25">NAME AND ADDRESS</div>
+    <div class="cell w50 wrap">
+      <%= firstInterest.name || "" %><% if (firstInterest.address) { %><br/><%= firstInterest.address %><% } %>
+    </div>
+    <div class="cell label w10">RANK</div>
+    <div class="cell w15"></div>
+  </div>
+  <div class="row">
+    <div class="cell label w10">EVIDENCE</div>
     <div class="cell w15">
-      <span class="check"></span> EMPLOYEE AS LESSOR
+      <span class="check">X</span> CERTIFICATE
     </div>
-    <div class="cell w17"> <!-- w17 to make row = 100 -->
-      <span class="check"></span> LENDER'S LOSS PAYABLE
-    </div>
+    <div class="cell w75"></div>
   </div>
-  </div>
-    <div class="row">
-      <div class="cell label w25">NAME AND ADDRESS</div>
-      <div class="cell w50 wrap">
-        <%= firstInterest.name || "" %><% if (firstInterest.address) { %><br/><%= firstInterest.address %><% } %>
-      </div>
-      <div class="cell label w10">RANK</div>
-      <div class="cell w15"></div>
-    </div>
-    <div class="row">
-      <div class="cell label w10">EVIDENCE</div>
-      <div class="cell w15">
-        <span class="check">X</span> CERTIFICATE
-      </div>
-      <div class="cell w75"></div>
-    </div>
-  </div>
+</div>
+</div> <!-- CLOSE additional-interest wrapper -->
 
   <!-- GENERAL INFORMATION -->
   <div class="subbar">GENERAL INFORMATION</div>
