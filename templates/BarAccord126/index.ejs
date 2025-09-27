@@ -568,29 +568,31 @@ const firstInterest = (() => {
   </div>
 
   <!-- ADDITIONAL INTEREST / CERTIFICATE RECIPIENT -->
-  <div class="subbar">ADDITIONAL INTEREST / CERTIFICATE RECIPIENT &nbsp;&nbsp;&nbsp; <span class="small">ACORD 45 attached for additional names</span></div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w10">INTEREST</div>
-      <div class="cell w15">
-        <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="ADDITIONAL_INSURED") ? "X" : "" %></span> ADDITIONAL INSURED
-      </div>
-      <div class="cell w15">
-        <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="LOSS_PAYEE") ? "X" : "" %></span> LOSS PAYEE
-      </div>
-      <div class="cell w15">
-        <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="MORTGAGEE") ? "X" : "" %></span> MORTGAGEE
-      </div>
-      <div class="cell w15">
-        <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="LIENHOLDER") ? "X" : "" %></span> LIENHOLDER
-      </div>
-      <div class="cell w15">
-        <span class="check"></span> EMPLOYEE AS LESSOR
-      </div>
-      <div class="cell w15">
-        <span class="check"></span> LENDER'S LOSS PAYABLE
-      </div>
+<div class="subbar">ADDITIONAL INTEREST / CERTIFICATE RECIPIENT &nbsp;&nbsp;&nbsp; <span class="small">ACORD 45 attached for additional names</span></div>
+<div class="additional-interest"> <!-- ADD WRAPPER -->
+<div class="block">
+  <div class="row">
+    <div class="cell label w10">INTEREST</div>
+    <div class="cell w12"> <!-- Slightly smaller -->
+      <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="ADDITIONAL_INSURED") ? "X" : "" %></span> ADDITIONAL INSURED
     </div>
+    <div class="cell w12"> <!-- w12 instead of w15 -->
+      <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="LOSS_PAYEE") ? "X" : "" %></span> LOSS PAYEE
+    </div>
+    <div class="cell w12"> <!-- w12 -->
+      <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="MORTGAGEE") ? "X" : "" %></span> MORTGAGEE
+    </div>
+    <div class="cell w12"> <!-- w12 -->
+      <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="LIENHOLDER") ? "X" : "" %></span> LIENHOLDER
+    </div>
+    <div class="cell w15">
+      <span class="check"></span> EMPLOYEE AS LESSOR
+    </div>
+    <div class="cell w17"> <!-- w17 to make row = 100 -->
+      <span class="check"></span> LENDER'S LOSS PAYABLE
+    </div>
+  </div>
+  </div>
     <div class="row">
       <div class="cell label w25">NAME AND ADDRESS</div>
       <div class="cell w50 wrap">
