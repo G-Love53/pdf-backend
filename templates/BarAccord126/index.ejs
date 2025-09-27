@@ -211,14 +211,15 @@ const firstInterest = (() => {
 
   <!-- COVERAGES / LIMITS -->
 <div class="subbar">COVERAGES / LIMITS</div>
+<div class="coverages"> <!-- wrapper added ✓ -->
 <div class="block">
   <div class="row">
-    <div class="cell w25">
+    <div class="cell w30">
       <span class="check">X</span> COMMERCIAL GENERAL LIABILITY
     </div>
-    <div class="cell label w25">GENERAL AGGREGATE</div>
-    <div class="cell w25 right num">$<%= data.limit_generalAggregate %></div>
-    <div class="cell label w25">PREMIUMS</div>
+    <div class="cell label w30">GENERAL AGGREGATE</div>
+    <div class="cell w20 right num">$<%= data.limit_generalAggregate %></div> <!-- changed to w20 -->
+    <div class="cell label w20">PREMIUMS</div> <!-- changed to w20 -->
   </div>
 
   <div class="row">
@@ -228,13 +229,13 @@ const firstInterest = (() => {
     <div class="cell w15">
       <span class="check"><%= data.gl_form === "OCCURRENCE" ? "X" : "" %></span> OCCURRENCE
     </div>
-    <div class="cell label w25">LIMIT APPLIES PER:</div>
+    <div class="cell label w25">LIMIT APPLIES PER:</div> <!-- changed to w25 -->
     <div class="cell w25">
       <span class="check">X</span> POLICY
       <span class="check"></span> LOCATION
       <span class="check"></span> PROJECT
     </div>
-    <div class="cell label w25">PREMISES/OPERATIONS</div>
+    <div class="cell label w25">PREMISES/OPERATIONS</div> <!-- changed to w25 -->
   </div>
 
   <div class="row">
@@ -244,56 +245,57 @@ const firstInterest = (() => {
     <div class="cell w25"></div>
     <div class="cell label w10">OTHER:</div>
     <div class="cell w15"></div>
-    <div class="cell label w25"></div>
+    <div class="cell label w25"></div> <!-- changed to w25 -->
   </div>
 
   <div class="row">
     <div class="cell w25"></div>
-    <div class="cell label w25">PRODUCTS & COMPLETED OPERATIONS AGGREGATE</div>
-    <div class="cell w25 right num">$<%= data.limit_productsAgg %></div>
-    <div class="cell label w25">PRODUCTS</div>
+    <div class="cell label w35">PRODUCTS & COMPLETED OPERATIONS AGGREGATE</div> <!-- w35 for long label -->
+    <div class="cell w20 right num">$<%= data.limit_productsAgg %></div> <!-- w20 -->
+    <div class="cell label w20">PRODUCTS</div> <!-- w20 -->
   </div>
 
   <div class="row">
     <div class="cell label w10">DEDUCTIBLES</div>
     <div class="cell w15"></div>
-    <div class="cell label w25">PERSONAL & ADVERTISING INJURY</div>
-    <div class="cell w25 right num">$<%= data.limit_personalAdvInjury %></div>
+    <div class="cell label w30">PERSONAL & ADVERTISING INJURY</div>
+    <div class="cell w20 right num">$<%= data.limit_personalAdvInjury %></div> <!-- w20 -->
     <div class="cell w25"></div>
   </div>
 
   <div class="row">
-    <div class="cell label w10">PROPERTY DAMAGE</div>
-    <div class="cell w15 right num">$<%= data.deductible_propertyDamage %></div>
+    <div class="cell label w15">PROPERTY DAMAGE</div> <!-- w15 -->
+    <div class="cell w10 right num">$<%= data.deductible_propertyDamage %></div> <!-- w10 -->
     <div class="cell label w10">PER CLAIM</div>
     <div class="cell label w15">EACH OCCURRENCE</div>
-    <div class="cell w25 right num">$<%= data.limit_eachOccurrence %></div>
-    <div class="cell label w25">OTHER</div>
+    <div class="cell w20 right num">$<%= data.limit_eachOccurrence %></div> <!-- w20 -->
+    <div class="cell label w30">OTHER</div>
   </div>
 
   <div class="row">
     <div class="cell label w10">BODILY INJURY</div>
-    <div class="cell w15 right num">$<%= data.deductible_bodilyInjury %></div>
-    <div class="cell label w10">PER OCCURRENCE</div>
-    <div class="cell label w15">DAMAGE TO RENTED PREMISES (each occurrence)</div>
-    <div class="cell w25 right num">$<%= data.limit_damageToPremises %></div>
+    <div class="cell w10 right num">$<%= data.deductible_bodilyInjury %></div> <!-- w10 -->
+    <div class="cell label w15">PER OCCURRENCE</div> <!-- w15 -->
+    <div class="cell label w35">DAMAGE TO RENTED PREMISES (each occurrence)</div> <!-- w35 for long label -->
+    <div class="cell w20 right num">$<%= data.limit_damageToPremises %></div> <!-- w20 -->
+    <div class="cell w10"></div> <!-- w10 -->
+  </div>
+
+  <div class="row">
+    <div class="cell w25"></div>
+    <div class="cell label w30">MEDICAL EXPENSE (Any one person)</div>
+    <div class="cell w20 right num">$<%= data.limit_medicalExpense %></div> <!-- w20 -->
     <div class="cell w25"></div>
   </div>
 
   <div class="row">
     <div class="cell w25"></div>
-    <div class="cell label w25">MEDICAL EXPENSE (Any one person)</div>
-    <div class="cell w25 right num">$<%= data.limit_medicalExpense %></div>
-    <div class="cell w25"></div>
-  </div>
-
-  <div class="row">
-    <div class="cell w25"></div>
-    <div class="cell label w25">EMPLOYEE BENEFITS</div>
-    <div class="cell w25 right num">$<%= data.limit_employeeBenefits %></div>
-    <div class="cell label w25">TOTAL</div>
+    <div class="cell label w25">EMPLOYEE BENEFITS</div> <!-- w25 -->
+    <div class="cell w20 right num">$<%= data.limit_employeeBenefits %></div> <!-- w20 -->
+    <div class="cell label w30">TOTAL</div>
   </div>
 </div>
+</div> <!-- CLOSE THE COVERAGES WRAPPER - DON'T FORGET THIS! -->
 
 
   <!-- OTHER COVERAGES -->
@@ -322,19 +324,21 @@ const firstInterest = (() => {
 
   <!-- SCHEDULE OF HAZARDS -->
 <div class="subbar">SCHEDULE OF HAZARDS (ACORD 211, Schedule of Hazards, may be attached if more space is required)</div>
+<div class="schedule-hazards"> <!-- ADD THIS WRAPPER -->
 <div class="block">
   <div class="row">
     <div class="cell label w5  center small">LOC #</div>              
     <div class="cell label w5  center small">HAZ #</div>              
-    <div class="cell label w10 center small">CLASS CODE</div>         
-    <div class="cell label w20 center small">PREMIUM BASIS</div>      
-    <div class="cell label w20 center small">CLASSIFICATION DESCRIPTION</div>
+    <div class="cell label w10 center small">CLASS<br/>CODE</div>  <!-- Add <br/> to split -->
+    <div class="cell label w15 center small">PREMIUM<br/>BASIS</div>  <!-- Changed from w20 to w15 and add <br/> -->    
+    <div class="cell label w25 center small">CLASSIFICATION<br/>DESCRIPTION</div> <!-- Changed from w20 to w25 and add <br/> -->
     <div class="cell label w10 center small">EXPOSURE</div>           
     <div class="cell label w5  center small">TERR</div>               
     <div class="cell label w10 center small">RATE<br/>PREM/OPS</div>  
     <div class="cell label w5  center small">RATE<br/>PRODS</div>     
-    <div class="cell label w5  center small">PREMIUM<br/>PREM/OPS</div>
-    <div class="cell label w5  center small">PREMIUM<br/>PRODS</div>  
+    <div class="cell label w5  center small">PREM<br/>PREM/OPS</div> <!-- Shortened label -->
+    <div class="cell label w5  center small">PREM<br/>PRODS</div>  <!-- Shortened label -->
+  </div> 
   </div>
 
   <!-- Row 1: GROSS REV -->
@@ -432,8 +436,8 @@ const firstInterest = (() => {
   <div class="row">
     <div class="cell label w25">1. DEDUCTIBLE PER CLAIM</div>
     <div class="cell w25 right num">$<%= data.ebl_deductiblePerClaim %></div>
-    <div class="cell label w25">3. NUMBER OF EMPLOYEES COVERED BY EMPLOYEE BENEFITS PLANS</div>
-    <div class="cell w25 right num"><%= data.ebl_numEmployeesCovered %></div>
+    <div class="cell label w35">3. NUMBER OF EMPLOYEES COVERED BY EMPLOYEE BENEFITS PLANS</div>
+    <div class="cell w15 right num"><%= data.ebl_numEmployeesCovered %></div>
   </div>
   <div class="row">
     <div class="cell label w25">2. NUMBER OF EMPLOYEES</div>
