@@ -572,23 +572,23 @@ const firstInterest = (() => {
 <div class="additional-interest">
 <div class="block">
   <div class="row">
-    <div class="cell label w10">INTEREST</div>
-    <div class="cell w15">
+    <div class="cell label w10 small">INTEREST</div>
+    <div class="cell w15 small">
       <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="ADDITIONAL_INSURED") ? "X" : "" %></span> ADDITIONAL<br/>INSURED
     </div>
-    <div class="cell w13">
+    <div class="cell w15 small">
       <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="LOSS_PAYEE") ? "X" : "" %></span> LOSS<br/>PAYEE
     </div>
-    <div class="cell w14">
+    <div class="cell w15 small">
       <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="MORTGAGEE") ? "X" : "" %></span> MORTGAGEE
     </div>
-    <div class="cell w14">
+    <div class="cell w15 small">
       <span class="check"><%= ((firstInterest.type || "").toUpperCase()==="LIENHOLDER") ? "X" : "" %></span> LIENHOLDER
     </div>
-    <div class="cell w17">
+    <div class="cell w15 small">
       <span class="check"></span> EMPLOYEE<br/>AS LESSOR
     </div>
-    <div class="cell w17">
+    <div class="cell w15 small">
       <span class="check"></span> LENDER'S LOSS<br/>PAYABLE
     </div>
   </div>
@@ -608,7 +608,7 @@ const firstInterest = (() => {
     <div class="cell w75"></div>
   </div>
 </div>
-</div> <!-- CLOSE additional-interest wrapper -->
+</div> <!-- close additional-interest wrapper -->
 
   <!-- GENERAL INFORMATION -->
   <div class="subbar">GENERAL INFORMATION</div>
