@@ -17,6 +17,7 @@ const FILENAME_MAP = {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const enrichBarFormData = require('../mapping/bar-data-enricher');
 
 const APP = express();
 APP.use(express.json({ limit: "20mb" }));
@@ -129,7 +130,8 @@ APP.post("/render-bundle", async (req, res) => {
 // Back-compat: { formData, segments[], email? }
 APP.post("/submit-quote", async (req, res) => {
   try {
-    const { formData = {}, segments = [], email } = req.body || {};
+    let { formData = {}, segments = [], email } = req.body || {};
+    formData = enrichBarFormData(formData);
 
     // Build from front-end `segments` (folder names must match)
     const templates = (segments || []).map((name) => ({
