@@ -6,10 +6,8 @@ function enrichBarFormData(formData) {
   const enrichedData = {
     ...formData,
     
-    // Determine organization type from checkboxes
+    // Organization and Construction Types
     organization_type: determineOrgType(formData),
-    
-    // Determine construction type from checkboxes
     construction_type: determineConstructionType(formData),
     
     // Clean currency fields (remove $ and commas)
@@ -18,30 +16,52 @@ function enrichBarFormData(formData) {
     alcohol_sales_clean: cleanCurrency(formData.alcohol_sales),
     total_sales_clean: cleanCurrency(formData.total_sales),
     
-    // Add fields needed by ACORD forms but not in Netlify
+    // Producer Information (Agency)
     producer_name: "All Access Ins, dba Commercial Insurance Direct LLC",
     producer_address1: "9200 W Cross Drive #515", 
     producer_address2: "Littleton, CO 80123",
     producer_phone: "(303) 932-1700",
     producer_email: "quote@barinsurancedirect.com",
     
-    // Calculate expiration date (1 year from effective)
+    // Date Fields
+    effective_date: formData.effective_date || '',
     expiration_date: calculateExpirationDate(formData.effective_date),
+    current_date: new Date().toISOString().split('T')[0],
     
-    // Determine lines of business
+    // Building Information (ACORD 140)
+    year_built: formData.year_built || '',
+    automatic_sprinkler_system: formData.automatic_sprinkler_system || 'No',
+    automatic_sprinkler_system_extent: formData.automatic_sprinkler_system_extent || '',
+    number_of_stories: formData.number_of_stories || '1',
+    
+    // Applicant Address Fields (ACORD 125)
+    applicant_mailing_address: formData.applicant_mailing_address || formData.mailing_address1 || '',
+    applicant_city: formData.applicant_city || formData.mailing_city || '',
+    applicant_state: formData.applicant_state || formData.mailing_state || '',
+    applicant_zip: formData.applicant_zip || formData.mailing_zip || '',
+    
+    // Contact Information
+    inspection_contact_email: formData.inspection_contact_email || formData.contact_email || '',
+    business_phone: formData.business_phone || formData.contact_phone || '',
+    
+    // Lines of Business Flags
     needs_gl: true,  // Always for bar/restaurant
     needs_liquor: formData.alcohol_sales && parseFloat(cleanCurrency(formData.alcohol_sales)) > 0,
     needs_property: formData.business_personal_property && parseFloat(cleanCurrency(formData.business_personal_property)) > 0,
     needs_umbrella: formData.total_sales && parseFloat(cleanCurrency(formData.total_sales)) > 1000000,
     
-    // Map claim count to number
+    // Employee Counts
+    total_employees: (parseInt(formData.wc_employees_ft || 0) + parseInt(formData.wc_employees_pt || 0)) || formData.num_employees || '',
+    full_time_employees: formData.wc_employees_ft || formData.full_time_employees || '',
+    part_time_employees: formData.wc_employees_pt || formData.part_time_employees || '',
+    
+    // Claims
     total_claims: mapClaimCount(formData.claim_count),
     
-    // Combine FT and PT employees
-    total_employees: (parseInt(formData.wc_employees_ft || 0) + parseInt(formData.wc_employees_pt || 0)) || formData.num_employees,
-    
-    // Add today's date
-    current_date: new Date().toISOString().split('T')[0]
+    // Additional Common Fields
+    square_footage: formData.square_footage || '',
+    premises_name: formData.premises_name || formData.dba_name || '',
+    applicant_name: formData.applicant_name || formData.legal_business_name || ''
   };
   
   return enrichedData;
