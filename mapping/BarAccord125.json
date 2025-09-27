@@ -11,12 +11,11 @@
     "applicant_zip": "applicant_zip",
     "entity_type": "organization_type",
     "business_phone": "business_phone",
-    "business_email": "inspection_contact_email"
+    "business_email": "inspection_contact_email",
     "organization_type": "organization_type",
     "construction_type": "construction_type",
     "expiration_date": "expiration_date",
-    "total_employees": "total_employees"
-    "business_phone": "business_phone",
+    "total_employees": "total_employees",
     "org_type_corporation": "org_type_corporation",
     "org_type_llc": "org_type_llc",
     "org_type_individual": "org_type_individual",
