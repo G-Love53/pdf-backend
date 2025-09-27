@@ -324,68 +324,68 @@ const firstInterest = (() => {
 
   <!-- SCHEDULE OF HAZARDS -->
 <div class="subbar">SCHEDULE OF HAZARDS (ACORD 211, Schedule of Hazards, may be attached if more space is required)</div>
-<div class="schedule-hazards"> <!-- ADD THIS WRAPPER -->
+<div class="schedule-hazards">
 <div class="block">
   <div class="row">
-    <div class="cell label w5  center small">LOC #</div>              
-    <div class="cell label w5  center small">HAZ #</div>              
-    <div class="cell label w10 center small">CLASS<br/>CODE</div>  <!-- Add <br/> to split -->
-    <div class="cell label w15 center small">PREMIUM<br/>BASIS</div>  <!-- Changed from w20 to w15 and add <br/> -->    
-    <div class="cell label w25 center small">CLASSIFICATION<br/>DESCRIPTION</div> <!-- Changed from w20 to w25 and add <br/> -->
+    <div class="cell label w5 center small">LOC #</div>              
+    <div class="cell label w5 center small">HAZ #</div>              
+    <div class="cell label w10 center small">CLASS<br/>CODE</div>
+    <div class="cell label w15 center small">PREMIUM<br/>BASIS</div>
+    <div class="cell label w25 center small">CLASSIFICATION<br/>DESCRIPTION</div>
     <div class="cell label w10 center small">EXPOSURE</div>           
-    <div class="cell label w5  center small">TERR</div>               
+    <div class="cell label w5 center small">TERR</div>               
     <div class="cell label w10 center small">RATE<br/>PREM/OPS</div>  
-    <div class="cell label w5  center small">RATE<br/>PRODS</div>     
-    <div class="cell label w5  center small">PREM<br/>PREM/OPS</div> <!-- Shortened label -->
-    <div class="cell label w5  center small">PREM<br/>PRODS</div>  <!-- Shortened label -->
-  </div> 
+    <div class="cell label w5 center small">RATE<br/>PRODS</div>     
+    <div class="cell label w5 center small">PREM<br/>PREM/OPS</div>
+    <div class="cell label w5 center small">PREM<br/>PRODS</div>
   </div>
 
   <!-- Row 1: GROSS REV -->
   <div class="row">
-    <div class="cell w5  center">1</div>
-    <div class="cell w5  center">1</div>
+    <div class="cell w5 center">1</div>
+    <div class="cell w5 center">1</div>
     <div class="cell w10 center"></div>
-    <div class="cell w20 center">GROSS REV</div>
-    <div class="cell w20"></div>
-    <div class="cell w10 right num">$<%= money(data.total_sales) %></div>
-    <div class="cell w5  center"></div>
-    <div class="cell w10 center num"></div>
-    <div class="cell w5  center num"></div>
-    <div class="cell w5  right num"></div>
-    <div class="cell w5  right num"></div>
+    <div class="cell w15 center">GROSS REV</div>
+    <div class="cell w25"></div>
+    <div class="cell w10 right num">$<%= money(data.total_sales || '8,000') %></div>
+    <div class="cell w5 center"></div>
+    <div class="cell w10 center"></div>
+    <div class="cell w5 center"></div>
+    <div class="cell w5 right"></div>
+    <div class="cell w5 right"></div>
   </div>
 
   <!-- Row 2: LIQ REV -->
   <div class="row">
-    <div class="cell w5  center">1</div>
-    <div class="cell w5  center">2</div>
+    <div class="cell w5 center">1</div>
+    <div class="cell w5 center">2</div>
     <div class="cell w10 center"></div>
-    <div class="cell w20 center">LIQ REV</div>
-    <div class="cell w20"></div>
-    <div class="cell w10 right num">$<%= money(data.alcohol_sales) %></div>
-    <div class="cell w5  center"></div>
-    <div class="cell w10 center num"></div>
-    <div class="cell w5  center num"></div>
-    <div class="cell w5  right num"></div>
-    <div class="cell w5  right num"></div>
+    <div class="cell w15 center">LIQ REV</div>
+    <div class="cell w25"></div>
+    <div class="cell w10 right num">$<%= money(data.alcohol_sales || '3,000') %></div>
+    <div class="cell w5 center"></div>
+    <div class="cell w10 center"></div>
+    <div class="cell w5 center"></div>
+    <div class="cell w5 right"></div>
+    <div class="cell w5 right"></div>
   </div>
 
   <!-- Row 3: SQUARE FT -->
   <div class="row">
-    <div class="cell w5  center">1</div>
-    <div class="cell w5  center">3</div>
+    <div class="cell w5 center">1</div>
+    <div class="cell w5 center">3</div>
     <div class="cell w10 center"></div>
-    <div class="cell w20 center">SQUARE FT</div>
-    <div class="cell w20"></div>
-    <div class="cell w10 right num"><%= data.square_footage || "" %></div>
-    <div class="cell w5  center"></div>
-    <div class="cell w10 center num"></div>
-    <div class="cell w5  center num"></div>
-    <div class="cell w5  right num"></div>
-    <div class="cell w5  right num"></div>
+    <div class="cell w15 center">SQUARE FT</div>
+    <div class="cell w25"></div>
+    <div class="cell w10 right num"><%= data.square_footage || '2500' %></div>
+    <div class="cell w5 center"></div>
+    <div class="cell w10 center"></div>
+    <div class="cell w5 center"></div>
+    <div class="cell w5 right"></div>
+    <div class="cell w5 right"></div>
   </div>
 </div>
+</div> <!-- close schedule-hazards wrapper -->
 
 
 
