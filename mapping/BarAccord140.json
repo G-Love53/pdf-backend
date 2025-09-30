@@ -3,7 +3,8 @@
   "premises_name": "premises_name",
   "premise_address": "premise_address",
   "date": "current_date",
-  "effective_date": "effective_date"
+  "effective_date": "effective_date",
+  "effectiveDate": "effective_date",
   "business_personal_property": "business_personal_property",
   "building_quote": "building_quote",
   "construction_type": "construction_type",
