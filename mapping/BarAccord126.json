@@ -18,6 +18,14 @@
   "date": "current_date",
   "effectiveDate": "effective_date",
 
+  "business_phone": "business_phone",           
+  "contact_email": "contact_email",               
+  "premise_website": "premise_website",         
+  "organization_type": "organization_type",     
+  "wc_employees_ft": "wc_employees_ft",        
+  "wc_employees_pt": "wc_employees_pt",        
+  "total_employees": "total_employees", 
+
   "ai_additional_insured": "ai_additional_insured",
   "ai_loss_payee": "ai_loss_payee",
   "ai_mortgagee": "ai_mortgagee",
