@@ -15,7 +15,7 @@
 
   "remarks": "remarks",
 
-  "date": "date",
+  "date": "current_date",
   "effectiveDate": "effective_date",
 
   "ai_additional_insured": "ai_additional_insured",
