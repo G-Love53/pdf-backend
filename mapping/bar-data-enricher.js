@@ -84,6 +84,44 @@ function enrichBarFormData(formData) {
     wc_clerical_ft: '0', // Default for clerical
     wc_clerical_pt: '0',
     wc_clerical_payroll: '0',
+
+    // Additional Insureds/Interests
+additional_insureds_present: formData.additional_insureds_present || 'No',
+ai_loss_payee: formData.ai_loss_payee || '',
+ai_lienholder: formData.ai_lienholder || '',
+ai_mortgagee: formData.ai_mortgagee || '',
+ai_additional_insured: formData.ai_additional_insured || '',
+
+// Additional Insured details (supports up to 5)
+ai_name_1: formData.ai_name_1 || '',
+ai_address_1: formData.ai_address_1 || '',
+ai_city_1: formData.ai_city_1 || '',
+ai_state_1: formData.ai_state_1 || '',
+ai_zip_1: formData.ai_zip_1 || '',
+
+ai_name_2: formData.ai_name_2 || '',
+ai_address_2: formData.ai_address_2 || '',
+ai_city_2: formData.ai_city_2 || '',
+ai_state_2: formData.ai_state_2 || '',
+ai_zip_2: formData.ai_zip_2 || '',
+
+ai_name_3: formData.ai_name_3 || '',
+ai_address_3: formData.ai_address_3 || '',
+ai_city_3: formData.ai_city_3 || '',
+ai_state_3: formData.ai_state_3 || '',
+ai_zip_3: formData.ai_zip_3 || '',
+
+ai_name_4: formData.ai_name_4 || '',
+ai_address_4: formData.ai_address_4 || '',
+ai_city_4: formData.ai_city_4 || '',
+ai_state_4: formData.ai_state_4 || '',
+ai_zip_4: formData.ai_zip_4 || '',
+
+ai_name_5: formData.ai_name_5 || '',
+ai_address_5: formData.ai_address_5 || '',
+ai_city_5: formData.ai_city_5 || '',
+ai_state_5: formData.ai_state_5 || '',
+ai_zip_5: formData.ai_zip_5 || '',
     
     // Claims
     total_claims: mapClaimCount(formData.claim_count),
