@@ -34,22 +34,29 @@ function enrichBarFormData(formData) {
     automatic_sprinkler_system_extent: formData.automatic_sprinkler_system_extent || '',
     number_of_stories: formData.number_of_stories || '1',
     
-    // Applicant Address Fields (ACORD 125)
-    applicant_mailing_address: formData.applicant_mailing_address || formData.mailing_address1 || '',
-    applicant_city: formData.applicant_city || formData.mailing_city || '',
-    applicant_state: formData.applicant_state || formData.mailing_state || '',
-    applicant_zip: formData.applicant_zip || formData.mailing_zip || '',
+    // Applicant Address Fields (ACORD 125 - fallback to premise address)
+    applicant_mailing_address: formData.applicant_mailing_address || formData.premise_address || '',
+    applicant_city: formData.applicant_city || formData.premise_city || '',
+    applicant_state: formData.applicant_state || formData.premise_state || '',
+    applicant_zip: formData.applicant_zip || formData.premise_zip || '',
     
-    // Mailing Address Fields (for ACORD 130 - maps from premise address)
-    mailing_address1: formData.premise_address || '',
+    // Premise Address Fields (direct from form)
+    premise_address: formData.premise_address || '',
+    premise_city: formData.premise_city || '',
+    premise_state: formData.premise_state || '',
+    premise_zip: formData.premise_zip || '',
+    
+    // Mailing Address Fields (for forms that need them - maps from premise)
+    mailing_address1: formData.mailing_address1 || formData.premise_address || '',
     mailing_address2: formData.mailing_address2 || '',
-    mailing_city: formData.premise_city || '',
-    mailing_state: formData.premise_state || '',
-    mailing_zip: formData.premise_zip || '',
+    mailing_city: formData.mailing_city || formData.premise_city || '',
+    mailing_state: formData.mailing_state || formData.premise_state || '',
+    mailing_zip: formData.mailing_zip || formData.premise_zip || '',
     
     // Contact Information
-    inspection_contact_email: formData.inspection_contact_email || formData.contact_email || '',
-    business_phone: formData.business_phone || formData.contact_phone || '',
+    contact_email: formData.contact_email || '',
+    business_phone: formData.business_phone || '',
+    closing_time: formData.closing_time || '',
     
     // Lines of Business Flags
     needs_gl: true,  // Always for bar/restaurant
@@ -58,6 +65,7 @@ function enrichBarFormData(formData) {
     needs_umbrella: formData.total_sales && parseFloat(cleanCurrency(formData.total_sales)) > 1000000,
     
     // Employee Counts
+    num_employees: formData.num_employees || '',
     total_employees: (parseInt(formData.wc_employees_ft || 0) + parseInt(formData.wc_employees_pt || 0)) || formData.num_employees || '',
     full_time_employees: formData.wc_employees_ft || formData.full_time_employees || '',
     part_time_employees: formData.wc_employees_pt || formData.part_time_employees || '',
@@ -84,53 +92,68 @@ function enrichBarFormData(formData) {
     wc_clerical_ft: '0', // Default for clerical
     wc_clerical_pt: '0',
     wc_clerical_payroll: '0',
-
+    
     // Additional Insureds/Interests
-additional_insureds_present: formData.additional_insureds_present || 'No',
-ai_loss_payee: formData.ai_loss_payee || '',
-ai_lienholder: formData.ai_lienholder || '',
-ai_mortgagee: formData.ai_mortgagee || '',
-ai_additional_insured: formData.ai_additional_insured || '',
-
-// Additional Insured details (supports up to 5)
-ai_name_1: formData.ai_name_1 || '',
-ai_address_1: formData.ai_address_1 || '',
-ai_city_1: formData.ai_city_1 || '',
-ai_state_1: formData.ai_state_1 || '',
-ai_zip_1: formData.ai_zip_1 || '',
-
-ai_name_2: formData.ai_name_2 || '',
-ai_address_2: formData.ai_address_2 || '',
-ai_city_2: formData.ai_city_2 || '',
-ai_state_2: formData.ai_state_2 || '',
-ai_zip_2: formData.ai_zip_2 || '',
-
-ai_name_3: formData.ai_name_3 || '',
-ai_address_3: formData.ai_address_3 || '',
-ai_city_3: formData.ai_city_3 || '',
-ai_state_3: formData.ai_state_3 || '',
-ai_zip_3: formData.ai_zip_3 || '',
-
-ai_name_4: formData.ai_name_4 || '',
-ai_address_4: formData.ai_address_4 || '',
-ai_city_4: formData.ai_city_4 || '',
-ai_state_4: formData.ai_state_4 || '',
-ai_zip_4: formData.ai_zip_4 || '',
-
-ai_name_5: formData.ai_name_5 || '',
-ai_address_5: formData.ai_address_5 || '',
-ai_city_5: formData.ai_city_5 || '',
-ai_state_5: formData.ai_state_5 || '',
-ai_zip_5: formData.ai_zip_5 || '',
+    additional_insureds_present: formData.additional_insureds_present || 'No',
+    ai_loss_payee: formData.ai_loss_payee || '',
+    ai_lienholder: formData.ai_lienholder || '',
+    ai_mortgagee: formData.ai_mortgagee || '',
+    ai_additional_insured: formData.ai_additional_insured || '',
+    
+    // Additional Insured details (supports up to 5)
+    ai_name_1: formData.ai_name_1 || '',
+    ai_address_1: formData.ai_address_1 || '',
+    ai_city_1: formData.ai_city_1 || '',
+    ai_state_1: formData.ai_state_1 || '',
+    ai_zip_1: formData.ai_zip_1 || '',
+    
+    ai_name_2: formData.ai_name_2 || '',
+    ai_address_2: formData.ai_address_2 || '',
+    ai_city_2: formData.ai_city_2 || '',
+    ai_state_2: formData.ai_state_2 || '',
+    ai_zip_2: formData.ai_zip_2 || '',
+    
+    ai_name_3: formData.ai_name_3 || '',
+    ai_address_3: formData.ai_address_3 || '',
+    ai_city_3: formData.ai_city_3 || '',
+    ai_state_3: formData.ai_state_3 || '',
+    ai_zip_3: formData.ai_zip_3 || '',
+    
+    ai_name_4: formData.ai_name_4 || '',
+    ai_address_4: formData.ai_address_4 || '',
+    ai_city_4: formData.ai_city_4 || '',
+    ai_state_4: formData.ai_state_4 || '',
+    ai_zip_4: formData.ai_zip_4 || '',
+    
+    ai_name_5: formData.ai_name_5 || '',
+    ai_address_5: formData.ai_address_5 || '',
+    ai_city_5: formData.ai_city_5 || '',
+    ai_state_5: formData.ai_state_5 || '',
+    ai_zip_5: formData.ai_zip_5 || '',
     
     // Claims
+    claim_count: formData.claim_count || 'Zero',
     total_claims: mapClaimCount(formData.claim_count),
+    claims_details_2_or_less: formData.claims_details_2_or_less || '',
+    claims_details_3_or_more: formData.claims_details_3_or_more || '',
     
     // Additional Common Fields
     square_footage: formData.square_footage || '',
     premises_name: formData.premises_name || formData.dba_name || '',
     applicant_name: formData.applicant_name || formData.legal_business_name || '',
-    premises_website: formData.premises_website || ''
+    premises_website: formData.premises_website || '',
+    building_quote: formData.building_quote || '',
+    
+    // Solid fuel cooking equipment fields
+    solid_fuel: formData.solid_fuel || '',
+    professionally_installed: formData.professionally_installed || '',
+    regularly_maintained: formData.regularly_maintained || '',
+    cleaned_scraped_weekly: formData.cleaned_scraped_weekly || '',
+    vent_cleaned_monthly: formData.vent_cleaned_monthly || '',
+    ashes_removed_daily: formData.ashes_removed_daily || '',
+    storage_10_feet: formData.storage_10_feet || '',
+    hood_ul300: formData.hood_ul300 || '',
+    fire_extinguisher_20_feet: formData.fire_extinguisher_20_feet || ''
   };
   
   return enrichedData;
