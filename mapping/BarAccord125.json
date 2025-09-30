@@ -50,4 +50,12 @@
 "business_description": "business_description",
 "date_business_started": "date_business_started",
 "federal_tax_id": "federal_tax_id"
+    "additional_insureds_present": "additional_insureds_present",
+  "additional_insured_type": "additional_insured_type",
+  "additional_insured_name": "ai_name_1",
+  "additional_insured_address": "additional_insured_address",
+  "ai_loss_payee": "ai_loss_payee",
+  "ai_mortgagee": "ai_mortgagee",
+  "ai_lienholder": "ai_lienholder",
+  "ai_additional_insured": "ai_additional_insured"
 }
