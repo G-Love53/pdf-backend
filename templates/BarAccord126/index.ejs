@@ -116,6 +116,49 @@ const defaults = {
 
 const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
 
+<%
+  // --- Compat shim (safe: no layout changes) ---
+
+  // Dates
+  const CURR_DATE = data.current_date || data.date || "";
+  const EFF_DATE  = data.effective_date || data.effectiveDate || "";
+  const EXP_DATE  = data.expiration_date || data.expirationDate || "";
+
+  // Applicant & Premises
+  const APPL_NAME = data.applicant_name || data.named_insured || "";
+  const PREMISES  = data.premises_name || "";
+
+  // Address (include fallback if enricher didn't set applicant_street/csz)
+  const APPL_STREET = data.applicant_street || data.premise_address || data.applicant_mailing_address || "";
+  const APPL_CSZ = data.applicant_city_state_zip
+    || [data.premise_city || data.applicant_city, data.premise_state || data.applicant_state, data.premise_zip || data.applicant_zip]
+         .filter(Boolean).join(", ");
+
+  // Employees
+  const FT = data.full_time_employees || data.wc_employees_ft || "";
+  const PT = data.part_time_employees || data.wc_employees_pt || "";
+
+  // Additional Interest (AI #1)
+  const AI1_NAME  = data.ai_name_1  || data.additionalInsuredName || data.interest_name  || "";
+  const AI1_ADDR  = data.ai_address_1 || data.additionalInsuredAddress || data.interest_address || "";
+  const AI1_CITY  = data.ai_city_1  || "";
+  const AI1_STATE = data.ai_state_1 || "";
+  const AI1_ZIP   = data.ai_zip_1   || "";
+
+  // --- Backfill canonical + legacy keys ---
+  data.current_date     = CURR_DATE;  data.date = CURR_DATE;
+  data.effective_date   = EFF_DATE;   data.effectiveDate = EFF_DATE;
+  data.expiration_date  = EXP_DATE;   data.expirationDate = EXP_DATE;
+
+  data.full_time_employees = FT;  data.wc_employees_ft = FT;
+  data.part_time_employees = PT;  data.wc_employees_pt = PT;
+
+  data.ai_name_1 = AI1_NAME;   data.additionalInsuredName  = data.additionalInsuredName  || AI1_NAME;   data.interest_name  = data.interest_name  || AI1_NAME;
+  data.ai_address_1 = AI1_ADDR; data.additionalInsuredAddress = data.additionalInsuredAddress || AI1_ADDR; data.interest_address = data.interest_address || AI1_ADDR;
+  data.ai_city_1 = AI1_CITY;   data.ai_state_1 = AI1_STATE; data.ai_zip_1 = AI1_ZIP;
+%>
+
+
 // ===== Helpers =====
 const yes = (v) => ["yes","true","1","on","checked","y"].includes(String(v ?? "").toLowerCase()) || v === true || v === 1;
 const yn = (v) => yes(v) ? "Y" : (v===false || String(v).toLowerCase()==="n" ? "N" : "");
