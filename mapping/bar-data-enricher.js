@@ -22,6 +22,16 @@ function enrichBarFormData(formData) {
     producer_address2: "Littleton, CO 80123",
     producer_phone: "(303) 932-1700",
     producer_email: "quote@barinsurancedirect.com",
+
+    // --- NEW: Full Applicant address for 126
+enrichedData.applicant_street =
+  formData.premise_address || formData.applicant_mailing_address || "";
+enrichedData.applicant_city_state_zip = [
+  formData.premise_city || formData.applicant_city || "",
+  formData.premise_state || formData.applicant_state || "",
+  formData.premise_zip || formData.applicant_zip || ""
+].filter(Boolean).join(", ");
+
     
     // Date Fields
     effective_date: formData.effective_date || '',
@@ -136,6 +146,24 @@ function enrichBarFormData(formData) {
     total_claims: mapClaimCount(formData.claim_count),
     claims_details_2_or_less: formData.claims_details_2_or_less || '',
     claims_details_3_or_more: formData.claims_details_3_or_more || '',
+
+      // When 2_or_less or 3_or_more, also set Description of Insurance for 125
+if (enrichedData.claim_count === "2_or_less") {
+  enrichedData.description_of_insurance = "See Remarks Below";
+} else if (enrichedData.claim_count === "3_or_more") {
+  enrichedData.description_of_insurance = "See Remarks Below";
+} else {
+  enrichedData.description_of_insurance = "";
+}
+// --- NEW: Total Losses $ for 125
+const explicitLossTotal = cleanCurrency(formData.total_losses_amount);
+const parsedTotal = sumCurrencyFromText(
+  [enrichedData.claims_remarks, enrichedData.claims_details_2_or_less, enrichedData.claims_details_3_or_more]
+    .filter(Boolean).join("\n")
+);
+// prefer explicit input, fallback to parsed sum
+enrichedData.total_losses_amount = explicitLossTotal !== "0" ? explicitLossTotal : parsedTotal;
+
     
     // Additional Common Fields
     square_footage: formData.square_footage || '',
@@ -196,6 +224,18 @@ function determineOrgType(data) {
   if (data.org_type_individual === 'Yes') return 'Individual';
   return '';
 }
+
+// --- NEW helper: sum all $amounts found in text
+function sumCurrencyFromText(text) {
+  if (!text) return "0";
+  const matches = String(text).match(/\$?\s*([\d,]+(?:\.\d{1,2})?)/g) || [];
+  const total = matches.reduce((sum, m) => {
+    const n = Number((m || "").replace(/[$,\s]/g, ""));
+    return isFinite(n) ? sum + n : sum;
+  }, 0);
+  return String(Math.round(total));
+}
+
 
 function determineConstructionType(data) {
   if (data.construction_frame === 'Yes') return 'Frame';
