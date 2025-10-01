@@ -177,6 +177,48 @@ const defaults = {
 
 const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
 
+// === COMPAT SHIM (no layout changes) ===
+(() => {
+  // Dates (support old/new keys)
+  const CURR_DATE = data.current_date || data.date || "";
+  const EFF_DATE  = data.effective_date || data.effectiveDate || "";
+  const EXP_DATE  = data.expiration_date || data.expirationDate || "";
+  data.current_date = CURR_DATE;      data.date = CURR_DATE;
+  data.effective_date = EFF_DATE;     data.effectiveDate = EFF_DATE;
+  data.expiration_date = EXP_DATE;    data.expirationDate = EXP_DATE;
+
+  // Applicant address (works even if enricher didn’t set the new fields)
+  const street = data.applicant_street || data.premise_address || data.applicant_mailing_address || "";
+  const csz = data.applicant_city_state_zip
+    || [data.premise_city || data.applicant_city, data.premise_state || data.applicant_state, data.premise_zip || data.applicant_zip]
+         .filter(Boolean).join(", ");
+  data.applicant_street = street;
+  data.applicant_city_state_zip = csz;
+
+  // Additional Interest #1 (normalize + backfill)
+  const aiName = data.ai_name_1 || data.additionalInsuredName || data.interest_name || "";
+  const aiAddr = data.ai_address_1 || data.additionalInsuredAddress || data.interest_address || "";
+  data.ai_name_1 = data.ai_name_1 || aiName;
+  data.ai_address_1 = data.ai_address_1 || aiAddr;
+  data.ai_city_1 = data.ai_city_1 || data.additionalInsuredCity || data.interest_city || "";
+  data.ai_state_1 = data.ai_state_1 || data.additionalInsuredState || data.interest_state || "";
+  data.ai_zip_1  = data.ai_zip_1  || data.additionalInsuredZip  || data.interest_zip  || "";
+
+  // BPP (140 uses it; harmless to normalize here too)
+  const bpp = data.business_personal_property_clean || data.bpp_amount || data.business_personal_property || "";
+  if (bpp) { data.business_personal_property = bpp; data.bpp_amount = bpp; }
+
+  // 125: “See Remarks Below” + Remarks text (fallback if enricher didn’t set)
+  if (!data.description_of_insurance && (data.claim_count === "2_or_less" || data.claim_count === "3_or_more")) {
+    data.description_of_insurance = "See Remarks Below";
+  }
+  if (!data.claims_remarks) {
+    data.claims_remarks = data.claims_details_2_or_less || data.claims_details_3_or_more || data.remarks || "";
+  }
+  if (!data.remarks) data.remarks = data.claims_remarks;
+})();
+
+
 // Helper functions
 const yes = (v) => ["yes","true","1","on","checked","y"].includes(String(v ?? "").toLowerCase()) || v === true || v === 1;
 const yn = (v) => yes(v) ? "Y" : (v === false || String(v).toLowerCase() === "n" ? "N" : "");
