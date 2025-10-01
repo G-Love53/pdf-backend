@@ -155,6 +155,36 @@ function enrichBarFormData(formData) {
     hood_ul300: formData.hood_ul300 || '',
     fire_extinguisher_20_feet: formData.fire_extinguisher_20_feet || ''
   };
+
+  // Add this logic AFTER creating enrichedData but BEFORE returning it:
+
+  // Handle claims logic for Accord 125
+  if (enrichedData.claim_count === '2_or_less') {
+    enrichedData.claims_description = 'See Remarks Below';
+    enrichedData.claims_remarks = enrichedData.claims_details_2_or_less || '';
+    enrichedData.total_claims = '2'; // Set as count, not dollar amount
+  } else if (enrichedData.claim_count === '3_or_more') {
+    enrichedData.claims_description = 'See Remarks Below';
+    enrichedData.claims_remarks = enrichedData.claims_details_3_or_more || '';
+    enrichedData.total_claims = '3';
+  } else {
+    enrichedData.total_claims = '0';
+    enrichedData.claims_description = '';
+    enrichedData.claims_remarks = '';
+  }
+
+  // Ensure Additional Insured address is formatted for Accord 125
+  if (enrichedData.ai_address_1 && enrichedData.ai_city_1) {
+    enrichedData.additionalInsuredAddress = [
+      enrichedData.ai_address_1,
+      `${enrichedData.ai_city_1}, ${enrichedData.ai_state_1} ${enrichedData.ai_zip_1}`
+    ].filter(Boolean).join('\n');
+  }
+
+  // Ensure business type is set
+  if (!enrichedData.businessType) {
+    enrichedData.businessType = 'RESTAURANT'; // Default for bar/restaurant forms
+  }
   
   return enrichedData;
 }
