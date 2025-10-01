@@ -110,6 +110,29 @@ const defaults = {
 
 const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
 
+<%
+  // --- Compat shim (safe: no layout changes) ---
+
+  // Applicant & Premises
+  const APPL_NAME = data.applicant_name || data.named_insured || "";
+  const PREMISES  = data.premises_name || "";
+
+  // Address fallbacks
+  const APPL_STREET = data.applicant_street || data.premise_address || data.applicant_mailing_address || "";
+  const APPL_CSZ = data.applicant_city_state_zip
+    || [data.premise_city || data.applicant_city, data.premise_state || data.applicant_state, data.premise_zip || data.applicant_zip]
+         .filter(Boolean).join(", ");
+
+  // Society wants Premises Name in the address box:
+  const SOC_ADDR_LINE1 = [PREMISES, APPL_STREET].filter(Boolean).join(" — ");
+  const SOC_ADDR_LINE2 = APPL_CSZ;
+
+  // If you want to avoid touching any markup, you can overwrite just for this template:
+  // data.premise_address = SOC_ADDR_LINE1;
+  // data.premise_city_state_zip = SOC_ADDR_LINE2;
+%>
+
+
 // ===== Small helpers (no new helper functions beyond these) =====
 const yeslike = (v) => ["y","yes","true","1","on","checked"].includes(String(v||"").trim().toLowerCase());
 const yn = (v) => (v===""||v==null) ? "" : (yeslike(v) ? "Y" : "N");
