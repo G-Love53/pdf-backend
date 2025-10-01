@@ -1,6 +1,9 @@
-{
+d{
   "applicant_name": "applicant_name",
   "premises_name": "premises_name",
+  "applicant_mailing_address1": "premise_address",
+  "num_employees": "num_employees",
+  "total_employees": "total_employees",
   "premise_address": "premise_address",
   "premise_city": "premise_city",
   "premise_state": "premise_state",
