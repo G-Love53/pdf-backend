@@ -169,6 +169,7 @@ if (typeof yeslike === "undefined") {
 // (optional alias in case the markup ever uses camelCase)
 if (typeof yesLike === "undefined") { var yesLike = yeslike; }
 %>
+<%
 
 // ===== Small helpers (no new helper functions beyond these) =====
 const yn = (v) => (v===""||v==null) ? "" : (yeslike(v) ? "Y" : "N");
@@ -375,7 +376,7 @@ const smoker_spark_yn = yn( yeslike(data.smoker_spark_arrestor)  || hoodSystemYe
       </div>
       <div class="row">
         <div class="cell label w30">% ALCOHOL</div>
-        <div class="cell w20 right"><%= data.Percent_Alcohol %>%%</div>
+        <div class="cell w20 right"><%= data.Percent_Alcohol %>%</div>
         <div class="cell label w25">10. LEVEL OF COOKING</div>
         <div class="cell w25 small">
           <span class="check"><%= yeslike(data.cooking_level_full) ? "X" : "" %></span> Full
