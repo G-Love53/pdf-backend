@@ -184,9 +184,9 @@ const data = Object.assign({}, defaults, (typeof formData === "object" && formDa
   const EFF_DATE  = data.effective_date || data.effectiveDate || "";
   const EXP_DATE  = data.expiration_date || data.expirationDate || "";
 
-  data.current_date = CURR_DATE;  data.date = CURR_DATE;
-  data.effective_date = EFF_DATE; data.effectiveDate = EFF_DATE;
-  data.expiration_date = EXP_DATE; data.expirationDate = EXP_DATE;
+  data.current_date = CURR_DATE;      data.date = CURR_DATE;
+  data.effective_date = EFF_DATE;     data.effectiveDate = EFF_DATE;
+  data.expiration_date = EXP_DATE;    data.expirationDate = EXP_DATE;
 
   // Applicant street + City/State/Zip (works even if enricher didn't set)
   const street = data.applicant_street || data.premise_address || data.applicant_mailing_address || "";
@@ -203,13 +203,13 @@ const data = Object.assign({}, defaults, (typeof formData === "object" && formDa
   data.ai_address_1 = data.ai_address_1 || aiAddr;
   data.ai_city_1 = data.ai_city_1 || data.additionalInsuredCity || data.interest_city || "";
   data.ai_state_1 = data.ai_state_1 || data.additionalInsuredState || data.interest_state || "";
-  data.ai_zip_1 = data.ai_zip_1 || data.additionalInsuredZip || data.interest_zip || "";
+  data.ai_zip_1  = data.ai_zip_1  || data.additionalInsuredZip  || data.interest_zip  || "";
 
-  // BPP (140 uses it; harmless to normalize here too)
+  // BPP (for 140; harmless elsewhere)
   const bpp = data.business_personal_property_clean || data.bpp_amount || data.business_personal_property || "";
-  data.business_personal_property = bpp; data.bpp_amount = bpp;
+  if (bpp) { data.business_personal_property = bpp; data.bpp_amount = bpp; }
 
-  // 125: “See Remarks Below” + Remarks text (fallbacks if enricher didn’t set)
+  // 125-only convenience: “See Remarks Below” + remarks text (no harm if present on 126/140)
   if (!data.description_of_insurance && (data.claim_count === "2_or_less" || data.claim_count === "3_or_more")) {
     data.description_of_insurance = "See Remarks Below";
   }
