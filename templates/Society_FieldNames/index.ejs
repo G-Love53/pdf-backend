@@ -188,9 +188,6 @@ const formatDate = (d) => {
 };
 const prefer = (a,b) => (a!=="" && a!==undefined) ? a : b;
 
-// Date fix: no currency fallbacks
-const dateShown = data.date || data.effective_date || "";
-
 // Security aliasing
 const background_checks = prefer(data.background_checks, data.ComboBox22);
 const security_armed   = prefer(data.security_armed,   data.ComboBox23);
