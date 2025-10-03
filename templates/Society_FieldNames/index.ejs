@@ -149,13 +149,28 @@ const data = Object.assign({}, defaults, (typeof formData === "object" && formDa
   data.ai_zip_1  = data.ai_zip_1  || data.additionalInsuredZip  || data.interest_zip  || "";
 })();
 
-var dateShown = data.dateShown;
+ var dateShown = data.dateShown
+  || data.current_date || data.date
+  || data.effective_date || data.effectiveDate
+  || "";
 
 %>
 
+<%
+// define once, globally in this template
+if (typeof yeslike === "undefined") {
+  // truthy for checkbox-ish inputs
+  var yeslike = function (v) {
+    var s = (v === undefined || v === null) ? "" : String(v);
+    s = s.trim().toLowerCase();
+    return ["yes","true","1","on","checked","y"].indexOf(s) !== -1 || v === true || v === 1;
+  };
+}
+// (optional alias in case the markup ever uses camelCase)
+if (typeof yesLike === "undefined") { var yesLike = yeslike; }
+%>
 
 // ===== Small helpers (no new helper functions beyond these) =====
-const yeslike = (v) => ["y","yes","true","1","on","checked"].includes(String(v||"").trim().toLowerCase());
 const yn = (v) => (v===""||v==null) ? "" : (yeslike(v) ? "Y" : "N");
 const money = (v) => {
   if (v==null || v==="") return "";
