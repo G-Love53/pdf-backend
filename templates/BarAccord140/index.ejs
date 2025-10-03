@@ -209,43 +209,48 @@ var defaults = {
 var data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
 
 <%
-  // --- Compat shim (safe: no layout changes) ---
-
-  // Dates
+  // === COMPAT SHIM (safe; no layout changes) ===
+(function () {
+  // Dates (support old/new keys)
   const CURR_DATE = data.current_date || data.date || "";
   const EFF_DATE  = data.effective_date || data.effectiveDate || "";
   const EXP_DATE  = data.expiration_date || data.expirationDate || "";
 
-  // Applicant & Premises
-  const APPL_NAME = data.applicant_name || data.named_insured || "";
-  const PREMISES  = data.premises_name || "";
+  data.current_date = CURR_DATE;      data.date = CURR_DATE;
+  data.effective_date = EFF_DATE;     data.effectiveDate = EFF_DATE;
+  data.expiration_date = EXP_DATE;    data.expirationDate = EXP_DATE;
 
-  // Address fallbacks
-  const APPL_STREET = data.applicant_street || data.premise_address || data.applicant_mailing_address || "";
-  const APPL_CSZ = data.applicant_city_state_zip
+  // Applicant street + City/State/Zip (works even if enricher didn't set)
+  const street = data.applicant_street || data.premise_address || data.applicant_mailing_address || "";
+  const csz = data.applicant_city_state_zip
     || [data.premise_city || data.applicant_city, data.premise_state || data.applicant_state, data.premise_zip || data.applicant_zip]
          .filter(Boolean).join(", ");
+  data.applicant_street = street;
+  data.applicant_city_state_zip = csz;
 
-  // Business Personal Property
-  const BPP = data.business_personal_property_clean || data.bpp_amount || data.business_personal_property || "";
+  // Additional Interest #1 (normalize + backfill)
+  const aiName = data.ai_name_1 || data.additionalInsuredName || data.interest_name || "";
+  const aiAddr = data.ai_address_1 || data.additionalInsuredAddress || data.interest_address || "";
+  data.ai_name_1 = data.ai_name_1 || aiName;
+  data.ai_address_1 = data.ai_address_1 || aiAddr;
+  data.ai_city_1 = data.ai_city_1 || data.additionalInsuredCity || data.interest_city || "";
+  data.ai_state_1 = data.ai_state_1 || data.additionalInsuredState || data.interest_state || "";
+  data.ai_zip_1  = data.ai_zip_1  || data.additionalInsuredZip  || data.interest_zip  || "";
 
-  // Additional Interest (AI #1)
-  const AI1_NAME  = data.ai_name_1  || data.additionalInsuredName || data.interest_name  || "";
-  const AI1_ADDR  = data.ai_address_1 || data.additionalInsuredAddress || data.interest_address || "";
-  const AI1_CITY  = data.ai_city_1  || "";
-  const AI1_STATE = data.ai_state_1 || "";
-  const AI1_ZIP   = data.ai_zip_1   || "";
+  // BPP (for 140; harmless elsewhere)
+  const bpp = data.business_personal_property_clean || data.bpp_amount || data.business_personal_property || "";
+  if (bpp) { data.business_personal_property = bpp; data.bpp_amount = bpp; }
 
-  // --- Backfill canonical + legacy keys ---
-  data.current_date     = CURR_DATE;  data.date = CURR_DATE;
-  data.effective_date   = EFF_DATE;   data.effectiveDate = EFF_DATE;
-  data.expiration_date  = EXP_DATE;   data.expirationDate = EXP_DATE;
+  // 125-only convenience: “See Remarks Below” + remarks text (no harm if present on 126/140)
+  if (!data.description_of_insurance && (data.claim_count === "2_or_less" || data.claim_count === "3_or_more")) {
+    data.description_of_insurance = "See Remarks Below";
+  }
+  if (!data.claims_remarks) {
+    data.claims_remarks = data.claims_details_2_or_less || data.claims_details_3_or_more || data.remarks || "";
+  }
+  if (!data.remarks) data.remarks = data.claims_remarks;
+})();
 
-  data.business_personal_property = BPP;  data.bpp_amount = BPP;
-
-  data.ai_name_1 = AI1_NAME;   data.additionalInsuredName  = data.additionalInsuredName  || AI1_NAME;   data.interest_name  = data.interest_name  || AI1_NAME;
-  data.ai_address_1 = AI1_ADDR; data.additionalInsuredAddress = data.additionalInsuredAddress || AI1_ADDR; data.interest_address = data.interest_address || AI1_ADDR;
-  data.ai_city_1 = AI1_CITY;   data.ai_state_1 = AI1_STATE; data.ai_zip_1 = AI1_ZIP;
 %>
 
 
