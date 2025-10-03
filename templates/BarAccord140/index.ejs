@@ -227,6 +227,12 @@ var data = Object.assign({}, defaults, (typeof formData === "object" && formData
   data.applicant_street = street;
   data.applicant_city_state_zip = csz;
 
+  if (typeof yes === "undefined") {
+  // checkbox-ish truthiness helper
+  // eslint-disable-next-line no-var
+  var yes = function (v) {
+    return ["yes","true","1","on","checked","y"].includes(String(v ?? "").trim().toLowerCase());
+  
   // Additional Interest #1 (normalize + backfill)
   const aiName = data.ai_name_1 || data.additionalInsuredName || data.interest_name || "";
   const aiAddr = data.ai_address_1 || data.additionalInsuredAddress || data.interest_address || "";
