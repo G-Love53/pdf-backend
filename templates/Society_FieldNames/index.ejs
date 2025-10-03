@@ -421,14 +421,14 @@ const smoker_spark_yn = yn( yeslike(data.smoker_spark_arrestor)  || hoodSystemYe
 
       <div class="row smoker-row">
         <div class="cell label w35">UL / SUPPRESSION OVER COOKING?</div>
-        <div class="cell w10 center"><%= smoker_ul300_yn %></div>
+        <div class="cell w10 center"><%= yn( yeslike(data.smoker_ul300_protected) || yeslike(data.hood_system_ul300) ) %></div>
         <div class="cell label w35">HOOD / DUCT PROTECTION?</div>
-        <div class="cell w20 center"><%= smoker_hood_yn %></div>
+        <div class="cell w20 center"><%= yn( yeslike(data.smoker_hood_protected) || yeslike(data.hood_system_ul300) ) %></div>
       </div>
 
       <div class="row smoker-row">
         <div class="cell label w35">SPARK ARRESTOR FITTED?</div>
-        <div class="cell w10 center"><%= smoker_spark_yn %></div>
+        <div class="cell w10 center"><%= yn( yeslike(data.smoker_spark_arrestor) || yeslike(data.hood_system_ul300) ) %></div>
         <div class="cell w45"></div>
       </div>
 
