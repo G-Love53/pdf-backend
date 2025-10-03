@@ -239,6 +239,67 @@ const formatDate = (d) => {
   return `${mm}/${dd}/${yyyy}`;
 };
 %>
+<%
+/* ---- Common aliases for 125/126/140 ---- */
+const firstNamed = data.first_named_insured || data.applicant_name || data.namedInsured || "";
+
+const mailStreet = data.applicant_mailing_address || data.applicant_street || data.mailing_street || "";
+const mailCity   = data.applicant_city || data.mailing_city || "";
+const mailState  = data.applicant_state || data.mailing_state || "";
+const mailZip    = data.applicant_zip || data.mailing_zip || "";
+
+const businessPhone = data.business_phone || data.businessPhone || data.phone || "";
+const website       = data.website || data.website_address || data.web || "";
+
+/* Type-of-business helper */
+const typeIs = (t) => {
+  const raw = (data.type_of_business || data.business_type || data.entity_type || "").toString().trim().toLowerCase();
+  const map = {
+    corporation: ['corp','corporation','inc','inc.'],
+    llc:         ['llc','limited liability company'],
+    partnership: ['partnership','llp','lp','general partnership','limited partnership'],
+    individual:  ['individual','sole proprietor','sole proprietorship','sole prop','proprietor'],
+    other:       ['other']
+  };
+  return (map[t]||[]).some(k => raw.includes(k));
+};
+
+/* Premises (LOC #1) */
+const locStreet = data.premise_address || data.location1_street || "";
+const locCity   = data.premise_city || data.location1_city || "";
+const locState  = data.premise_state || data.location1_state || "";
+const locZip    = data.premise_zip || data.location1_zip || "";
+const bldgDesc  = data.bldg_description || data.building_description || "";
+
+/* Employees / revenue / bldg area */
+const ftEmp         = data.full_time_employees || data.ft_employees || data.ftEmp || "";
+const ptEmp         = data.part_time_employees || data.pt_employees || data.ptEmp || "";
+const annualRevenue = data.annual_revenue || data.annualRevenue || data.total_sales || "";
+const bldgSqFt      = data.total_area || data.building_sq_ft || data.bldgSqFt || "";
+
+/* Additional Interest (page 3 / 140 section) */
+const aiType  = data.interest_type || data.ai_type || "";
+const aiName  = data.interest_name || data.ai_name_1 || "";
+const aiAddr1 = data.interest_address || data.ai_address_1 || "";
+const aiCity  = data.interest_city || data.ai_city_1 || "";
+const aiState = data.interest_state || data.ai_state_1 || "";
+const aiZip   = data.interest_zip || data.ai_zip_1 || "";
+const aiRank  = data.interest_rank || data.ai_rank_1 || "";
+const aiRef   = data.interest_reference || data.ai_reference_1 || "";
+
+/* Applicant address for 126 header */
+const applStreet = data.applicant_street || data.mailing_street || data.premise_address || "";
+const applCity   = data.applicant_city || data.premise_city || "";
+const applState  = data.applicant_state || data.premise_state || "";
+const applZip    = data.applicant_zip || data.premise_zip || "";
+
+/* Employees total (126 p2) */
+const employeesTotal = data.num_employees || data.employees_total || ((Number(ftEmp)||0)+(Number(ptEmp)||0));
+
+/* Keep 140 remarks from pulling 125 remarks */
+const remarks140 = data.remarks_140 || data.remarks140 || "";
+%>
+
 
 <!DOCTYPE html>
 <html>
@@ -779,9 +840,9 @@ const formatDate = (d) => {
     <div class="row">
       <div class="cell label w30">NAME (FIRST NAMED INSURED) AND MAILING ADDRESS</div>
       <div class="cell w40 wrap">
-        <%= data.applicantName %><br/>
-        <%= data.applicantAddress1 %><br/>
-        <%= data.applicantCity %>, <%= data.applicantState %> <%= data.applicantZip %>
+        <%= firstNamed %><br/>
+        <%= mailStreet %><br/>
+        <%= [mailCity, mailState, mailZip].filter(Boolean).join(", ") %>
       </div>
       <div class="cell label w10">GL CODE</div>
       <div class="cell w10"><%= data.glCode %></div>
@@ -790,25 +851,25 @@ const formatDate = (d) => {
     </div>
     <div class="row">
       <div class="cell label w15">BUSINESS PHONE #</div>
-      <div class="cell w15"><%= data.businessPhone %></div>
+      <div class="cell w15"><%= businessPhone %></div>
       <div class="cell label w10">NAICS</div>
       <div class="cell w15"><%= data.naicsCode %></div>
       <div class="cell label w15">FEIN OR SOC SEC #</div>
       <div class="cell w15"><%= data.fein %></div>
       <div class="cell label w15">WEBSITE ADDRESS</div>
-      <div class="cell w15"><%= data.website %></div>
+      <div class="cell w15"><%= website %></div>
     </div>
     <div class="row">
       <div class="cell w100">
-        <span class="check"><%= data.entityType === "CORPORATION" ? "X" : "" %></span> CORPORATION
-        <span class="check"><%= data.entityType === "INDIVIDUAL" ? "X" : "" %></span> INDIVIDUAL / SOLE PROP
-        <span class="check"><%= data.entityType === "LLC" ? "X" : "" %></span> LLC
-        <span class="check"><%= data.entityType === "JOINT_VENTURE" ? "X" : "" %></span> JOINT VENTURE
-        <span class="check"><%= data.entityType === "PARTNERSHIP" ? "X" : "" %></span> PARTNERSHIP
+        <span class="check"><%= typeIs('corporation') ? 'X' : '' %></span> CORPORATION
+        <span class="check"><%= typeIs('individual') ? "X" : ''%></span> INDIVIDUAL / SOLE PROP
+        <span class="check"><%= typeIs('llc') ? 'X' : '' %></span> LLC
+        <span class="check"><%= typeIs('joint venture') ? "X" : '' %></span> JOINT VENTURE
+        <span class="check"><%= typeIs('partnership') ? 'X' : '' %></span> PARTNERSHIP
         <span class="check"><%= data.entityType === "NOT_FOR_PROFIT" ? "X" : "" %></span> NOT FOR PROFIT ORG
         <span class="check"><%= data.entityType === "SUBCHAPTER_S" ? "X" : "" %></span> SUBCHAPTER "S" CORPORATION
         <span class="check"><%= data.entityType === "TRUST" ? "X" : "" %></span> TRUST
-        <span class="check"><%= data.entityType === "OTHER" ? "X" : "" %></span> OTHER
+        <span class="check"><%= typeIs('other') ? 'X' : '' %></span> OTHER
       </div>
     </div>
   </div>
@@ -847,20 +908,20 @@ const formatDate = (d) => {
       <div class="cell w10">1</div>
       <div class="cell label w10">BLDG</div>
       <div class="cell label w15">STREET</div>
-      <div class="cell w55"><%= data.premiseAddress %></div>
+      <div class="cell w55"><%= locStreet %></div>
     </div>
     <div class="row">
       <div class="cell label w10">CITY</div>
-      <div class="cell w25"><%= data.premiseCity %></div>
+      <div class="cell w25"><%= locCity %></div>
       <div class="cell label w10">STATE</div>
-      <div class="cell w10"><%= data.premiseState %></div>
+      <div class="cell w10"><%= locState %></div>
       <div class="cell label w10">ZIP</div>
-      <div class="cell w15"><%= data.premiseZip %></div>
+      <div class="cell w15"><%= locState %></div>
       <div class="cell w20"></div>
     </div>
     <div class="row">
       <div class="cell label w20">BLDG DESCRIPTION</div>
-      <div class="cell w80"><%= data.premiseDescription %></div>
+      <div class="cell w80"><%= bldgDesc %></div>
     </div>
     <div class="row">
       <div class="cell label w15">CITY LIMITS</div>
@@ -877,16 +938,16 @@ const formatDate = (d) => {
     </div>
     <div class="row">
       <div class="cell label w15">FULL TIME EMPLOY</div>
-      <div class="cell w10"><%= data.fullTimeEmployees %></div>
+      <div class="cell w10"><%= ftEmp %></div>
       <div class="cell label w15">PART TIME EMPLOY</div>
-      <div class="cell w10"><%= data.partTimeEmployees %></div>
+      <div class="cell w10"><%= ptEmp %></div>
       <div class="cell label w20">ANNUAL REVENUES</div>
-      <div class="cell w15 right">$<%= money(data.annualRevenues) %></div>
+      <div class="cell w15 right">$<%= money(annualRevenues) %></div>
       <div class="cell w15"></div>
     </div>
     <div class="row">
       <div class="cell label w25">TOTAL BUILDING AREA (SQ FT)</div>
-      <div class="cell w20"><%= data.totalBuildingArea %></div>
+      <div class="cell w20"><%= money(bldfSqFt) %></div>
       <div class="cell w55"></div>
     </div>
   </div>
@@ -1076,12 +1137,12 @@ const formatDate = (d) => {
     <div class="row">
       <div class="cell label w10">TYPE</div>
       <div class="cell w90">
-        <span class="check"></span> ADDITIONAL INSURED
-        <span class="check"></span> LIENHOLDER
-        <span class="check"></span> LOSS PAYEE
-        <span class="check"></span> MORTGAGEE
-        <span class="check"></span> BREACH OF WARRANTY
-        <span class="check"></span> LENDER'S LOSS PAYABLE
+        <span class="check"><%= aiType==='ADDITIONAL_INSURED' ? 'X' : '' %></span> ADDITIONAL INSURED
+        <span class="check"><%= aiType==='LOSS_PAYEE' ? 'X' : '' %></span> LOSS PAYEE
+        <span class="check"><%= aiType==='MORTGAGEE' ? 'X' : '' %></span> MORTGAGEE
+        <span class="check"><%= aiType==='LIENHOLDER' ? 'X' : '' %></span> LIENHOLDER
+        <span class="check"><%= aiType==="LENDER'S LOSS" ? 'X' : '' %></span> LENDER'S LOSS PAYABLE
+
       </div>
     </div>
     <div class="row">
@@ -1095,7 +1156,12 @@ const formatDate = (d) => {
     </div>
     <div class="row">
       <div class="cell label w25">INTEREST NAME AND ADDRESS</div>
-      <div class="cell w40"><%= data.additionalInsuredName %></div>
+      <div class="cell w40"><%- [
+       aiName,
+       aiAddr1,
+       [aiCity, aiState, aiZip].filter(Boolean).join(", ")
+       ].filter(Boolean).join("<br/>") %>
+    </div>
       <div class="cell label w10">RANK</div>
       <div class="cell w10"></div>
       <div class="cell label w15">REFERENCE/LOAN #</div>
