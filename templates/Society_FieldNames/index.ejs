@@ -111,25 +111,43 @@ const defaults = {
 const data = Object.assign({}, defaults, (typeof formData === "object" && formData) || {});
 
 <%
-  // --- Compat shim (safe: no layout changes) ---
+  // === COMPAT SHIM (safe; no layout changes) ===
+(function () {
+  // Dates
+  const CURR_DATE = data.current_date || data.date || "";
+  const EFF_DATE  = data.effective_date || data.effectiveDate || "";
+  const EXP_DATE  = data.expiration_date || data.expirationDate || "";
+  data.current_date = CURR_DATE;      data.date = CURR_DATE;
+  data.effective_date = EFF_DATE;     data.effectiveDate = EFF_DATE;
+  data.expiration_date = EXP_DATE;    data.expirationDate = EXP_DATE;
 
-  // Applicant & Premises
-  const APPL_NAME = data.applicant_name || data.named_insured || "";
-  const PREMISES  = data.premises_name || "";
-
-  // Address fallbacks
-  const APPL_STREET = data.applicant_street || data.premise_address || data.applicant_mailing_address || "";
-  const APPL_CSZ = data.applicant_city_state_zip
+  // Address normalization (works even if enricher didn’t set new fields)
+  const street = data.applicant_street || data.premise_address || data.applicant_mailing_address || "";
+  const csz = data.applicant_city_state_zip
     || [data.premise_city || data.applicant_city, data.premise_state || data.applicant_state, data.premise_zip || data.applicant_zip]
          .filter(Boolean).join(", ");
+  data.applicant_street = street;
+  data.applicant_city_state_zip = csz;
 
-  // Society wants Premises Name in the address box:
-  const SOC_ADDR_LINE1 = [PREMISES, APPL_STREET].filter(Boolean).join(" — ");
-  const SOC_ADDR_LINE2 = APPL_CSZ;
+  // Premises name (Society wants it in the address box)
+  const premises = data.premises_name || "";
 
-  // If you want to avoid touching any markup, you can overwrite just for this template:
-  // data.premise_address = SOC_ADDR_LINE1;
-  // data.premise_city_state_zip = SOC_ADDR_LINE2;
+  // ---- Society-specific: overwrite existing address fields so current markup works ----
+  if (premises || street) {
+    data.premise_address = [premises, street].filter(Boolean).join(" — ");
+  }
+  data.premise_city_state_zip = csz;
+
+  // AI normalization (harmless if not used here)
+  const aiName = data.ai_name_1 || data.additionalInsuredName || data.interest_name || "";
+  const aiAddr = data.ai_address_1 || data.additionalInsuredAddress || data.interest_address || "";
+  data.ai_name_1 = data.ai_name_1 || aiName;
+  data.ai_address_1 = data.ai_address_1 || aiAddr;
+  data.ai_city_1 = data.ai_city_1 || data.additionalInsuredCity || data.interest_city || "";
+  data.ai_state_1 = data.ai_state_1 || data.additionalInsuredState || data.interest_state || "";
+  data.ai_zip_1  = data.ai_zip_1  || data.additionalInsuredZip  || data.interest_zip  || "";
+})();
+
 %>
 
 
