@@ -201,6 +201,67 @@ const firstInterest = (() => {
   };
 })();
 %>
+<%
+/* ---- Common aliases for 125/126/140 ---- */
+const firstNamed = data.first_named_insured || data.applicant_name || data.namedInsured || "";
+
+const mailStreet = data.applicant_mailing_address || data.applicant_street || data.mailing_street || "";
+const mailCity   = data.applicant_city || data.mailing_city || "";
+const mailState  = data.applicant_state || data.mailing_state || "";
+const mailZip    = data.applicant_zip || data.mailing_zip || "";
+
+const businessPhone = data.business_phone || data.businessPhone || data.phone || "";
+const website       = data.website || data.website_address || data.web || "";
+
+/* Type-of-business helper */
+const typeIs = (t) => {
+  const raw = (data.type_of_business || data.business_type || data.entity_type || "").toString().trim().toLowerCase();
+  const map = {
+    corporation: ['corp','corporation','inc','inc.'],
+    llc:         ['llc','limited liability company'],
+    partnership: ['partnership','llp','lp','general partnership','limited partnership'],
+    individual:  ['individual','sole proprietor','sole proprietorship','sole prop','proprietor'],
+    other:       ['other']
+  };
+  return (map[t]||[]).some(k => raw.includes(k));
+};
+
+/* Premises (LOC #1) */
+const locStreet = data.premise_address || data.location1_street || "";
+const locCity   = data.premise_city || data.location1_city || "";
+const locState  = data.premise_state || data.location1_state || "";
+const locZip    = data.premise_zip || data.location1_zip || "";
+const bldgDesc  = data.bldg_description || data.building_description || "";
+
+/* Employees / revenue / bldg area */
+const ftEmp         = data.full_time_employees || data.ft_employees || data.ftEmp || "";
+const ptEmp         = data.part_time_employees || data.pt_employees || data.ptEmp || "";
+const annualRevenue = data.annual_revenue || data.annualRevenue || data.total_sales || "";
+const bldgSqFt      = data.total_area || data.building_sq_ft || data.bldgSqFt || "";
+
+/* Additional Interest (page 3 / 140 section) */
+const aiType  = data.interest_type || data.ai_type || "";
+const aiName  = data.interest_name || data.ai_name_1 || "";
+const aiAddr1 = data.interest_address || data.ai_address_1 || "";
+const aiCity  = data.interest_city || data.ai_city_1 || "";
+const aiState = data.interest_state || data.ai_state_1 || "";
+const aiZip   = data.interest_zip || data.ai_zip_1 || "";
+const aiRank  = data.interest_rank || data.ai_rank_1 || "";
+const aiRef   = data.interest_reference || data.ai_reference_1 || "";
+
+/* Applicant address for 126 header */
+const applStreet = data.applicant_street || data.mailing_street || data.premise_address || "";
+const applCity   = data.applicant_city || data.premise_city || "";
+const applState  = data.applicant_state || data.premise_state || "";
+const applZip    = data.applicant_zip || data.premise_zip || "";
+
+/* Employees total (126 p2) */
+const employeesTotal = data.num_employees || data.employees_total || ((Number(ftEmp)||0)+(Number(ptEmp)||0));
+
+/* Keep 140 remarks from pulling 125 remarks */
+const remarks140 = data.remarks_140 || data.remarks140 || "";
+%>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -244,8 +305,8 @@ const firstInterest = (() => {
       <div class="cell label w30">APPLICANT / FIRST NAMED INSURED</div>
       <div class="cell w70 wrap">
         <%= data.applicant_name || "" %><br/>
-        <%= data.applicant_mailing_address1 || "" %><br/>
-        <%= data.applicant_city || "" %>, <%= data.applicant_state || "" %> <%= data.applicant_zip || "" %>
+        <%= applStreet %>
+        <%= [applCity, applState, applZip].filter(Boolean).join(", ") %>
       </div>
     </div>
   </div>
@@ -492,7 +553,7 @@ const firstInterest = (() => {
   </div>
   <div class="row">
     <div class="cell label w25">2. NUMBER OF EMPLOYEES</div>
-    <div class="cell w25 right num"><%= data.ebl_numEmployees %></div>
+    <div class="cell w25 right num"><%= employeesTotal %></div>
     <div class="cell label w25">4. RETROACTIVE DATE</div>
     <div class="cell w25"><%= formatDate(data.ebl_retroDate) %></div>
   </div>
@@ -732,7 +793,7 @@ const firstInterest = (() => {
   <div class="subbar">REMARKS (ACORD 101, Additional Remarks Schedule, may be attached if more space is required)</div>
   <div class="block">
     <div class="row">
-      <div class="cell w100 wrap" style="min-height:60px;"><%= data.remarks || "" %></div>
+      <div class="cell w100 wrap" style="min-height:60px;"><%= data.remarks_126 || "" %></div>
     </div>
   </div>
 
