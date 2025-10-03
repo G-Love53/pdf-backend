@@ -120,7 +120,7 @@ const data = Object.assign({}, defaults, (typeof formData === "object" && formDa
   data.effective_date = EFF_DATE;     data.effectiveDate = EFF_DATE;
   data.expiration_date = EXP_DATE;    data.expirationDate = EXP_DATE;
 
-  var dateShown = CURR_DATE || EFF_DATE || "";
+  data.dateShown = data.dateShown || (CURR_DATE || EFF_DATE || "");
 
   // Address normalization (works even if enricher didn’t set new fields)
   const street = data.applicant_street || data.premise_address || data.applicant_mailing_address || "";
@@ -148,6 +148,8 @@ const data = Object.assign({}, defaults, (typeof formData === "object" && formDa
   data.ai_state_1 = data.ai_state_1 || data.additionalInsuredState || data.interest_state || "";
   data.ai_zip_1  = data.ai_zip_1  || data.additionalInsuredZip  || data.interest_zip  || "";
 })();
+
+var dateShown = data.dateShown;
 
 %>
 
