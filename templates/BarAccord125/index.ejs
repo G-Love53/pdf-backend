@@ -208,27 +208,39 @@ const data = Object.assign({}, defaults, (typeof formData === "object" && formDa
   data.ai_state_1   = data.ai_state_1   || data.additionalInsuredState || data.interest_state || "";
   data.ai_zip_1     = data.ai_zip_1     || data.additionalInsuredZip   || data.interest_zip   || "";
 
-  // Normalized AI type (for checkbox logic)
-const aiTypeRaw  = data.interest_type || data.ai_type || data.interestType || "";
-const aiTypeNorm = String(aiTypeRaw).toUpperCase().replace(/[^A-Z]/g, "_");
-data.aiTypeNorm = aiTypeNorm;
-
+  // Normalized AI type (for checkbox logic) - ENHANCED VERSION
+  const aiTypeRaw = String(data.interest_type || data.ai_type || data.interestType || "").toUpperCase();
+  let aiTypeNorm = "";
+  
+  if (aiTypeRaw.includes('ADDITIONAL') && aiTypeRaw.includes('INSURED')) {
+    aiTypeNorm = 'ADDITIONAL_INSURED';
+  } else if (aiTypeRaw.includes('LOSS') && aiTypeRaw.includes('PAYEE')) {
+    aiTypeNorm = 'LOSS_PAYEE';
+  } else if (aiTypeRaw.includes('MORTGAGEE')) {
+    aiTypeNorm = 'MORTGAGEE';
+  } else if (aiTypeRaw.includes('LIENHOLDER') || aiTypeRaw.includes('LIEN')) {
+    aiTypeNorm = 'LIENHOLDER';
+  } else if (aiTypeRaw.includes('LENDER')) {
+    aiTypeNorm = 'LENDER_S_LOSS';
+  } else {
+    aiTypeNorm = aiTypeRaw.replace(/[^A-Z]/g, "_");
+  }
+  
+  data.aiTypeNorm = aiTypeNorm;
 
   // BPP (for 140; harmless elsewhere)
   const bpp = data.business_personal_property_clean || data.bpp_amount || data.business_personal_property || "";
   if (bpp) { data.business_personal_property = bpp; data.bpp_amount = bpp; }
 
-  // 125-only convenience: “See Remarks Below” + remarks text (no harm if present on 126/140)
+  // 125-only convenience: "See Remarks Below" + remarks text (no harm if present on 126/140)
   if (!data.description_of_insurance && (data.claim_count === "2_or_less" || data.claim_count === "3_or_more")) {
-    data.description_of_insurance = "See Remarks Below";
+    data.description_of_insurance = "SEE REMARKS BELOW";
   }
   if (!data.claims_remarks) {
     data.claims_remarks = data.claims_details_2_or_less || data.claims_details_3_or_more || data.remarks || "";
   }
   if (!data.remarks) data.remarks = data.claims_remarks;
 })();
-
-const aiTypeNorm = data.aiTypeNorm || "";
 
 // Helper functions
 const yes = (v) => ["yes","true","1","on","checked","y"].includes(String(v ?? "").toLowerCase()) || v === true || v === 1;
@@ -248,34 +260,29 @@ const formatDate = (d) => {
   return `${mm}/${dd}/${yyyy}`;
 };
 %>
-<%
-  // after the SHIM, top-level aliases
-  const AITYPE = data.aiTypeNorm || "";
-%>
 
 <%
 /* ---- Common aliases for 125/126/140 ---- */
-const firstNamed = data.first_named_insured || data.applicant_name || data.namedInsured || "";
+const firstNamed = data.first_named_insured || data.applicant_name || data.namedInsured || data.applicantName || "";
 
 const mailStreet = data.applicant_mailing_address || data.applicant_street || data.mailing_street || "";
 const mailCity   = data.applicant_city || data.mailing_city || "";
 const mailState  = data.applicant_state || data.mailing_state || "";
 const mailZip    = data.applicant_zip || data.mailing_zip || "";
 
-
 /* Phone + website */
 const businessPhone = data.business_phone || data.businessPhone || data.phone || "";
 const website       = data.website || data.website_address || data.web || data.applicant_website || data.website_url || "";
 
-
-/* Type-of-business helper */
+/* Type-of-business helper - ENHANCED VERSION */
 const typeIs = (t) => {
   const raw = (data.type_of_business || data.business_type || data.entity_type || "").toString().trim().toLowerCase();
   const map = {
-    corporation: ['corp','corporation','inc','inc.'],
-    llc:         ['llc','limited liability company'],
+    corporation: ['corp','corporation','inc','inc.','incorporated'],
+    llc:         ['llc','l.l.c','l.l.c.','limited liability company'],
     partnership: ['partnership','llp','lp','general partnership','limited partnership'],
-    individual:  ['individual','sole proprietor','sole proprietorship','sole prop','proprietor'],
+    individual:  ['individual','sole proprietor','sole proprietorship','sole prop','proprietor','dba'],
+    'joint venture': ['joint venture','jv','joint-venture'],
     other:       ['other']
   };
   return (map[t]||[]).some(k => raw.includes(k));
@@ -292,29 +299,31 @@ const bldgDesc  = data.bldg_description || data.building_description || "";
 const ftEmp         = data.full_time_employees || data.ft_employees || data.ftEmp || "";
 const ptEmp         = data.part_time_employees || data.pt_employees || data.ptEmp || "";
 const annualRevenue = data.annual_revenue || data.annualRevenue || data.total_sales || data.annualRevenues || "";
-const bldgSqFt      = data.total_area || data.building_sq_ft || data.bldgSqFt || "";
+const bldgSqFt      = data.total_area || data.building_sq_ft || data.bldgSqFt || data.totalBuildingArea || "";
 
-/* Loss history helpers (page 4) */
+/* Loss history helpers (page 4) - ENHANCED */
 const claimCountRaw = String(data.claim_count || data.claims_count || "").toLowerCase();
 
 const lossTotal = (() => {
   if (data.totalLosses !== undefined && data.totalLosses !== null && data.totalLosses !== "") {
-    return data.totalLosses;          // if you already pass a number, use it
+    return data.totalLosses;
   }
-  if (claimCountRaw === "none" || claimCountRaw === "0") return "0";
-  if (claimCountRaw === "2_or_less" || claimCountRaw === "two_or_less") return "2";
-  if (claimCountRaw === "3_or_more" || claimCountRaw === "three_or_more") return "3";
+  const normalized = claimCountRaw.replace(/[^a-z0-9]/g, '');
+  if (normalized === "none" || normalized === "0") return "0";
+  if (normalized.includes("2") || normalized === "twoorless") return "2";
+  if (normalized.includes("3") || normalized === "threeormore") return "3";
   return "";
 })();
 
-const claimDesc = (claimCountRaw === "2_or_less" || claimCountRaw === "two_or_less" ||
-                   claimCountRaw === "3_or_more" || claimCountRaw === "three_or_more")
-  ? "See Remarks Below"
-  : "";
-
-
+const claimDesc = (() => {
+  const normalized = claimCountRaw.replace(/[^a-z0-9]/g, '');
+  if (normalized.includes("2") || normalized === "twoorless") return "SEE REMARKS BELOW";
+  if (normalized.includes("3") || normalized === "threeormore") return "SEE REMARKS BELOW";
+  return "";
+})();
 
 /* Additional Interest (page 3 / 140 section) */
+const AITYPE  = data.aiTypeNorm || "";
 const aiName  = data.interest_name   || data.ai_name_1    || "";
 const aiAddr1 = data.interest_address|| data.ai_address_1 || "";
 const aiCity  = data.interest_city   || data.ai_city_1    || "";
@@ -322,7 +331,6 @@ const aiState = data.interest_state  || data.ai_state_1   || "";
 const aiZip   = data.interest_zip    || data.ai_zip_1     || "";
 const aiRank  = data.interest_rank   || data.ai_rank_1    || "";
 const aiRef   = data.interest_reference || data.ai_reference_1 || "";
-
 
 /* Applicant address for 126 header */
 const applStreet = data.applicant_street || data.mailing_street || data.premise_address || "";
@@ -336,7 +344,6 @@ const employeesTotal = data.num_employees || data.employees_total || ((Number(ft
 /* Keep 140 remarks from pulling 125 remarks */
 const remarks140 = data.remarks_140 || data.remarks140 || "";
 %>
-
 
 <!DOCTYPE html>
 <html>
@@ -374,7 +381,8 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     }
 
     /* ===== ACORD header ===== */
-    .headerbar { height: 40px;
+    .headerbar {
+      height: 40px;
       display: grid;
       grid-template-columns: 0.95in 1fr 0.65in;
       align-items: center;
@@ -549,13 +557,9 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     }
 
     @media print {
-   @page { margin: 0.25in; size: letter; }
-  .page { page-break-after: always; }
-  .page:last-child { page-break-after: auto; }
-      }
-      .page:last-child { 
-        page-break-after: auto; 
-      }
+      @page { margin: 0.25in; size: letter; }
+      .page { page-break-after: always; }
+      .page:last-child { page-break-after: auto; }
     }
   </style>
 </head>
@@ -659,72 +663,61 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
   </div>
 
   <!-- Lines of Business -->
-<div class="subbar">LINES OF BUSINESS</div>
-<div class="block">
-  <div class="row">
-    <div class="cell label w100 center">
-      INDICATE LINES OF BUSINESS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PREMIUM
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PREMIUM
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PREMIUM
+  <div class="subbar">LINES OF BUSINESS</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell label w100 center">
+        INDICATE LINES OF BUSINESS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PREMIUM
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PREMIUM
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PREMIUM
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="cell w25"><span class="check"><%= data.boilerMachinery ? "X" : "" %></span> BOILER & MACHINERY</div>
+      <div class="cell w8 right">$<%= money(data.boilerMachineryPremium) %></div>
+      <div class="cell w25"><span class="check"><%= data.cyberPrivacy ? "X" : "" %></span> CYBER AND PRIVACY</div>
+      <div class="cell w8 right">$<%= money(data.cyberPrivacyPremium) %></div>
+      <div class="cell w25"><span class="check"><%= data.hiredNonOwnedAuto ? "X" : "" %></span> HIRED & NONOWNED AUTO</div>
+      <div class="cell w9 right">$<%= money(data.hiredNonOwnedAutoPremium) %></div>
+    </div>
+
+    <div class="row">
+      <div class="cell w25"><span class="check"><%= data.businessAuto ? "X" : "" %></span> BUSINESS AUTO</div>
+      <div class="cell w8 right">$<%= money(data.businessAutoPremium) %></div>
+      <div class="cell w25"><span class="check"><%= data.fiduciaryLiability ? "X" : "" %></span> FIDUCIARY LIABILITY</div>
+      <div class="cell w8 right">$<%= money(data.fiduciaryLiabilityPremium) %></div>
+      <div class="cell w25"><span class="check"><%= data.businessOwners ? "X" : "" %></span> BUSINESS OWNERS</div>
+      <div class="cell w9 right">$<%= money(data.businessOwnersPremium) %></div>
+    </div>
+
+    <div class="row">
+      <div class="cell w25"><span class="check"><%= data.garageDealers ? "X" : "" %></span> GARAGE AND DEALERS</div>
+      <div class="cell w8 right">$<%= money(data.garageDealersPremium) %></div>
+      <div class="cell w25"><span class="check"><%= data.commercialGeneralLiability ? "X" : "" %></span> COMMERCIAL GENERAL LIABILITY</div>
+      <div class="cell w8 right">$<%= money(data.commercialGeneralLiabilityPremium) %></div>
+      <div class="cell w25"><span class="check"><%= data.liquorLiability ? "X" : "" %></span> LIQUOR LIABILITY</div>
+      <div class="cell w9 right">$<%= money(data.liquorLiabilityPremium) %></div>
+    </div>
+
+    <div class="row">
+      <div class="cell w25"><span class="check"><%= data.commercialInlandMarine ? "X" : "" %></span> COMMERCIAL INLAND MARINE</div>
+      <div class="cell w8 right">$<%= money(data.commercialInlandMarinePremium) %></div>
+      <div class="cell w25"><span class="check"><%= data.motorCarrier ? "X" : "" %></span> MOTOR CARRIER</div>
+      <div class="cell w8 right">$<%= money(data.motorCarrierPremium) %></div>
+      <div class="cell w25"><span class="check"><%= data.truckers ? "X" : "" %></span> TRUCKERS</div>
+      <div class="cell w9 right">$<%= money(data.truckersPremium) %></div>
+    </div>
+
+    <div class="row">
+      <div class="cell w25"><span class="check"><%= data.commercialProperty ? "X" : "" %></span> COMMERCIAL PROPERTY</div>
+      <div class="cell w8 right">$<%= money(data.commercialPropertyPremium) %></div>
+      <div class="cell w25"><span class="check"><%= data.crime ? "X" : "" %></span> CRIME</div>
+      <div class="cell w8 right">$<%= money(data.crimePremium) %></div>
+      <div class="cell w25"><span class="check"><%= data.umbrella ? "X" : "" %></span> UMBRELLA</div>
+      <div class="cell w9 right">$<%= money(data.umbrellaPremium) %></div>
     </div>
   </div>
-
-  <div class="row">
-    <div class="cell w25"><span class="check"><%= data.boilerMachinery ? "X" : "" %></span> BOILER & MACHINERY</div>
-    <div class="cell w8 right">$<%= money(data.boilerMachineryPremium) %></div>
-
-    <div class="cell w25"><span class="check"><%= data.cyberPrivacy ? "X" : "" %></span> CYBER AND PRIVACY</div>
-    <div class="cell w8 right">$<%= money(data.cyberPrivacyPremium) %></div>
-
-    <div class="cell w25"><span class="check"><%= data.hiredNonOwnedAuto ? "X" : "" %></span> HIRED & NONOWNED AUTO</div>
-    <div class="cell w9 right">$<%= money(data.hiredNonOwnedAutoPremium) %></div>
-  </div>
-
-  <div class="row">
-    <div class="cell w25"><span class="check"><%= data.businessAuto ? "X" : "" %></span> BUSINESS AUTO</div>
-    <div class="cell w8 right">$<%= money(data.businessAutoPremium) %></div>
-
-    <div class="cell w25"><span class="check"><%= data.fiduciaryLiability ? "X" : "" %></span> FIDUCIARY LIABILITY</div>
-    <div class="cell w8 right">$<%= money(data.fiduciaryLiabilityPremium) %></div>
-
-    <div class="cell w25"><span class="check"><%= data.businessOwners ? "X" : "" %></span> BUSINESS OWNERS</div>
-    <div class="cell w9 right">$<%= money(data.businessOwnersPremium) %></div>
-  </div>
-
-  <div class="row">
-    <div class="cell w25"><span class="check"><%= data.garageDealers ? "X" : "" %></span> GARAGE AND DEALERS</div>
-    <div class="cell w8 right">$<%= money(data.garageDealersPremium) %></div>
-
-    <div class="cell w25"><span class="check"><%= data.commercialGeneralLiability ? "X" : "" %></span> COMMERCIAL GENERAL LIABILITY</div>
-    <div class="cell w8 right">$<%= money(data.commercialGeneralLiabilityPremium) %></div>
-
-    <div class="cell w25"><span class="check"><%= data.liquorLiability ? "X" : "" %></span> LIQUOR LIABILITY</div>
-    <div class="cell w9 right">$<%= money(data.liquorLiabilityPremium) %></div>
-  </div>
-
-  <div class="row">
-    <div class="cell w25"><span class="check"><%= data.commercialInlandMarine ? "X" : "" %></span> COMMERCIAL INLAND MARINE</div>
-    <div class="cell w8 right">$<%= money(data.commercialInlandMarinePremium) %></div>
-
-    <div class="cell w25"><span class="check"><%= data.motorCarrier ? "X" : "" %></span> MOTOR CARRIER</div>
-    <div class="cell w8 right">$<%= money(data.motorCarrierPremium) %></div>
-
-    <div class="cell w25"><span class="check"><%= data.truckers ? "X" : "" %></span> TRUCKERS</div>
-    <div class="cell w9 right">$<%= money(data.truckersPremium) %></div>
-  </div>
-
-  <div class="row">
-    <div class="cell w25"><span class="check"><%= data.commercialProperty ? "X" : "" %></span> COMMERCIAL PROPERTY</div>
-    <div class="cell w8 right">$<%= money(data.commercialPropertyPremium) %></div>
-
-    <div class="cell w25"><span class="check"><%= data.crime ? "X" : "" %></span> CRIME</div>
-    <div class="cell w8 right">$<%= money(data.crimePremium) %></div>
-
-    <div class="cell w25"><span class="check"><%= data.umbrella ? "X" : "" %></span> UMBRELLA</div>
-    <div class="cell w9 right">$<%= money(data.umbrellaPremium) %></div>
-  </div>
-</div>
-
 
   <!-- Attachments -->
   <div class="subbar">ATTACHMENTS</div>
@@ -899,13 +892,13 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     <div class="row">
       <div class="cell w100">
         <span class="check"><%= typeIs('corporation') ? 'X' : '' %></span> CORPORATION
-        <span class="check"><%= typeIs('individual') ? "X" : ''%></span> INDIVIDUAL / SOLE PROP
+        <span class="check"><%= typeIs('individual') ? 'X' : '' %></span> INDIVIDUAL / SOLE PROP
         <span class="check"><%= typeIs('llc') ? 'X' : '' %></span> LLC
-        <span class="check"><%= typeIs('joint venture') ? "X" : '' %></span> JOINT VENTURE
+        <span class="check"><%= typeIs('joint venture') ? 'X' : '' %></span> JOINT VENTURE
         <span class="check"><%= typeIs('partnership') ? 'X' : '' %></span> PARTNERSHIP
-        <span class="check"><%= data.entityType === "NOT_FOR_PROFIT" ? "X" : "" %></span> NOT FOR PROFIT ORG
-        <span class="check"><%= data.entityType === "SUBCHAPTER_S" ? "X" : "" %></span> SUBCHAPTER "S" CORPORATION
-        <span class="check"><%= data.entityType === "TRUST" ? "X" : "" %></span> TRUST
+        <span class="check"><%= data.entityType === "NOT_FOR_PROFIT" ? 'X' : '' %></span> NOT FOR PROFIT ORG
+        <span class="check"><%= data.entityType === "SUBCHAPTER_S" ? 'X' : '' %></span> SUBCHAPTER "S" CORPORATION
+        <span class="check"><%= data.entityType === "TRUST" ? 'X' : '' %></span> TRUST
         <span class="check"><%= typeIs('other') ? 'X' : '' %></span> OTHER
       </div>
     </div>
@@ -939,61 +932,56 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
 
   <!-- Premises Information -->
   <div class="subbar">PREMISES INFORMATION (ATTACH ACORD 823 FOR ADDITIONAL PREMISES)</div>
-<div class="block">
-  <div class="row">
-    <div class="cell label w10">LOC #</div>
-    <div class="cell w10">1</div>
-    <div class="cell label w10">BLDG</div>
-    <div class="cell w10"></div>
-    <div class="cell label w15">STREET</div>
-    <div class="cell w55"><%= locStreet %></div>
-  </div>
-
-  <div class="row">
-    <div class="cell label w10">CITY</div>
-    <div class="cell w25"><%= locCity %></div>
-    <div class="cell label w10">STATE</div>
-    <div class="cell w10"><%= locState %></div>
-    <div class="cell label w10">ZIP</div>
-    <div class="cell w15"><%= locZip %></div>
-    <div class="cell w20"></div>
-  </div>
-
-  <div class="row">
-    <div class="cell label w20">BLDG DESCRIPTION</div>
-    <div class="cell w80"><%= bldgDesc %></div>
-  </div>
-
-  <div class="row">
-    <div class="cell label w15">CITY LIMITS</div>
-    <div class="cell w15">
-      <span class="check"><%= data.cityLimitsInside ? "X" : "" %></span> Inside
-      <span class="check"><%= data.cityLimitsOutside ? "X" : "" %></span> Outside
+  <div class="block">
+    <div class="row">
+      <div class="cell label w10">LOC #</div>
+      <div class="cell w10">1</div>
+      <div class="cell label w10">BLDG</div>
+      <div class="cell w10"></div>
+      <div class="cell label w15">STREET</div>
+      <div class="cell w55"><%= locStreet %></div>
     </div>
-    <div class="cell label w10">INTEREST</div>
-    <div class="cell w15">
-      <span class="check"><%= data.interestOwner ? "X" : "" %></span> Owner
-      <span class="check"><%= data.interestTenant ? "X" : "" %></span> Tenant
+    <div class="row">
+      <div class="cell label w10">CITY</div>
+      <div class="cell w25"><%= locCity %></div>
+      <div class="cell label w10">STATE</div>
+      <div class="cell w10"><%= locState %></div>
+      <div class="cell label w10">ZIP</div>
+      <div class="cell w15"><%= locZip %></div>
+      <div class="cell w20"></div>
     </div>
-    <div class="cell w45"></div>
+    <div class="row">
+      <div class="cell label w20">BLDG DESCRIPTION</div>
+      <div class="cell w80"><%= bldgDesc %></div>
+    </div>
+    <div class="row">
+      <div class="cell label w15">CITY LIMITS</div>
+      <div class="cell w15">
+        <span class="check"><%= data.cityLimitsInside ? "X" : "" %></span> Inside
+        <span class="check"><%= data.cityLimitsOutside ? "X" : "" %></span> Outside
+      </div>
+      <div class="cell label w10">INTEREST</div>
+      <div class="cell w15">
+        <span class="check"><%= data.interestOwner ? "X" : "" %></span> Owner
+        <span class="check"><%= data.interestTenant ? "X" : "" %></span> Tenant
+      </div>
+      <div class="cell w45"></div>
+    </div>
+    <div class="row">
+      <div class="cell label w15">FULL TIME EMPLOY</div>
+      <div class="cell w10"><%= ftEmp %></div>
+      <div class="cell label w15">PART TIME EMPLOY</div>
+      <div class="cell w10"><%= ptEmp %></div>
+      <div class="cell label w20">ANNUAL REVENUES</div>
+      <div class="cell w15 right">$<%= money(annualRevenue) %></div>
+      <div class="cell w15"></div>
+    </div>
+    <div class="row">
+      <div class="cell label w25">TOTAL BUILDING AREA (SQ FT)</div>
+      <div class="cell w20"><%= bldgSqFt %></div>
+      <div class="cell w55"></div>
+    </div>
   </div>
-
-  <div class="row">
-    <div class="cell label w15">FULL TIME EMPLOY</div>
-    <div class="cell w10"><%= ftEmp %></div>
-    <div class="cell label w15">PART TIME EMPLOY</div>
-    <div class="cell w10"><%= ptEmp %></div>
-    <div class="cell label w20">ANNUAL REVENUES</div>
-    <div class="cell w15 right">$<%= money(annualRevenue) %></div>
-    <div class="cell w15"></div>
-  </div>
-
-  <div class="row">
-    <div class="cell label w25">TOTAL BUILDING AREA (SQ FT)</div>
-    <div class="cell w20"><%= bldgSqFt %></div>
-    <div class="cell w55"></div>
-  </div>
-</div>
 
   <!-- Nature of Business -->
   <div class="subbar">NATURE OF BUSINESS</div>
@@ -1011,22 +999,25 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
       <div class="cell w10"><%= data.sicCode %></div>
       <div class="cell w25"></div>
     </div>
-
-     <!-- Row: Annual Revenue -->
-<div class="row">
-  <div class="cell label w20">ANNUAL REVENUES</div>
-  <div class="cell w15 right">$<%= money(annualRevenue) %></div>
-  <div class="cell w65"></div>
-</div>
-
-<!-- Row: Building area + Website -->
-<div class="row">
-  <div class="cell label w25">TOTAL BUILDING AREA (SQ FT)</div>
-  <div class="cell w20"><%= bldgSqFt %></div>
-  <div class="cell w40"></div>
-  <div class="cell label w15">WEBSITE ADDRESS</div>
-  <div class="cell w15"><%= website %></div>
-</div>
+    <div class="row">
+      <div class="cell w20">BUSINESS TYPE</div>
+      <div class="cell w20">
+        <span class="check"></span> APARTMENTS
+        <span class="check"></span> CONDOMINIUMS
+      </div>
+      <div class="cell w20">
+        <span class="check"></span> CONTRACTOR
+        <span class="check"></span> INSTITUTIONAL
+      </div>
+      <div class="cell w20">
+        <span class="check"></span> MANUFACTURING
+        <span class="check"></span> OFFICE
+      </div>
+      <div class="cell w20">
+        <span class="check"></span> RESTAURANT
+        <span class="check"></span> RETAIL / WHOLESALE
+      </div>
+    </div>
     <div class="row">
       <div class="cell label w35">RETAIL STORES OR SERVICE OPERATIONS % OF TOTAL SALES</div>
       <div class="cell w10"><%= data.retailPercentage %>%</div>
@@ -1180,13 +1171,11 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     <div class="row">
       <div class="cell label w10">TYPE</div>
       <div class="cell w90">
-        <span class="check"><%= AITYPE==='ADDITIONAL_INSURED' ? 'X' : '' %></span> ADDITIONAL INSURED
-        <span class="check"><%= AITYPE==='LOSS_PAYEE' ? 'X' : '' %></span> LOSS PAYEE
-        <span class="check"><%= AITYPE==='MORTGAGEE' ? 'X' : '' %></span> MORTGAGEE
-        <span class="check"><%= AITYPE==='LIENHOLDER' ? 'X' : '' %></span> LIENHOLDER
-        <span class="check"><%= AITYPE==='LENDER_S_LOSS' ? 'X' : '' %></span> LENDER'S LOSS PAYABLE
-
-
+        <span class="check"><%= AITYPE === 'ADDITIONAL_INSURED' ? 'X' : '' %></span> ADDITIONAL INSURED
+        <span class="check"><%= AITYPE === 'LOSS_PAYEE' ? 'X' : '' %></span> LOSS PAYEE
+        <span class="check"><%= AITYPE === 'MORTGAGEE' ? 'X' : '' %></span> MORTGAGEE
+        <span class="check"><%= AITYPE === 'LIENHOLDER' ? 'X' : '' %></span> LIENHOLDER
+        <span class="check"><%= AITYPE === 'LENDER_S_LOSS' ? 'X' : '' %></span> LENDER'S LOSS PAYABLE
       </div>
     </div>
     <div class="row">
@@ -1200,16 +1189,15 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     </div>
     <div class="row">
       <div class="cell label w25">INTEREST NAME AND ADDRESS</div>
-      <div class="cell w40"><%- [
-       aiName,
-       aiAddr1,
-       [aiCity, aiState, aiZip].filter(Boolean).join(", ")
-       ].filter(Boolean).join("<br/>") %>
-    </div>
+      <div class="cell w40 wrap"><%- [
+        aiName,
+        aiAddr1,
+        [aiCity, aiState, aiZip].filter(Boolean).join(", ")
+      ].filter(Boolean).join("<br/>") %></div>
       <div class="cell label w10">RANK</div>
-      <div class="cell w10"></div>
+      <div class="cell w10"><%= aiRank %></div>
       <div class="cell label w15">REFERENCE/LOAN #</div>
-      <div class="cell w10"></div>
+      <div class="cell w10"><%= aiRef %></div>
     </div>
     <div class="row">
       <div class="cell label w10">ITEM</div>
@@ -1254,7 +1242,7 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
       <div class="cell w10"><%= data.lossYears %></div>
       <div class="cell label w10">YEARS</div>
       <div class="cell label w15">TOTAL LOSSES:</div>
-      <div class="cell w15 right"><%= lossTotal %></div>
+      <div class="cell w15"><%= lossTotal %></div>
       <div class="cell w35"></div>
     </div>
     <div class="row">
@@ -1467,19 +1455,19 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
         THE UNDERSIGNED IS AN AUTHORIZED REPRESENTATIVE OF THE APPLICANT AND REPRESENTS THAT REASONABLE INQUIRY HAS BEEN MADE TO OBTAIN THE ANSWERS TO QUESTIONS ON THIS APPLICATION. HE/SHE REPRESENTS THAT THE ANSWERS ARE TRUE, CORRECT AND COMPLETE TO THE BEST OF HIS/HER KNOWLEDGE.
       </div>
     </div>
-    <div class="row no-break">
+    <div class="row">
       <div class="cell label w25">PRODUCER'S SIGNATURE</div>
       <div class="cell w25"></div>
       <div class="cell label w25">PRODUCER'S NAME (PLEASE PRINT)</div>
       <div class="cell w25"><%= data.producerSignatureName %></div>
     </div>
-    <div class="row no-break">
+    <div class="row">
       <div class="cell label w25">STATE PRODUCER LICENSE NO</div>
       <div class="cell w25"><%= data.stateProducerLicense %></div>
       <div class="cell label w25">NATIONAL PRODUCER NUMBER</div>
       <div class="cell w25"><%= data.nationalProducerNumber %></div>
     </div>
-    <div class="row no-break">
+    <div class="row">
       <div class="cell label w25">APPLICANT'S SIGNATURE</div>
       <div class="cell w50"></div>
       <div class="cell label w10">DATE</div>
@@ -1505,83 +1493,38 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
   </div>
 
   <!-- STATE FRAUD NOTICES -->
-<div class="subbar">STATE FRAUD NOTICES</div>
-<div class="block fraud-block">
-  <div class="row">
-    <div class="cell w100 small legal">
-      <div class="fraud-list">
-        <div class="fraud-line">
-          <span class="jur"><strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong></span>
-          <span class="txt">Any person who knowingly (or willfully)<em>*</em> presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)<em>*</em> presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. <em>*Applies in MD Only.</em></span>
-        </div>
+  <div class="subbar">STATE FRAUD NOTICES</div>
+  <div class="block">
+    <div class="row">
+      <div class="cell w100 small legal wrap">
+        <strong>Applicable in AL, AR, LA, MD, NM, RI and WV:</strong> Any person who knowingly (or willfully)* presents a false or fraudulent claim for payment of a loss or benefit or knowingly (or willfully)* presents false information in an application for insurance is guilty of a crime and may be subject to fines and confinement in prison. *Applies in MD Only.<br/><br/>
 
-        <div class="fraud-line">
-          <span class="jur"><strong>Applicable in CA:</strong></span>
-          <span class="txt">For your protection, California law requires the following to appear on this form: Any person who knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.</span>
-        </div>
+        <strong>Applicable in CA:</strong> For your protection, California law requires the following to appear on this form: Any person who knowingly presents false or fraudulent information to obtain or amend insurance coverage or to make a claim for the payment of a loss is guilty of a crime and may be subject to fines and confinement in state prison.<br/><br/>
 
-        <div class="fraud-line">
-          <span class="jur"><strong>Applicable in CO:</strong></span>
-          <span class="txt">It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.</span>
-        </div>
+        <strong>Applicable in CO:</strong> It is unlawful to knowingly provide false, incomplete, or misleading facts or information to an insurance company for the purpose of defrauding or attempting to defraud the company. Penalties may include imprisonment, fines, denial of insurance and civil damages. Any insurance company or agent of an insurance company who knowingly provides false, incomplete, or misleading facts or information to a policyholder or claimant for the purpose of defrauding or attempting to defraud the policyholder or claimant with regard to a settlement or award payable from insurance proceeds shall be reported to the Colorado Division of Insurance within the Department of Regulatory Agencies.<br/><br/>
 
-        <div class="fraud-line">
-          <span class="jur"><strong>Applicable in DC:</strong></span>
-          <span class="txt"><strong>WARNING:</strong> It is a crime to provide false or misleading information to an insurer for the purpose of defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance benefits if false information materially related to a claim was provided by the applicant.</span>
-        </div>
+        <strong>Applicable in DC:</strong> WARNING: It is a crime to provide false or misleading information to an insurer for the purpose of defrauding the insurer or any other person. Penalties include imprisonment and/or fines. In addition, an insurer may deny insurance benefits if false information materially related to a claim was provided by the applicant.<br/><br/>
 
-        <div class="fraud-line">
-          <span class="jur"><strong>Applicable in FL and OK:</strong></span>
-          <span class="txt">Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)<em>*</em>. <em>*Applies in FL Only.</em></span>
-        </div>
+        <strong>Applicable in FL and OK:</strong> Any person who knowingly and with intent to injure, defraud, or deceive any insurer files a statement of claim or an application containing any false, incomplete, or misleading information is guilty of a felony (of the third degree)*. *Applies in FL Only.<br/><br/>
 
-        <div class="fraud-line">
-          <span class="jur"><strong>Applicable in KS:</strong></span>
-          <span class="txt">Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.</span>
-        </div>
+        <strong>Applicable in KS:</strong> Any person who, knowingly and with intent to defraud, presents, causes to be presented or prepares with knowledge or belief that it will be presented to or by an insurer, purported insurer, broker or any agent thereof, any written, electronic, electronic impulse, facsimile, magnetic, oral, or telephonic communication or statement as part of, or in support of, an application for the issuance of, or the rating of an insurance policy for personal or commercial insurance, or a claim for payment or other benefit pursuant to an insurance policy for commercial or personal insurance which such person knows to contain materially false information concerning any fact material thereto; or conceals, for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act.<br/><br/>
 
-        <div class="fraud-line">
-          <span class="jur"><strong>Applicable in KY, OH and PA:</strong></span>
-          <span class="txt">Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties.</span>
-        </div>
+        <strong>Applicable in KY, OH and PA:</strong> Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information or conceals for the purpose of misleading, information concerning any fact material thereto commits a fraudulent insurance act, which is a crime and subjects such person to criminal and civil penalties.<br/><br/>
 
-        <div class="fraud-line">
-          <span class="jur"><strong>Applicable in ME, TN, VA and WA:</strong></span>
-          <span class="txt">It is a crime to knowingly provide false, incomplete or misleading information to an insurance company for the purpose of defrauding the company. Penalties <em>(may)*</em> include imprisonment, fines and denial of insurance benefits. <em>*Applies in ME Only.</em></span>
-        </div>
+        <strong>Applicable in ME, TN, VA and WA:</strong> It is a crime to knowingly provide false, incomplete or misleading information to an insurance company for the purpose of defrauding the company. Penalties (may)* include imprisonment, fines and denial of insurance benefits. *Applies in ME Only.<br/><br/>
 
-        <div class="fraud-line">
-          <span class="jur"><strong>Applicable in NJ:</strong></span>
-          <span class="txt">Any person who includes any false or misleading information on an application for an insurance policy is subject to criminal and civil penalties.</span>
-        </div>
+        <strong>Applicable in NJ:</strong> Any person who includes any false or misleading information on an application for an insurance policy is subject to criminal and civil penalties.<br/><br/>
 
-        <div class="fraud-line">
-          <span class="jur"><strong>Applicable in NY:</strong></span>
-          <span class="txt">Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.</span>
-        </div>
+        <strong>Applicable in NY:</strong> Any person who knowingly and with intent to defraud any insurance company or other person files an application for insurance or statement of claim containing any materially false information, or conceals for the purpose of misleading, information concerning any fact material thereto, commits a fraudulent insurance act, which is a crime, and shall also be subject to a civil penalty not to exceed five thousand dollars and the stated value of the claim for each such violation.<br/><br/>
 
-        <div class="fraud-line">
-          <span class="jur"><strong>Applicable in OR:</strong></span>
-          <span class="txt">Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by submitting an application containing a false statement as to any material fact may be violating state law.</span>
-        </div>
+        <strong>Applicable in OR:</strong> Any person who knowingly and with intent to defraud or solicit another to defraud the insurer by submitting an application containing a false statement as to any material fact may be violating state law.<br/><br/>
 
-        <div class="fraud-line">
-          <span class="jur"><strong>Applicable in PR:</strong></span>
-          <span class="txt">Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum of two (2) years.</span>
-        </div>
+        <strong>Applicable in PR:</strong> Any person who knowingly and with the intention of defrauding presents false information in an insurance application, or presents, helps, or causes the presentation of a fraudulent claim for the payment of a loss or any other benefit, or presents more than one claim for the same damage or loss, shall incur a felony and, upon conviction, shall be sanctioned for each violation by a fine of not less than five thousand dollars ($5,000) and not more than ten thousand dollars ($10,000), or a fixed term of imprisonment for three (3) years, or both penalties. Should aggravating circumstances be present, the penalty thus established may be increased to a maximum of five (5) years, if extenuating circumstances are present, it may be reduced to a minimum of two (2) years.<br/><br/>
 
-        <div class="fraud-line">
-          <span class="jur"><strong>Applicable in UT:</strong></span>
-          <span class="txt">Any person who knowingly presents false or fraudulent information for insurance, files or causes to be filed a false or fraudulent claim for disability income or medical benefits, or submits a false or fraudulent report or billing for health care fees or other professional services is guilty of a crime and may be subject to fines and confinement in prison.</span>
-        </div>
+        <strong>Applicable in UT:</strong> Any person who knowingly presents false or fraudulent information for insurance, files or causes to be filed a false or fraudulent claim for disability income or medical benefits, or submits a false or fraudulent report or billing for health care fees or other professional services is guilty of a crime and may be subject to fines and confinement in prison.
       </div>
     </div>
   </div>
-</div>
-
-    </div>   <!-- /.cell -->
-  </div>     <!-- /.row -->
-</div>       <!-- /.block -->
 
   <!-- Footer -->
   <div class="footnote">
