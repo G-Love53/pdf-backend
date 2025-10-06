@@ -939,61 +939,61 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
 
   <!-- Premises Information -->
   <div class="subbar">PREMISES INFORMATION (ATTACH ACORD 823 FOR ADDITIONAL PREMISES)</div>
-  <div class="block">
-    <div class="row">
-      <div class="cell label w10">LOC #</div>
-      <div class="cell w10">1</div>
-      <div class="cell label w10">BLDG</div>
-      <div class="cell label w15">STREET</div>
-      <div class="cell w55"><%= locStreet %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w10">CITY</div>
-      <div class="cell w25"><%= locCity %></div>
-      <div class="cell label w10">STATE</div>
-      <div class="cell w10"><%= locState %></div>
-      <div class="cell label w10">ZIP</div>
-      <div class="cell w15"><%= locZip %></div>
-      <div class="cell w20"></div>
-    </div>
-    <div class="row">
-      <div class="cell label w20">BLDG DESCRIPTION</div>
-      <div class="cell w80"><%= bldgDesc %></div>
-    </div>
-    <div class="row">
-      <div class="cell label w15">CITY LIMITS</div>
-      <div class="cell w15">
-        <span class="check"><%= data.cityLimitsInside ? "X" : "" %></span> Inside
-        <span class="check"><%= data.cityLimitsOutside ? "X" : "" %></span> Outside
-      </div>
-      <div class="cell label w10">INTEREST</div>
-      <div class="cell w15">
-        <span class="check"><%= data.interestOwner ? "X" : "" %></span> Owner
-        <span class="check"><%= data.interestTenant ? "X" : "" %></span> Tenant
-      </div>
-      <div class="cell w45"></div>
-    </div>
-    <div class="row">
-      <div class="cell label w15">FULL TIME EMPLOY</div>
-      <div class="cell w10"><%= ftEmp %></div>
-      <div class="cell label w15">PART TIME EMPLOY</div>
-      <div class="cell w10"><%= ptEmp %></div>
-      <!-- Row: Annual Revenue -->
-    <div class="row">
-     <div class="cell label w20">ANNUAL REVENUES</div>
-     <div class="cell w15 right">$<%= money(annualRevenue) %></div>
-     <div class="cell w65"></div>
-    </div>
-
-<!-- Row: Building area + Website -->
-<div class="row">
-  <div class="cell label w25">TOTAL BUILDING AREA (SQ FT)</div>
-  <div class="cell w20"><%= bldgSqFt %></div>
-  <div class="cell w40"></div>
-  <div class="cell label w15">WEBSITE ADDRESS</div>
-  <div class="cell w15"><%= website %></div>
-</div>
+<div class="block">
+  <div class="row">
+    <div class="cell label w10">LOC #</div>
+    <div class="cell w10">1</div>
+    <div class="cell label w10">BLDG</div>
+    <div class="cell w10"></div>
+    <div class="cell label w15">STREET</div>
+    <div class="cell w55"><%= locStreet %></div>
   </div>
+
+  <div class="row">
+    <div class="cell label w10">CITY</div>
+    <div class="cell w25"><%= locCity %></div>
+    <div class="cell label w10">STATE</div>
+    <div class="cell w10"><%= locState %></div>
+    <div class="cell label w10">ZIP</div>
+    <div class="cell w15"><%= locZip %></div>
+    <div class="cell w20"></div>
+  </div>
+
+  <div class="row">
+    <div class="cell label w20">BLDG DESCRIPTION</div>
+    <div class="cell w80"><%= bldgDesc %></div>
+  </div>
+
+  <div class="row">
+    <div class="cell label w15">CITY LIMITS</div>
+    <div class="cell w15">
+      <span class="check"><%= data.cityLimitsInside ? "X" : "" %></span> Inside
+      <span class="check"><%= data.cityLimitsOutside ? "X" : "" %></span> Outside
+    </div>
+    <div class="cell label w10">INTEREST</div>
+    <div class="cell w15">
+      <span class="check"><%= data.interestOwner ? "X" : "" %></span> Owner
+      <span class="check"><%= data.interestTenant ? "X" : "" %></span> Tenant
+    </div>
+    <div class="cell w45"></div>
+  </div>
+
+  <div class="row">
+    <div class="cell label w15">FULL TIME EMPLOY</div>
+    <div class="cell w10"><%= ftEmp %></div>
+    <div class="cell label w15">PART TIME EMPLOY</div>
+    <div class="cell w10"><%= ptEmp %></div>
+    <div class="cell label w20">ANNUAL REVENUES</div>
+    <div class="cell w15 right">$<%= money(annualRevenue) %></div>
+    <div class="cell w15"></div>
+  </div>
+
+  <div class="row">
+    <div class="cell label w25">TOTAL BUILDING AREA (SQ FT)</div>
+    <div class="cell w20"><%= bldgSqFt %></div>
+    <div class="cell w55"></div>
+  </div>
+</div>
 
   <!-- Nature of Business -->
   <div class="subbar">NATURE OF BUSINESS</div>
