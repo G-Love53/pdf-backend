@@ -276,7 +276,6 @@ const mailZip    = data.applicant_zip || data.mailing_zip || data.applicantZip |
 
 /* Phone + website */
 const businessPhone = data.business_phone || data.businessPhone || data.phone || "";
-const website       = data.website || data.website_address || data.web || data.applicant_website || data.website_url || "";
 
 /* Type-of-business helper - ENHANCED VERSION */
 const typeIs = (t) => {
@@ -293,7 +292,6 @@ const typeIs = (t) => {
 };
 
 /* Premises (LOC #1) */
-const locStreet = data.premise_address || data.premiseAddress || data.location1_street || data.applicant_street || "";
 const locCity   = data.premise_city || data.premiseCity || data.location1_city || "";
 const locState  = data.premise_state || data.premiseState || data.location1_state || "";
 const locZip    = data.premise_zip || data.premiseZip || data.location1_zip || "";
