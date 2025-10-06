@@ -208,9 +208,11 @@ const data = Object.assign({}, defaults, (typeof formData === "object" && formDa
   data.ai_state_1   = data.ai_state_1   || data.additionalInsuredState || data.interest_state || "";
   data.ai_zip_1     = data.ai_zip_1     || data.additionalInsuredZip   || data.interest_zip   || "";
 
-  // Normalized AI type (for checkbox logic) -> expose via data.aiTypeNorm
-  const aiTypeRaw  = data.interest_type || data.ai_type || data.interestType || "";
-  data.aiTypeNorm  = String(aiTypeRaw).toUpperCase().replace(/[^A-Z]/g, "_");
+  // Normalized AI type (for checkbox logic)
+const aiTypeRaw  = data.interest_type || data.ai_type || data.interestType || "";
+const aiTypeNorm = String(aiTypeRaw).toUpperCase().replace(/[^A-Z]/g, "_");
+data.aiTypeNorm = aiTypeNorm;
+
 
   // BPP (for 140; harmless elsewhere)
   const bpp = data.business_personal_property_clean || data.bpp_amount || data.business_personal_property || "";
@@ -254,6 +256,8 @@ const mailStreet = data.applicant_mailing_address || data.applicant_street || da
 const mailCity   = data.applicant_city || data.mailing_city || "";
 const mailState  = data.applicant_state || data.mailing_state || "";
 const mailZip    = data.applicant_zip || data.mailing_zip || "";
+const aiTypeNorm = data.aiTypeNorm || "";
+
 
 /* Phone + website */
 const businessPhone = data.business_phone || data.businessPhone || data.phone || "";
