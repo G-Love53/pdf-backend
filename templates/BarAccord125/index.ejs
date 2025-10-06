@@ -294,6 +294,16 @@ const ptEmp         = data.part_time_employees || data.pt_employees || data.ptEm
 const annualRevenue = data.annual_revenue || data.annualRevenue || data.total_sales || data.annualRevenues || "";
 const bldgSqFt      = data.total_area || data.building_sq_ft || data.bldgSqFt || "";
 
+/* Loss History total (count) */
+const lossTotal = (() => {
+  const cc = String(data.claim_count || "").toLowerCase();
+  if (cc.includes("2")) return "2";
+  if (cc.includes("3")) return "3";
+  // fallback to numeric loss total if provided
+  return data.totalLosses || data.total_losses || data.loss_total || "";
+})();
+
+
 /* Additional Interest (page 3 / 140 section) */
 const aiName  = data.interest_name   || data.ai_name_1    || "";
 const aiAddr1 = data.interest_address|| data.ai_address_1 || "";
