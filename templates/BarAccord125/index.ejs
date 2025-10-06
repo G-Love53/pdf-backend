@@ -302,16 +302,7 @@ const bldgDesc  = data.bldg_description || data.building_description || data.pre
 /* Employees / revenue / bldg area */
 const ftEmp         = data.full_time_employees || data.ft_employees || data.ftEmp || data.fullTimeEmployees || "";
 const ptEmp         = data.part_time_employees || data.pt_employees || data.ptEmp || data.partTimeEmployees || "";
-const annualRevenue = data.annual_revenue || data.annualRevenue || data.total_sales || data.annualRevenues || "";
-const bldgSqFt      = data.total_area || data.building_sq_ft || data.bldgSqFt || data.totalBuildingArea || "";
 
-/* Contact Information - ENHANCED */
-const primaryContactName = data.primary_contact_name || data.primaryContactName || data.contact_name || "";
-const primaryPhone       = data.primary_phone || data.primaryPhone || data.contact_phone || businessPhone;
-const primaryEmail       = data.primary_email || data.primaryEmail || data.contact_email || data.email || "";
-const secondaryContactName = data.secondary_contact_name || data.secondaryContactName || "";
-const secondaryPhone       = data.secondary_phone || data.secondaryPhone || "";
-const secondaryEmail       = data.secondary_email || data.secondaryEmail || "";
 /* Contact Information - ENHANCED */
 const primaryContactName = data.primary_contact_name || data.primaryContactName || data.contact_name || firstNamed || "";
 const primaryPhone       = data.primary_phone || data.primaryPhone || data.contact_phone || businessPhone;
