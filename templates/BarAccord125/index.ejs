@@ -197,13 +197,18 @@ const data = Object.assign({}, defaults, (typeof formData === "object" && formDa
   data.applicant_city_state_zip = csz;
 
   // Additional Interest #1 (normalize + backfill)
-  const aiName = data.ai_name_1 || data.additionalInsuredName || data.interest_name || "";
-  const aiAddr = data.ai_address_1 || data.additionalInsuredAddress || data.interest_address || "";
-  data.ai_name_1 = data.ai_name_1 || aiName;
-  data.ai_address_1 = data.ai_address_1 || aiAddr;
-  data.ai_city_1 = data.ai_city_1 || data.additionalInsuredCity || data.interest_city || "";
-  data.ai_state_1 = data.ai_state_1 || data.additionalInsuredState || data.interest_state || "";
-  data.ai_zip_1  = data.ai_zip_1  || data.additionalInsuredZip  || data.interest_zip  || "";
+const aiName = data.ai_name_1 || data.additionalInsuredName || data.interest_name || "";
+const aiAddr = data.ai_address_1 || data.additionalInsuredAddress || data.interest_address || "";
+data.ai_name_1    = data.ai_name_1    || aiName;
+data.ai_address_1 = data.ai_address_1 || aiAddr;
+data.ai_city_1  = data.ai_city_1  || data.additionalInsuredCity  || data.interest_city  || "";
+data.ai_state_1 = data.ai_state_1 || data.additionalInsuredState || data.interest_state || "";
+data.ai_zip_1   = data.ai_zip_1   || data.additionalInsuredZip   || data.interest_zip   || "";
+
+// Normalized AI type (for checkbox logic)
+const aiTypeRaw  = data.interest_type || data.ai_type || data.interestType || "";
+const aiTypeNorm = String(aiTypeRaw).toUpperCase().replace(/[^A-Z]/g, "_");
+
 
   // BPP (for 140; harmless elsewhere)
   const bpp = data.business_personal_property_clean || data.bpp_amount || data.business_personal_property || "";
@@ -248,8 +253,19 @@ const mailCity   = data.applicant_city || data.mailing_city || "";
 const mailState  = data.applicant_state || data.mailing_state || "";
 const mailZip    = data.applicant_zip || data.mailing_zip || "";
 
+/* Phone + website */
 const businessPhone = data.business_phone || data.businessPhone || data.phone || "";
-const website       = data.website || data.website_address || data.web || "";
+const website       = data.website || data.website_address || data.web || data.applicant_website || data.website_url || "";
+
+/* Type-of-business helper */
+const typeIs = (t) => { ... };
+
+/* Employees / revenue / bldg area */
+const ftEmp         = ...
+const ptEmp         = ...
+const annualRevenue = ...
+const bldgSqFt      = ...
+
 
 /* Type-of-business helper */
 const typeIs = (t) => {
@@ -278,14 +294,14 @@ const annualRevenue = data.annual_revenue || data.annualRevenue || data.total_sa
 const bldgSqFt      = data.total_area || data.building_sq_ft || data.bldgSqFt || "";
 
 /* Additional Interest (page 3 / 140 section) */
-const aiType  = data.interest_type || data.ai_type || "";
-const aiName  = data.interest_name || data.ai_name_1 || "";
-const aiAddr1 = data.interest_address || data.ai_address_1 || "";
-const aiCity  = data.interest_city || data.ai_city_1 || "";
-const aiState = data.interest_state || data.ai_state_1 || "";
-const aiZip   = data.interest_zip || data.ai_zip_1 || "";
-const aiRank  = data.interest_rank || data.ai_rank_1 || "";
+const aiName  = data.interest_name   || data.ai_name_1    || "";
+const aiAddr1 = data.interest_address|| data.ai_address_1 || "";
+const aiCity  = data.interest_city   || data.ai_city_1    || "";
+const aiState = data.interest_state  || data.ai_state_1   || "";
+const aiZip   = data.interest_zip    || data.ai_zip_1     || "";
+const aiRank  = data.interest_rank   || data.ai_rank_1    || "";
 const aiRef   = data.interest_reference || data.ai_reference_1 || "";
+
 
 /* Applicant address for 126 header */
 const applStreet = data.applicant_street || data.mailing_street || data.premise_address || "";
@@ -941,15 +957,21 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
       <div class="cell w10"><%= ftEmp %></div>
       <div class="cell label w15">PART TIME EMPLOY</div>
       <div class="cell w10"><%= ptEmp %></div>
-      <div class="cell label w20">ANNUAL REVENUES</div>
-      <div class="cell w15 right">$<%= money(annualRevenue) %></div>
-      <div class="cell w15"></div>
-    </div>
+      <!-- Row: Annual Revenue -->
     <div class="row">
-      <div class="cell label w25">TOTAL BUILDING AREA (SQ FT)</div>
-      <div class="cell w20"><%= bldgSqFt %></div>
-      <div class="cell w55"></div>
+     <div class="cell label w20">ANNUAL REVENUES</div>
+     <div class="cell w15 right">$<%= money(annualRevenue) %></div>
+     <div class="cell w65"></div>
     </div>
+
+<!-- Row: Building area + Website -->
+<div class="row">
+  <div class="cell label w25">TOTAL BUILDING AREA (SQ FT)</div>
+  <div class="cell w20"><%= bldgSqFt %></div>
+  <div class="cell w40"></div>
+  <div class="cell label w15">WEBSITE ADDRESS</div>
+  <div class="cell w15"><%= website %></div>
+</div>
   </div>
 
   <!-- Nature of Business -->
@@ -968,22 +990,21 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
       <div class="cell w10"><%= data.sicCode %></div>
       <div class="cell w25"></div>
     </div>
-    <div class="row">
-      <div class="cell label w15">BUSINESS TYPE</div>
-      <div class="cell w85" style="font-size: 8pt;">
-        <span class="check"><%= data.businessType === "APARTMENTS" ? "X" : "" %></span> APARTMENTS
-        <span class="check"><%= data.businessType === "CONDOMINIUMS" ? "X" : "" %></span> CONDOMINIUMS
-        <span class="check"><%= data.businessType === "CONTRACTOR" ? "X" : "" %></span> CONTRACTOR
-        <span class="check"><%= data.businessType === "INSTITUTIONAL" ? "X" : "" %></span> INSTITUTIONAL
-        <span class="check"><%= data.businessType === "MANUFACTURING" ? "X" : "" %></span> MANUFACTURING
-        <span class="check"><%= data.businessType === "OFFICE" ? "X" : "" %></span> OFFICE
-        <span class="check"><%= data.businessType === "RESTAURANT" ? "X" : "" %></span> RESTAURANT
-        <span class="check"><%= data.businessType === "RETAIL" ? "X" : "" %></span> RETAIL
-        <span class="check"><%= data.businessType === "SERVICE" ? "X" : "" %></span> SERVICE
-        <span class="check"><%= data.businessType === "WHOLESALE" ? "X" : "" %></span> WHOLESALE
-        <span class="check"><%= data.businessType === "OTHER" ? "X" : "" %></span> OTHER
-      </div>
-    </div>
+    <!-- Row: Annual Revenue -->
+<div class="row">
+  <div class="cell label w20">ANNUAL REVENUES</div>
+  <div class="cell w15 right">$<%= money(annualRevenue) %></div>
+  <div class="cell w65"></div>
+</div>
+
+<!-- Row: Building area + Website -->
+<div class="row">
+  <div class="cell label w25">TOTAL BUILDING AREA (SQ FT)</div>
+  <div class="cell w20"><%= bldgSqFt %></div>
+  <div class="cell w40"></div>
+  <div class="cell label w15">WEBSITE ADDRESS</div>
+  <div class="cell w15"><%= website %></div>
+</div>
     <div class="row">
       <div class="cell label w35">RETAIL STORES OR SERVICE OPERATIONS % OF TOTAL SALES</div>
       <div class="cell w10"><%= data.retailPercentage %>%</div>
@@ -1137,11 +1158,11 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     <div class="row">
       <div class="cell label w10">TYPE</div>
       <div class="cell w90">
-        <span class="check"><%= aiType==='ADDITIONAL_INSURED' ? 'X' : '' %></span> ADDITIONAL INSURED
-        <span class="check"><%= aiType==='LOSS_PAYEE' ? 'X' : '' %></span> LOSS PAYEE
-        <span class="check"><%= aiType==='MORTGAGEE' ? 'X' : '' %></span> MORTGAGEE
-        <span class="check"><%= aiType==='LIENHOLDER' ? 'X' : '' %></span> LIENHOLDER
-        <span class="check"><%= aiType==="LENDER'S LOSS" ? 'X' : '' %></span> LENDER'S LOSS PAYABLE
+        <span class="check"><%= aiTypeNorm==='ADDITIONAL_INSURED' ? 'X' : '' %></span> ADDITIONAL INSURED
+        <span class="check"><%= aiTypeNorm==='LOSS_PAYEE' ? 'X' : '' %></span> LOSS PAYEE
+        <span class="check"><%= aiTypeNorm==='MORTGAGEE' ? 'X' : '' %></span> MORTGAGEE
+        <span class="check"><%= aiTypeNorm==='LIENHOLDER' ? 'X' : '' %></span> LIENHOLDER
+        <span class="check"><%= aiTypeNorm==='LENDERS_LOSS_PAYABLE' ? 'X' : '' %></span> LENDER'S LOSS PAYABLE
 
       </div>
     </div>
@@ -1210,7 +1231,7 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
       <div class="cell w10"><%= data.lossYears %></div>
       <div class="cell label w10">YEARS</div>
       <div class="cell label w15">TOTAL LOSSES:</div>
-      <div class="cell w15 right">$<%= money(data.totalLosses) %></div>
+      <div class="cell w15 right"><%= lossTotal %></div>
       <div class="cell w35"></div>
     </div>
     <div class="row">
@@ -1226,7 +1247,7 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     <div class="row">
       <div class="cell w15"></div>
       <div class="cell w10"></div>
-      <div class="cell w30"></div>
+      <div class="cell w30"><%= claimDesc %></div>
       <div class="cell w15"></div>
       <div class="cell w10 right">$</div>
       <div class="cell w10 right">$</div>
