@@ -210,25 +210,27 @@ const data = Object.assign({}, defaults, (typeof formData === "object" && formDa
   data.ai_state_1   = data.ai_state_1   || data.additionalInsuredState || data.interest_state || "";
   data.ai_zip_1     = data.ai_zip_1     || data.additionalInsuredZip   || data.interest_zip   || "";
 
-  // Normalized AI type (for checkbox logic) - ENHANCED VERSION
-  const aiTypeRaw = String(data.interest_type || data.ai_type || data.interestType || "").toUpperCase();
-  let aiTypeNorm = "";
-  
-  if (aiTypeRaw.includes('ADDITIONAL') && aiTypeRaw.includes('INSURED')) {
-    aiTypeNorm = 'ADDITIONAL_INSURED';
-  } else if (aiTypeRaw.includes('LOSS') && aiTypeRaw.includes('PAYEE')) {
-    aiTypeNorm = 'LOSS_PAYEE';
-  } else if (aiTypeRaw.includes('MORTGAGEE')) {
-    aiTypeNorm = 'MORTGAGEE';
-  } else if (aiTypeRaw.includes('LIENHOLDER') || aiTypeRaw.includes('LIEN')) {
-    aiTypeNorm = 'LIENHOLDER';
-  } else if (aiTypeRaw.includes('LENDER')) {
-    aiTypeNorm = 'LENDER_S_LOSS';
-  } else {
-    aiTypeNorm = aiTypeRaw.replace(/[^A-Z]/g, "_");
-  }
-  
-  data.aiTypeNorm = aiTypeNorm;
+  // Normalized AI type (for checkbox logic) - ULTRA-ENHANCED VERSION
+const aiTypeRaw = String(data.interest_type || data.ai_type || data.interestType || data.additional_interest_type || "").toUpperCase();
+let aiTypeNorm = "";
+
+// More flexible matching
+if (aiTypeRaw.includes('ADDITIONAL') || aiTypeRaw.includes('INSURED')) {
+  aiTypeNorm = 'ADDITIONAL_INSURED';
+} else if (aiTypeRaw.includes('LOSS') && aiTypeRaw.includes('PAYEE')) {
+  aiTypeNorm = 'LOSS_PAYEE';
+} else if (aiTypeRaw.includes('MORTGAGEE')) {
+  aiTypeNorm = 'MORTGAGEE';
+} else if (aiTypeRaw.includes('LIEN')) {
+  aiTypeNorm = 'LIENHOLDER';
+} else if (aiTypeRaw.includes('LENDER')) {
+  aiTypeNorm = 'LENDER_S_LOSS';
+} else {
+  // Fallback: strip all non-letters and underscores
+  aiTypeNorm = aiTypeRaw.replace(/[^A-Z_]/g, '_');
+}
+
+data.aiTypeNorm = aiTypeNorm;
 
   // BPP (for 140; harmless elsewhere)
   const bpp = data.business_personal_property_clean || data.bpp_amount || data.business_personal_property || "";
@@ -310,6 +312,16 @@ const primaryEmail       = data.primary_email || data.primaryEmail || data.conta
 const secondaryContactName = data.secondary_contact_name || data.secondaryContactName || "";
 const secondaryPhone       = data.secondary_phone || data.secondaryPhone || "";
 const secondaryEmail       = data.secondary_email || data.secondaryEmail || "";
+/* Contact Information - ENHANCED */
+const primaryContactName = data.primary_contact_name || data.primaryContactName || data.contact_name || firstNamed || "";
+const primaryPhone       = data.primary_phone || data.primaryPhone || data.contact_phone || businessPhone;
+const primaryEmail       = data.primary_email || data.primaryEmail || data.contact_email || data.email || "";
+
+/* Update these existing variables to add more fallbacks: */
+const website = data.website || data.website_address || data.web || data.applicant_website || data.website_url || data.websiteAddress || "";
+const locStreet = data.premise_address || data.premiseAddress || data.location1_street || data.applicant_street || data.business_address || data.businessAddress || "";
+const annualRevenue = data.annual_revenue || data.annualRevenue || data.total_sales || data.annualRevenues || data.totalSales || "";
+const bldgSqFt = data.total_area || data.building_sq_ft || data.bldgSqFt || data.totalBuildingArea || data.square_footage || data.squareFootage || "";
 
 /* Loss history helpers (page 4) - ENHANCED */
 const claimCountRaw = String(data.claim_count || data.claims_count || "").toLowerCase();
@@ -900,18 +912,18 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
       <div class="cell w15"><%= website %></div>
     </div>
     <div class="row">
-      <div class="cell w100">
-        <span class="check"><%= typeIs('corporation') ? 'X' : '' %></span> CORPORATION
-        <span class="check"><%= typeIs('individual') ? 'X' : '' %></span> INDIVIDUAL / SOLE PROP
-        <span class="check"><%= typeIs('llc') ? 'X' : '' %></span> LLC
-        <span class="check"><%= typeIs('joint venture') ? 'X' : '' %></span> JOINT VENTURE
-        <span class="check"><%= typeIs('partnership') ? 'X' : '' %></span> PARTNERSHIP
-        <span class="check"><%= data.entityType === "NOT_FOR_PROFIT" ? 'X' : '' %></span> NOT FOR PROFIT ORG
-        <span class="check"><%= data.entityType === "SUBCHAPTER_S" ? 'X' : '' %></span> SUBCHAPTER "S" CORPORATION
-        <span class="check"><%= data.entityType === "TRUST" ? 'X' : '' %></span> TRUST
-        <span class="check"><%= typeIs('other') ? 'X' : '' %></span> OTHER
-      </div>
-    </div>
+  <div class="cell w100">
+    <span class="check"><%= typeIs('corporation') || data.entityType === 'CORPORATION' ? 'X' : '' %></span> CORPORATION
+    <span class="check"><%= typeIs('individual') || data.entityType === 'INDIVIDUAL' || data.entityType === 'SOLE_PROPRIETOR' ? 'X' : '' %></span> INDIVIDUAL / SOLE PROP
+    <span class="check"><%= typeIs('llc') || data.entityType === 'LLC' ? 'X' : '' %></span> LLC
+    <span class="check"><%= typeIs('joint venture') || data.entityType === 'JOINT_VENTURE' ? 'X' : '' %></span> JOINT VENTURE
+    <span class="check"><%= typeIs('partnership') || data.entityType === 'PARTNERSHIP' ? 'X' : '' %></span> PARTNERSHIP
+    <span class="check"><%= data.entityType === 'NOT_FOR_PROFIT' || data.entityType === 'NONPROFIT' ? 'X' : '' %></span> NOT FOR PROFIT ORG
+    <span class="check"><%= data.entityType === 'SUBCHAPTER_S' || data.entityType === 'S_CORP' ? 'X' : '' %></span> SUBCHAPTER "S" CORPORATION
+    <span class="check"><%= data.entityType === 'TRUST' ? 'X' : '' %></span> TRUST
+    <span class="check"><%= typeIs('other') || data.entityType === 'OTHER' ? 'X' : '' %></span> OTHER
+   </div>
+  </div>
   </div>
 
   <!-- Contact Information -->
@@ -1024,7 +1036,7 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
         <span class="check"></span> OFFICE
       </div>
       <div class="cell w20">
-        <span class="check"></span> RESTAURANT
+        <span class="check">X</span> RESTAURANT
         <span class="check"></span> RETAIL / WHOLESALE
       </div>
     </div>
