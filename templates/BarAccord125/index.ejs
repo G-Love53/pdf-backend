@@ -124,7 +124,7 @@ const defaults = {
   interestTenant: false,
   fullTimeEmployees: "",
   partTimeEmployees: "",
-  annualRevenues: "",
+  annualRevenue: "",
   totalBuildingArea: "",
   // Nature of Business
   primaryOperations: "",
@@ -274,7 +274,7 @@ const bldgDesc  = data.bldg_description || data.building_description || "";
 /* Employees / revenue / bldg area */
 const ftEmp         = data.full_time_employees || data.ft_employees || data.ftEmp || "";
 const ptEmp         = data.part_time_employees || data.pt_employees || data.ptEmp || "";
-const annualRevenue = data.annual_revenue || data.annualRevenue || data.total_sales || "";
+const annualRevenue = data.annual_revenue || data.annualRevenue || data.total_sales || data.annualRevenues || "";
 const bldgSqFt      = data.total_area || data.building_sq_ft || data.bldgSqFt || "";
 
 /* Additional Interest (page 3 / 140 section) */
@@ -916,7 +916,7 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
       <div class="cell label w10">STATE</div>
       <div class="cell w10"><%= locState %></div>
       <div class="cell label w10">ZIP</div>
-      <div class="cell w15"><%= locState %></div>
+      <div class="cell w15"><%= locZip %></div>
       <div class="cell w20"></div>
     </div>
     <div class="row">
@@ -947,7 +947,7 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     </div>
     <div class="row">
       <div class="cell label w25">TOTAL BUILDING AREA (SQ FT)</div>
-      <div class="cell w20"><%= money(bldfSqFt) %></div>
+      <div class="cell w20"><%= bldfSqFt %></div>
       <div class="cell w55"></div>
     </div>
   </div>
