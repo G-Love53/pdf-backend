@@ -249,6 +249,11 @@ const formatDate = (d) => {
 };
 %>
 <%
+  // after the SHIM, top-level aliases
+  const AITYPE = data.aiTypeNorm || "";
+%>
+
+<%
 /* ---- Common aliases for 125/126/140 ---- */
 const firstNamed = data.first_named_insured || data.applicant_name || data.namedInsured || "";
 
@@ -256,7 +261,6 @@ const mailStreet = data.applicant_mailing_address || data.applicant_street || da
 const mailCity   = data.applicant_city || data.mailing_city || "";
 const mailState  = data.applicant_state || data.mailing_state || "";
 const mailZip    = data.applicant_zip || data.mailing_zip || "";
-const aiTypeNorm = data.aiTypeNorm || "";
 
 
 /* Phone + website */
@@ -1155,11 +1159,12 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     <div class="row">
       <div class="cell label w10">TYPE</div>
       <div class="cell w90">
-        <span class="check"><%= aiTypeNorm==='ADDITIONAL_INSURED' ? 'X' : '' %></span> ADDITIONAL INSURED
-        <span class="check"><%= aiTypeNorm==='LOSS_PAYEE' ? 'X' : '' %></span> LOSS PAYEE
-        <span class="check"><%= aiTypeNorm==='MORTGAGEE' ? 'X' : '' %></span> MORTGAGEE
-        <span class="check"><%= aiTypeNorm==='LIENHOLDER' ? 'X' : '' %></span> LIENHOLDER
-        <span class="check"><%= aiTypeNorm==='LENDERS_LOSS_PAYABLE' ? 'X' : '' %></span> LENDER'S LOSS PAYABLE
+        <span class="check"><%= AITYPE==='ADDITIONAL_INSURED' ? 'X' : '' %></span> ADDITIONAL INSURED
+        <span class="check"><%= AITYPE==='LOSS_PAYEE' ? 'X' : '' %></span> LOSS PAYEE
+        <span class="check"><%= AITYPE==='MORTGAGEE' ? 'X' : '' %></span> MORTGAGEE
+        <span class="check"><%= AITYPE==='LIENHOLDER' ? 'X' : '' %></span> LIENHOLDER
+        <span class="check"><%= AITYPE==='LENDER_S_LOSS' ? 'X' : '' %></span> LENDER'S LOSS PAYABLE
+
 
       </div>
     </div>
