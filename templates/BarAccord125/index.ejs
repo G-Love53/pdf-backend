@@ -192,9 +192,11 @@ const data = Object.assign({}, defaults, (typeof formData === "object" && formDa
   data.expirationDate  = EXP_DATE;
 
   // Applicant mailing address (works even if enricher didn't set)
-  const street = data.applicant_street || data.premise_address || data.applicant_mailing_address || "";
+  const street = data.applicant_street || data.premise_address || data.applicant_mailing_address || data.applicantAddress1 || "";
   const csz = data.applicant_city_state_zip
-    || [data.premise_city || data.applicant_city, data.premise_state || data.applicant_state, data.premise_zip || data.applicant_zip]
+    || [data.premise_city || data.applicant_city || data.applicantCity, 
+        data.premise_state || data.applicant_state || data.applicantState, 
+        data.premise_zip || data.applicant_zip || data.applicantZip]
          .filter(Boolean).join(", ");
   data.applicant_street = street;
   data.applicant_city_state_zip = csz;
@@ -265,10 +267,10 @@ const formatDate = (d) => {
 /* ---- Common aliases for 125/126/140 ---- */
 const firstNamed = data.first_named_insured || data.applicant_name || data.namedInsured || data.applicantName || "";
 
-const mailStreet = data.applicant_mailing_address || data.applicant_street || data.mailing_street || "";
-const mailCity   = data.applicant_city || data.mailing_city || "";
-const mailState  = data.applicant_state || data.mailing_state || "";
-const mailZip    = data.applicant_zip || data.mailing_zip || "";
+const mailStreet = data.applicant_mailing_address || data.applicant_street || data.mailing_street || data.applicantAddress1 || "";
+const mailCity   = data.applicant_city || data.mailing_city || data.applicantCity || "";
+const mailState  = data.applicant_state || data.mailing_state || data.applicantState || "";
+const mailZip    = data.applicant_zip || data.mailing_zip || data.applicantZip || "";
 
 /* Phone + website */
 const businessPhone = data.business_phone || data.businessPhone || data.phone || "";
@@ -276,7 +278,7 @@ const website       = data.website || data.website_address || data.web || data.a
 
 /* Type-of-business helper - ENHANCED VERSION */
 const typeIs = (t) => {
-  const raw = (data.type_of_business || data.business_type || data.entity_type || "").toString().trim().toLowerCase();
+  const raw = (data.type_of_business || data.business_type || data.entity_type || data.entityType || "").toString().trim().toLowerCase();
   const map = {
     corporation: ['corp','corporation','inc','inc.','incorporated'],
     llc:         ['llc','l.l.c','l.l.c.','limited liability company'],
@@ -289,17 +291,25 @@ const typeIs = (t) => {
 };
 
 /* Premises (LOC #1) */
-const locStreet = data.premise_address || data.location1_street || "";
-const locCity   = data.premise_city || data.location1_city || "";
-const locState  = data.premise_state || data.location1_state || "";
-const locZip    = data.premise_zip || data.location1_zip || "";
-const bldgDesc  = data.bldg_description || data.building_description || "";
+const locStreet = data.premise_address || data.premiseAddress || data.location1_street || data.applicant_street || "";
+const locCity   = data.premise_city || data.premiseCity || data.location1_city || "";
+const locState  = data.premise_state || data.premiseState || data.location1_state || "";
+const locZip    = data.premise_zip || data.premiseZip || data.location1_zip || "";
+const bldgDesc  = data.bldg_description || data.building_description || data.premiseDescription || "";
 
 /* Employees / revenue / bldg area */
-const ftEmp         = data.full_time_employees || data.ft_employees || data.ftEmp || "";
-const ptEmp         = data.part_time_employees || data.pt_employees || data.ptEmp || "";
+const ftEmp         = data.full_time_employees || data.ft_employees || data.ftEmp || data.fullTimeEmployees || "";
+const ptEmp         = data.part_time_employees || data.pt_employees || data.ptEmp || data.partTimeEmployees || "";
 const annualRevenue = data.annual_revenue || data.annualRevenue || data.total_sales || data.annualRevenues || "";
 const bldgSqFt      = data.total_area || data.building_sq_ft || data.bldgSqFt || data.totalBuildingArea || "";
+
+/* Contact Information - ENHANCED */
+const primaryContactName = data.primary_contact_name || data.primaryContactName || data.contact_name || "";
+const primaryPhone       = data.primary_phone || data.primaryPhone || data.contact_phone || businessPhone;
+const primaryEmail       = data.primary_email || data.primaryEmail || data.contact_email || data.email || "";
+const secondaryContactName = data.secondary_contact_name || data.secondaryContactName || "";
+const secondaryPhone       = data.secondary_phone || data.secondaryPhone || "";
+const secondaryEmail       = data.secondary_email || data.secondaryEmail || "";
 
 /* Loss history helpers (page 4) - ENHANCED */
 const claimCountRaw = String(data.claim_count || data.claims_count || "").toLowerCase();
@@ -916,17 +926,17 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     </div>
     <div class="row">
       <div class="cell w15">PRIMARY</div>
-      <div class="cell w20"><%= data.primaryContactName %></div>
-      <div class="cell w20"><%= data.primaryPhone %></div>
+      <div class="cell w20"><%= primaryContactName %></div>
+      <div class="cell w20"><%= primaryPhone %></div>
       <div class="cell w20"></div>
-      <div class="cell w25"><%= data.primaryEmail %></div>
+      <div class="cell w25"><%= primaryEmail %></div>
     </div>
     <div class="row">
       <div class="cell w15">SECONDARY</div>
-      <div class="cell w20"><%= data.secondaryContactName %></div>
-      <div class="cell w20"><%= data.secondaryPhone %></div>
+      <div class="cell w20"><%= secondaryContactName %></div>
+      <div class="cell w20"><%= secondaryPhone %></div>
       <div class="cell w20"></div>
-      <div class="cell w25"><%= data.secondaryEmail %></div>
+      <div class="cell w25"><%= secondaryEmail %></div>
     </div>
   </div>
 
@@ -1492,7 +1502,7 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     </div>
   </div>
 
-  <!-- STATE FRAUD NOTICES -->
+  <!-- STATE FRAUD NOTICES - CLEAN FORMAT FROM WORKING FORMS -->
   <div class="subbar">STATE FRAUD NOTICES</div>
   <div class="block">
     <div class="row">
