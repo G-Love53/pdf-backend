@@ -305,6 +305,9 @@ const ptEmp         = data.part_time_employees || data.pt_employees || data.ptEm
 const primaryContactName = data.primary_contact_name || data.primaryContactName || data.contact_name || firstNamed || "";
 const primaryPhone       = data.primary_phone || data.primaryPhone || data.contact_phone || businessPhone;
 const primaryEmail       = data.primary_email || data.primaryEmail || data.contact_email || data.email || "";
+const secondaryContactName = data.secondary_contact_name || data.secondaryContactName || "";
+const secondaryPhone       = data.secondary_phone || data.secondaryPhone || "";
+const secondaryEmail       = data.secondary_email || data.secondaryEmail || "";
 
 /* Update these existing variables to add more fallbacks: */
 const website = data.website || data.website_address || data.web || data.applicant_website || data.website_url || data.websiteAddress || "";
