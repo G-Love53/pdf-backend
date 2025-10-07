@@ -240,7 +240,7 @@ var data = Object.assign({}, defaults, (typeof formData === "object" && formData
   const bpp = data.business_personal_property_clean || data.bpp_amount || data.business_personal_property || "";
   if (bpp) { data.business_personal_property = bpp; data.bpp_amount = bpp; }
 
-  // 125 convenience (harmless if present): “See Remarks Below” + remarks text
+  // 125 convenience (harmless if present): "See Remarks Below" + remarks text
   if (!data.description_of_insurance && (data.claim_count === "2_or_less" || data.claim_count === "3_or_more")) {
     data.description_of_insurance = "See Remarks Below";
   }
@@ -404,6 +404,7 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     <div class="row">
       <div class="cell label w15">STREET ADDRESS</div>
       <div class="cell w85">
+        <% if(data.premises_name) { %><%= data.premises_name %><br/><% } %>
         <%= data.premise_address %>
         <% if(data.premise_city) { %>
           • <%= data.premise_city %>, <%= data.premise_state %> <%= data.premise_zip %>
@@ -469,7 +470,7 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     <div class="cell w20 center"><%= data.building_causes %></div>
   </div>
   <div class="row">
-    <div class="cell w15 right num"><%= data.building_ded %></div>
+    <div class="cell w15 right num"><%= data.building_quote === "Yes" ? "Yes" : (data.building_quote === "No" ? "No" : data.building_ded) %></div>
     <div class="cell w15 right num"><%= data.building_premium %></div>
     <div class="cell w10 center"><%= data.building_blkt %></div>
     <div class="cell w10 right num"><%= data.building_infl %></div>
@@ -480,7 +481,7 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
   <div class="row">
     <div class="cell w35">BUSINESS PERSONAL PROPERTY</div>
     <div class="cell w20 right num">$<%= money(data.bpp_amount) %></div>
-    <div class="cell w15 center"><%= data.bpp_valuation %></div>
+    <div class="cell w15 center"></div>
     <div class="cell w10 center"><%= data.bpp_coins %></div>
     <div class="cell w20 center"><%= data.bpp_causes %></div>
   </div>
@@ -489,7 +490,7 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     <div class="cell w15 right num"><%= data.bpp_premium %></div>
     <div class="cell w10 center"><%= data.bpp_blkt %></div>
     <div class="cell w10 right num"><%= data.bpp_infl %></div>
-    <div class="cell w50"><%= data.bpp_ded_type %></div>
+    <div class="cell w50"><%= data.bpp_valuation %></div>
   </div>
 
   <!-- BUSINESS INCOME -->
@@ -699,21 +700,23 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     <div class="row">
       <div class="cell label w10">TYPE</div>
       <div class="cell w90">
-        <span class="check"></span> ADDITIONAL INSURED
-        <span class="check"></span> LOSS PAYEE
-        <span class="check"></span> MORTGAGEE
-        <span class="check"></span> LIENHOLDER
+        <span class="check"><%= yes(data.ai_additional_insured) ? "X" : "" %></span> ADDITIONAL INSURED
+        <span class="check"><%= yes(data.ai_loss_payee) ? "X" : "" %></span> LOSS PAYEE
+        <span class="check"><%= yes(data.ai_mortgagee) ? "X" : "" %></span> MORTGAGEE
+        <span class="check"><%= yes(data.ai_lienholder) ? "X" : "" %></span> LIENHOLDER
         <span class="check"></span> LENDER'S LOSS PAYABLE
       </div>
     </div>
     <div class="row">
   <div class="cell label w20">NAME AND ADDRESS</div>
-  <div class="cell w45 wrap"><%= [
-        data.interest_name,
-        data.interest_address,
-        [data.interest_city, data.interest_state, data.interest_zip]
+  <div class="cell w45 wrap"><%- [
+        data.ai_name_1 || data.interest_name || "",
+        data.ai_address_1 || data.interest_address || "",
+        [data.ai_city_1 || data.interest_city || "", 
+         data.ai_state_1 || data.interest_state || "", 
+         data.ai_zip_1 || data.interest_zip || ""]
           .filter(Boolean).join(", ")
-      ].filter(Boolean).join("\n") %>
+      ].filter(Boolean).join("<br/>") %>
 </div>
   <div class="cell label w10">RANK</div>
   <div class="cell w10"><%= data.interest_rank %></div>
