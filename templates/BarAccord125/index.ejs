@@ -310,10 +310,17 @@ const secondaryPhone       = data.secondary_phone || data.secondaryPhone || "";
 const secondaryEmail       = data.secondary_email || data.secondaryEmail || "";
 
 /* Update these existing variables to add more fallbacks: */
-const website = data.website || data.website_address || data.web || data.applicant_website || data.website_url || data.websiteAddress || "";
+const website = data.premises_website || data.website || data.website_address || data.web || data.applicant_website || data.website_url || data.websiteAddress || "";
 const locStreet = data.premise_address || data.premiseAddress || data.location1_street || data.applicant_street || data.business_address || data.businessAddress || "";
-const annualRevenue = data.annual_revenue || data.annualRevenue || data.total_sales || data.annualRevenues || data.totalSales || "";
 const bldgSqFt = data.total_area || data.building_sq_ft || data.bldgSqFt || data.totalBuildingArea || data.square_footage || data.squareFootage || "";
+// Clean dollar formatting from total_sales before using it
+const cleanTotalSales = (() => {
+  const raw = data.total_sales || data.annualRevenues || "";
+  if (!raw) return "";
+  // Strip $ and commas, keep just the number
+  return String(raw).replace(/[$,]/g, '');
+})();
+const annualRevenue = cleanTotalSales || data.annual_revenue || data.annualRevenue || data.totalSales || "";
 
 /* Loss history helpers (page 4) - ENHANCED */
 const claimCountRaw = String(data.claim_count || data.claims_count || "").toLowerCase();
@@ -905,9 +912,9 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     </div>
     <div class="row">
   <div class="cell w100">
-    <span class="check"><%= typeIs('corporation') || data.entityType === 'CORPORATION' ? 'X' : '' %></span> CORPORATION
-    <span class="check"><%= typeIs('individual') || data.entityType === 'INDIVIDUAL' || data.entityType === 'SOLE_PROPRIETOR' ? 'X' : '' %></span> INDIVIDUAL / SOLE PROP
-    <span class="check"><%= typeIs('llc') || data.entityType === 'LLC' ? 'X' : '' %></span> LLC
+    <span class="check"><%= typeIs('corporation') || data.entityType === 'CORPORATION' || yes(data.org_type_corporation) ? 'X' : '' %></span> CORPORATION
+    <span class="check"><%= typeIs('individual') || data.entityType === 'INDIVIDUAL' || data.entityType === 'SOLE_PROPRIETOR' || yes(data.org_type_individual) ? 'X' : '' %></span> INDIVIDUAL / SOLE PROP
+    <span class="check"><%= typeIs('llc') || data.entityType === 'LLC' || yes(data.org_type_llc) ? 'X' : '' %></span> LLC
     <span class="check"><%= typeIs('joint venture') || data.entityType === 'JOINT_VENTURE' ? 'X' : '' %></span> JOINT VENTURE
     <span class="check"><%= typeIs('partnership') || data.entityType === 'PARTNERSHIP' ? 'X' : '' %></span> PARTNERSHIP
     <span class="check"><%= data.entityType === 'NOT_FOR_PROFIT' || data.entityType === 'NONPROFIT' ? 'X' : '' %></span> NOT FOR PROFIT ORG
@@ -1185,11 +1192,10 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     <div class="row">
       <div class="cell label w10">TYPE</div>
       <div class="cell w90">
-        <span class="check"><%= AITYPE === 'ADDITIONAL_INSURED' ? 'X' : '' %></span> ADDITIONAL INSURED
-        <span class="check"><%= AITYPE === 'LOSS_PAYEE' ? 'X' : '' %></span> LOSS PAYEE
-        <span class="check"><%= AITYPE === 'MORTGAGEE' ? 'X' : '' %></span> MORTGAGEE
-        <span class="check"><%= AITYPE === 'LIENHOLDER' ? 'X' : '' %></span> LIENHOLDER
-        <span class="check"><%= AITYPE === 'LENDER_S_LOSS' ? 'X' : '' %></span> LENDER'S LOSS PAYABLE
+        <span class="check"><%= AITYPE === 'ADDITIONAL_INSURED' || yes(data.ai_additional_insured) ? 'X' : '' %></span> ADDITIONAL INSURED
+        <span class="check"><%= AITYPE === 'LOSS_PAYEE' || yes(data.ai_loss_payee) ? 'X' : '' %></span> LOSS PAYEE
+        <span class="check"><%= AITYPE === 'MORTGAGEE' || yes(data.ai_mortgagee) ? 'X' : '' %></span> MORTGAGEE
+        <span class="check"><%= AITYPE === 'LIENHOLDER' || yes(data.ai_lienholder) ? 'X' : '' %></span> LIENHOLDER
       </div>
     </div>
     <div class="row">
