@@ -891,7 +891,7 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
     <div class="row">
       <div class="cell label w30">NAME (FIRST NAMED INSURED) AND MAILING ADDRESS</div>
       <div class="cell w40 wrap">
-        <%= firstNamed %><br/>
+        <%= data.premises_name || firstNamed %><br/>
         <%= mailStreet %><br/>
         <%= [mailCity, mailState, mailZip].filter(Boolean).join(", ") %>
       </div>
@@ -960,8 +960,11 @@ const remarks140 = data.remarks_140 || data.remarks140 || "";
       <div class="cell label w10">BLDG</div>
       <div class="cell w10"></div>
       <div class="cell label w15">STREET</div>
-      <div class="cell w55"><%= locStreet %></div>
+      <div class="cell w55">
+       <% if(data.premises_name) { %><%= data.premises_name %><br/><% } %>
+       <%= locStreet %>
     </div>
+</div>
     <div class="row">
       <div class="cell label w10">CITY</div>
       <div class="cell w25"><%= locCity %></div>
