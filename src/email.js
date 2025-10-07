@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-// Add this function to generate the HTML email summary
+// Generate formatted HTML email summary
 function generateEmailSummary(formData) {
   return `
     <!DOCTYPE html>
@@ -74,20 +74,20 @@ function generateEmailSummary(formData) {
   `;
 }
 
-// Modified to accept formData and generate HTML email
-export async function sendWithGmail({ to, subject, formData, attachments }) {
+export async function sendWithGmail({ to, subject, html, formData, attachments }) {
     const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD }
     });
 
-    const html = generateEmailSummary(formData);
+    // Use generated summary if formData provided, otherwise use provided html
+    const emailHtml = formData ? generateEmailSummary(formData) : html;
 
     await transporter.sendMail({
         from: process.env.GMAIL_USER,
         to,
         subject,
-        html,
+        html: emailHtml,
         attachments: attachments.map(a => ({ filename: a.filename, content: a.buffer }))
     });
 }
