@@ -101,12 +101,13 @@ async function renderBundleAndRespond({ templates, email }, res) {
   const attachments = results.map(r => r.value);
 
   if (email?.to?.length) {
-    await sendWithGmail({
-      to: email.to,
-      subject: email.subject || "Submission Packet",
-      html: email.bodyHtml || "<p>Attachments included.</p>",
-      attachments
-    });
+  await sendWithGmail({
+    to: email.to,
+    subject: email.subject || "Submission Packet",
+    formData: email.formData,  // Pass formData for formatted email
+    html: email.bodyHtml,       // Fallback if no formData
+    attachments
+  });
     return res.json({ ok: true, success: true, sent: true, count: attachments.length });
   }
 
@@ -145,16 +146,16 @@ APP.post("/submit-quote", async (req, res) => {
     }
 
     // Default email (so /submit-quote responds JSON, not a PDF stream)
-    const defaultTo = process.env.CARRIER_EMAIL || process.env.GMAIL_USER;
-    const emailBlock = email?.to?.length
-      ? email
-      : {
-          to: [defaultTo].filter(Boolean),
-          subject: `New Submission – ${formData.applicant_name || ""}`,
-          bodyHtml: "<p>Quote packet attached.</p>",
-        };
+const defaultTo = process.env.CARRIER_EMAIL || process.env.GMAIL_USER;
+const emailBlock = email?.to?.length
+  ? email
+  : {
+      to: [defaultTo].filter(Boolean),
+      subject: `New Submission — ${formData.applicant_name || ""}`,
+      formData: formData,  // Pass formData instead of bodyHtml
+    };
 
-    await renderBundleAndRespond({ templates, email: emailBlock }, res);
+await renderBundleAndRespond({ templates, email: emailBlock }, res);
   } catch (e) {
     console.error(e);
     res.status(500).json({ ok: false, success: false, error: e.message });
