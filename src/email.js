@@ -7,13 +7,14 @@ function generateEmailSummary(formData) {
     <html>
     <head>
       <style>
-        body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
-        .header { background-color: #ff8c00; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background-color: #f5f5f5; margin: 20px; border-radius: 8px; }
-        .field { margin: 10px 0; }
-        .label { font-weight: bold; }
-        .footer { padding: 20px; text-align: center; color: #666; }
-      </style>
+  body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
+  .header { background-color: #ff8c00; color: white; padding: 12px 20px; text-align: center; }
+  .header h1 { margin: 0; font-size: 24px; }
+  .content { padding: 20px; background-color: #f5f5f5; margin: 20px; border-radius: 8px; }
+  .field { margin: 10px 0; }
+  .label { font-weight: bold; }
+  .footer { padding: 20px; text-align: center; color: #666; }
+</style>
     </head>
     <body>
       <div class="header">
