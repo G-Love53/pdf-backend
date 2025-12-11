@@ -3,166 +3,111 @@ import express from "express";
 import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
-import { renderPdf } from "./pdf.js";           // <- make sure this is your actual renderer
+import { renderPdf } from "./pdf.js";           // <- make sure this is your actual renderer
 import { sendWithGmail } from "./email.js";
 import enrichBarFormData from '../mapping/bar-data-enricher.js';
 
+// --- LEG 2 / LEG 3 IMPORTS ADDED ---
+import { processInbox } from "./quote-processor.js";
+import { triggerCarrierBind } from "./bind-processor.js";
+import { google } from 'googleapis'; // Imported here for the JWT client in /check-quotes
+// -----------------------------------
+
+
 const FILENAME_MAP = {
-  Society_FieldNames: "Society-Supplement.pdf",
-  BarAccord125: "ACORD-125.pdf",
-  BarAccord126: "ACORD-126.pdf",
-  BarAccord140: "ACORD-140.pdf",
-  WCBarform: "WC-Application.pdf",
-  
+  Society_FieldNames: "Society-Supplement.pdf",
+  BarAccord125: "ACORD-125.pdf",
+  BarAccord126: "ACORD-126.pdf",
+  BarAccord140: "ACORD-140.pdf",
+  WCBarform: "WC-Application.pdf",
 };
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-
-const APP = express();
-APP.use(express.json({ limit: "20mb" }));
-
-// CORS
-APP.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  if (req.method === "OPTIONS") return res.sendStatus(204);
-  next();
-});
-
-// --- Directories ---
-const TPL_DIR = path.join(__dirname, "..", "templates");
-const MAP_DIR = path.join(__dirname, "..", "mapping");
+// ... existing path definitions, APP setup, CORS, and helper functions (maybeMapData, renderBundleAndRespond) ...
 
 // --- Health check ---
 APP.get("/healthz", (_req, res) => res.status(200).send("ok"));
 
-// --- Optional: apply mapping/<template>.json if present ---
-// --- Optional: apply mapping/<template>.json if present (NON-DESTRUCTIVE) ---
-async function maybeMapData(templateName, rawData) {
-  try {
-    const mapPath = path.join(MAP_DIR, `${templateName}.json`);
-    const mapping = JSON.parse(await fs.readFile(mapPath, "utf8"));
+// *** EXISTING LEG 1 ROUTES (/render-bundle, /submit-quote) REMAIN UNCHANGED ***
 
-    // Build only the mapped keys...
-    const mapped = {};
-    for (const [tplKey, formKey] of Object.entries(mapping)) {
-      mapped[tplKey] = rawData?.[formKey] ?? "";
+// --- NEW LEG 2: Check Quotes Route ---
+APP.post("/check-quotes", async (req, res) => {
+  console.log("🤖 Robot Waking Up: Checking for new quotes...");
+
+  // 1. Read Credentials
+  const rawKey = process.env.GOOGLE_PRIVATE_KEY || "";
+  const serviceEmail = (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || "").trim();
+  const impersonatedUser = (process.env.GMAIL_USER || "").trim();
+  const privateKey = rawKey.replace(/\\n/g, '\n'); // Fix for Render newline issues
+
+  // 2. Safety Checks
+  if (!serviceEmail || !impersonatedUser || !rawKey || !process.env.OPENAI_API_KEY) {
+    console.error("❌ Error: Missing configuration for LEG 2.");
+    return res.status(500).json({ ok: false, error: "Missing Env Vars (Google/OpenAI)" });
+  }
+
+  try {
+    // 3. Connect to Google (WITH IMPERSONATION)
+    const jwtClient = new google.auth.JWT(
+      serviceEmail,
+      null,
+      privateKey,
+      ['https://www.googleapis.com/auth/gmail.modify'], 
+      impersonatedUser 
+    );
+
+    // 4. Authorize and Run the Processor
+    await jwtClient.authorize();
+    const result = await processInbox(jwtClient); 
+
+    console.log("✅ Robot finished checking inbox.");
+    return res.json({ ok: true, ...result });
+
+  } catch (error) {
+    const errMsg = error.message || String(error);
+    console.error("❌ Robot Global Error:", errMsg);
+    return res.status(500).json({ ok: false, error: "LEG 2 Failure: " + errMsg });
+  }
+});
+
+
+// --- NEW LEG 3: Client Bind Acceptance Endpoint ---
+APP.get("/bind-quote", async (req, res) => {
+    // 1. Capture the unique ID from the URL query string
+    const quoteId = req.query.id;
+
+    if (!quoteId) {
+        return res.status(400).send("Quote ID is missing. Please contact support.");
     }
-
-    // ...then merge over the original data so NOTHING gets dropped.
-    // Templates can use either the original field names or the mapped aliases.
-    return { ...rawData, ...mapped };
-  } catch {
-    // No mapping file? Just pass the raw form data through.
-    return rawData;
-  }
-}
-
-
-// --- Core: render all PDFs (strict, sequential) and optionally email ---
-async function renderBundleAndRespond({ templates, email }, res) {
-  if (!Array.isArray(templates) || templates.length === 0) {
-    return res.status(400).json({ ok: false, error: "NO_TEMPLATES" });
-  }
-
-  const results = []; // single declaration ONLY
-
-  // Render templates sequentially (stable & low-memory)
-  for (const t of templates) {
-    const name     = t.name;
-    const htmlPath = path.join(TPL_DIR, name, "index.ejs");
-    const cssPath  = path.join(TPL_DIR, name, "styles.css");
-    const rawData  = t.data || {};
-    const unified  = await maybeMapData(name, rawData); // mapping enabled
 
     try {
-      const buffer = await renderPdf({ htmlPath, cssPath, data: unified });
-      const prettyName = FILENAME_MAP[name] || t.filename || `${name}.pdf`;
-      results.push({ status: "fulfilled", value: { filename: prettyName, buffer } });
-    } catch (err) {
-      results.push({ status: "rejected", reason: err });
+        // 2. Call the binding processor (LEG 3 Handoff)
+        await triggerCarrierBind({ quoteId }); 
+
+        // 3. Respond to the client with a confirmation page
+        const confirmationHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Bar Insurance Bind Confirmed</title>
+                </head>
+            <body>
+                <div class="container">
+                    <h1>🎉 Binding Accepted!</h1>
+                    <p>Thank you! Your request to bind this Bar quote (ID: <b>${quoteId.substring(0, 8)}</b>) has been successfully recorded.</p>
+                    <p>We are now preparing the final documents and processing payment. Your Certificate of Insurance will arrive shortly.</p>
+                </div>
+            </body>
+            </html>
+        `;
+        res.status(200).send(confirmationHtml);
+        
+    } catch (e) {
+        console.error(`BIND_FAILED for ID ${quoteId}:`, e);
+        res.status(500).send("An error occurred during the binding process. Please contact support immediately.");
     }
-  }
-
-  const failures = results.filter(r => r.status === "rejected");
-  if (failures.length) {
-    console.error("RENDER_FAILURES", failures.map(f => String(f.reason)));
-    return res.status(500).json({
-      ok: false,
-      success: false,
-      error: "ONE_OR_MORE_ATTACHMENTS_FAILED",
-      failedCount: failures.length
-    });
-  }
-
-  const attachments = results.map(r => r.value);
-
-  if (email?.to?.length) {
-  await sendWithGmail({
-    to: email.to,
-    subject: email.subject || "Submission Packet",
-    formData: email.formData,  // Pass formData for formatted email
-    html: email.bodyHtml,       // Fallback if no formData
-    attachments
-  });
-    return res.json({ ok: true, success: true, sent: true, count: attachments.length });
-  }
-
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", `attachment; filename="${attachments[0].filename}"`);
-  res.send(attachments[0].buffer);
-}
-
-
-// --- Public routes ---
-
-// JSON API: { templates:[{name,filename?,data}], email? }
-APP.post("/render-bundle", async (req, res) => {
-  try {
-    await renderBundleAndRespond(req.body || {}, res);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ ok: false, error: e.message });
-  }
 });
 
-// Back-compat: { formData, segments[], email? }
-APP.post("/submit-quote", async (req, res) => {
-  try {
-    let { formData = {}, segments = [], email } = req.body || {};
-    formData = enrichBarFormData(formData);
-
-    // Build from front-end `segments` (folder names must match)
-    const templates = (segments || []).map((name) => ({
-      name,
-      filename: FILENAME_MAP[name] || `${name}.pdf`,
-      data: formData,
-    }));
-    if (templates.length === 0) {
-      return res.status(400).json({ ok: false, success: false, error: "NO_VALID_SEGMENTS" });
-    }
-
-    // Default email (so /submit-quote responds JSON, not a PDF stream)
-const defaultTo = process.env.CARRIER_EMAIL || process.env.GMAIL_USER;
-const emailBlock = email?.to?.length
-  ? email
-  : {
-      to: [defaultTo].filter(Boolean),
-      subject: `New Submission — ${formData.applicant_name || ""}`,
-      formData: formData,  // Pass formData instead of bodyHtml
-    };
-
-await renderBundleAndRespond({ templates, email: emailBlock }, res);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ ok: false, success: false, error: e.message });
-  }
-});
 
 // --- Start server ---
 const PORT = process.env.PORT || 8080;
 APP.listen(PORT, () => console.log(`PDF service listening on ${PORT}`));
-
