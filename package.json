@@ -1,21 +1,25 @@
 {
-  "name": "pdf-backend",
-  "version": "1.0.0",
-  "description": "Cloud service for rendering HTML templates into PDFs and emailing via Gmail",
-  "type": "module",
-  "main": "src/server.js",
-  "scripts": {
-    "start": "node src/server.js"
-  },
-  "dependencies": {
-    "dayjs": "^1.11.11",
-    "ejs": "^3.1.10",
-    "express": "^4.19.2",
-    "nodemailer": "^6.9.7",
-    "puppeteer-core": "22.6.4"
-  },
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "license": "ISC"
+  "name": "pdf-backend",
+  "version": "1.0.0",
+  "description": "Cloud service for rendering HTML templates into PDFs and emailing via Gmail",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.11",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "nodemailer": "^6.9.7",
+    "puppeteer-core": "22.6.4",
+    "googleapis": "^140.0.0",      // <-- ADDED LEG 2
+    "openai": "^4.52.7",           // <-- ADDED LEG 2
+    "pdf-parse": "^1.1.1",         // <-- ADDED LEG 2
+    "mailparser": "^3.7.1"         // <-- ADDED LEG 2
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "ISC"
 }
