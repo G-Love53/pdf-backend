@@ -13,10 +13,10 @@
     "express": "^4.19.2",
     "nodemailer": "^6.9.7",
     "puppeteer-core": "22.6.4",
-    "googleapis": "^140.0.0",      // <-- ADDED LEG 2
-    "openai": "^4.52.7",           // <-- ADDED LEG 2
-    "pdf-parse": "^1.1.1",         // <-- ADDED LEG 2
-    "mailparser": "^3.7.1"         // <-- ADDED LEG 2
+    "googleapis": "^140.0.0",      
+    "openai": "^4.52.7",           
+    "pdf-parse": "^1.1.1",         
+    "mailparser": "^3.7.1"         
   },
   "engines": {
     "node": ">=20.0.0"
