@@ -320,43 +320,7 @@ APP.post('/bind-quote', async (req, res) => {
         res.status(500).json({ message: 'Internal server error during binding.' });
     }
 });
-// Add these two routes to the bottom of your existing server.js file
-// BEFORE the app.listen() call.
 
-// Endpoint 3: Request COI
-app.post('/request-coi', async (req, res) => {
-    try {
-        const { userId, policyId, details } = req.body;
-        // Logic will involve: Fetching the policy using service_role key, 
-        // generating the PDF COI, and emailing it to the user.
-        console.log(`COI Request received for user ${userId} and policy ${policyId}`);
-        res.status(200).json({ 
-            message: 'COI request received and is being processed. It will be emailed shortly.',
-            status: 'Processing',
-            policyId: policyId
-        });
-    } catch (error) {
-        console.error('Error processing COI request:', error);
-        res.status(500).json({ error: 'Failed to process COI request' });
-    }
-});
-
-// Endpoint 4: File a Claim
-app.post('/file-claim', async (req, res) => {
-    try {
-        const { userId, claimDetails } = req.body;
-        // Logic will involve: Saving the claim details to a 'claims' table 
-        // in Supabase and notifying the internal claims team.
-        console.log(`Claim filed by user ${userId}. Details: ${JSON.stringify(claimDetails)}`);
-        res.status(200).json({ 
-            message: 'Claim request successfully filed. A representative will contact you shortly.',
-            claimId: 'CLAIM-' + Date.now()
-        });
-    } catch (error) {
-        console.error('Error filing claim:', error);
-        res.status(500).json({ error: 'Failed to file claim' });
-    }
-});
 
 /* ------------------------------- Start Server ------------------------------ */
 
