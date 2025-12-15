@@ -1,43 +1,60 @@
-// src/server.js (BAR CORRECTION)
 import express from "express";
 import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { renderPdf } from "./pdf.js";
 import { sendWithGmail } from "./email.js";
-import enrichBarFormData from '../mapping/bar-data-enricher.js';
+// Note: Ensure your enricher import matches the file name in your 'src' folder
+// For Roofer/Bar, you might need to comment this out or rename the enricher file to 'data-enricher.js' to make it standard.
+// import enrichFormData from '../mapping/data-enricher.js'; 
 
 // --- LEG 2 / LEG 3 IMPORTS ---
 import { processInbox } from "./quote-processor.js";
 import { triggerCarrierBind } from "./bind-processor.js";
 import { google } from 'googleapis';
 
-// --- CONFIGURATION ---
-const FILENAME_MAP = {
-  Society_FieldNames: "Society-Supplement.pdf",
-  BarAccord125: "ACORD-125.pdf",
-  BarAccord126: "ACORD-126.pdf",
-  BarAccord140: "ACORD-140.pdf",
-  WCBarform: "WC-Application.pdf",
-};
-
-// ** NEW: Map Generic Frontend Names to Bar Folder Names **
-const TEMPLATE_ALIASES = {
-  Accord125: "BarAccord125",
-  Accord126: "BarAccord126",
-  Accord140: "BarAccord140",
-  WCForm:    "WCBarform",
-  Society:   "Society_FieldNames"
-};
-const resolveTemplate = (name) => TEMPLATE_ALIASES[name] || name;
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+/* ============================================================
+   🟢 SECTION 1: CONFIGURATION (EDIT THIS PER SEGMENT)
+   ============================================================ */
+
+// 1. Map Frontend Names (from Netlify) to Actual Folder Names (in /templates)
+const TEMPLATE_ALIASES = {
+  // Generic Name      : Actual Folder Name
+  "Accord125":         "BarAccord125", // <--- CHANGE THIS 
+  "Accord126":         "BarAccord126", // <--- CHANGE THIS
+  "Accord140":         "BarAccord140", // <--- CHANGE THIS
+  "WCForm":            "WCBarForm",       // <--- CHANGE THIS
+  "Supplemental":      "Society_FieldNames",      // <--- CHANGE THIS
+  
+  // Self-referencing aliases for safety (so code finds them even if full name is sent)
+  "BarAccord125":  "BarAccord125",
+  "BarAccord126":  "BarAccord126",
+  "BarAccord140":  "BarAccord140",
+};
+
+// 2. Map Folder Names to Pretty Output Filenames (for the client email)
+const FILENAME_MAP = {
+  "BarAccord125": "ACORD-125.pdf",
+  "BarAccord126": "ACORD-126.pdf",
+  "BarAccord140": "ACORD-140.pdf",
+  "Society_FieldNames":      "Supplemental-Application.pdf",
+  "WCBarForm":       "WC-Application.pdf"
+};
+
+/* ============================================================
+   🔴 SECTION 2: LOGIC (DO NOT EDIT BELOW THIS LINE)
+   ============================================================ */
+
+const resolveTemplate = (name) => TEMPLATE_ALIASES[name] || name;
 
 // --- APP SETUP ---
 const APP = express();
 APP.use(express.json({ limit: "20mb" }));
 
+// CORS
 APP.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key");
@@ -49,8 +66,11 @@ APP.use((req, res, next) => {
 const TPL_DIR = path.join(__dirname, "..", "templates");
 const MAP_DIR = path.join(__dirname, "..", "mapping");
 
+// --- ROUTES ---
+
 APP.get("/healthz", (_req, res) => res.status(200).send("ok"));
 
+// Helper: Data Mapping
 async function maybeMapData(templateName, rawData) {
   try {
     const mapPath = path.join(MAP_DIR, `${templateName}.json`);
@@ -65,6 +85,7 @@ async function maybeMapData(templateName, rawData) {
   }
 }
 
+// Helper: Render Bundle
 async function renderBundleAndRespond({ templates, email }, res) {
   if (!Array.isArray(templates) || templates.length === 0) {
     return res.status(400).json({ ok: false, error: "NO_TEMPLATES" });
@@ -73,9 +94,17 @@ async function renderBundleAndRespond({ templates, email }, res) {
   const results = [];
 
   for (const t of templates) {
-    // ** RESOLVE ALIAS HERE **
-    const name = resolveTemplate(t.name); 
+    const name = resolveTemplate(t.name);
     
+    // Safety check: verify folder exists
+    try {
+        await fs.access(path.join(TPL_DIR, name));
+    } catch (e) {
+        console.error(`❌ Template folder not found: ${name} (Original: ${t.name})`);
+        results.push({ status: "rejected", reason: `Template ${name} not found` });
+        continue;
+    }
+
     const htmlPath = path.join(TPL_DIR, name, "index.ejs");
     const cssPath  = path.join(TPL_DIR, name, "styles.css");
     const rawData  = t.data || {};
@@ -86,17 +115,11 @@ async function renderBundleAndRespond({ templates, email }, res) {
       const prettyName = FILENAME_MAP[name] || t.filename || `${name}.pdf`;
       results.push({ status: "fulfilled", value: { filename: prettyName, buffer } });
     } catch (err) {
-      console.error(`FAILED to render ${name}:`, err.message); // Log failures
+      console.error(`❌ Render Error for ${name}:`, err.message);
       results.push({ status: "rejected", reason: err });
     }
   }
 
-  const failures = results.filter(r => r.status === "rejected");
-  if (failures.length) {
-    console.error("RENDER_FAILURES", failures.map(f => String(f.reason)));
-  }
-
-  // ** Proceed even if some failed, just send what succeeded **
   const attachments = results.filter(r => r.status === "fulfilled").map(r => r.value);
 
   if (email?.to?.length) {
@@ -105,7 +128,7 @@ async function renderBundleAndRespond({ templates, email }, res) {
       subject: email.subject || "Submission Packet",
       formData: email.formData,
       html: email.bodyHtml,
-      attachments // Attachments passed here
+      attachments
     });
     return res.json({ ok: true, success: true, sent: true, count: attachments.length });
   }
@@ -119,6 +142,7 @@ async function renderBundleAndRespond({ templates, email }, res) {
   }
 }
 
+// 1. Render Bundle Endpoint
 APP.post("/render-bundle", async (req, res) => {
   try {
     await renderBundleAndRespond(req.body || {}, res);
@@ -128,13 +152,15 @@ APP.post("/render-bundle", async (req, res) => {
   }
 });
 
+// 2. Submit Quote Endpoint
 APP.post("/submit-quote", async (req, res) => {
   try {
     let { formData = {}, segments = [], email } = req.body || {};
-    formData = enrichBarFormData(formData);
+    // Optional: Run Enricher if you imported it
+    // formData = enrichFormData(formData);
 
     const templates = (segments || []).map((name) => ({
-      name, // Will be resolved inside renderBundle
+      name, 
       filename: FILENAME_MAP[resolveTemplate(name)] || `${name}.pdf`,
       data: formData,
     }));
@@ -159,9 +185,8 @@ APP.post("/submit-quote", async (req, res) => {
   }
 });
 
-// --- LEG 2 ROUTES ---
+// 3. LEG 2: Check Quotes
 APP.post("/check-quotes", async (req, res) => {
-  // ... (Same as before) ...
   console.log("🤖 Robot Waking Up: Checking for new quotes...");
   const rawKey = process.env.GOOGLE_PRIVATE_KEY || "";
   const serviceEmail = (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || "").trim();
@@ -186,15 +211,22 @@ APP.post("/check-quotes", async (req, res) => {
   }
 });
 
+// 4. LEG 3: Bind Quote
 APP.get("/bind-quote", async (req, res) => {
-    // ... (Same as before) ...
     const quoteId = req.query.id;
     if (!quoteId) return res.status(400).send("Quote ID is missing.");
     try {
         await triggerCarrierBind({ quoteId }); 
-        res.status(200).send("<h1>Bind Request Received</h1>");
+        const confirmationHtml = `
+            <!DOCTYPE html>
+            <html><head><title>Bind Request Received</title></head>
+            <body style="text-align:center; padding:50px; font-family:sans-serif;">
+                <h1 style="color:#10b981;">Bind Request Received</h1>
+                <p>We are processing your request for Quote ID: <b>${quoteId.substring(0,8)}</b>.</p>
+            </body></html>`;
+        res.status(200).send(confirmationHtml);
     } catch (e) {
-        res.status(500).send("Error");
+        res.status(500).send("Error processing bind request.");
     }
 });
 
