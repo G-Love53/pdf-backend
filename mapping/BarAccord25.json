@@ -8,5 +8,6 @@
   "coverages.cgl.exp": "gl_expiration_date",
   "operations.description": "hospitality_operations_desc",
   "holder.name": "holder_name",
-  "holder.address1": "holder_address"
+  "holder.address1": "holder_address",
+  "authorizedRep": "authorized_rep_name"
 }
