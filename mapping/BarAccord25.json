@@ -1,0 +1,12 @@
+{
+  "producer.name": "producer_name",
+  "producer.address1": "producer_address",
+  "insured.name": "insured_name",
+  "insured.address1": "insured_address",
+  "coverages.cgl.policyNumber": "gl_policy_number",
+  "coverages.cgl.eff": "gl_effective_date",
+  "coverages.cgl.exp": "gl_expiration_date",
+  "operations.description": "hospitality_operations_desc",
+  "holder.name": "holder_name",
+  "holder.address1": "holder_address"
+}
