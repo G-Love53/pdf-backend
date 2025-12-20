@@ -290,9 +290,8 @@ cron.schedule('*/2 * * * *', async () => {
 
 // --- TASK 2: THE LIBRARIAN (Check every hour) ---
 cron.schedule('0 * * * *', async () => {
-  // 1. Ask Supabase: "Any unread documents?"
   const { data: docs } = await supabase
-    .from('carrier_resources')
+    .from('public.carrier_resources')
     .select('*')
     .eq('is_indexed', false);
 
@@ -300,9 +299,8 @@ cron.schedule('0 * * * *', async () => {
     console.log(`📚 Found ${docs.length} new documents to learn.`);
     
     for (const doc of docs) {
-      // 2. Mark them as 'Read' (Simulated)
       await supabase
-        .from('carrier_resources')
+        .from('public.carrier_resources')
         .update({ 
           is_indexed: true, 
           indexed_at: new Date() 
