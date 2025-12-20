@@ -290,25 +290,59 @@ cron.schedule('*/2 * * * *', async () => {
 });
 
 // --- TASK 2: THE LIBRARIAN (Check every hour) ---
-cron.schedule('0 * * * *', async () => {
-  const { data: docs } = await supabase
-    .from('public.carrier_resources')
+cron.schedule('*/10 * * * *', async () => { // Changed to every 10 mins (was hourly)
+  console.log("📚 Librarian: Checking for unindexed 'bar' docs...");
+
+  const { data: docs, error } = await supabase
+    .from('carrier_resources') // FIXED: Removed 'public.'
     .select('*')
-    .eq('is_indexed', false);
+    .eq('is_indexed', false)
+    .eq('segment', 'bar'); // ADDED: Safety filter for Bar segment
+
+  if (error) {
+    console.error("❌ Librarian Error:", error.message);
+    return;
+  }
 
   if (docs && docs.length > 0) {
-    console.log(`📚 Found ${docs.length} new documents to learn.`);
-    
-    for (const doc of docs) {
-      await supabase
-        .from('public.carrier_resources')
-        .update({ 
-          is_indexed: true, 
-          indexed_at: new Date() 
-        })
-        .eq('id', doc.id);
-        
-      console.log(`🧠 Learned: ${doc.document_title}`);
-    }
+    console.log(`📚 Found ${docs.length} new documents.`);
+    // ... rest of your loop ...
+  } else {
+    console.log("📚 No unindexed documents found.");
   }
 });
+// ==========================================
+// 🩺 SURGICAL PROBE (Run once on startup)
+// ==========================================
+(async function runProbe() {
+  console.log("\n🩺 STARTING DIAGNOSTIC PROBE...");
+
+  // Test 1: Can we see the table at all?
+  // Note: We use 'carrier_resources' without 'public.' prefix
+  const { count, error } = await supabase
+    .from('carrier_resources')
+    .select('*', { count: 'exact', head: true });
+  
+  if (error) {
+    console.error("❌ Test 1 Failed (Permissions/Connection):", error.message);
+  } else {
+    console.log(`✅ Test 1 Passed: Table exists and has ${count} total rows.`);
+  }
+
+  // Test 2: Does 'bar' data exist and is it unindexed?
+  const { data: barDocs, error: barError } = await supabase
+    .from('carrier_resources')
+    .select('id, segment, is_indexed')
+    .eq('segment', 'bar')
+    .eq('is_indexed', false)
+    .limit(1);
+
+  if (barError) {
+      console.error("❌ Test 2 Query Error:", barError.message);
+  } else if (barDocs && barDocs.length > 0) {
+    console.log(`✅ Test 2 Passed: Found unindexed 'bar' row: ID ${barDocs[0].id}`);
+  } else {
+    console.log("⚠️ Test 2 Warning: No unindexed 'bar' rows found. Check if they are already indexed (true) or if segment is 'Bar' (case sensitive).");
+  }
+  console.log("🩺 PROBE COMPLETE \n");
+})();
