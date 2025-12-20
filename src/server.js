@@ -240,12 +240,15 @@ APP.listen(PORT, () => console.log(`PDF service listening on ${PORT}`));
 import cron from 'node-cron';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize the Brain (Supabase)
-// Note: You need BOTH the URL and the Key here
+console.log('SUPABASE_URL:', process.env.SUPABASE_URL);
+console.log('SERVICE_ROLE_KEY prefix:', process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 6));
+
 const supabase = createClient(
-  process.env.SUPABASE_URL, 
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false } }
 );
+
 
 console.log("🤖 Robot Scheduler: ONLINE and Listening...");
 
