@@ -5,7 +5,6 @@ import { fileURLToPath } from "url";
 import { renderPdf } from "./pdf.js";
 import { sendWithGmail } from "./email.js";
 // Note: Ensure your enricher import matches the file name in your 'src' folder
-// For Roofer/Bar, you might need to comment this out or rename the enricher file to 'data-enricher.js' to make it standard.
 // import enrichFormData from '../mapping/data-enricher.js'; 
 
 // --- LEG 2 / LEG 3 IMPORTS ---
@@ -22,15 +21,15 @@ const __dirname = path.dirname(__filename);
 
 // 1. Map Frontend Names (from Netlify) to Actual Folder Names (in /templates)
 const TEMPLATE_ALIASES = {
-  // Generic Name      : Actual Folder Name
-  "Accord125":         "BarAccord125", // <--- CHANGE THIS 
-  "Accord126":         "BarAccord126", // <--- CHANGE THIS
-  "Accord140":         "BarAccord140", // <--- CHANGE THIS
+  // Generic Name       : Actual Folder Name
+  "Accord125":         "BarAccord125",
+  "Accord126":         "BarAccord126",
+  "Accord140":         "BarAccord140",
   "Accord25":          "BarAccord25",
-  "WCForm":            "WCBarForm",       // <--- CHANGE THIS
-  "Supplemental":      "Society_FieldNames",      // <--- CHANGE THIS
+  "WCForm":            "WCBarForm",
+  "Supplemental":      "Society_FieldNames",
   
-  // Self-referencing aliases for safety (so code finds them even if full name is sent)
+  // Self-referencing aliases for safety
   "BarAccord125":  "BarAccord125",
   "BarAccord126":  "BarAccord126",
   "BarAccord140":  "BarAccord140",
@@ -42,8 +41,8 @@ const FILENAME_MAP = {
   "BarAccord126": "ACORD-126.pdf",
   "BarAccord140": "ACORD-140.pdf",
   "BarAccord25": "ACORD-25-Certificate.pdf",
-  "Society_FieldNames":      "Supplemental-Application.pdf",
-  "WCBarForm":       "WC-Application.pdf"
+  "Society_FieldNames":       "Supplemental-Application.pdf",
+  "WCBarForm":        "WC-Application.pdf"
 };
 
 /* ============================================================
@@ -159,9 +158,7 @@ APP.post("/render-bundle", async (req, res) => {
 APP.post("/submit-quote", async (req, res) => {
   try {
     let { formData = {}, segments = [], email } = req.body || {};
-    // Optional: Run Enricher if you imported it
-    // formData = enrichFormData(formData);
-
+    
     const templates = (segments || []).map((name) => ({
       name, 
       filename: FILENAME_MAP[resolveTemplate(name)] || `${name}.pdf`,
@@ -235,6 +232,7 @@ APP.get("/bind-quote", async (req, res) => {
 
 const PORT = process.env.PORT || 8080;
 APP.listen(PORT, () => console.log(`PDF service listening on ${PORT}`));
+
 // =====================================================
 // 🤖 THE ROBOT MANAGER (Automated Tasks)
 // =====================================================
@@ -250,12 +248,10 @@ const supabase = createClient(
   { auth: { persistSession: false } }
 );
 
-
 console.log("🤖 Robot Scheduler: ONLINE and Listening...");
 
 // --- TASK 1: THE COI WATCHER (Check every 2 minutes) ---
 cron.schedule('*/2 * * * *', async () => {
-  // 1. Ask Supabase: "Any pending requests?"
   const { data: requests, error } = await supabase
     .from('coi_requests')
     .select('*')
@@ -264,15 +260,12 @@ cron.schedule('*/2 * * * *', async () => {
   if (requests && requests.length > 0) {
     console.log(`🔎 Found ${requests.length} new COI requests.`);
     
-    // 2. Loop through each request
     for (const req of requests) {
       console.log(`Processing COI for: ${req.holder_name}`);
       
       try {
-        // [PLACEHOLDER] Simulate Success for now
         const mockPdfUrl = "https://example.com/demo-cert.pdf";
         
-        // 3. Mark as Complete in Supabase
         await supabase
           .from('coi_requests')
           .update({ 
@@ -289,15 +282,15 @@ cron.schedule('*/2 * * * *', async () => {
   }
 });
 
-// --- TASK 2: THE LIBRARIAN (Check every hour) ---
-cron.schedule('*/10 * * * *', async () => { // Changed to every 10 mins (was hourly)
+// --- TASK 2: THE LIBRARIAN (Check every 10 minutes) ---
+cron.schedule('*/10 * * * *', async () => {
   console.log("📚 Librarian: Checking for unindexed 'bar' docs...");
 
   const { data: docs, error } = await supabase
-    .from('carrier_resources') // FIXED: Removed 'public.'
+    .from('carrier_resources')
     .select('*')
     .eq('is_indexed', false)
-    .eq('segment', 'bar'); // ADDED: Safety filter for Bar segment
+    .eq('segment', 'bar');
 
   if (error) {
     console.error("❌ Librarian Error:", error.message);
@@ -306,43 +299,19 @@ cron.schedule('*/10 * * * *', async () => { // Changed to every 10 mins (was hou
 
   if (docs && docs.length > 0) {
     console.log(`📚 Found ${docs.length} new documents.`);
-    // ... rest of your loop ...
+    
+    for (const doc of docs) {
+      await supabase
+        .from('carrier_resources')
+        .update({ 
+          is_indexed: true, 
+          indexed_at: new Date() 
+        })
+        .eq('id', doc.id);
+        
+      console.log(`🧠 Learned: ${doc.document_title || doc.file_name}`);
+    }
   } else {
     console.log("📚 No unindexed documents found.");
   }
 });
-// ==========================================
-// 🩺 SURGICAL PROBE (Run once on startup)
-// ==========================================
-(async function runProbe() {
-  console.log("\n🩺 STARTING DIAGNOSTIC PROBE...");
-
-  // Test 1: Can we see the table at all?
-  // Note: We use 'carrier_resources' without 'public.' prefix
-  const { count, error } = await supabase
-    .from('carrier_resources')
-    .select('*', { count: 'exact', head: true });
-  
-  if (error) {
-    console.error("❌ Test 1 Failed (Permissions/Connection):", error.message);
-  } else {
-    console.log(`✅ Test 1 Passed: Table exists and has ${count} total rows.`);
-  }
-
-  // Test 2: Does 'bar' data exist and is it unindexed?
-  const { data: barDocs, error: barError } = await supabase
-    .from('carrier_resources')
-    .select('id, segment, is_indexed')
-    .eq('segment', 'bar')
-    .eq('is_indexed', false)
-    .limit(1);
-
-  if (barError) {
-      console.error("❌ Test 2 Query Error:", barError.message);
-  } else if (barDocs && barDocs.length > 0) {
-    console.log(`✅ Test 2 Passed: Found unindexed 'bar' row: ID ${barDocs[0].id}`);
-  } else {
-    console.log("⚠️ Test 2 Warning: No unindexed 'bar' rows found. Check if they are already indexed (true) or if segment is 'Bar' (case sensitive).");
-  }
-  console.log("🩺 PROBE COMPLETE \n");
-})();
