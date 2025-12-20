@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto';
 import { loadPrompts } from "./services/promptLoader.js"; 
 import { createClient } from '@supabase/supabase-js';
 
+// ✅ 1. Initialize Supabase (The Missing Keys Fixed)
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -69,33 +70,13 @@ export async function processInbox(authClient) {
       const pdfData = await pdf(pdfAttachment.content);
       const rawText = pdfData.text;
 
-      // 4. AI Analysis
+      // 4. Generate ID
       const quoteId = randomUUID();
 
-      /* -------------------------------------------------------
-   🟢 DATA BRIDGE: Save Quote to Supabase 
-   ------------------------------------------------------- */
-const { error: dbError } = await supabase
-  .from('quote_opportunities')
-  .insert({
-    id: quoteId,
-    segment: process.env.SEGMENT_NAME || 'bar', // Defaults to bar, but respects env
-    carrier_name: aiContent.carrier,
-    premium_amount: aiContent.premium,
-    extracted_data: aiContent,
-    status: 'pending_bind',
-    original_pdf_text: rawText
-  });
-
-if (dbError) {
-  console.error("❌ CRITICAL: Failed to save quote to DB:", dbError);
-  // Optional: return early so we don't send a broken link
-} else {
-  console.log(`✅ Quote saved to DB: ${quoteId}`);
-}
-/* ------------------------------------------------------- */
-  
-      
+      // -------------------------------------------------------
+      // 🧠 STEP 5: AI Analysis (MOVED UP!)
+      // We must get the answer BEFORE we save it.
+      // -------------------------------------------------------
       const aiResponse = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
@@ -107,7 +88,29 @@ if (dbError) {
 
       const aiContent = JSON.parse(aiResponse.choices[0].message.content);
 
-      // 5. Construct the Email (With Quality Gate)
+      /* -------------------------------------------------------
+       🟢 DATA BRIDGE: Save Quote to Supabase (NOW IN CORRECT ORDER)
+       ------------------------------------------------------- */
+      const { error: dbError } = await supabase
+        .from('quote_opportunities')
+        .insert({
+          id: quoteId,
+          segment: process.env.SEGMENT_NAME || 'bar',
+          carrier_name: aiContent.carrier, // ✅ Now valid!
+          premium_amount: aiContent.premium, // ✅ Now valid!
+          extracted_data: aiContent,
+          status: 'pending_bind',
+          original_pdf_text: rawText
+        });
+
+      if (dbError) {
+        console.error("❌ CRITICAL: Failed to save quote to DB:", dbError);
+      } else {
+        console.log(`✅ Quote saved to DB: ${quoteId}`);
+      }
+      /* ------------------------------------------------------- */
+
+      // 6. Construct the Email (With Quality Gate)
       const hostname = process.env.RENDER_EXTERNAL_HOSTNAME || 'localhost:10000';
       const bindUrl = `https://${hostname}/bind-quote?id=${quoteId}`;
       const bindButton = `<a href="${bindUrl}" style="background-color: #10B981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; margin: 20px 0;">CLICK HERE TO BIND NOW</a>`;
@@ -133,7 +136,7 @@ if (dbError) {
         </div>
       `;
 
-      // 6. Save Draft
+      // 7. Save Draft
       const rawDraft = makeRawEmail({
         to: parsed.from.value[0].address,
         subject: `RE: ${parsed.subject} - Proposal Ready`,
@@ -146,7 +149,7 @@ if (dbError) {
         requestBody: { message: { threadId: message.threadId, raw: rawDraft } }
       });
 
-      // 7. Mark Processed
+      // 8. Mark Processed
       await gmail.users.messages.modify({
         userId: 'me',
         id: message.id,
