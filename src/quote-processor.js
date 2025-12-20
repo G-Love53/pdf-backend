@@ -65,6 +65,30 @@ export async function processInbox(authClient) {
 
       // 4. AI Analysis
       const quoteId = randomUUID();
+
+      /* -------------------------------------------------------
+   🟢 DATA BRIDGE: Save Quote to Supabase 
+   ------------------------------------------------------- */
+const { error: dbError } = await supabase
+  .from('quote_opportunities')
+  .insert({
+    id: quoteId,
+    segment: process.env.SEGMENT_NAME || 'bar', // Defaults to bar, but respects env
+    carrier_name: aiContent.carrier,
+    premium_amount: aiContent.premium,
+    extracted_data: aiContent,
+    status: 'pending_bind',
+    original_pdf_text: rawText
+  });
+
+if (dbError) {
+  console.error("❌ CRITICAL: Failed to save quote to DB:", dbError);
+  // Optional: return early so we don't send a broken link
+} else {
+  console.log(`✅ Quote saved to DB: ${quoteId}`);
+}
+/* ------------------------------------------------------- */
+  
       
       const aiResponse = await openai.chat.completions.create({
         model: "gpt-4o",
