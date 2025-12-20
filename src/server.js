@@ -71,6 +71,7 @@ const MAP_DIR = path.join(__dirname, "..", "mapping");
 // --- ROUTES ---
 
 APP.get("/healthz", (_req, res) => res.status(200).send("ok"));
+APP.get("/", (_req, res) => res.status(200).send("ok"));
 
 // Helper: Data Mapping
 async function maybeMapData(templateName, rawData) {
