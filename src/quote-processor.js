@@ -4,6 +4,12 @@ import pdf from 'pdf-parse/lib/pdf-parse.js';
 import OpenAI from 'openai';
 import { randomUUID } from 'crypto';
 import { loadPrompts } from "./services/promptLoader.js"; 
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 /* ---------------- Configuration ---------------- */
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY; 
