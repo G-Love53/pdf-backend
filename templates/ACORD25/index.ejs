@@ -21,6 +21,17 @@
   </div>
 
   <!-- TOP BLOCKS -->
+<%
+  // --- Producer object used by TOP BLOCKS (was undefined) ---
+    const producer = {
+      name: data.producerName || defaults.producerName || "",
+      address1: data.producerAddress1 || defaults.producerAddress1 || "",
+      address2: data.producerAddress2 || defaults.producerAddress2 || "",
+      city: data.producerCity || defaults.producerCity || "",
+      state: data.producerState || defaults.producerState || "",
+      zip: data.producerZip || defaults.producerZip || ""
+    };
+  %>
   <div class="topBlocks">
 
     <!-- PRODUCER -->
@@ -40,7 +51,7 @@
       <div class="kv"><div class="k">Fax (A/C, No)</div><div class="v"><%= contact?.fax || "" %></div></div>
       <div class="kv"><div class="k">E-mail Address</div><div class="v"><%= contact?.email || "" %></div></div>
     </div>
-
+    
     <!-- INSURED + CERT INFO + INSURERS -->
     <div class="box">
       <div class="grid2 noGap">
