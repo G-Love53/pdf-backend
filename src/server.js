@@ -21,29 +21,34 @@ const __dirname = path.dirname(__filename);
 
 // 1. Map Frontend Names (from Netlify) to Actual Folder Names (in /templates)
 const TEMPLATE_ALIASES = {
-  // Generic Name       : Actual Folder Name
-  "Accord125":         "BarAccord125",
-  "Accord126":         "BarAccord126",
-  "Accord140":         "BarAccord140",
-  "Accord25":          "BarAccord25",
-  "WCForm":            "WCBarForm",
-  "Supplemental":      "Society_FieldNames",
-  
-  // Self-referencing aliases for safety
-  "BarAccord125":  "BarAccord125",
-  "BarAccord126":  "BarAccord126",
-  "BarAccord140":  "BarAccord140",
+  // Canonical ACORD names
+  "ACORD125": "ACORD125",
+  "ACORD126": "ACORD126",
+  "ACORD130": "ACORD130",
+  "ACORD140": "ACORD140",
+  "ACORD25":  "ACORD25",
+
+  // Supplemental (segment-specific)
+  "SUPP_SOCIETY_BAR": "SUPP_SOCIETY_BAR",
+
+  // Backward compatibility (optional but safe)
+  "Accord125": "ACORD125",
+  "Accord126": "ACORD126",
+  "Accord130": "ACORD130",
+  "Accord140": "ACORD140",
+  "Accord25":  "ACORD25",
 };
 
 // 2. Map Folder Names to Pretty Output Filenames (for the client email)
 const FILENAME_MAP = {
-  "BarAccord125": "ACORD-125.pdf",
-  "BarAccord126": "ACORD-126.pdf",
-  "BarAccord140": "ACORD-140.pdf",
-  "BarAccord25": "ACORD-25-Certificate.pdf",
-  "Society_FieldNames":       "Supplemental-Application.pdf",
-  "WCBarForm":        "WC-Application.pdf"
+  "ACORD125": "ACORD-125.pdf",
+  "ACORD126": "ACORD-126.pdf",
+  "ACORD130": "ACORD-130.pdf",
+  "ACORD140": "ACORD-140.pdf",
+  "ACORD25":  "ACORD-25.pdf",
+  "SUPP_SOCIETY_BAR": "Supplemental-Application.pdf",
 };
+
 
 /* ============================================================
    🔴 SECTION 2: LOGIC (DO NOT EDIT BELOW THIS LINE)
