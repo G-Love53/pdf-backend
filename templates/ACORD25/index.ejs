@@ -6,6 +6,26 @@
   <link rel="stylesheet" href="./assets/styles.css" />
 </head>
 <body>
+<%
+  // ===== ACORD25 REQUIRED OBJECTS =====
+  const defaults = {
+    producerName: "Commercial Insurance Direct LLC",
+    producerAddress1: "9200 W Cross Dr Ste 515",
+    producerAddress2: "",
+    producerCity: "Littleton",
+    producerState: "CO",
+    producerZip: "80123",
+  };
+
+  const producer = {
+    name: data?.producerName || defaults.producerName,
+    address1: data?.producerAddress1 || defaults.producerAddress1,
+    address2: data?.producerAddress2 || defaults.producerAddress2,
+    city: data?.producerCity || defaults.producerCity,
+    state: data?.producerState || defaults.producerState,
+    zip: data?.producerZip || defaults.producerZip,
+  };
+%>
 <div class="page">
 
   <!-- HEADER -->
@@ -21,17 +41,6 @@
   </div>
 
   <!-- TOP BLOCKS -->
-<%
-  // --- Producer object used by TOP BLOCKS (was undefined) ---
-    const producer = {
-      name: data.producerName || defaults.producerName || "",
-      address1: data.producerAddress1 || defaults.producerAddress1 || "",
-      address2: data.producerAddress2 || defaults.producerAddress2 || "",
-      city: data.producerCity || defaults.producerCity || "",
-      state: data.producerState || defaults.producerState || "",
-      zip: data.producerZip || defaults.producerZip || ""
-    };
-  %>
   <div class="topBlocks">
 
     <!-- PRODUCER -->
