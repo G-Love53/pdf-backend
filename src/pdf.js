@@ -8,10 +8,11 @@ import { fileURLToPath } from "url";
 /* ---------- inline helpers made available to EJS ---------- */
 const yn = (v) => {
   const s = String(v ?? "").trim().toLowerCase();
-  if (v === true || ["y","yes","true","1","on","checked"].includes(s)) return "Y";
-  if (v === false || ["n","no","false","0"].includes(s)) return "N";
+  if (v === true || ["y", "yes", "true", "1", "on", "checked"].includes(s)) return "Y";
+  if (v === false || ["n", "no", "false", "0"].includes(s)) return "N";
   return "";
 };
+
 const money = (v) => {
   if (v === 0) return "0.00";
   if (v == null || v === "") return "";
@@ -19,27 +20,32 @@ const money = (v) => {
   if (!Number.isFinite(n)) return "";
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
+
 const moneyUSD = (v) => {
   const s = money(v);
   return s ? `$${s}` : "";
 };
+
 const formatDate = (d = new Date()) => {
   const dt = d instanceof Date ? d : new Date(d);
   const mm = String(dt.getMonth() + 1).padStart(2, "0");
   const dd = String(dt.getDate()).padStart(2, "0");
   return `${mm}/${dd}/${dt.getFullYear()}`;
 };
+
 const ck = (v) => (yn(v) === "Y" ? "X" : "");
+
 const isYes = (v) => {
   const s = String(v ?? "").trim().toLowerCase();
-  return v === true || v === 1 || ["y","yes","true","1","on","checked"].includes(s);
+  return v === true || v === 1 || ["y", "yes", "true", "1", "on", "checked"].includes(s);
 };
-const yesno = (v) => (yn(v) === "Y" ? "Yes" : (yn(v) === "N" ? "No" : ""));
+
+const yesno = (v) => (yn(v) === "Y" ? "Yes" : yn(v) === "N" ? "No" : "");
 const isyes = (v) => isYes(v); // alias to satisfy lowercase calls
 
 const join = (parts, sep = ", ") => {
   const arr = Array.isArray(parts) ? parts : [parts];
-  return arr.filter(x => x != null && String(x).trim() !== "").join(sep);
+  return arr.filter((x) => x != null && String(x).trim() !== "").join(sep);
 };
 
 /* ---------- module path helpers ---------- */
@@ -50,10 +56,10 @@ const __dirname = path.dirname(__filename);
 export async function renderPdf({ htmlPath, cssPath, data = {} }) {
   console.log("PDF Render - htmlPath:", htmlPath);
   console.log("PDF Render - cssPath:", cssPath);
-  
+
   // Load template + CSS
   const templateStr = await fs.readFile(htmlPath, "utf8");
-  
+
   let cssStr = "";
   try {
     if (cssPath) {
@@ -66,56 +72,89 @@ export async function renderPdf({ htmlPath, cssPath, data = {} }) {
     console.error("Failed to load CSS:", err.message);
     cssStr = "";
   }
-  
-// Render EJS -> HTML (expose helpers and styles)
-let html;
-try {
-  html = await ejs.render(
-    templateStr,
-    {
-      ...data,             // flattened access
-      data,                // nested access
-      formData: data,      // legacy alias
-      styles: cssStr,      // used by <style><%= styles %></style>
 
-      // helpers available directly in EJS
-      yn, money, moneyUSD, formatDate, ck, isYes, join, yesno, isyes
-    },
-    {
-      async: true,
-      filename: htmlPath,   // lets EJS report filename
-      compileDebug: true    // lets EJS report line numbers
-    }
-  );
-} catch (err) {
-  const msg =
-    `EJS compile error in ${htmlPath}: ${err.message}` +
-    (err.lineNumber ? ` (line ${err.lineNumber})` : "");
-  throw new Error(msg);
-}
-  
+  // ✅ RSS SAFETY: guarantee commonly-referenced objects exist as top-level locals
+  const safe = {
+    producer: data?.producer || {},
+    contact: data?.contact || {},
+    insured: data?.insured || {},
+    holder: data?.holder || {},
+    coverages: data?.coverages || {},
+    operations: data?.operations || {},
+    defaults: data?.defaults || {},
+  };
+
+  // Render EJS -> HTML (expose helpers and styles)
+  let html;
+  try {
+    // IMPORTANT:
+    // - Templates can use producer/contact directly (top-level)
+    // - Templates can use data.* (nested)
+    // - Templates can use formData.* (legacy alias)
+    const ctx = { ...safe, ...data };
+
+    html = await ejs.render(
+      templateStr,
+      {
+        ...ctx, // flattened access, safe locals included
+        data: ctx, // nested access
+        formData: ctx, // legacy alias
+        styles: cssStr, // used by <style><%= styles %></style>
+
+        // helpers available directly in EJS
+        yn,
+        money,
+        moneyUSD,
+        formatDate,
+        ck,
+        isYes,
+        join,
+        yesno,
+        isyes,
+      },
+      {
+        async: true,
+        filename: htmlPath, // lets EJS report filename
+        compileDebug: true, // lets EJS report line numbers
+      }
+    );
+  } catch (err) {
+    const msg =
+      `EJS compile error in ${htmlPath}: ${err.message}` +
+      (err.lineNumber ? ` (line ${err.lineNumber})` : "");
+    throw new Error(msg);
+  }
+
   // Launch Chrome and generate PDF
   const browser = await puppeteer.launch({
     headless: "new",
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || "/app/chrome/chrome-linux64/chrome",
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--font-render-hinting=none", "--disable-dev-shm-usage"]
+    executablePath:
+      process.env.PUPPETEER_EXECUTABLE_PATH || "/app/chrome/chrome-linux64/chrome",
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--font-render-hinting=none",
+      "--disable-dev-shm-usage",
+    ],
   });
-  
+
   try {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "load" });
+
     const pdfBuffer = await page.pdf({
-  format: 'Letter',
-  printBackground: true,
-  preferCSSPageSize: false,  // Let Puppeteer control size
-  margin: { 
-    top: '0.5in', 
-    right: '0.5in', 
-    bottom: '0.5in', 
-    left: '0.5in' 
-  },
-  scale: 1
-});
+      format: "Letter",
+      printBackground: true,
+      preferCSSPageSize: false,
+      margin: {
+        top: "0.5in",
+        right: "0.5in",
+        bottom: "0.5in",
+        left: "0.5in",
+      },
+      scale: 1,
+    });
+
     return pdfBuffer;
   } finally {
     await browser.close();
