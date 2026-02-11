@@ -101,9 +101,8 @@ async function renderBundleAndRespond({ templates, email }, res) {
   const results = [];
 
   for (const t of templates) {
-    const name = resolveTemplate(t.name);
-    
-    // Safety check: verify folder exists
+    const name = String(t.name || "").trim();
+// Safety check: verify folder exists
     try {
         await fs.access(resolveTemplateDir(name));
     } catch (e) {
