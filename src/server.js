@@ -150,10 +150,26 @@ const rawData  = t.data || {};
   }
 }
 
-// 1. Render Bundle Endpoint
+// 1. Render Bundle Endpoint (render-only)
 APP.post("/render-bundle", async (req, res) => {
   try {
-    await renderBundleAndRespond(req.body || {}, res);
+    const body = req.body || {};
+
+    // Allow calling by bundle_id (no templates array needed)
+    if ((!Array.isArray(body.templates) || body.templates.length === 0) && body.bundle_id) {
+      const bundlesPath = path.join(__dirname, "config", "bundles.json");
+      const bundles = JSON.parse(fsSync.readFileSync(bundlesPath, "utf8"));
+
+      const list = bundles[body.bundle_id];
+      if (!Array.isArray(list) || list.length === 0) {
+        return res.status(400).json({ ok: false, error: "UNKNOWN_BUNDLE" });
+      }
+
+      const data = body.data || {};
+      body.templates = list.map((name) => ({ name, data }));
+    }
+
+    await renderBundleAndRespond(body, res);
   } catch (e) {
     console.error(e);
     res.status(500).json({ ok: false, error: e.message });
