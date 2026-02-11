@@ -90,6 +90,14 @@ function resolveTemplateDir(name) {
 APP.get("/healthz", (_req, res) => res.status(200).send("ok"));
 APP.get("/", (_req, res) => res.status(200).send("ok"));
 
+APP.get("/__version", (_req, res) => {
+  res.json({
+    ok: true,
+    service: "pdf-backend",
+    commit: process.env.RENDER_GIT_COMMIT || null
+  });
+});
+
 // Helper: Data Mapping
 async function maybeMapData(name, rawData) {
   return rawData;
@@ -118,8 +126,8 @@ async function renderBundleAndRespond({ templates, email }, res) {
 
     const templateDir = resolveTemplateDir(name);
     const htmlPath = path.join(templateDir, "index.ejs");
-    const cssPath  = path.join(templateDir, "styles.css");
-const rawData  = t.data || {};
+    const cssPath = path.join(PROJECT_ROOT, "CID_HomeBase", "templates", "_SHARED", "styles.css");
+    const rawData  = t.data || {};
     const unified  = await maybeMapData(name, rawData);
 
     try {
