@@ -74,13 +74,16 @@ APP.use((req, res, next) => {
   next();
 });
 
-// CID RSS: resolve templatePath from forms.json (CID_HomeBase)
+const PROJECT_ROOT = path.join(__dirname, ".."); // /app
+
 function resolveTemplateDir(name) {
   const key = String(name || "").trim();
   const form = FORMS[key];
   if (!form || !form.templatePath) throw new Error(`UNKNOWN_FORM: ${key}`);
-  return path.join(__dirname, "..", "..", form.templatePath);
+
+  return path.join(PROJECT_ROOT, form.templatePath);
 }
+
 
 // --- ROUTES ---
 
