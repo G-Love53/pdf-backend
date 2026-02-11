@@ -15,6 +15,10 @@ import { google } from 'googleapis';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// CID RSS: load universal forms registry
+const formsPath = path.join(__dirname, "config", "forms.json");
+const FORMS = JSON.parse(fsSync.readFileSync(formsPath, "utf8"));
+
 /* ============================================================
    🟢 SECTION 1: CONFIGURATION (EDIT THIS PER SEGMENT)
    ============================================================ */
@@ -69,8 +73,13 @@ APP.use((req, res, next) => {
   next();
 });
 
-const TPL_DIR = path.join(__dirname, "..", "templates");
-const MAP_DIR = path.join(__dirname, "..", "mapping");
+// CID RSS: resolve templatePath from forms.json (CID_HomeBase)
+function resolveTemplateDir(name) {
+  const key = String(name || "").trim();
+  const form = FORMS[key];
+  if (!form || !form.templatePath) throw new Error(`UNKNOWN_FORM: ${key}`);
+  return path.join(__dirname, "..", "..", form.templatePath);
+}
 
 // --- ROUTES ---
 
@@ -78,18 +87,8 @@ APP.get("/healthz", (_req, res) => res.status(200).send("ok"));
 APP.get("/", (_req, res) => res.status(200).send("ok"));
 
 // Helper: Data Mapping
-async function maybeMapData(templateName, rawData) {
-  try {
-    const mapPath = path.join(MAP_DIR, `${templateName}.json`);
-    const mapping = JSON.parse(await fs.readFile(mapPath, "utf8"));
-    const mapped = {};
-    for (const [tplKey, formKey] of Object.entries(mapping)) {
-      mapped[tplKey] = rawData?.[formKey] ?? "";
-    }
-    return { ...rawData, ...mapped };
-  } catch {
-    return rawData;
-  }
+async function maybeMapData(name, rawData) {
+  return rawData;
 }
 
 // Helper: Render Bundle
@@ -105,16 +104,17 @@ async function renderBundleAndRespond({ templates, email }, res) {
     
     // Safety check: verify folder exists
     try {
-        await fs.access(path.join(TPL_DIR, name));
+        await fs.access(resolveTemplateDir(name));
     } catch (e) {
         console.error(`❌ Template folder not found: ${name} (Original: ${t.name})`);
         results.push({ status: "rejected", reason: `Template ${name} not found` });
         continue;
     }
 
-    const htmlPath = path.join(TPL_DIR, name, "index.ejs");
-    const cssPath  = path.join(TPL_DIR, name, "styles.css");
-    const rawData  = t.data || {};
+    const templateDir = resolveTemplateDir(name);
+    const htmlPath = path.join(templateDir, "index.ejs");
+    const cssPath  = path.join(templateDir, "styles.css");
+const rawData  = t.data || {};
     const unified  = await maybeMapData(name, rawData);
 
     try {
