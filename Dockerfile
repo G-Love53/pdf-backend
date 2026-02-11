@@ -26,10 +26,9 @@ RUN mkdir -p /app/chrome && \
     rm chrome-linux64.zip && \
     chmod +x chrome-linux64/chrome
 
-# Copy application files
-COPY src ./src
-COPY templates ./templates
-COPY mapping ./mapping
+# Copy app source (includes CID_HomeBase if present)
+COPY . .
+
 
 # Set environment variables
 ENV NODE_ENV=production
