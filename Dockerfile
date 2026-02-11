@@ -28,6 +28,9 @@ RUN mkdir -p /app/chrome && \
 
 # Copy app source (includes CID_HomeBase if present)
 COPY . .
+# Ensure CID_HomeBase exists in cloud builds (Render doesn't fetch submodules)
+RUN rm -rf CID_HomeBase \
+ && git clone --depth 1 https://github.com/G-Love53/CID_HomeBase CID_HomeBase
 
 
 # Set environment variables
