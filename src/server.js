@@ -34,7 +34,7 @@ const TEMPLATE_ALIASES = {
   "ACORD25":  "ACORD25",
 
   // Supplemental (segment-specific)
-  "SUPP_SOCIETY_BAR": "SUPP_SOCIETY_BAR",
+  "SUPP_BAR": "SUPP_BAR",
 
   // Backward compatibility (optional but safe)
   "Accord125": "ACORD125",
