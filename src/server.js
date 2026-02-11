@@ -126,7 +126,7 @@ async function renderBundleAndRespond({ templates, email }, res) {
 
     const templateDir = resolveTemplateDir(name);
     const htmlPath = path.join(templateDir, "index.ejs");
-    const cssPath = path.join(PROJECT_ROOT, "CID_HomeBase", "templates", "_SHARED", "styles.css");
+    const cssPath = path.join(PROJECT_ROOT, "CID_HomeBase", "templates", "_shared", "styles", "styles.css");
     const rawData  = t.data || {};
     const unified  = await maybeMapData(name, rawData);
 

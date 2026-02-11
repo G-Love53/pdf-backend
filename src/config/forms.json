@@ -54,9 +54,9 @@
     "engine": "svg",
     "templatePath": "CID_HomeBase/templates/SUPP_ROOFER"
   },
-  "_SHARED": {
+  "_shared": {
     "enabled": true,
     "engine": "svg",
-    "templatePath": "CID_HomeBase/templates/_SHARED"
+    "templatePath": "CID_HomeBase/templates/_shared"
   }
 }
