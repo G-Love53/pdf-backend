@@ -104,12 +104,14 @@ async function renderBundleAndRespond({ templates, email }, res) {
   const results = [];
 
   for (const t of templates) {
-    const name = String(t.name || "").trim();
+    const original = String(t.name || "").trim();
+    const name = resolveTemplate(original);
+
 // Safety check: verify folder exists
     try {
         await fs.access(resolveTemplateDir(name));
     } catch (e) {
-        console.error(`❌ Template folder not found: ${name} (Original: ${t.name})`);
+        console.error(`❌ Template folder not found: ${name} (Original: ${original})`);
         results.push({ status: "rejected", reason: `Template ${name} not found` });
         continue;
     }
