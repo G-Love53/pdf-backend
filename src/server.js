@@ -1,3 +1,4 @@
+import fsSync from "fs";
 import express from "express";
 import path from "path";
 import fs from "fs/promises";
