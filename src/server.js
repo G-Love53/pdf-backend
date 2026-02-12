@@ -48,7 +48,7 @@ const FILENAME_MAP = {
   "ACORD130": "ACORD-130.pdf",
   "ACORD140": "ACORD-140.pdf",
   "ACORD25":  "ACORD-25.pdf",
-  "SUPP_SOCIETY_BAR": "Supplemental-Application.pdf",
+  "SUPP_BAR": "Supplemental-Application.pdf",
 };
 
 
@@ -56,7 +56,8 @@ const FILENAME_MAP = {
    🔴 SECTION 2: LOGIC (DO NOT EDIT BELOW THIS LINE)
    ============================================================ */
 
-const resolveTemplate = (name) => TEMPLATE_ALIASES[name] || name;
+const resolveTemplate = (name) =>
+  String(name || "").trim().toUpperCase();
 
 // --- APP SETUP ---
 const APP = express();
@@ -77,7 +78,7 @@ const TPL_DIR = path.join(PROJECT_ROOT, "CID_HomeBase", "templates");
 
 
 function resolveTemplateDir(name) {
-  const key = String(name || "").trim();
+  const key = String(name || "").trim().toUpperCase();
   if (!FORMS[key]) throw new Error(`UNKNOWN_FORM: ${key}`);
 
   return path.join(TPL_DIR, key);
@@ -123,7 +124,13 @@ const unified = await maybeMapData(name, rawData);
 // GOLD STANDARD (Step 1): backend sets segment; template name drives form_id.
 // (Step 2 we’ll lift Roofer’s exact formIdForTemplateFolder().)
 unified.segment = String(process.env.SEGMENT || "bar").trim().toLowerCase();
-unified.form_id = String(name || "").trim().toLowerCase();
+// form_id must match forms.json resolution rules
+if (/^ACORD\d+$/i.test(name)) {
+  unified.form_id = name.toLowerCase();      // ACORD125 -> acord125
+} else {
+  unified.form_id = name.toUpperCase();      // SUPP_BAR -> SUPP_BAR, LESSOR_A129S -> LESSOR_A129S
+}
+
 
 try {
   const { buffer } = await generateDocument(unified);
