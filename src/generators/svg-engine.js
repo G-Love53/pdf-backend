@@ -27,11 +27,11 @@ function resolveTemplateDir(templatePath = "") {
 
   // already a repo-relative path we support
   if (tp.startsWith("CID_HomeBase/")) return path.join(PROJECT_ROOT, tp);
-  if (tp.startsWith("templates/")) return path.join(PROJECT_ROOT, tp);
-
+  
+  
   // convenience: if caller passes "ACORD125" or "SUPP_XYZ"
   // assume it's a local segment template under /templates
-  return path.join(PROJECT_ROOT, "templates", tp);
+  return path.join(PROJECT_ROOT, "CID_HomeBase", "templates", tp);
 }
 
 

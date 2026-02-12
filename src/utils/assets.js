@@ -22,7 +22,7 @@ const loadAssetBase64 = (fullPath) => {
 
 export function getSegmentAssets(segment) {
   const targetSegment = segment ? segment.toLowerCase().trim() : "default";
-  const assetsRoot = path.join(__dirname, "../../templates/assets/segments");
+  const assetsRoot = path.join(process.cwd(), "CID_HomeBase", "templates", "_SHARED", "assets", "segments");
 
   const resolveAsset = (filename) => {
     const specificPath = path.join(assetsRoot, targetSegment, filename);
