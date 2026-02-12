@@ -74,16 +74,15 @@ APP.use((req, res, next) => {
   next();
 });
 
-const PROJECT_ROOT = path.join(__dirname, ".."); // /app
+const PROJECT_ROOT = path.join(__dirname, "..", "..");
+const TPL_DIR = path.join(PROJECT_ROOT, "CID_HomeBase", "templates");
 
 function resolveTemplateDir(name) {
   const key = String(name || "").trim();
-  const form = FORMS[key];
-  if (!form || !form.templatePath) throw new Error(`UNKNOWN_FORM: ${key}`);
+  if (!FORMS[key]) throw new Error(`UNKNOWN_FORM: ${key}`);
 
-  return path.join(PROJECT_ROOT, form.templatePath);
+  return path.join(TPL_DIR, key);
 }
-
 
 // --- ROUTES ---
 
@@ -126,7 +125,7 @@ async function renderBundleAndRespond({ templates, email }, res) {
 
     const templateDir = resolveTemplateDir(name);
     const htmlPath = path.join(templateDir, "index.ejs");
-    const cssPath = path.join(PROJECT_ROOT, "CID_HomeBase", "templates", "_shared", "styles", "styles.css");
+    const cssPath = path.join(TPL_DIR, "_shared", "styles", "styles.css");
     const rawData  = t.data || {};
     const unified  = await maybeMapData(name, rawData);
 
