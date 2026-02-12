@@ -114,29 +114,35 @@ async function renderBundleAndRespond({ templates, email }, res) {
     const original = String(t.name || "").trim();
     const name = resolveTemplate(original);
 
-// Safety check: verify folder exists
-    try {
-        await fs.access(resolveTemplateDir(name));
-    } catch (e) {
-        console.error(`❌ Template folder not found: ${name} (Original: ${original})`);
-        results.push({ status: "rejected", reason: `Template ${name} not found` });
-        continue;
-    }
+// Resolve once
+const templateDir = resolveTemplateDir(name);
 
-    const templateDir = resolveTemplateDir(name);
-    const htmlPath = path.join(templateDir, "index.ejs");
-    const cssPath = path.join(TPL_DIR, "_shared", "styles", "styles.css");
-    const rawData  = t.data || {};
-    const unified  = await maybeMapData(name, rawData);
+// Safety check: verify folder exists (log the REAL path)
+try {
+  await fs.access(templateDir);
+} catch (e) {
+  console.error(`❌ Template folder not found: ${templateDir} (name=${name}, original=${original})`);
+  results.push({ status: "rejected", reason: `Template dir not found: ${templateDir}` });
+  continue;
+}
 
-    try {
-      const buffer = await renderPdf({ htmlPath, cssPath, data: unified });
-      const prettyName = FILENAME_MAP[name] || t.filename || `${name}.pdf`;
-      results.push({ status: "fulfilled", value: { filename: prettyName, buffer } });
-    } catch (err) {
-      console.error(`❌ Render Error for ${name}:`, err.message);
-      results.push({ status: "rejected", reason: err });
-    }
+const htmlPath = path.join(templateDir, "index.ejs");
+const cssPath = path.join(TPL_DIR, "_shared", "styles", "styles.css");
+const rawData = t.data || {};
+const unified = await maybeMapData(name, rawData);
+
+// ✅ Required by HomeBase EJS: <%= templateName %>
+unified.templateName = name;
+
+try {
+  const buffer = await renderPdf({ htmlPath, cssPath, data: unified });
+  const prettyName = FILENAME_MAP[name] || t.filename || `${name}.pdf`;
+  results.push({ status: "fulfilled", value: { filename: prettyName, buffer } });
+} catch (err) {
+  console.error(`❌ Render Error for ${name}:`, err.message);
+  results.push({ status: "rejected", reason: err });
+}
+
   }
 
   const attachments = results.filter(r => r.status === "fulfilled").map(r => r.value);
