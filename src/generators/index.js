@@ -16,10 +16,24 @@ const __dirname = path.dirname(__filename);
 const formsPath = path.join(__dirname, "../config/forms.json");
 const forms = JSON.parse(fsSync.readFileSync(formsPath, "utf8"));
 
-function getFormConfigOrThrow(formId, segment) {
+function resolveFormsKey(formId) {
+  const id = String(formId || "").trim();
+
+  // acord125 -> ACORD125
+  const m = id.match(/^acord(\d+)$/i);
+  if (m) return `ACORD${m[1]}`;
+
+  // SUPP_BAR / LESSOR_A129S / LOGOS etc must match forms.json keys
+  if (/^SUPP_/i.test(id)) return id.toUpperCase();
+
+  // already canonical (ACORD125, ACORD25, LESSOR_A129S...)
+  return id.toUpperCase();
+}
+
+function getFormConfigOrThrow(formId) {
   if (!formId) {
     throw new Error(
-      "[Factory] Missing form_id on requestRow. Set requestRow.form_id explicitly (e.g., acord25, acord125)."
+      "[Factory] Missing form_id on requestRow. Set requestRow.form_id explicitly (e.g., acord25, acord125, SUPP_BAR)."
     );
   }
 

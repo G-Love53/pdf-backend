@@ -129,7 +129,8 @@ function isChecked(v) {
 
 // Coordinate overlay mapping (matches your mapper output)
 function applyMapping(svg, pageMap, data) {
-  if (!pageMap?.fields?.length) return ensureXmlSpace(svg);
+  svg = ensureXmlSpace(svg);
+  if (!pageMap?.fields?.length) return svg;
 
   const overlay = [];
   overlay.push(`<g id="cid-overlay" font-family="Arial, Helvetica, sans-serif" fill="#000">`);
@@ -222,11 +223,17 @@ export async function generate(jobData) {
   // Load assets + maps
   
   const pages = loadSvgPages(assetsDir);
+  
+  if (!pages.length) {
+  throw new Error(`[SVG Engine] No SVG pages found in assetsDir: ${assetsDir}`);
+}
   const mapsByPage = loadMaps(mappingDir);
   
+  if (requestRow?.debug === true) {
   console.log("[SVG] Pages:", pages.map(p => p.pageId));
   console.log("[SVG] Maps:", Object.keys(mapsByPage));
-  
+}
+
   // Apply mapping per page
   const finalPages = pages.map(p =>
   applyMapping(p.svg, mapsByPage[p.pageId], requestRow)
