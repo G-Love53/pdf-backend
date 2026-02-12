@@ -16,14 +16,6 @@ const __dirname = path.dirname(__filename);
 const formsPath = path.join(__dirname, "../config/forms.json");
 const forms = JSON.parse(fsSync.readFileSync(formsPath, "utf8"));
 
-
-function resolveFormsKey(formId, segment) {
-  const id = String(formId || "");
-  let m = id.match(/^acord(\d+)$/i);
-  if (m) return `ACORD${m[1]}`;
-  if (/^supp_/i.test(id)) return "SUPP_CONTRACTOR";
-  return id.toUpperCase();
-}
 function getFormConfigOrThrow(formId, segment) {
   if (!formId) {
     throw new Error(
