@@ -83,6 +83,19 @@ function resolveTemplateDir(name) {
 
   return path.join(TPL_DIR, key);
 }
+// RSS: flatten all common request shapes into a single overlay object
+function flattenData(body = {}) {
+  const rr = body.requestRow || {};
+  return {
+    ...(body || {}),
+    ...(rr || {}),
+    ...(body.data || {}),
+    ...(body.fields || {}),
+    ...(rr.data || {}),
+    ...(rr.fields || {}),
+    ...(rr.requestRow || {}),
+  };
+}
 
 // --- ROUTES ---
 
@@ -203,7 +216,14 @@ APP.post("/render-bundle", async (req, res) => {
 APP.post("/submit-quote", async (req, res) => {
   try {
     const body = req.body || {};
-    const formData = body.formData || {};
+    const formData =
+    body.data ||
+    body.formData ||
+    body.fields ||
+    body.requestRow?.data ||
+    body.requestRow?.fields ||
+    body.requestRow ||
+    {};
     const bundle_id = body.bundle_id;
     const segments = Array.isArray(body.segments) ? body.segments : [];
     const segment = String(body.segment || process.env.SEGMENT || "").trim().toLowerCase();
