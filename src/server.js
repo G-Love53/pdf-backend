@@ -74,8 +74,10 @@ APP.use((req, res, next) => {
   next();
 });
 
-const PROJECT_ROOT = path.join(__dirname, "..", "..");
+// RSS ROOT: always /app in Render Docker (and correct locally too)
+const PROJECT_ROOT = process.cwd();
 const TPL_DIR = path.join(PROJECT_ROOT, "CID_HomeBase", "templates");
+
 
 function resolveTemplateDir(name) {
   const key = String(name || "").trim();
