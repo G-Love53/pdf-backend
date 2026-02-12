@@ -95,7 +95,10 @@ APP.get("/__version", (_req, res) => {
   res.json({
     ok: true,
     service: "pdf-backend",
-    commit: process.env.RENDER_GIT_COMMIT || null
+    commit: process.env.RENDER_GIT_COMMIT || null,
+    fingerprint: "CID-PDF-BACKEND-2026-02-12",
+    node: process.version,
+    time: new Date().toISOString(),
   });
 });
 
