@@ -9,9 +9,6 @@ import { sendWithGmail } from "./email.js";
 // import enrichFormData from '../mapping/data-enricher.js'; 
 
 // --- LEG 2 / LEG 3 IMPORTS ---
-import { processInbox } from "./quote-processor.js";
-import { triggerCarrierBind } from "./bind-processor.js";
-import { google } from 'googleapis';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -265,51 +262,6 @@ APP.post("/submit-quote", async (req, res) => {
   }
 });
 
-
-// 3. LEG 2: Check Quotes
-APP.post("/check-quotes", async (req, res) => {
-  console.log("🤖 Robot Waking Up: Checking for new quotes...");
-  const rawKey = process.env.GOOGLE_PRIVATE_KEY || "";
-  const serviceEmail = (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || "").trim();
-  const impersonatedUser = (process.env.GMAIL_USER || "").trim();
-  const privateKey = rawKey.replace(/\\n/g, '\n');
-
-  if (!serviceEmail || !impersonatedUser || !rawKey || !process.env.OPENAI_API_KEY) {
-    return res.status(500).json({ ok: false, error: "Missing Env Vars" });
-  }
-
-  try {
-    const jwtClient = new google.auth.JWT(
-      serviceEmail, null, privateKey,
-      ['https://www.googleapis.com/auth/gmail.modify'], impersonatedUser 
-    );
-    await jwtClient.authorize();
-    const result = await processInbox(jwtClient); 
-    return res.json({ ok: true, ...result });
-  } catch (error) {
-    console.error("Robot Error:", error);
-    return res.status(500).json({ ok: false, error: error.message });
-  }
-});
-
-// 4. LEG 3: Bind Quote
-APP.get("/bind-quote", async (req, res) => {
-    const quoteId = req.query.id;
-    if (!quoteId) return res.status(400).send("Quote ID is missing.");
-    try {
-        await triggerCarrierBind({ quoteId }); 
-        const confirmationHtml = `
-            <!DOCTYPE html>
-            <html><head><title>Bind Request Received</title></head>
-            <body style="text-align:center; padding:50px; font-family:sans-serif;">
-                <h1 style="color:#10b981;">Bind Request Received</h1>
-                <p>We are processing your request for Quote ID: <b>${quoteId.substring(0,8)}</b>.</p>
-            </body></html>`;
-        res.status(200).send(confirmationHtml);
-    } catch (e) {
-        res.status(500).send("Error processing bind request.");
-    }
-});
 
 const PORT = process.env.PORT || 8080;
 APP.listen(PORT, () => console.log(`PDF service listening on ${PORT}`));
