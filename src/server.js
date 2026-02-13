@@ -134,8 +134,7 @@ async function renderBundleAndRespond({ templates, email }, res) {
 const rawData = t.data || {};
 const unified = await maybeMapData(name, rawData);
 
-// GOLD STANDARD (Step 1): backend sets segment; template name drives form_id.
-// (Step 2 we’ll lift Roofer’s exact formIdForTemplateFolder().)
+// RSS: backend sets segment from env; template name drives form_id (must match forms.json keys).
 unified.segment = String(process.env.SEGMENT || "bar").trim().toLowerCase();
 // form_id must match forms.json resolution rules
 if (/^ACORD\d+$/i.test(name)) {
