@@ -113,9 +113,35 @@ APP.get("/__version", (_req, res) => {
   });
 });
 
-// Helper: Data Mapping
+// Helper: Data Mapping — add ACORD-expected keys from Bar form so ACORD PDFs fill
 async function maybeMapData(name, rawData) {
-  return rawData;
+  const d = { ...rawData };
+  const get = (k) => (d[k] != null && d[k] !== "") ? d[k] : undefined;
+  if (/^ACORD\d+$/i.test(name)) {
+    if (get("insured_name") == null && get("applicant_name")) d.insured_name = d.applicant_name;
+    if (get("physical_address_1") == null && get("premises_address")) d.physical_address_1 = d.premises_address;
+    if (get("physical_address_1") == null && get("premise_address")) d.physical_address_1 = d.premise_address;
+    if (get("physical_city") == null && get("premise_city")) d.physical_city = d.premise_city;
+    if (get("physical_state") == null && get("premise_state")) d.physical_state = d.premise_state;
+    if (get("physical_zip") == null && get("premise_zip")) d.physical_zip = d.premise_zip;
+    if (get("date") == null && get("effective_date")) d.date = d.effective_date;
+    if (get("policy_effective_date") == null && get("effective_date")) d.policy_effective_date = d.effective_date;
+    if (get("business_website") == null && get("premises_website")) d.business_website = d.premises_website;
+    if (get("producer_email") == null && get("contact_email")) d.producer_email = d.contact_email;
+    if (get("producer_phone") == null && get("business_phone")) d.producer_phone = d.business_phone;
+    if (d.org_type_llc === "Yes") d.llc = "Yes";
+    if (d.org_type_corporation === "Yes") d.corporation = "Yes";
+    if (d.org_type_individual === "Yes") d.individual = "Yes";
+    // ACORD125 page-2 first location
+    if (get("premise_address_1") == null && get("premises_address")) d.premise_address_1 = d.premises_address;
+    if (get("premise_city_1") == null && get("premise_city")) d.premise_city_1 = d.premise_city;
+    if (get("contact_name") == null && get("applicant_name")) d.contact_name = d.applicant_name;
+    if (get("contact_email_1") == null && get("contact_email")) d.contact_email_1 = d.contact_email;
+    if (get("contact_business_phone") == null && get("business_phone")) d.contact_business_phone = d.business_phone;
+    if (get("annual_revenue_1") == null && get("total_sales")) d.annual_revenue_1 = d.total_sales;
+    if (get("total_squarefeet_1") == null && get("square_footage")) d.total_squarefeet_1 = d.square_footage;
+  }
+  return d;
 }
 
 // Helper: Render Bundle
@@ -241,7 +267,20 @@ APP.post("/submit-quote", async (req, res) => {
 
       templateNames = list;
     } else {
-      templateNames = segments;
+      // Legacy: map old segment names to canonical template names (forms.json keys)
+      const LEGACY_SEGMENT_MAP = {
+        SOCIETY_FIELDNAMES: "SUPP_BAR",
+        BARACCORD125: "ACORD125",
+        BARACCORD126: "ACORD126",
+        BARACCORD130: "ACORD130",
+        BARACCORD140: "ACORD140",
+      };
+      templateNames = segments
+        .map((s) => (LEGACY_SEGMENT_MAP[String(s || "").toUpperCase()] || String(s || "").trim()))
+        .filter((name) => {
+          const key = /^ACORD\d+$/i.test(name) ? name.toUpperCase() : name.toUpperCase();
+          return FORMS[key]; // drop WCBARFORM and any other unknown
+        });
     }
 
     if (!templateNames.length) {
