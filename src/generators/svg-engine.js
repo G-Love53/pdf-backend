@@ -133,12 +133,17 @@ function isChecked(v) {
 
 
 // Coordinate overlay mapping (matches your mapper output)
-function applyMapping(svg, pageMap, data) {
+function applyMapping(svg, pageMap, data, pageId = "", templatePath = "") {
   svg = ensureXmlSpace(svg);
   if (!pageMap?.fields?.length) return svg;
 
   const overlay = [];
-  overlay.push(`<g id="cid-overlay" font-family="Arial, Helvetica, sans-serif" fill="#000">`);
+  // SUPP_BAR page-2: clip overlay to content area (x >= 194) so left-column titles never get covered/ghosted
+  const isSuppBarPage2 = /SUPP_BAR/i.test(String(templatePath)) && pageId === "page-2";
+  const clipAttr = isSuppBarPage2
+    ? ' clip-path="rect(194 0 418 792)"'
+    : "";
+  overlay.push(`<g id="cid-overlay" font-family="Arial, Helvetica, sans-serif" fill="#000"${clipAttr}>`);
 
   for (const f of pageMap.fields) {
   const key = f.key || f.name;
@@ -239,9 +244,9 @@ export async function generate(jobData) {
   console.log("[SVG] Maps:", Object.keys(mapsByPage));
 }
 
-  // Apply mapping per page
+  // Apply mapping per page (pass pageId + templatePath for overlay clipping on SUPP_BAR page-2)
   const finalPages = pages.map(p =>
-  applyMapping(p.svg, mapsByPage[p.pageId], requestRow)
+  applyMapping(p.svg, mapsByPage[p.pageId], requestRow, p.pageId, templatePath)
 );
 
 

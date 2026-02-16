@@ -140,6 +140,25 @@ async function maybeMapData(name, rawData) {
     if (get("contact_business_phone") == null && get("business_phone")) d.contact_business_phone = d.business_phone;
     if (get("annual_revenue_1") == null && get("total_sales")) d.annual_revenue_1 = d.total_sales;
     if (get("total_squarefeet_1") == null && get("square_footage")) d.total_squarefeet_1 = d.square_footage;
+    // Additional Insured (Bar form → ACORD names; first AI block)
+    if (get("ai_name") == null && get("ai_name_1")) d.ai_name = d.ai_name_1;
+    if (get("ai_address") == null && get("ai_address_1")) d.ai_address = d.ai_address_1;
+    if (get("ai_city") == null && get("ai_city_1")) d.ai_city = d.ai_city_1;
+    if (get("ai_state") == null && get("ai_state_1")) d.ai_state = d.ai_state_1;
+    if (get("ai_zip") == null && get("ai_zip_1")) d.ai_zip = d.ai_zip_1;
+    if (get("ai_losspayee") == null && get("ai_loss_payee")) d.ai_losspayee = d.ai_loss_payee;
+    if (get("ai_lienholder") == null && get("ai_lienholder")) d.ai_lienholder = d.ai_lienholder;
+    if (get("ai_mortgage") == null && get("ai_mortgagee")) d.ai_mortgage = d.ai_mortgagee;
+    if (get("ai_insured") == null && get("ai_additional_insured")) d.ai_insured = d.ai_additional_insured;
+    // Smoker/grill notes (SUPP page-2 continuation; build from form if not provided)
+    if (get("smoker_grill_notes_cont") == null && get("solid_fuel_smoker_grill_within_10_ft") === "Yes") {
+      const parts = [];
+      if (d.unit_professionally_installed) parts.push("Professionally installed: " + d.unit_professionally_installed);
+      if (d.regularly_maintained) parts.push("Regularly maintained: " + d.regularly_maintained);
+      if (d.hood_duct_protection) parts.push("Hood/duct: " + d.hood_duct_protection);
+      if (d.class_k_or_2a_extinguisher_within_20_ft) parts.push("Class K/2A extinguisher: " + d.class_k_or_2a_extinguisher_within_20_ft);
+      if (parts.length) d.smoker_grill_notes_cont = parts.join("; ");
+    }
   }
   return d;
 }
