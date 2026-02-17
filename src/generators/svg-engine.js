@@ -146,42 +146,39 @@ function applyMapping(svg, pageMap, data, pageId = "", templatePath = "") {
   overlay.push(`<g id="cid-overlay" font-family="Arial, Helvetica, sans-serif" fill="#000"${clipAttr}>`);
 
   for (const f of pageMap.fields) {
-  const key = f.key || f.name;
-  const raw = data?.[key];
-  if (!key) continue;
+    const key = f.key || f.name;
+    const raw = data?.[key];
+    if (!key) continue;
 
-  if (f.type === "checkbox") {
-  if (isChecked(raw)) {
-    const x = Number(f.x);
-    const y = Number(f.y);
-    const size = Number(f.size || f.fontSize || 10);
+    if (f.type === "checkbox") {
+      if (isChecked(raw)) {
+        const x = Number(f.x);
+        const y = Number(f.y);
+        const size = Number(f.size || f.fontSize || 10);
 
-    // guard: bad map data should never crash rendering
-    if (Number.isFinite(x) && Number.isFinite(y)) {
-      overlay.push(
-        `<text x="${x}" y="${y}" font-size="${size}" dominant-baseline="hanging">X</text>`
-      );
+        // guard: bad map data should never crash rendering
+        if (Number.isFinite(x) && Number.isFinite(y)) {
+          overlay.push(
+            `<text x="${x}" y="${y}" font-size="${size}" dominant-baseline="hanging">X</text>`
+          );
+        }
+      }
+      continue;
     }
-  }
-  continue;
-}
 
     const val = asString(raw);
-  if (!val) continue;
+    if (!val) continue;
 
+    const x = Number(f.x);
+    const y = Number(f.y);
 
-  const x = Number(f.x);
-  const y = Number(f.y);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
 
-  if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
-
-  overlay.push(
-  `<text x="${x}" y="${y + TEXT_PAD_Y}" font-size="${Number(f.fontSize || 8)}"
+    overlay.push(
+      `<text x="${x}" y="${y + TEXT_PAD_Y}" font-size="${Number(f.fontSize || 8)}"
     dominant-baseline="hanging" text-anchor="start">${escapeXml(val)}</text>`
-);
-
-
-}
+    );
+  }
 
 
   overlay.push(`</g>`);

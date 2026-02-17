@@ -249,7 +249,7 @@
     <label>3. Business Personal Property in $ (movable items owned, equipment, inventory, furniture):<input name="business_personal_property" type="text" inputmode="decimal" placeholder="Enter amount"/></label>
     
     <!-- Question 4 - Square footage -->
-    <label>4. Square footage:<input name="square_footage" type="text"/></label>
+    <label>4. Square footage:<input name="total_squarefeet_1" type="text"/></label>
     
     <!-- Construction Type - Made Horizontal -->
     <label>5. Construction Type:</label>
@@ -265,7 +265,7 @@
             <label>6. Year Built:<input name="year_built" type="text"/></label>
         </div>
         <div>
-            <label>7. Number of Floors:<input name="number_of_stories" type="text"/></label>
+            <label>7. Number of Floors:<input name="num_stories" type="text"/></label>
         </div>
     </div>
     
@@ -273,7 +273,7 @@
     <div class="horizontal-group">
         <div>
             <label>8. Automatic Sprinkler:
-                <select name="automatic_sprinkler">
+                <select name="percent_sprinker">
                     <option value="">-- Select --</option>
                     <option value="Yes">Yes</option>
                     <option value="No">No</option>
@@ -281,7 +281,7 @@
             </label>
         </div>
         <div>
-            <label>9. Number of employees:<input name="number_of_employees" type="text"/></label>
+            <label>9. Number of employees:<input name="fulltime_1" type="text"/></label>
         </div>
     </div>
 
@@ -330,7 +330,7 @@
     <label>14. Annual Receipts:</label>
     <input name="food_sales" placeholder="Food Sales" type="text" inputmode="decimal"/>
     <input name="alcohol_sales" placeholder="Alcohol Sales" type="text" inputmode="decimal"/>
-    <input name="total_sales" placeholder="Total Sales" type="text" readonly/>
+    <input name="annual_revenue_1" placeholder="Total Sales" type="text" readonly/>
     <input name="Percent_Alcohol" placeholder="% Alcohol" type="text" readonly/>
 
     <!-- Cooking Level (mapping: full, limited, none) -->
@@ -576,10 +576,10 @@
         </select>
     </label>
     <div class="conditional-section" data-show-when="claim_count=2_or_less">
-        <label>Please describe the claim and include the date and amount paid:<textarea name="claims_details_2_or_less"></textarea></label>
+        <label>Please describe the claim and include the date and amount paid:<textarea name="typeofclaim_1"></textarea></label>
     </div>
     <div class="conditional-section" data-show-when="claim_count=3_or_more">
-        <label>Please describe the claim and include the date and amount paid:<textarea name="claims_details_3_or_more"></textarea></label>
+        <label>Please describe the claim and include the date and amount paid:<textarea name="typeofclaim_2"></textarea></label>
     </div>
 
     <!-- Building Quote -->
@@ -606,10 +606,10 @@
         </div>
         <div class="horizontal-group">
             <div>
-                <label># of Employee FT:<input name="wc_employees_ft" type="text"/></label>
+                <label># of Employee FT:<input name="fulltime_1" type="text"/></label>
             </div>
             <div>
-                <label># of Employee PT:<input name="wc_employees_pt" type="text"/></label>
+                <label># of Employee PT:<input name="parttime_1" type="text"/></label>
             </div>
         </div>
         <label>Est Annual Payroll:<input name="wc_annual_payroll" type="text" inputmode="decimal" placeholder="Enter amount"/></label>
@@ -733,7 +733,7 @@
         // Calculation logic for receipts/percent alcohol
         const foodInput = document.querySelector('[name="food_sales"]');
         const alcoholInput = document.querySelector('[name="alcohol_sales"]');
-        const totalInput = document.querySelector('[name="total_sales"]');
+        const totalInput = document.querySelector('[name="annual_revenue_1"]');
         const percentInput = document.querySelector('[name="Percent_Alcohol"]');
         
         // Business Personal Property and Workers Comp formatting
