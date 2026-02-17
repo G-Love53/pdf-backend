@@ -28,9 +28,11 @@ RUN mkdir -p /app/chrome && \
 
 # Copy app source (includes CID_HomeBase if present)
 COPY . .
-# Ensure CID_HomeBase exists in cloud builds (Render doesn't fetch submodules)
+# Ensure CID_HomeBase at pinned commit (Render doesn't fetch submodules; pin = segment ↔ HomeBase)
+ARG CID_PIN=main
 RUN rm -rf CID_HomeBase \
- && git clone --depth 1 https://github.com/G-Love53/CID_HomeBase CID_HomeBase
+ && git clone https://github.com/G-Love53/CID_HomeBase.git CID_HomeBase \
+ && cd CID_HomeBase && ( test -f ../scripts/CID_HomeBase.commit && git checkout $(cat ../scripts/CID_HomeBase.commit) || git checkout ${CID_PIN} ) && cd /app
 
 
 # Set environment variables
