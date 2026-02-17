@@ -183,21 +183,21 @@
 <body>
 <h1>Bar, Tavern & Restaurant Insurance Quote</h1>
 <form id="quoteForm" name="bar-restaurant-quote">
-    <!-- Basic Information -->
-    <label>Applicant Name:<input name="applicant_name" required type="text"/></label>
+    <!-- Basic Information (ACORD-consistent names: insured_name, physical_*) -->
+    <label>Applicant / Insured Name:<input name="insured_name" required type="text"/></label>
     <label>Business Name:<input name="premises_name" type="text"/></label>
     
-    <!-- ADDRESS SECTION - Updated with City, State, Zip -->
-    <label>Business Address:<input name="premise_address" required type="text"/></label>
+    <!-- ADDRESS SECTION - ACORD: physical_address_1, physical_city, physical_state, physical_zip -->
+    <label>Business Address:<input name="physical_address_1" required type="text"/></label>
     <div class="horizontal-group">
         <div>
-            <label>City:<input name="premise_city" required type="text"/></label>
+            <label>City:<input name="physical_city" required type="text"/></label>
         </div>
         <div>
-            <label>State:<input name="premise_state" required type="text"/></label>
+            <label>State:<input name="physical_state" required type="text"/></label>
         </div>
         <div>
-            <label>Zip:<input name="premise_zip" required type="text"/></label>
+            <label>Zip:<input name="physical_zip" required type="text"/></label>
         </div>
     </div>
     <input type="hidden" name="premises_address" id="premises_address_hidden"/>
@@ -211,9 +211,9 @@
     </div>
     
     <label>Business Phone:<input name="business_phone" type="text"/></label>
-    <label>Premises Website:<input name="premises_website" type="text"/></label>
-    <label>Contact Email Address:<input name="contact_email" type="email"/></label>
-    <label>Requested Effective Date:<input name="effective_date" type="date"/></label>
+    <label>Premises Website:<input name="business_website" type="text"/></label>
+    <label>Contact Email Address:<input name="producer_email" type="email"/></label>
+    <label>Requested Effective Date:<input name="policy_effective_date" type="date"/></label>
 
     <!-- Question 1 (mapping: 1_open_for_business_now_or_within_60_days, opening_plan_details, if_no_explain) -->
     <label>1. Are you currently open or will be within 60 days?
@@ -249,7 +249,7 @@
     <label>3. Business Personal Property in $ (movable items owned, equipment, inventory, furniture):<input name="business_personal_property" type="text" inputmode="decimal" placeholder="Enter amount"/></label>
     
     <!-- Question 4 - Square footage -->
-    <label>4. Square footage:<input name="total_squarefeet_1" type="text"/></label>
+    <label>4. Square footage:<input name="square_footage" type="text"/></label>
     
     <!-- Construction Type - Made Horizontal -->
     <label>5. Construction Type:</label>
@@ -265,7 +265,7 @@
             <label>6. Year Built:<input name="year_built" type="text"/></label>
         </div>
         <div>
-            <label>7. Number of Floors:<input name="num_stories" type="text"/></label>
+            <label>7. Number of Floors:<input name="number_of_stories" type="text"/></label>
         </div>
     </div>
     
@@ -273,7 +273,7 @@
     <div class="horizontal-group">
         <div>
             <label>8. Automatic Sprinkler:
-                <select name="percent_sprinker">
+                <select name="automatic_sprinkler">
                     <option value="">-- Select --</option>
                     <option value="Yes">Yes</option>
                     <option value="No">No</option>
@@ -281,7 +281,7 @@
             </label>
         </div>
         <div>
-            <label>9. Number of employees:<input name="fulltime_1" type="text"/></label>
+            <label>9. Number of employees:<input name="number_of_employees" type="text"/></label>
         </div>
     </div>
 
@@ -330,7 +330,7 @@
     <label>14. Annual Receipts:</label>
     <input name="food_sales" placeholder="Food Sales" type="text" inputmode="decimal"/>
     <input name="alcohol_sales" placeholder="Alcohol Sales" type="text" inputmode="decimal"/>
-    <input name="annual_revenue_1" placeholder="Total Sales" type="text" readonly/>
+    <input name="total_sales" placeholder="Total Sales" type="text" readonly/>
     <input name="Percent_Alcohol" placeholder="% Alcohol" type="text" readonly/>
 
     <!-- Cooking Level (mapping: full, limited, none) -->
@@ -576,10 +576,10 @@
         </select>
     </label>
     <div class="conditional-section" data-show-when="claim_count=2_or_less">
-        <label>Please describe the claim and include the date and amount paid:<textarea name="typeofclaim_1"></textarea></label>
+        <label>Please describe the claim and include the date and amount paid:<textarea name="claims_details_2_or_less"></textarea></label>
     </div>
     <div class="conditional-section" data-show-when="claim_count=3_or_more">
-        <label>Please describe the claim and include the date and amount paid:<textarea name="typeofclaim_2"></textarea></label>
+        <label>Please describe the claim and include the date and amount paid:<textarea name="claims_details_3_or_more"></textarea></label>
     </div>
 
     <!-- Building Quote -->
@@ -606,13 +606,13 @@
         </div>
         <div class="horizontal-group">
             <div>
-                <label># of Employee FT:<input name="fulltime_1" type="text"/></label>
+                <label># of Employee FT:<input name="num_ft_employees" type="text"/></label>
             </div>
             <div>
-                <label># of Employee PT:<input name="parttime_1" type="text"/></label>
+                <label># of Employee PT:<input name="num_pt_employees" type="text"/></label>
             </div>
         </div>
-        <label>Est Annual Payroll:<input name="wc_annual_payroll" type="text" inputmode="decimal" placeholder="Enter amount"/></label>
+        <label>Est Annual Payroll:<input name="annual_payroll" type="text" inputmode="decimal" placeholder="Enter amount"/></label>
     </div>
 
     <!-- Additional Insureds - Updated -->
@@ -733,13 +733,13 @@
         // Calculation logic for receipts/percent alcohol
         const foodInput = document.querySelector('[name="food_sales"]');
         const alcoholInput = document.querySelector('[name="alcohol_sales"]');
-        const totalInput = document.querySelector('[name="annual_revenue_1"]');
+        const totalInput = document.querySelector('[name="total_sales"]');
         const percentInput = document.querySelector('[name="Percent_Alcohol"]');
         
         // Business Personal Property and Workers Comp formatting
         const bppInput = document.querySelector('[name="business_personal_property"]');
         const deliveryInput = document.querySelector('[name="delivery_sales_insuredemp_autos"]');
-        const wcPayrollInput = document.querySelector('[name="wc_annual_payroll"]');
+        const wcPayrollInput = document.querySelector('[name="annual_payroll"]');
         
         function strip(value) {
             return parseFloat(value.replace(/[^0-9.-]+/g,"")) || 0;
@@ -833,7 +833,7 @@
             });
         }
 
-        const websiteInput = document.querySelector('[name="premises_website"]');
+        const websiteInput = document.querySelector('[name="business_website"]');
         if (websiteInput) websiteInput.setAttribute("type", "text");
 
         // PREVENT ENTER KEY SUBMITS ON ALL INPUTS
@@ -872,10 +872,10 @@
 
             try {
                 // BAR mapping: set combined/duplicate fields before FormData so PDFs fill
-                const addr = form.querySelector('[name="premise_address"]');
-                const city = form.querySelector('[name="premise_city"]');
-                const state = form.querySelector('[name="premise_state"]');
-                const zip = form.querySelector('[name="premise_zip"]');
+                const addr = form.querySelector('[name="physical_address_1"]');
+                const city = form.querySelector('[name="physical_city"]');
+                const state = form.querySelector('[name="physical_state"]');
+                const zip = form.querySelector('[name="physical_zip"]');
                 const premisesHidden = document.getElementById("premises_address_hidden");
                 if (premisesHidden && addr) premisesHidden.value = [addr.value, city?.value, state?.value, zip?.value].filter(Boolean).join(", ");
                 const openingDetails = form.querySelector('[name="opening_plan_details"]');
