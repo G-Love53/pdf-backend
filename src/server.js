@@ -117,6 +117,15 @@ APP.get("/__version", (_req, res) => {
 async function maybeMapData(name, rawData) {
   const d = { ...rawData };
   const get = (k) => (d[k] != null && d[k] !== "") ? d[k] : undefined;
+  // SUPP_BAR: build premises_address from ACORD-style physical_* when form sends those
+  if (name === "SUPP_BAR") {
+    if (get("premises_address") == null) {
+      const parts = [d.physical_address_1 || d.premise_address, d.physical_city || d.premise_city, d.physical_state || d.premise_state, d.physical_zip || d.premise_zip].filter(Boolean);
+      if (parts.length) d.premises_address = parts.join(", ");
+    }
+    if (get("insured_name") == null && get("applicant_name")) d.insured_name = d.applicant_name;
+  }
+
   if (/^ACORD\d+$/i.test(name)) {
     if (get("insured_name") == null && get("applicant_name")) d.insured_name = d.applicant_name;
     if (get("physical_address_1") == null && get("premises_address")) d.physical_address_1 = d.premises_address;
@@ -125,6 +134,7 @@ async function maybeMapData(name, rawData) {
     if (get("physical_state") == null && get("premise_state")) d.physical_state = d.premise_state;
     if (get("physical_zip") == null && get("premise_zip")) d.physical_zip = d.premise_zip;
     if (get("date") == null && get("effective_date")) d.date = d.effective_date;
+    if (get("date") == null && get("policy_effective_date")) d.date = d.policy_effective_date;
     if (get("policy_effective_date") == null && get("effective_date")) d.policy_effective_date = d.effective_date;
     if (get("business_website") == null && get("premises_website")) d.business_website = d.premises_website;
     if (get("producer_email") == null && get("contact_email")) d.producer_email = d.contact_email;
@@ -132,11 +142,15 @@ async function maybeMapData(name, rawData) {
     if (d.org_type_llc === "Yes") d.llc = "Yes";
     if (d.org_type_corporation === "Yes") d.corporation = "Yes";
     if (d.org_type_individual === "Yes") d.individual = "Yes";
-    // ACORD125 page-2 first location
+    // ACORD125 page-2 first location (accept ACORD physical_* or legacy premise_*)
     if (get("premise_address_1") == null && get("premises_address")) d.premise_address_1 = d.premises_address;
+    if (get("premise_address_1") == null && get("physical_address_1")) d.premise_address_1 = [d.physical_address_1, d.physical_city, d.physical_state, d.physical_zip].filter(Boolean).join(", ");
     if (get("premise_city_1") == null && get("premise_city")) d.premise_city_1 = d.premise_city;
+    if (get("premise_city_1") == null && get("physical_city")) d.premise_city_1 = d.physical_city;
     if (get("contact_name") == null && get("applicant_name")) d.contact_name = d.applicant_name;
+    if (get("contact_name") == null && get("insured_name")) d.contact_name = d.insured_name;
     if (get("contact_email_1") == null && get("contact_email")) d.contact_email_1 = d.contact_email;
+    if (get("contact_email_1") == null && get("producer_email")) d.contact_email_1 = d.producer_email;
     if (get("contact_business_phone") == null && get("business_phone")) d.contact_business_phone = d.business_phone;
     if (get("annual_revenue_1") == null && get("total_sales")) d.annual_revenue_1 = d.total_sales;
     if (get("total_squarefeet_1") == null && get("square_footage")) d.total_squarefeet_1 = d.square_footage;
@@ -150,6 +164,13 @@ async function maybeMapData(name, rawData) {
     if (get("ai_lienholder") == null && get("ai_lienholder")) d.ai_lienholder = d.ai_lienholder;
     if (get("ai_mortgage") == null && get("ai_mortgagee")) d.ai_mortgage = d.ai_mortgagee;
     if (get("ai_insured") == null && get("ai_additional_insured")) d.ai_insured = d.ai_additional_insured;
+    // ACORD130 (Workers Comp): Index now sends num_ft_employees, num_pt_employees, annual_payroll; fallback from legacy wc_*
+    if (name === "ACORD130") {
+      if (get("num_ft_employees") == null && get("wc_employees_ft") != null) d.num_ft_employees = d.wc_employees_ft;
+      if (get("num_pt_employees") == null && get("wc_employees_pt") != null) d.num_pt_employees = d.wc_employees_pt;
+      if (get("annual_payroll") == null && get("wc_annual_payroll") != null) d.annual_payroll = d.wc_annual_payroll;
+      if (get("mailing_state") == null && get("physical_state")) d.mailing_state = d.physical_state;
+    }
     // Smoker/grill notes (SUPP page-2 continuation; build from form if not provided)
     if (get("smoker_grill_notes_cont") == null && get("solid_fuel_smoker_grill_within_10_ft") === "Yes") {
       const parts = [];
