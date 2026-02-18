@@ -11,5 +11,8 @@
   ],
   "LESSOR_PACKET": [
     "LESSOR_A129S"
+  ],
+  "BAR_SUPP_ONLY": [
+    "SUPP_BAR"
   ]
 }
