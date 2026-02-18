@@ -138,7 +138,6 @@ function applyMapping(svg, pageMap, data, pageId = "", templatePath = "") {
   if (!pageMap?.fields?.length) return svg;
 
   const overlay = [];
-  // SUPP_BAR page-2: clip overlay to content area (x >= 194) so left-column titles never get covered/ghosted
   
   overlay.push(`<g id="cid-overlay" font-family="Arial, Helvetica, sans-serif" fill="#000">`);
 
