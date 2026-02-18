@@ -139,11 +139,8 @@ function applyMapping(svg, pageMap, data, pageId = "", templatePath = "") {
 
   const overlay = [];
   // SUPP_BAR page-2: clip overlay to content area (x >= 194) so left-column titles never get covered/ghosted
-  const isSuppBarPage2 = /SUPP_BAR/i.test(String(templatePath)) && pageId === "page-2";
-  const clipAttr = isSuppBarPage2
-    ? ' clip-path="rect(194 0 418 792)"'
-    : "";
-  overlay.push(`<g id="cid-overlay" font-family="Arial, Helvetica, sans-serif" fill="#000"${clipAttr}>`);
+  
+  overlay.push(`<g id="cid-overlay" font-family="Arial, Helvetica, sans-serif" fill="#000">`);
 
   for (const f of pageMap.fields) {
     const key = f.key || f.name;
