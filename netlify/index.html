@@ -183,9 +183,9 @@
 <body>
 <h1>Bar, Tavern & Restaurant Insurance Quote</h1>
 <form id="quoteForm" name="bar-restaurant-quote">
-    <!-- Basic Information (ACORD-consistent names: insured_name, physical_*) -->
-    <label>Applicant / Insured Name:<input name="insured_name" required type="text"/></label>
-    <label>Business Name:<input name="premises_name" type="text"/></label>
+    <!-- Applicant = contact person; Business Name/Insured Name = insured on all SUPP and ACORDs -->
+    <label>Applicant Name (Contact):<input name="applicant_name" required type="text"/></label>
+    <label>Business Name/Insured Name:<input name="insured_name" required type="text" placeholder="Insured on SUPP and ACORDs"/></label>
     
     <!-- ADDRESS SECTION - ACORD: physical_address_1, physical_city, physical_state, physical_zip -->
     <label>Business Address:<input name="physical_address_1" required type="text"/></label>
@@ -349,9 +349,10 @@
         </select>
     </label>
     
-    <!-- Question 17 (mapping: solid_fuel_smoker_grill_within_10_ft, unit_professionally_installed, etc.) -->
+    <!-- Question 17 (mapping: solid_fuel_smoker_grill_within_10_ft = Solid Fuel 10ft from unit on SUPP; also full_limited_none12_solid_fuel_10_ft_from_unit) -->
+    <input type="hidden" name="full_limited_none12_solid_fuel_10_ft_from_unit" id="full_limited_none12_solid_fuel_10_ft_from_unit_hidden"/>
     <label>17. Do you have a non-gas Smoker/Grill (wood, pellets, etc) structure within 10 feet of the Building?
-        <select name="solid_fuel_smoker_grill_within_10_ft" data-conditional="solid_fuel_smoker_grill_within_10_ft">
+        <select name="solid_fuel_smoker_grill_within_10_ft" id="solid_fuel_smoker_grill_within_10_ft" data-conditional="solid_fuel_smoker_grill_within_10_ft">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
@@ -403,12 +404,13 @@
     </div>
 
     <label>18. Any cooking surfaces not protected by a UL300 fire suppression?
-        <select name="ul_suppression_over_cooking">
+        <select name="ul_suppression_over_cooking" id="ul_suppression_over_cooking">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
+    <input type="hidden" name="13_any_cooking_s" id="13_any_cooking_s_hidden"/>
 
     <!-- Entertainment (mapping: 14_any_entertainment_..., details) -->
     <label>19. Any other entertainment besides: Karaoke or Trivia?
@@ -872,6 +874,12 @@
 
             try {
                 // BAR mapping: set combined/duplicate fields before FormData so PDFs fill
+                const solidFuel = document.getElementById("solid_fuel_smoker_grill_within_10_ft");
+                const solidFuelHidden = document.getElementById("full_limited_none12_solid_fuel_10_ft_from_unit_hidden");
+                if (solidFuelHidden && solidFuel) solidFuelHidden.value = solidFuel.value || "";
+                const ulSuppress = document.getElementById("ul_suppression_over_cooking");
+                const ulSuppressHidden = document.getElementById("13_any_cooking_s_hidden");
+                if (ulSuppressHidden && ulSuppress) ulSuppressHidden.value = ulSuppress.value || "";
                 const addr = form.querySelector('[name="physical_address_1"]');
                 const city = form.querySelector('[name="physical_city"]');
                 const state = form.querySelector('[name="physical_state"]');
