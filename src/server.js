@@ -123,7 +123,24 @@ async function maybeMapData(name, rawData) {
       const parts = [d.physical_address_1 || d.premise_address, d.physical_city || d.premise_city, d.physical_state || d.premise_state, d.physical_zip || d.premise_zip].filter(Boolean);
       if (parts.length) d.premises_address = parts.join(", ");
     }
+    if (get("insured_name") == null && get("premises_name")) d.insured_name = d.premises_name;
     if (get("insured_name") == null && get("applicant_name")) d.insured_name = d.applicant_name;
+    // DATE: no form field for "today" — auto-set so SUPP shows current date
+    if (get("date") == null && get("policy_effective_date")) d.date = d.policy_effective_date;
+    if (get("date") == null) {
+      const today = new Date();
+      const y = today.getFullYear(), m = String(today.getMonth() + 1).padStart(2, "0"), day = String(today.getDate()).padStart(2, "0");
+      d.date = `${y}-${m}-${day}`;
+      d.date_2 = d.date;
+    }
+    if (get("date_2") == null && get("date")) d.date_2 = d.date;
+    // Q17: Solid Fuel 10ft from unit on SUPP = form "Smoker within 10ft" (solid_fuel_smoker_grill_within_10_ft)
+    if (get("full_limited_none12_solid_fuel_10_ft_from_unit") == null && get("solid_fuel_smoker_grill_within_10_ft")) d.full_limited_none12_solid_fuel_10_ft_from_unit = d.solid_fuel_smoker_grill_within_10_ft;
+    // Q18: Any cooking surfaces not protected → SUPP "13. Any cooking"
+    if (get("13_any_cooking_s") == null && get("ul_suppression_over_cooking")) d["13_any_cooking_s"] = d.ul_suppression_over_cooking;
+    // Page 1: when No, show "See Page 2"; full explanation only on page 2 (opening_plan_details, prior_experience_details)
+    if (d["1_open_for_business_now_or_within_60_days"] === "No") d.if_no_explain = "See Page 2";
+    if (d["2_at_least_3_years_restaurantbar_ownership_in_last_5_years"] === "No" || d["2_at_least_3_years_restaurantbar_ownership_in_last_5_years_2"] === "No") d.if_no_prior_experie = "See Page 2";
   }
 
   if (/^ACORD\d+$/i.test(name)) {
