@@ -188,6 +188,61 @@ async function maybeMapData(name, rawData) {
       if (get("annual_payroll") == null && get("wc_annual_payroll") != null) d.annual_payroll = d.wc_annual_payroll;
       if (get("mailing_state") == null && get("physical_state")) d.mailing_state = d.physical_state;
     }
+
+    // --- BAR SEGMENT ONLY: extra text/checkboxes for ACORDs (does not change universal ACORD for other segments) ---
+    // Default "bar" so this backend (cid-pdf-api) runs Bar block even if Render env SEGMENT is not set
+    const segment = String(process.env.SEGMENT || "bar").trim().toLowerCase();
+    if (segment === "bar") {
+      if (name === "ACORD125") {
+        // Bar: Lines of Business — add "X" to GL, Property (when "Do you want property coverage" Yes), Cyber (when selected), Liquor Liability
+        if (get("coverage_gl") == null) d.coverage_gl = "X";
+        if (get("coverage_liquor") == null) d.coverage_liquor = "X";
+        if (get("umbrella") == null) d.umbrella = "X";
+        if (get("coverage_hnoa") == null) d.coverage_hnoa = "X";
+        if (get("coverage_property") == null && (d.want_property_coverage === "Yes" || d.property_coverage === "Yes" || d.commercial_property === "Yes")) d.coverage_property = "X";
+        if (get("coverage_cyber") == null && (d.want_cyber_coverage === "Yes" || d.cyber_coverage === "Yes")) d.coverage_cyber = "X";
+        // Premise info: use number_of_employees for FT when no WC section
+        if (get("num_ft_employees") == null && get("number_of_employees") != null) d.num_ft_employees = d.number_of_employees;
+        if (get("num_pt_employees") == null) d.num_pt_employees = "0";
+        // Loss History (page 4): # of claims and Type/Description
+        if (get("total_claims") == null && get("number_of_claims") != null) d.total_claims = d.number_of_claims;
+        if (get("typeofclaim_1") == null && get("claim_description") != null) d.typeofclaim_1 = d.claim_description;
+      }
+      if (name === "ACORD126") {
+        // Bar only: LOC 1,2,3 all text "1"; HAZ num 1,2,3 = "1","2","3"; premium basis and exposure from form
+        if (get("hazzards_loc_1") == null) d.hazzards_loc_1 = "1";
+        if (get("hazzards_loc_2") == null) d.hazzards_loc_2 = "1";
+        if (get("hazzards_loc_3") == null) d.hazzards_loc_3 = "1";
+        if (get("hazzards_num_1") == null) d.hazzards_num_1 = "1";
+        if (get("hazzards_num_2") == null) d.hazzards_num_2 = "2";
+        if (get("hazzards_num_3") == null) d.hazzards_num_3 = "3";
+        if (get("prem_basis_1") == null) d.prem_basis_1 = "GROSS REV";
+        if (get("prem_basis_2") == null) d.prem_basis_2 = "LIQ REV";
+        if (get("prem_basis_3") == null) d.prem_basis_3 = "SQUARE FT";
+        if (get("exposure_1") == null && get("total_sales") != null) d.exposure_1 = d.total_sales;
+        if (get("exposure_2") == null && get("alcohol_sales") != null) d.exposure_2 = d.alcohol_sales;
+        if (get("exposure_3") == null && get("square_footage") != null) d.exposure_3 = d.square_footage;
+      }
+      if (name === "ACORD130") {
+        // Bar: class code 9084, category BAR TAVERN; location_1 text "1"
+        if (get("location_1") == null) d.location_1 = "1";
+        if (get("class_code") == null) d.class_code = "9084";
+        if (get("category_description") == null) d.category_description = "BAR TAVERN";
+      }
+      if (name === "ACORD140") {
+        // Bar: Subject of Insurance text; deduct_2 $2500 ALS; sprinkler YES + SPRINKLERS when automatic_sprinkler Yes
+        if (get("sub_insurance_1") == null) d.sub_insurance_1 = "BUILDING";
+        if (get("sub_insurance_2") == null) d.sub_insurance_2 = "BUS Personal Prop";
+        if (get("sub_insurance_3") == null) d.sub_insurance_3 = "Business Income";
+        if (get("deduct_2") == null) d.deduct_2 = "$2500";
+        if (get("deduct_type_2") == null) d.deduct_type_2 = "ALS";
+        if (d.automatic_sprinkler === "Yes") {
+          if (get("percent_sprinkler") == null) d.percent_sprinkler = "YES";
+          if (get("type_of_fire_protection") == null) d.type_of_fire_protection = "SPRINKLERS";
+        }
+      }
+    }
+
     // Smoker/grill notes (SUPP page-2 continuation; build from form if not provided)
     if (get("smoker_grill_notes_cont") == null && get("solid_fuel_smoker_grill_within_10_ft") === "Yes") {
       const parts = [];
