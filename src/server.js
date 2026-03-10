@@ -5,6 +5,8 @@ import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { generateDocument } from "./generators/index.js";
 import { sendWithGmail } from "./email.js";
+import { recordSubmission } from "./db.js";
+import { startGmailPoller } from "./jobs/gmailPoller.js";
 // Note: Ensure your enricher import matches the file name in your 'src' folder
 // import enrichFormData from '../mapping/data-enricher.js'; 
 
@@ -101,6 +103,14 @@ function flattenData(body = {}) {
 
 APP.get("/healthz", (_req, res) => res.status(200).send("ok"));
 APP.get("/", (_req, res) => res.status(200).send("ok"));
+
+// Temporary debug endpoint to verify DB wiring
+APP.get("/debug-db", (_req, res) => {
+  res.json({
+    ok: true,
+    hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
+  });
+});
 
 APP.get("/__version", (_req, res) => {
   res.json({
@@ -349,21 +359,73 @@ APP.post("/render-bundle", async (req, res) => {
 });
 
 
-// Submit Quote Endpoint (LEG 1) — CID RSS CANONICAL
+// Submit Quote Endpoint (LEG 1) — CID RSS CANONICAL + DB write
 APP.post("/submit-quote", async (req, res) => {
   try {
     const body = req.body || {};
     const formData =
-    body.data ||
-    body.formData ||
-    body.fields ||
-    body.requestRow?.data ||
-    body.requestRow?.fields ||
-    body.requestRow ||
-    {};
+      body.data ||
+      body.formData ||
+      body.fields ||
+      body.requestRow?.data ||
+      body.requestRow?.fields ||
+      body.requestRow ||
+      {};
     const bundle_id = body.bundle_id;
     const segments = Array.isArray(body.segments) ? body.segments : [];
     const segment = String(body.segment || process.env.SEGMENT || "").trim().toLowerCase();
+
+    // Phase 2: write into CID schema (best-effort, never blocks PDF/email)
+    let submissionPublicId = null;
+    try {
+      const primaryEmail =
+        formData.contact_email ||
+        formData.email ||
+        formData.applicant_email ||
+        null;
+
+      if (primaryEmail) {
+        const sourceDomain =
+          body.site_domain ||
+          req.headers.origin ||
+          req.headers.host ||
+          "unknown";
+
+        const sourceForm = bundle_id || "submit-quote";
+
+        const rawSubmission = {
+          ...formData,
+          segment,
+          bundle_id,
+          site_domain: body.site_domain,
+        };
+
+        const dbResult = await recordSubmission({
+          segment,
+          sourceDomain,
+          sourceForm,
+          rawSubmission,
+          primaryEmail,
+          primaryPhone:
+            formData.business_phone ||
+            formData.applicant_phone ||
+            formData.phone ||
+            null,
+          firstName: formData.first_name || null,
+          lastName: formData.last_name || null,
+        });
+
+        if (dbResult?.submissionPublicId) {
+          submissionPublicId = dbResult.submissionPublicId;
+          console.log("[submit-quote] recorded submission", submissionPublicId);
+        } else {
+          console.log("[submit-quote] recordSubmission returned null (no DB write)");
+        }
+      }
+    } catch (dbErr) {
+      // Non-fatal: logging only so quoting continues even if DB is unavailable.
+      console.error("[submit-quote] DB write failed:", dbErr.message || dbErr);
+    }
 
     // 1) Resolve template list from bundle_id (preferred) OR segments[] (legacy)
     let templateNames = [];
@@ -418,9 +480,13 @@ APP.post("/submit-quote", async (req, res) => {
 
     const applicant = (formData.applicant_name || formData.insured_name || "").trim();
     const segLabel = segment ? segment.toUpperCase() : "CID";
-    const subject =
+    const baseSubject =
       body.email?.subject?.trim()
       || `CID Submission Packet — ${segLabel}${applicant ? " — " + applicant : ""}`;
+
+    const subject = submissionPublicId
+      ? `${baseSubject} [${submissionPublicId}]`
+      : baseSubject;
 
     const emailBlock = {
       to,
@@ -439,6 +505,8 @@ APP.post("/submit-quote", async (req, res) => {
   }
 });
 
+
+startGmailPoller();
 
 const PORT = process.env.PORT || 8080;
 APP.listen(PORT, () => console.log(`PDF service listening on ${PORT}`));

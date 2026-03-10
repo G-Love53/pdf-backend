@@ -10,8 +10,11 @@
         padding: 20px;
         background-color: #f8f8f8;
         color: #333;
+        margin: 0;
     }
-    form {
+
+    /* Plumber-style card container */
+    .form-container {
         max-width: 800px;
         margin: 20px auto;
         padding: 30px;
@@ -19,12 +22,19 @@
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
+
     h1 {
         color: #ff8c00;
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 10px;
         font-size: 2em;
         font-weight: bold;
+    }
+
+    .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
     }
     label {
         display: block;
@@ -90,6 +100,44 @@
         text-align: center;
         margin-top: 40px;
         color: #999;
+    }
+
+    /* Accordion (Plumber style) */
+    details {
+        border: 1px solid #ddd;
+        background: #fff;
+        margin: 15px 0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 18px 20px;
+        background: linear-gradient(135deg, #ff8c00 0%, #f97316 100%);
+        color: #fff;
+        font-weight: bold;
+        font-size: 1.1em;
+        user-select: none;
+        -webkit-user-select: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    summary::after {
+        content: '+';
+        font-size: 1.5em;
+        font-weight: bold;
+    }
+    details[open] summary::after {
+        content: '-';
+    }
+    summary::-webkit-details-marker {
+        display: none;
+    }
+    details > div {
+        padding: 22px 20px 24px 20px;
+        background: #fff;
     }
     
     /* Horizontal layout styles */
@@ -181,9 +229,14 @@
 </style>
 </head>
 <body>
+<div class="form-container">
 <h1>Bar, Tavern & Restaurant Insurance Quote</h1>
+<p class="subtitle">Get your quote in minutes. No agent calls. No back-and-forth.</p>
 <form id="quoteForm" name="bar-restaurant-quote">
     <!-- Applicant = contact person; Business Name/Insured Name = insured on all SUPP and ACORDs -->
+    <details open>
+      <summary>Business Information</summary>
+      <div>
     <label>Applicant Name (Contact):<input name="applicant_name" required type="text"/></label>
     <label>Business Name/Insured Name:<input name="insured_name" required type="text"/></label>
     
@@ -308,6 +361,13 @@
             <option value="No">No</option>
         </select>
     </label>
+      </div>
+    </details>
+
+    <details>
+      <summary>Operations & Cooking</summary>
+      <div>
+
     <label>13. Does the insured manufacture alcohol?
         <select name="8_manufacture_alcohol" data-conditional="8_manufacture_alcohol">
             <option value="">-- Select --</option>
@@ -412,6 +472,13 @@
     </label>
     <input type="hidden" name="13_any_cooking_s" id="13_any_cooking_s_hidden"/>
 
+      </div>
+    </details>
+
+    <details>
+      <summary>Alcohol, Entertainment & Activities</summary>
+      <div>
+
     <!-- Entertainment (mapping: 14_any_entertainment_..., details) -->
     <label>19. Any other entertainment besides: Karaoke or Trivia?
         <select name="14_any_entertainment_other_than_bg_musickaraoketrivia" data-conditional="14_any_entertainment_other_than_bg_musickaraoketrivia">
@@ -437,7 +504,7 @@
         <label>Describe the activities:<input name="recreational_details" type="text"/></label>
     </div>
     <input type="hidden" name="details_2" id="details_2_hidden"/>
-
+    
     <!-- Security (mapping: background_checks, armed, conflictres_trained) -->
     <label>21. Security or bouncers?
         <select name="security_present" data-conditional="security_present">
@@ -470,6 +537,13 @@
         </label>
     </div>
 
+      </div>
+    </details>
+
+    <details>
+      <summary>Delivery, Auto & Shuttle</summary>
+      <div>
+    
     <!-- Question 22 - Delivery (mapping: 17_offer_delivery, insuredowned_autos, etc.) -->
     <label>22. Do you Deliver (not including UberEats, DoorDash, etc)?
         <select name="17_offer_delivery" data-conditional="17_offer_delivery">
@@ -556,6 +630,13 @@
         </select>
     </label>
 
+      </div>
+    </details>
+
+    <details>
+      <summary>Additional Insured & Certificates</summary>
+      <div>
+    
     <!-- Question 24 - Liquor (mapping: 19_any_liquor_law_violations..., if_yes_describe) -->
     <label>24. Do you have any liquor law violations?
         <select name="19_any_liquor_law_violations_in_last_3_years" data-conditional="19_any_liquor_law_violations_in_last_3_years">
@@ -653,7 +734,7 @@
                 <option value="No">No</option>
             </select>
         </label>
-        <div class="conditional-section" data-show-when="additional_names=Yes">
+    <div class="conditional-section" data-show-when="additional_names=Yes">
             <div class="checkbox-horizontal">
                 <label><input type="checkbox" name="ai_loss_payee_2" value="Yes"/> Loss Payee</label>
                 <label><input type="checkbox" name="ai_lienholder_2" value="Yes"/> Lienholder</label>
@@ -683,9 +764,13 @@
         <label><input type="checkbox" name="payment_plan_Annual" value="Yes"/> Annual</label>
     </div>
 
+      </div>
+    </details>
+    
     <button type="submit">Submit</button>
 </form>
 <div class="small-text">© Commercial Insurance Direct LLC, 2025. All rights reserved.</div>
+</div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         // ROBUST GHOST SUBMIT PREVENTION
