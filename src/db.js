@@ -153,7 +153,7 @@ export async function recordSubmission({
 
 // src/db.js
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 // CRITICAL: Use the Service Role Key for server-side security
@@ -213,4 +213,4 @@ export async function uploadCarrierResource(carrierName, segment, type, title, f
   if (dbErr) throw dbErr;
 }
 
-export { saveQuoteToDb, uploadCarrierResource };
+
