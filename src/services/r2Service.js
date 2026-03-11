@@ -1,4 +1,4 @@
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const BUCKET = process.env.R2_BUCKET_NAME;
 const ENDPOINT = process.env.R2_ENDPOINT;
@@ -49,4 +49,22 @@ export async function getObjectStream(storagePath) {
   const res = await s3.send(cmd);
   return res.Body;
 }
+
+export async function uploadBuffer(storagePath, buffer, contentType = "application/pdf", metadata = {}) {
+  if (!BUCKET || !ENDPOINT) {
+    throw new Error("R2 not configured");
+  }
+
+  const s3 = getClient();
+  const cmd = new PutObjectCommand({
+    Bucket: BUCKET,
+    Key: storagePath,
+    Body: buffer,
+    ContentType: contentType,
+    Metadata: metadata,
+  });
+  await s3.send(cmd);
+  return storagePath;
+}
+
 

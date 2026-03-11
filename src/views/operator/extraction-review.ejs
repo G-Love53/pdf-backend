@@ -261,7 +261,9 @@
         const container = document.getElementById("form-container");
         confidenceScores = data.confidence_scores || {};
 
-        container.innerHTML = `
+        const seg = (data.segment || "").toLowerCase();
+
+        let html = `
           ${fieldRow("carrier_name", "Carrier")}
           ${fieldRow("policy_type", "Policy Type")}
           ${fieldRow("annual_premium", "Annual Premium", "number")}
@@ -270,13 +272,55 @@
           ${fieldRow("gl_per_occurrence", "GL Per Occurrence", "number")}
           ${fieldRow("gl_aggregate", "GL Aggregate", "number")}
           ${fieldRow("deductible", "Deductible", "number")}
-          ${fieldRow("liquor_liability_included", "Liquor Liability Included")}
-          ${fieldRow("liquor_liability_limit", "Liquor Liability Limit", "number")}
-          ${fieldRow("assault_battery_coverage", "Assault & Battery Coverage")}
-          ${fieldRow("assault_battery_sublimit", "Assault & Battery Sublimit", "number")}
-          ${fieldRow("entertainment_coverage", "Entertainment Coverage")}
+          ${fieldRow("additional_coverages", "Additional Coverages (comma-separated)")}
+          ${fieldRow("exclusions_noted", "Exclusions Noted (comma-separated)")}
+        `;
+
+        if (seg === "bar") {
+          html += `
+            ${fieldRow("liquor_liability_included", "Liquor Liability Included")}
+            ${fieldRow("liquor_liability_limit", "Liquor Liability Limit", "number")}
+            ${fieldRow("assault_battery_coverage", "Assault & Battery Coverage")}
+            ${fieldRow("assault_battery_sublimit", "Assault & Battery Sublimit", "number")}
+            ${fieldRow("entertainment_coverage", "Entertainment Coverage")}
+          `;
+        } else if (seg === "roofer") {
+          html += `
+            ${fieldRow("wc_included", "WC Included")}
+            ${fieldRow("wc_premium", "WC Premium", "number")}
+            ${fieldRow("wc_mod_rate", "WC Mod Rate", "number")}
+            ${fieldRow("completed_ops_included", "Completed Ops Included")}
+            ${fieldRow("completed_ops_limit", "Completed Ops Limit", "number")}
+            ${fieldRow("height_exclusion", "Height Exclusion")}
+            ${fieldRow("roofing_type_restrictions", "Roofing Type Restrictions (comma-separated)")}
+          `;
+        } else if (seg === "plumber") {
+          html += `
+            ${fieldRow("wc_included", "WC Included")}
+            ${fieldRow("wc_premium", "WC Premium", "number")}
+            ${fieldRow("professional_liability", "Professional Liability Included")}
+            ${fieldRow("professional_liability_limit", "Professional Liability Limit", "number")}
+            ${fieldRow("water_damage_sublimit", "Water Damage Sublimit", "number")}
+            ${fieldRow("tools_equipment_coverage", "Tools & Equipment Coverage", "number")}
+          `;
+        } else if (seg === "hvac") {
+          html += `
+            ${fieldRow("wc_included", "WC Included")}
+            ${fieldRow("wc_premium", "WC Premium", "number")}
+            ${fieldRow("professional_liability", "Professional Liability Included")}
+            ${fieldRow("professional_liability_limit", "Professional Liability Limit", "number")}
+            ${fieldRow("refrigerant_coverage", "Refrigerant Coverage")}
+            ${fieldRow("pollution_liability", "Pollution Liability Included")}
+            ${fieldRow("pollution_liability_limit", "Pollution Liability Limit", "number")}
+            ${fieldRow("tools_equipment_coverage", "Tools & Equipment Coverage", "number")}
+          `;
+        }
+
+        html += `
           ${fieldRow("agent_notes", "Agent Notes", "textarea")}
         `;
+
+        container.innerHTML = html;
       }
 
       async function runExtraction() {

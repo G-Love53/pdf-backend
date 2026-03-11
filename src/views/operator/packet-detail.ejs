@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Packet Detail</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #020617;
+        color: #e5e7eb;
+      }
+      header {
+        padding: 12px 20px;
+        border-bottom: 1px solid #1f2937;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header span {
+        font-size: 12px;
+        color: #9ca3af;
+      }
+      main {
+        display: grid;
+        grid-template-columns: 55% 45%;
+        height: calc(100vh - 56px);
+      }
+      .pdf-pane {
+        border-right: 1px solid #1f2937;
+        display: flex;
+        flex-direction: column;
+      }
+      .pdf-header {
+        padding: 8px 12px;
+        border-bottom: 1px solid #1f2937;
+        font-size: 12px;
+        color: #9ca3af;
+        display: flex;
+        justify-content: space-between;
+      }
+      .pdf-frame {
+        flex: 1;
+        background: #020617;
+      }
+      iframe {
+        border: 0;
+        width: 100%;
+        height: 100%;
+        background: #020617;
+      }
+      .detail-pane {
+        display: flex;
+        flex-direction: column;
+      }
+      .detail-header {
+        padding: 8px 12px;
+        border-bottom: 1px solid #1f2937;
+        font-size: 12px;
+        color: #9ca3af;
+      }
+      .detail-body {
+        padding: 10px 14px 14px;
+        overflow-y: auto;
+      }
+      .field-group {
+        margin-bottom: 8px;
+      }
+      .field-group label {
+        display: block;
+        font-size: 11px;
+        color: #9ca3af;
+        margin-bottom: 2px;
+      }
+      .field-group input,
+      .field-group textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 6px;
+        border: 1px solid #1f2937;
+        background: #020617;
+        color: #e5e7eb;
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+      .actions {
+        padding: 8px 12px;
+        border-top: 1px solid #1f2937;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      button {
+        border-radius: 999px;
+        border: 1px solid transparent;
+        padding: 6px 12px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: #22c55e;
+        color: #022c22;
+        border-color: #16a34a;
+      }
+      .btn-secondary {
+        background: #020617;
+        color: #e5e7eb;
+        border-color: #374151;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Packet Detail</h1>
+        <span id="header-subtitle"></span>
+      </div>
+      <div>
+        <span style="font-size: 11px; color: #9ca3af;"
+          >Ctrl+Enter = Send Packet</span
+        >
+      </div>
+    </header>
+    <main>
+      <section class="pdf-pane">
+        <div class="pdf-header">
+          <div id="client-meta"></div>
+          <div id="quote-meta"></div>
+        </div>
+        <div class="pdf-frame">
+          <iframe id="pdf-frame" src=""></iframe>
+        </div>
+      </section>
+      <section class="detail-pane">
+        <div class="detail-header" id="summary-header"></div>
+        <div class="detail-body">
+          <div class="field-group">
+            <label>To</label>
+            <input id="to-input" type="email" />
+          </div>
+          <div class="field-group">
+            <label>CC</label>
+            <input id="cc-input" type="text" placeholder="comma-separated" />
+          </div>
+          <div class="field-group">
+            <label>Subject</label>
+            <input id="subject-input" type="text" />
+          </div>
+          <div class="field-group">
+            <label>Body (optional override)</label>
+            <textarea id="body-input" rows="6"></textarea>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-secondary" id="preview-btn">Preview</button>
+          <button class="btn-primary" id="send-btn">Send Packet</button>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const quoteId = "<%= quoteId %>";
+
+      let lastPreview = null;
+      let lastMetadata = null;
+
+      function setPdfFromBase64(base64) {
+        if (!base64) return;
+        const src = "data:application/pdf;base64," + base64;
+        document.getElementById("pdf-frame").src = src;
+      }
+
+      async function loadInitial() {
+        await preview();
+      }
+
+      async function preview() {
+        const res = await fetch(
+          "/api/quotes/" + quoteId + "/packet/preview",
+          { method: "POST" }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        lastPreview = data.preview_base64;
+        lastMetadata = data.metadata;
+
+        setPdfFromBase64(lastPreview);
+
+        document.getElementById("header-subtitle").textContent =
+          data.metadata.client_name || "";
+        document.getElementById("client-meta").textContent =
+          (data.metadata.client_name || "") +
+          " · " +
+          (data.metadata.client_email || "");
+        document.getElementById("quote-meta").textContent =
+          (data.metadata.carrier_name || "") +
+          " · " +
+          (data.metadata.policy_type || "");
+
+        const summaryHeader = document.getElementById("summary-header");
+        summaryHeader.textContent =
+          "Premium: " +
+          (data.metadata.annual_premium != null
+            ? "$" + Number(data.metadata.annual_premium).toLocaleString()
+            : "—") +
+          " · Effective: " +
+          (data.metadata.effective_date || "");
+
+        const toInput = document.getElementById("to-input");
+        if (!toInput.value) {
+          toInput.value = data.metadata.client_email || "";
+        }
+
+        const subj = document.getElementById("subject-input");
+        if (!subj.value) {
+          subj.value =
+            "Your " +
+            (data.metadata.policy_type || "") +
+            " Insurance Quote — " +
+            (data.metadata.carrier_name || "");
+        }
+      }
+
+      async function sendPacket() {
+        const to = document.getElementById("to-input").value.trim();
+        const ccRaw = document.getElementById("cc-input").value.trim();
+        const subject = document.getElementById("subject-input").value.trim();
+        const body = document.getElementById("body-input").value.trim();
+
+        const cc = ccRaw
+          ? ccRaw.split(",").map((s) => s.trim()).filter(Boolean)
+          : [];
+
+        const res = await fetch(
+          "/api/quotes/" + quoteId + "/packet/finalize",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              agent_id: "operator",
+              recipient_email: to,
+              cc_emails: cc,
+              email_subject: subject,
+              email_body_override: body || null,
+            }),
+          }
+        );
+        if (!res.ok) {
+          alert("Failed to send packet.");
+          return;
+        }
+        window.location.href = "/operator/packet-builder";
+      }
+
+      document
+        .getElementById("preview-btn")
+        .addEventListener("click", preview);
+      document.getElementById("send-btn").addEventListener("click", sendPacket);
+
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.key === "Enter") {
+          e.preventDefault();
+          sendPacket();
+        }
+      });
+
+      loadInitial();
+    </script>
+  </body>
+</html>
+

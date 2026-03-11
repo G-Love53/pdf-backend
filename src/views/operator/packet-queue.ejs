@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Packet Builder</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #0f172a;
+        color: #e5e7eb;
+      }
+      header {
+        padding: 16px 24px;
+        border-bottom: 1px solid #1f2937;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      header h1 {
+        font-size: 18px;
+        margin: 0;
+      }
+      header span {
+        font-size: 13px;
+        color: #9ca3af;
+      }
+      main {
+        padding: 16px 24px 32px;
+      }
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .filter-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      select {
+        background: #020617;
+        color: #e5e7eb;
+        border-radius: 999px;
+        border: 1px solid #1f2937;
+        padding: 4px 12px;
+        font-size: 13px;
+      }
+      .submission-group {
+        margin-bottom: 16px;
+        border-radius: 10px;
+        background: #020617;
+        border: 1px solid #1f2937;
+        overflow: hidden;
+      }
+      .submission-header {
+        padding: 10px 14px;
+        border-bottom: 1px solid #1f2937;
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        color: #9ca3af;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 6px 10px;
+        font-size: 13px;
+        border-bottom: 1px solid #111827;
+      }
+      th {
+        text-align: left;
+        color: #9ca3af;
+      }
+      tr {
+        cursor: pointer;
+      }
+      tr:hover {
+        background: #020617;
+      }
+      .pill {
+        border-radius: 999px;
+        padding: 2px 8px;
+        background: #020617;
+        border: 1px solid #1f2937;
+        font-size: 11px;
+        color: #9ca3af;
+      }
+      .status-sent {
+        color: #bbf7d0;
+      }
+      .status-ready {
+        color: #38bdf8;
+      }
+      .pending-count {
+        font-size: 13px;
+        color: #9ca3af;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Packet Builder</h1>
+        <span>S5 &mdash; Client Packet</span>
+      </div>
+      <div class="pending-count">
+        Ready: <span id="ready-count">0</span>
+      </div>
+    </header>
+    <main>
+      <div class="toolbar">
+        <div class="filter-group">
+          <label for="segment-filter">Segment:</label>
+          <select id="segment-filter">
+            <option value="">All</option>
+            <option value="bar">Bar</option>
+            <option value="roofer">Roofer</option>
+            <option value="plumber">Plumber</option>
+            <option value="hvac">HVAC</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="queue-container"></div>
+    </main>
+
+    <script>
+      async function fetchReady() {
+        const segment = document.getElementById("segment-filter").value;
+        const params = new URLSearchParams();
+        if (segment) params.set("segment", segment);
+        const res = await fetch(
+          "/api/quotes/ready-for-packet?" + params.toString()
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const bySubmission = {};
+        (data.items || []).forEach((item) => {
+          const key = item.submission_public_id;
+          if (!bySubmission[key]) bySubmission[key] = {
+            submission_public_id: item.submission_public_id,
+            client_name: item.client_name,
+            segment: item.segment,
+            quotes: [],
+          };
+          bySubmission[key].quotes.push(item);
+        });
+
+        document.getElementById("ready-count").textContent =
+          data.items?.length ?? 0;
+
+        const container = document.getElementById("queue-container");
+        container.innerHTML = "";
+
+        Object.values(bySubmission).forEach((group) => {
+          const div = document.createElement("div");
+          div.className = "submission-group";
+
+          const header = document.createElement("div");
+          header.className = "submission-header";
+          header.innerHTML = `
+            <div>
+              <strong>${group.submission_public_id}</strong>
+              <span style="margin-left:8px; color:#9ca3af;">${
+                group.client_name || ""
+              }</span>
+            </div>
+            <div>
+              <span class="pill">${(group.segment || "").toUpperCase()}</span>
+            </div>
+          `;
+
+          const table = document.createElement("table");
+          table.innerHTML = `
+            <thead>
+              <tr>
+                <th>Carrier</th>
+                <th>Policy</th>
+                <th>Premium</th>
+                <th>Reviewed</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          `;
+
+          const tbody = table.querySelector("tbody");
+          group.quotes.forEach((q) => {
+            const tr = document.createElement("tr");
+            tr.onclick = () => {
+              window.location.href =
+                "/operator/packet-builder/" + q.quote_id;
+            };
+
+            const status =
+              q.existing_packet_status === "sent" ? "Sent ✓" : "Ready";
+            const statusClass =
+              q.existing_packet_status === "sent"
+                ? "status-sent"
+                : "status-ready";
+
+            tr.innerHTML = `
+              <td>${q.carrier_name || "Unknown"}</td>
+              <td>${q.policy_type || ""}</td>
+              <td>${
+                q.annual_premium != null
+                  ? "$" + Number(q.annual_premium).toLocaleString()
+                  : "—"
+              }</td>
+              <td>${q.reviewed_at || ""}</td>
+              <td class="${statusClass}">${status}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          div.appendChild(header);
+          div.appendChild(table);
+          container.appendChild(div);
+        });
+      }
+
+      document
+        .getElementById("segment-filter")
+        .addEventListener("change", fetchReady);
+
+      fetchReady();
+      setInterval(fetchReady, 30000);
+    </script>
+  </body>
+</html>
+

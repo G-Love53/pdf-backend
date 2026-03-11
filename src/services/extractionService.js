@@ -1,6 +1,9 @@
 import { getPool } from "../db.js";
 import { getObjectStream } from "./r2Service.js";
 import buildBarExtractionPrompt from "../prompts/extraction/bar.js";
+import buildRooferExtractionPrompt from "../prompts/extraction/roofer.js";
+import buildPlumberExtractionPrompt from "../prompts/extraction/plumber.js";
+import buildHvacExtractionPrompt from "../prompts/extraction/hvac.js";
 
 const pool = getPool();
 
@@ -15,6 +18,9 @@ async function bufferFromStream(stream) {
 function resolvePromptBuilder(segment) {
   const seg = String(segment || "bar").toLowerCase();
   if (seg === "bar") return buildBarExtractionPrompt;
+  if (seg === "roofer") return buildRooferExtractionPrompt;
+  if (seg === "plumber") return buildPlumberExtractionPrompt;
+  if (seg === "hvac") return buildHvacExtractionPrompt;
   return buildBarExtractionPrompt;
 }
 
