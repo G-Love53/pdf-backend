@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Extraction Review</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #020617;
+        color: #e5e7eb;
+      }
+      header {
+        padding: 12px 20px;
+        border-bottom: 1px solid #1f2937;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+      }
+      header span {
+        font-size: 12px;
+        color: #9ca3af;
+      }
+      main {
+        display: grid;
+        grid-template-columns: 55% 45%;
+        height: calc(100vh - 56px);
+      }
+      .pdf-pane {
+        border-right: 1px solid #1f2937;
+        display: flex;
+        flex-direction: column;
+      }
+      .pdf-header {
+        padding: 8px 12px;
+        border-bottom: 1px solid #1f2937;
+        font-size: 12px;
+        color: #9ca3af;
+        display: flex;
+        justify-content: space-between;
+      }
+      .pdf-frame {
+        flex: 1;
+        background: #020617;
+      }
+      iframe {
+        border: 0;
+        width: 100%;
+        height: 100%;
+        background: #020617;
+      }
+      .detail-pane {
+        display: flex;
+        flex-direction: column;
+      }
+      .detail-header {
+        padding: 8px 12px;
+        border-bottom: 1px solid #1f2937;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: #9ca3af;
+      }
+      .detail-body {
+        padding: 10px 14px 14px;
+        overflow-y: auto;
+      }
+      .field-group {
+        margin-bottom: 8px;
+      }
+      .field-group label {
+        display: block;
+        font-size: 11px;
+        color: #9ca3af;
+        margin-bottom: 2px;
+      }
+      .field-group input,
+      .field-group textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 6px;
+        border: 1px solid #1f2937;
+        background: #020617;
+        color: #e5e7eb;
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+      .field-low-confidence {
+        border-color: #854d0e;
+        background: #292524;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .chip {
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #0b1120;
+        border: 1px solid #1f2937;
+        font-size: 11px;
+      }
+      .actions {
+        padding: 8px 12px;
+        border-top: 1px solid #1f2937;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      button {
+        border-radius: 999px;
+        border: 1px solid transparent;
+        padding: 6px 12px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: #22c55e;
+        color: #022c22;
+        border-color: #16a34a;
+      }
+      .btn-secondary {
+        background: #020617;
+        color: #e5e7eb;
+        border-color: #374151;
+      }
+      .btn-danger {
+        background: #7f1d1d;
+        color: #fee2e2;
+        border-color: #b91c1c;
+      }
+      .meta-row {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Extraction Review</h1>
+        <span id="header-subtitle"></span>
+      </div>
+      <div>
+        <span style="font-size: 11px; color: #9ca3af;"
+          >Ctrl+Enter = Confirm · Ctrl+S = Skip</span
+        >
+      </div>
+    </header>
+    <main>
+      <section class="pdf-pane">
+        <div class="pdf-header">
+          <div id="client-meta"></div>
+          <div id="match-meta"></div>
+        </div>
+        <div class="pdf-frame">
+          <iframe id="pdf-frame" src=""></iframe>
+        </div>
+      </section>
+      <section class="detail-pane">
+        <div class="detail-header">
+          <div id="carrier-meta"></div>
+          <div id="confidence-meta"></div>
+        </div>
+        <div class="detail-body" id="form-container"></div>
+        <div class="actions">
+          <button class="btn-secondary" id="rerun-btn">Re-Run</button>
+          <button class="btn-danger" id="skip-btn">Skip</button>
+          <button class="btn-primary" id="confirm-btn">Confirm</button>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const workQueueItemId = "<%= workQueueItemId %>";
+
+      let currentData = null;
+      let confidenceScores = {};
+
+      function fieldRow(key, label, type = "text") {
+        const value =
+          (currentData && currentData.extracted_data
+            ? currentData.extracted_data[key]
+            : "") ?? "";
+        const score = confidenceScores[key] ?? 1;
+        const low = score < 0.85;
+
+        const extraClass = low ? "field-low-confidence" : "";
+
+        if (type === "textarea") {
+          return `
+            <div class="field-group">
+              <label>${label}</label>
+              <textarea data-field="${key}" rows="3" class="${extraClass}">${value}</textarea>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="field-group">
+            <label>${label}</label>
+            <input data-field="${key}" type="${type}" value="${value}" class="${extraClass}" />
+          </div>
+        `;
+      }
+
+      async function loadDetail() {
+        const res = await fetch(
+          "/api/queue/extraction-review/" + workQueueItemId
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        currentData = data;
+
+        document.getElementById("pdf-frame").src =
+          data.pdf_signed_url || "about:blank";
+
+        document.getElementById("header-subtitle").textContent =
+          data.submission_public_id || "";
+
+        document.getElementById("client-meta").textContent = [
+          data.client?.business_name,
+          data.client?.email,
+        ]
+          .filter(Boolean)
+          .join(" · ");
+
+        document.getElementById("match-meta").textContent =
+          "Match: " + (data.match_confidence || "unknown");
+
+        document.getElementById("carrier-meta").textContent = [
+          data.carrier_message?.from_email,
+          data.carrier_message?.subject,
+        ]
+          .filter(Boolean)
+          .join(" · ");
+
+        const overallScore = data.confidence_scores?.overall ?? null;
+        document.getElementById("confidence-meta").textContent = overallScore
+          ? "Overall confidence: " + Math.round(overallScore * 100) + "%"
+          : "";
+
+        if (!data.extracted_data) {
+          await runExtraction();
+          return;
+        }
+
+        renderForm(data);
+      }
+
+      function renderForm(data) {
+        const container = document.getElementById("form-container");
+        confidenceScores = data.confidence_scores || {};
+
+        container.innerHTML = `
+          ${fieldRow("carrier_name", "Carrier")}
+          ${fieldRow("policy_type", "Policy Type")}
+          ${fieldRow("annual_premium", "Annual Premium", "number")}
+          ${fieldRow("effective_date", "Effective Date")}
+          ${fieldRow("expiration_date", "Expiration Date")}
+          ${fieldRow("gl_per_occurrence", "GL Per Occurrence", "number")}
+          ${fieldRow("gl_aggregate", "GL Aggregate", "number")}
+          ${fieldRow("deductible", "Deductible", "number")}
+          ${fieldRow("liquor_liability_included", "Liquor Liability Included")}
+          ${fieldRow("liquor_liability_limit", "Liquor Liability Limit", "number")}
+          ${fieldRow("assault_battery_coverage", "Assault & Battery Coverage")}
+          ${fieldRow("assault_battery_sublimit", "Assault & Battery Sublimit", "number")}
+          ${fieldRow("entertainment_coverage", "Entertainment Coverage")}
+          ${fieldRow("agent_notes", "Agent Notes", "textarea")}
+        `;
+      }
+
+      async function runExtraction() {
+        const res = await fetch(
+          "/api/queue/extraction-review/" + workQueueItemId + "/extract",
+          { method: "POST" }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        currentData = currentData || {};
+        currentData.extracted_data = data.extracted_data;
+        currentData.confidence_scores = data.confidence_scores;
+        renderForm(currentData);
+      }
+
+      function collectFormData() {
+        const fields = document.querySelectorAll("[data-field]");
+        const data = {};
+        fields.forEach((el) => {
+          const key = el.getAttribute("data-field");
+          data[key] = el.value;
+        });
+        return data;
+      }
+
+      async function confirm() {
+        const extracted = collectFormData();
+        const agentId = "operator"; // placeholder; wire to auth later
+        const res = await fetch(
+          "/api/queue/extraction-review/" + workQueueItemId + "/confirm",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              extracted_data: extracted,
+              agent_id: agentId,
+            }),
+          }
+        );
+        if (!res.ok) return;
+        window.location.href = "/operator/extraction-review";
+      }
+
+      async function skip() {
+        const reason =
+          prompt("Why are you skipping this item? (e.g. not a quote)") ||
+          "skipped by operator";
+        const agentId = "operator";
+        const res = await fetch(
+          "/api/queue/extraction-review/" + workQueueItemId + "/skip",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              reason,
+              agent_id: agentId,
+            }),
+          }
+        );
+        if (!res.ok) return;
+        window.location.href = "/operator/extraction-review";
+      }
+
+      document
+        .getElementById("confirm-btn")
+        .addEventListener("click", confirm);
+      document.getElementById("skip-btn").addEventListener("click", skip);
+      document
+        .getElementById("rerun-btn")
+        .addEventListener("click", runExtraction);
+
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.key === "Enter") {
+          e.preventDefault();
+          confirm();
+        }
+        if (e.ctrlKey && (e.key === "s" || e.key === "S")) {
+          e.preventDefault();
+          skip();
+        }
+      });
+
+      loadDetail();
+    </script>
+  </body>
+</html>
+

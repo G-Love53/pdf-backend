@@ -212,6 +212,17 @@ async function processMessage(gmail, messageId, seg) {
     match_details_json: matchResult.details,
   });
 
+  if (documentIds.length > 0) {
+    await createWorkQueueItem({
+      queue_type: "extraction_review",
+      related_entity_type: "quote",
+      related_entity_id: quoteId,
+      priority: 3,
+      reason_code: "new_quote_received",
+      reason_detail: `New quote with ${documentIds.length} carrier PDF(s) ingested from message ${gmailMsgId}`,
+    });
+  }
+
   if (matchResult.submissionId) {
     await pool.query("UPDATE carrier_messages SET submission_id = $1 WHERE carrier_message_id = $2", [
       matchResult.submissionId,

@@ -1,4 +1,5 @@
 import pg from "pg";
+import { createClient } from "@supabase/supabase-js";
 
 const { Pool } = pg;
 
@@ -6,7 +7,7 @@ let pool = null;
 
 function createPool() {
   if (!process.env.DATABASE_URL) {
-    console.warn("[db] DATABASE_URL not set; DB features disabled.");
+    console.warn("[db] DATABASE_URL not set; Postgres features disabled.");
     return null;
   }
 
@@ -14,7 +15,6 @@ function createPool() {
     connectionString: process.env.DATABASE_URL,
   };
 
-  // Render Postgres usually requires SSL; allow opt-out via PGSSLMODE=disable
   if (process.env.PGSSLMODE !== "disable") {
     config.ssl = { rejectUnauthorized: false };
   }
@@ -76,7 +76,10 @@ export async function recordSubmission({
     }
 
     const seg = (segment || "bar").toLowerCase();
-    const segEnum = seg === "bar" || seg === "roofer" || seg === "plumber" || seg === "hvac" ? seg : "bar";
+    const segEnum =
+      seg === "bar" || seg === "roofer" || seg === "plumber" || seg === "hvac"
+        ? seg
+        : "bar";
 
     const idRes = await client.query(
       `SELECT generate_submission_public_id($1::segment_type) AS id`,
@@ -151,66 +154,68 @@ export async function recordSubmission({
   }
 }
 
-// src/db.js
-
-import { createClient } from "@supabase/supabase-js";
-
 const SUPABASE_URL = process.env.SUPABASE_URL;
-// CRITICAL: Use the Service Role Key for server-side security
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY; 
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+let supabase = null;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.warn("⚠️ Supabase credentials missing. Database features will not work.");
+  console.warn(
+    "⚠️ Supabase credentials missing. Supabase-based features will not work.",
+  );
+} else {
+  supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+export { supabase };
 
-// Function to save the initial AI-analyzed quote data
 export async function saveQuoteToDb(data) {
-  const { error } = await supabase
-    .from('quotes')
-    .insert([data]);
-    
+  if (!supabase) {
+    throw new Error("Supabase not configured");
+  }
+
+  const { error } = await supabase.from("quotes").insert([data]);
+
   if (error) {
     console.error("❌ DB Save Failed:", error);
     throw error;
   }
   console.log(`✅ Quote ${data.quote_id} saved to Supabase.`);
 }
-/**
- * Uploads educational materials to the Knowledge Hub
- * @param {string} carrierName - e.g., 'Travelers'
- * @param {string} segment - e.g., 'Plumber'
- * @param {string} type - 'Marketing' | 'Definitions' | 'Step-by-Step Guides' | 'Forms' | 'Training'
- * @param {string} title - The display name of the PDF
- * @param {Buffer} fileBuffer - The PDF file data
- */
-export async function uploadCarrierResource(carrierName, segment, type, title, fileBuffer) {
-  const fileName = `${title.replace(/\s+/g, '_').toLowerCase()}.pdf`;
+
+export async function uploadCarrierResource(
+  carrierName,
+  segment,
+  type,
+  title,
+  fileBuffer,
+) {
+  if (!supabase) {
+    throw new Error("Supabase not configured");
+  }
+
+  const fileName = `${title.replace(/\s+/g, "_").toLowerCase()}.pdf`;
   const path = `carrier-resources/${carrierName}/${segment}/${type}/${fileName}`;
 
-  // 1. Upload to the secure storage bucket
-  const { data: upload, error: uploadErr } = await supabase.storage
-    .from('cid-docs')
-    .upload(path, fileBuffer, { 
-      contentType: 'application/pdf',
-      upsert: true // Allows robots to update documents if they change
+  const { error: uploadErr } = await supabase.storage
+    .from("cid-docs")
+    .upload(path, fileBuffer, {
+      contentType: "application/pdf",
+      upsert: true,
     });
 
   if (uploadErr) throw uploadErr;
 
-  // 2. Index in the database table so the App can find it
-  const { error: dbErr } = await supabase
-    .from('carrier_resources')
-    .insert([{
+  const { error: dbErr } = await supabase.from("carrier_resources").insert([
+    {
       carrier_name: carrierName,
-      segment: segment,
+      segment,
       resource_type: type,
-      title: title,
-      file_path: path
-    }]);
+      title,
+      file_path: path,
+    },
+  ]);
 
   if (dbErr) throw dbErr;
 }
-
 

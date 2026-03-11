@@ -7,6 +7,7 @@ import { generateDocument } from "./generators/index.js";
 import { sendWithGmail } from "./email.js";
 import { recordSubmission } from "./db.js";
 import { startGmailPoller } from "./jobs/gmailPoller.js";
+import operatorRoutes from "./routes/operatorRoutes.js";
 // Note: Ensure your enricher import matches the file name in your 'src' folder
 // import enrichFormData from '../mapping/data-enricher.js'; 
 
@@ -64,6 +65,9 @@ const resolveTemplate = (name) =>
 // --- APP SETUP ---
 const APP = express();
 APP.use(express.json({ limit: "20mb" }));
+
+APP.set("view engine", "ejs");
+APP.set("views", path.join(__dirname, "views"));
 
 // CORS
 APP.use((req, res, next) => {
@@ -505,6 +509,7 @@ APP.post("/submit-quote", async (req, res) => {
   }
 });
 
+APP.use(operatorRoutes);
 
 startGmailPoller();
 

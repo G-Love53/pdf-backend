@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Extraction Review Queue</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #0f172a;
+        color: #e5e7eb;
+      }
+      header {
+        padding: 16px 24px;
+        border-bottom: 1px solid #1f2937;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      header h1 {
+        font-size: 18px;
+        margin: 0;
+      }
+      header span {
+        font-size: 13px;
+        color: #9ca3af;
+      }
+      main {
+        padding: 16px 24px 32px;
+      }
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .filter-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      select {
+        background: #020617;
+        color: #e5e7eb;
+        border-radius: 999px;
+        border: 1px solid #1f2937;
+        padding: 4px 12px;
+        font-size: 13px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        padding: 8px 10px;
+        font-size: 13px;
+        border-bottom: 1px solid #1f2937;
+      }
+      th {
+        text-align: left;
+        color: #9ca3af;
+        font-weight: 500;
+      }
+      tr {
+        cursor: pointer;
+      }
+      tr:hover {
+        background: #111827;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+      }
+      .badge-exact {
+        background: #064e3b;
+        color: #bbf7d0;
+      }
+      .badge-fuzzy {
+        background: #78350f;
+        color: #fed7aa;
+      }
+      .badge-no_match {
+        background: #7f1d1d;
+        color: #fecaca;
+      }
+      .pending-count {
+        font-size: 13px;
+        color: #9ca3af;
+      }
+      .pill {
+        border-radius: 999px;
+        padding: 2px 8px;
+        background: #020617;
+        border: 1px solid #1f2937;
+        font-size: 11px;
+        color: #9ca3af;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Extraction Review Queue</h1>
+        <span>S4 &mdash; Agent Gate 2</span>
+      </div>
+      <div class="pending-count">
+        Pending: <span id="pending-count">0</span>
+      </div>
+    </header>
+    <main>
+      <div class="toolbar">
+        <div class="filter-group">
+          <label for="segment-filter">Segment:</label>
+          <select id="segment-filter">
+            <option value="">All</option>
+            <option value="bar">Bar</option>
+            <option value="roofer">Roofer</option>
+            <option value="plumber">Plumber</option>
+            <option value="hvac">HVAC</option>
+          </select>
+        </div>
+        <div>
+          <select id="sort-order">
+            <option value="oldest_first">Oldest first</option>
+            <option value="newest_first">Newest first</option>
+          </select>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Submission</th>
+            <th>Client</th>
+            <th>Carrier</th>
+            <th>Segment</th>
+            <th>Match</th>
+            <th>Received</th>
+          </tr>
+        </thead>
+        <tbody id="queue-body"></tbody>
+      </table>
+    </main>
+
+    <script>
+      async function fetchQueue() {
+        const segment = document.getElementById("segment-filter").value;
+        const sort = document.getElementById("sort-order").value;
+        const params = new URLSearchParams();
+        if (segment) params.set("segment", segment);
+        if (sort) params.set("sort", sort);
+
+        const res = await fetch(
+          "/api/queue/extraction-review?" + params.toString()
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const tbody = document.getElementById("queue-body");
+        tbody.innerHTML = "";
+
+        document.getElementById("pending-count").textContent = data.count ?? 0;
+
+        (data.items || []).forEach((item) => {
+          const tr = document.createElement("tr");
+          tr.onclick = () => {
+            window.location.href =
+              "/operator/extraction-review/" + item.work_queue_item_id;
+          };
+
+          const matchClass =
+            item.match_confidence === "exact"
+              ? "badge-exact"
+              : item.match_confidence === "fuzzy"
+              ? "badge-fuzzy"
+              : "badge-no_match";
+
+          tr.innerHTML = `
+            <td>
+              <div>${item.submission_public_id || "—"}</div>
+            </td>
+            <td>
+              <div>${item.client_name || "Unknown"}</div>
+            </td>
+            <td>
+              <div>${item.carrier_name || "Unknown"}</div>
+            </td>
+            <td>
+              <span class="pill">${(item.segment || "").toUpperCase()}</span>
+            </td>
+            <td>
+              <span class="badge ${matchClass}">
+                ${item.match_confidence || "unknown"}
+              </span>
+            </td>
+            <td>
+              <div>${item.email_received_at || ""}</div>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+      }
+
+      document
+        .getElementById("segment-filter")
+        .addEventListener("change", fetchQueue);
+      document
+        .getElementById("sort-order")
+        .addEventListener("change", fetchQueue);
+
+      fetchQueue();
+      setInterval(fetchQueue, 30000);
+    </script>
+  </body>
+</html>
+
