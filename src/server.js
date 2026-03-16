@@ -65,6 +65,14 @@ const resolveTemplate = (name) =>
 
 // --- APP SETUP ---
 const APP = express();
+
+// HelloSign webhook: must see the raw body so we can parse the `json` field
+APP.use(
+  "/api/webhooks/hellosign",
+  express.raw({ type: "*/*", limit: "5mb" }),
+);
+
+// All other routes use normal JSON parsing
 APP.use(express.json({ limit: "20mb" }));
 
 APP.set("view engine", "ejs");

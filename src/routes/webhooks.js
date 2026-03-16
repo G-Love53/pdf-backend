@@ -1,5 +1,4 @@
 import express from "express";
-import crypto from "crypto";
 import { getPool } from "../db.js";
 import { downloadSignedDocument } from "../services/hellosignService.js";
 import { uploadBuffer } from "../services/r2Service.js";
@@ -16,30 +15,59 @@ const router = express.Router();
 // but here we just parse req.body.json when present.
 
 function parseHelloSignPayload(req) {
-  const body = req.body || {};
-  if (typeof body === "string") {
+  const body = req.body;
+
+  // When mounted with express.raw(), body is a Buffer.
+  if (Buffer.isBuffer(body)) {
+    const text = body.toString("utf8");
+
+    // HelloSign test/send uses application/x-www-form-urlencoded with `json=...`
+    const hasJsonField = text.includes("json=");
+    if (hasJsonField) {
+      const params = new URLSearchParams(text);
+      const jsonStr = params.get("json");
+      if (jsonStr) {
+        try {
+          return JSON.parse(jsonStr);
+        } catch {
+          return null;
+        }
+      }
+    }
+
+    // Fallback: maybe they sent raw JSON
     try {
-      return JSON.parse(body);
+      return JSON.parse(text);
     } catch {
       return null;
     }
   }
-  // HelloSign usually posts { json: "<json string>" }
-  if (body.json) {
+
+  // If some other middleware already parsed it to an object/string
+  const val = body || {};
+  if (typeof val === "string") {
     try {
-      return JSON.parse(body.json);
+      return JSON.parse(val);
     } catch {
       return null;
     }
   }
-  return body;
+  if (val.json) {
+    try {
+      return JSON.parse(val.json);
+    } catch {
+      return null;
+    }
+  }
+  return val;
 }
 
 router.post("/api/webhooks/hellosign", async (req, res) => {
   try {
     const payload = parseHelloSignPayload(req);
     if (!payload || !payload.event) {
-      return res.status(400).json({ ok: false, error: "INVALID_PAYLOAD" });
+      // Handle HelloSign account-level test pings which may not include full event payload
+      return res.status(200).json({ ok: true, ignored: true });
     }
 
     const eventType = payload.event?.event_type;
@@ -50,10 +78,6 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
       reqObj?.id ||
       payload.event?.event_metadata?.related_signature_id ||
       null;
-
-    if (!hsId) {
-      return res.status(400).json({ ok: false, error: "MISSING_REQUEST_ID" });
-    }
 
     const pool = getPool();
     if (!pool) {
