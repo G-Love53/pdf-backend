@@ -1,6 +1,9 @@
-import { SignatureRequestApi, Configuration } from "@dropbox/sign";
+import pkg from "@dropbox/sign";
 
-const apiKey = process.env.HELLOSIGN_API_KEY || process.env.DROPBOX_SIGN_API_KEY;
+const { SignatureRequestApi, Configuration } = pkg;
+
+const apiKey =
+  process.env.HELLOSIGN_API_KEY || process.env.DROPBOX_SIGN_API_KEY || null;
 
 let signatureApi = null;
 
