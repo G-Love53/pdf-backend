@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>CID — Bind Detail</title>
+    <style>
+      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; padding: 16px; display: flex; gap: 16px; }
+      .col { flex: 1; }
+      h1 { font-size: 20px; margin-bottom: 8px; }
+      label { display: block; margin-top: 8px; font-size: 13px; }
+      input, select, textarea { width: 100%; padding: 6px 8px; margin-top: 2px; font-size: 13px; }
+      button { margin-top: 12px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
+      pre { background: #f9fafb; padding: 8px; font-size: 11px; }
+    </style>
+  </head>
+  <body>
+    <div class="col">
+      <h1>Bind Detail</h1>
+      <div id="summary"></div>
+
+      <h3>Signer</h3>
+      <label>
+        Name
+        <input id="signer-name" />
+      </label>
+      <label>
+        Email
+        <input id="signer-email" />
+      </label>
+      <label>
+        Payment Method
+        <select id="payment-method">
+          <option value="annual">Annual</option>
+          <option value="monthly">Monthly (estimate)</option>
+        </select>
+      </label>
+      <label>
+        Agent Notes
+        <textarea id="agent-notes" rows="3"></textarea>
+      </label>
+      <button id="send-btn">Send for E‑Signature</button>
+      <pre id="status"></pre>
+    </div>
+
+    <script>
+      const quoteId = "<%= quoteId %>";
+
+      async function loadDetails() {
+        const res = await fetch(`/api/quotes/${quoteId}/bind-details`);
+        if (!res.ok) {
+          document.getElementById("summary").textContent = "Failed to load bind details.";
+          return;
+        }
+        const d = await res.json();
+        document.getElementById("summary").innerHTML = `
+          <strong>${d.client.business_name || ""}</strong><br/>
+          ${d.client.address || ""}<br/><br/>
+          Carrier: ${d.quote.carrier_name || ""}<br/>
+          Policy: ${d.quote.policy_type || ""}<br/>
+          Premium: $${(d.quote.annual_premium || 0).toFixed(2)}<br/>
+          Effective: ${d.quote.effective_date || ""}<br/>
+        `;
+        document.getElementById("signer-name").value = d.client.contact_name || "";
+        document.getElementById("signer-email").value = d.client.email || "";
+      }
+
+      document.getElementById("send-btn").addEventListener("click", async () => {
+        const body = {
+          agent_id: null,
+          payment_method: document.getElementById("payment-method").value,
+          effective_date_override: null,
+          agent_notes: document.getElementById("agent-notes").value || null,
+          signer_name: document.getElementById("signer-name").value,
+          signer_email: document.getElementById("signer-email").value,
+        };
+        const res = await fetch(`/api/quotes/${quoteId}/bind/initiate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const out = await res.json();
+        document.getElementById("status").textContent = JSON.stringify(out, null, 2);
+      });
+
+      loadDetails();
+    </script>
+  </body>
+</html>
+
