@@ -1,6 +1,6 @@
 import { getPool } from "../db.js";
 import { generateDocument } from "../generators/index.js";
-import { uploadToR2 } from "./r2Service.js";
+import { uploadBuffer } from "./r2Service.js";
 import {
   createSignatureRequest,
   resendSignatureRequest,
@@ -172,8 +172,9 @@ export async function initiateBind({
     const pdfBuffer = doc.buffer;
 
     const r2Key = `binds/${quoteDetail.segment}/${quoteDetail.submission_public_id}/${quoteDetail.quote.carrier_name}-bind-confirmation.pdf`;
-    const docRecord = await uploadToR2(r2Key, pdfBuffer, {
-      role: "bind_confirmation",
+    await uploadBuffer(r2Key, pdfBuffer, "application/pdf", {
+      segment: quoteDetail.segment,
+      type: "bind_confirmation",
     });
 
     const hsReq = await createSignatureRequest({

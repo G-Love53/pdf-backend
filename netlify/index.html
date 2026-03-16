@@ -10,11 +10,8 @@
         padding: 20px;
         background-color: #f8f8f8;
         color: #333;
-        margin: 0;
     }
-
-    /* Plumber-style card container */
-    .form-container {
+    form {
         max-width: 800px;
         margin: 20px auto;
         padding: 30px;
@@ -22,19 +19,12 @@
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
-
     h1 {
         color: #ff8c00;
         text-align: center;
-        margin-bottom: 10px;
+        margin-bottom: 30px;
         font-size: 2em;
         font-weight: bold;
-    }
-
-    .subtitle {
-        text-align: center;
-        color: #666;
-        margin-bottom: 30px;
     }
     label {
         display: block;
@@ -69,6 +59,59 @@
         outline: none;
         box-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
     }
+
+    /* Creative hero block (easily editable per segment) */
+    .creative-hero {
+        max-width: 800px;
+        margin: 10px auto 10px;
+        padding: 20px 24px 10px;
+        background: linear-gradient(135deg, #111827, #1f2933);
+        border-radius: 12px;
+        color: #f9fafb;
+        box-shadow: 0 8px 30px rgba(15, 23, 42, 0.6);
+    }
+    .creative-hero-title {
+        font-size: 1.9em;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+    .creative-hero-title span {
+        color: #facc15;
+    }
+    .creative-hero-subtitle {
+        font-size: 0.95em;
+        color: #e5e7eb;
+        margin-bottom: 16px;
+    }
+    .creative-value-props {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 8px 16px;
+        margin-bottom: 8px;
+    }
+    .creative-value-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 0.9em;
+        color: #e5e7eb;
+    }
+    .creative-value-item span.check {
+        color: #22c55e;
+        font-weight: 700;
+        margin-top: 2px;
+    }
+    .creative-bridge {
+        font-size: 0.85em;
+        color: #9ca3af;
+        margin-top: 6px;
+    }
+
+    /* Prefilled field indicator */
+    .prefilled {
+        background-color: #f0f9f0;
+        border-left: 3px solid #4CAF50;
+    }
     button {
         margin-top: 30px;
         padding: 12px 25px;
@@ -100,44 +143,6 @@
         text-align: center;
         margin-top: 40px;
         color: #999;
-    }
-
-    /* Accordion (Plumber style) */
-    details {
-        border: 1px solid #ddd;
-        background: #fff;
-        margin: 15px 0;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-    summary {
-        list-style: none;
-        cursor: pointer;
-        padding: 18px 20px;
-        background: linear-gradient(135deg, #ff8c00 0%, #f97316 100%);
-        color: #fff;
-        font-weight: bold;
-        font-size: 1.1em;
-        user-select: none;
-        -webkit-user-select: none;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    summary::after {
-        content: '+';
-        font-size: 1.5em;
-        font-weight: bold;
-    }
-    details[open] summary::after {
-        content: '-';
-    }
-    summary::-webkit-details-marker {
-        display: none;
-    }
-    details > div {
-        padding: 22px 20px 24px 20px;
-        background: #fff;
     }
     
     /* Horizontal layout styles */
@@ -229,28 +234,55 @@
 </style>
 </head>
 <body>
-<div class="form-container">
+<div class="creative-hero">
+    <div class="creative-hero-title">
+        100% Liquor? <span>No Problem.</span>
+    </div>
+    <p class="creative-hero-subtitle">
+        Commercial insurance built for bars, taverns, and restaurants — without the sales reports and audits.
+    </p>
+    <div class="creative-value-props">
+        <div class="creative-value-item">
+            <span class="check">&#10003;</span>
+            <span>Covers up to 100% liquor sales</span>
+        </div>
+        <div class="creative-value-item">
+            <span class="check">&#10003;</span>
+            <span>Rated by square footage, not sales</span>
+        </div>
+        <div class="creative-value-item">
+            <span class="check">&#10003;</span>
+            <span>No audits, ever</span>
+        </div>
+        <div class="creative-value-item">
+            <span class="check">&#10003;</span>
+            <span>Quotes in 48 hours</span>
+        </div>
+    </div>
+    <p class="creative-bridge" id="creative-bridge-text">
+        One quick form. Multiple carrier quotes. Your best rate.
+    </p>
+</div>
+
 <h1>Bar, Tavern & Restaurant Insurance Quote</h1>
-<p class="subtitle">Get your quote in minutes. No agent calls. No back-and-forth.</p>
 <form id="quoteForm" name="bar-restaurant-quote">
-    <!-- Applicant = contact person; Business Name/Insured Name = insured on all SUPP and ACORDs -->
-    <details open>
-      <summary>Business Information</summary>
-      <div>
-    <label>Applicant Name (Contact):<input name="applicant_name" required type="text"/></label>
-    <label>Business Name/Insured Name:<input name="insured_name" required type="text"/></label>
+    <input type="hidden" name="traffic_source" id="traffic_source" value="direct"/>
+    <input type="hidden" name="campaign_id" id="campaign_id" value=""/>
+    <!-- Basic Information -->
+    <label>Applicant Name:<input name="applicant_name" required type="text"/></label>
+    <label>Business Name:<input name="premises_name" type="text"/></label>
     
-    <!-- ADDRESS SECTION - ACORD: physical_address_1, physical_city, physical_state, physical_zip -->
-    <label>Business Address:<input name="physical_address_1" required type="text"/></label>
+    <!-- ADDRESS SECTION - Updated with City, State, Zip -->
+    <label>Business Address:<input name="premise_address" required type="text"/></label>
     <div class="horizontal-group">
         <div>
-            <label>City:<input name="physical_city" required type="text"/></label>
+            <label>City:<input name="premise_city" required type="text"/></label>
         </div>
         <div>
-            <label>State:<input name="physical_state" required type="text"/></label>
+            <label>State:<input name="premise_state" required type="text"/></label>
         </div>
         <div>
-            <label>Zip:<input name="physical_zip" required type="text"/></label>
+            <label>Zip:<input name="premise_zip" required type="text"/></label>
         </div>
     </div>
     <input type="hidden" name="premises_address" id="premises_address_hidden"/>
@@ -264,9 +296,9 @@
     </div>
     
     <label>Business Phone:<input name="business_phone" type="text"/></label>
-    <label>Premises Website:<input name="business_website" type="text"/></label>
+    <label>Premises Website:<input name="premises_website" type="text"/></label>
     <label>Contact Email Address:<input name="contact_email" type="email"/></label>
-    <label>Requested Effective Date:<input name="policy_effective_date" type="date"/></label>
+    <label>Requested Effective Date:<input name="effective_date" type="date"/></label>
 
     <!-- Question 1 (mapping: 1_open_for_business_now_or_within_60_days, opening_plan_details, if_no_explain) -->
     <label>1. Are you currently open or will be within 60 days?
@@ -302,7 +334,7 @@
     <label>3. Business Personal Property in $ (movable items owned, equipment, inventory, furniture):<input name="business_personal_property" type="text" inputmode="decimal" placeholder="Enter amount"/></label>
     
     <!-- Question 4 - Square footage -->
-    <label>4. Square footage:<input name="square_footage" type="text"/></label>
+    <label>4. Square footage:<input name="total_squarefeet_1" type="text"/></label>
     
     <!-- Construction Type - Made Horizontal -->
     <label>5. Construction Type:</label>
@@ -318,7 +350,7 @@
             <label>6. Year Built:<input name="year_built" type="text"/></label>
         </div>
         <div>
-            <label>7. Number of Floors:<input name="number_of_stories" type="text"/></label>
+            <label>7. Number of Floors:<input name="num_stories" type="text"/></label>
         </div>
     </div>
     
@@ -326,7 +358,7 @@
     <div class="horizontal-group">
         <div>
             <label>8. Automatic Sprinkler:
-                <select name="automatic_sprinkler">
+                <select name="percent_sprinker">
                     <option value="">-- Select --</option>
                     <option value="Yes">Yes</option>
                     <option value="No">No</option>
@@ -334,7 +366,7 @@
             </label>
         </div>
         <div>
-            <label>9. Number of employees:<input name="number_of_employees" type="text"/></label>
+            <label>9. Number of employees:<input name="fulltime_1" type="text"/></label>
         </div>
     </div>
 
@@ -361,13 +393,6 @@
             <option value="No">No</option>
         </select>
     </label>
-      </div>
-    </details>
-
-    <details>
-      <summary>Operations & Cooking</summary>
-      <div>
-
     <label>13. Does the insured manufacture alcohol?
         <select name="8_manufacture_alcohol" data-conditional="8_manufacture_alcohol">
             <option value="">-- Select --</option>
@@ -390,7 +415,7 @@
     <label>14. Annual Receipts:</label>
     <input name="food_sales" placeholder="Food Sales" type="text" inputmode="decimal"/>
     <input name="alcohol_sales" placeholder="Alcohol Sales" type="text" inputmode="decimal"/>
-    <input name="total_sales" placeholder="Total Sales" type="text" readonly/>
+    <input name="annual_revenue_1" placeholder="Total Sales" type="text" readonly/>
     <input name="Percent_Alcohol" placeholder="% Alcohol" type="text" readonly/>
 
     <!-- Cooking Level (mapping: full, limited, none) -->
@@ -409,10 +434,9 @@
         </select>
     </label>
     
-    <!-- Question 17 (mapping: solid_fuel_smoker_grill_within_10_ft = Solid Fuel 10ft from unit on SUPP; also full_limited_none12_solid_fuel_10_ft_from_unit) -->
-    <input type="hidden" name="full_limited_none12_solid_fuel_10_ft_from_unit" id="full_limited_none12_solid_fuel_10_ft_from_unit_hidden"/>
+    <!-- Question 17 (mapping: solid_fuel_smoker_grill_within_10_ft, unit_professionally_installed, etc.) -->
     <label>17. Do you have a non-gas Smoker/Grill (wood, pellets, etc) structure within 10 feet of the Building?
-        <select name="solid_fuel_smoker_grill_within_10_ft" id="solid_fuel_smoker_grill_within_10_ft" data-conditional="solid_fuel_smoker_grill_within_10_ft">
+        <select name="solid_fuel_smoker_grill_within_10_ft" data-conditional="solid_fuel_smoker_grill_within_10_ft">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
@@ -464,20 +488,12 @@
     </div>
 
     <label>18. Any cooking surfaces not protected by a UL300 fire suppression?
-        <select name="ul_suppression_over_cooking" id="ul_suppression_over_cooking">
+        <select name="ul_suppression_over_cooking">
             <option value="">-- Select --</option>
             <option value="Yes">Yes</option>
             <option value="No">No</option>
         </select>
     </label>
-    <input type="hidden" name="13_any_cooking_s" id="13_any_cooking_s_hidden"/>
-
-      </div>
-    </details>
-
-    <details>
-      <summary>Alcohol, Entertainment & Activities</summary>
-      <div>
 
     <!-- Entertainment (mapping: 14_any_entertainment_..., details) -->
     <label>19. Any other entertainment besides: Karaoke or Trivia?
@@ -537,13 +553,6 @@
         </label>
     </div>
 
-      </div>
-    </details>
-
-    <details>
-      <summary>Delivery, Auto & Shuttle</summary>
-      <div>
-    
     <!-- Question 22 - Delivery (mapping: 17_offer_delivery, insuredowned_autos, etc.) -->
     <label>22. Do you Deliver (not including UberEats, DoorDash, etc)?
         <select name="17_offer_delivery" data-conditional="17_offer_delivery">
@@ -630,13 +639,6 @@
         </select>
     </label>
 
-      </div>
-    </details>
-
-    <details>
-      <summary>Additional Insured & Certificates</summary>
-      <div>
-    
     <!-- Question 24 - Liquor (mapping: 19_any_liquor_law_violations..., if_yes_describe) -->
     <label>24. Do you have any liquor law violations?
         <select name="19_any_liquor_law_violations_in_last_3_years" data-conditional="19_any_liquor_law_violations_in_last_3_years">
@@ -659,10 +661,10 @@
         </select>
     </label>
     <div class="conditional-section" data-show-when="claim_count=2_or_less">
-        <label>Please describe the claim and include the date and amount paid:<textarea name="claims_details_2_or_less"></textarea></label>
+        <label>Please describe the claim and include the date and amount paid:<textarea name="typeofclaim_1"></textarea></label>
     </div>
     <div class="conditional-section" data-show-when="claim_count=3_or_more">
-        <label>Please describe the claim and include the date and amount paid:<textarea name="claims_details_3_or_more"></textarea></label>
+        <label>Please describe the claim and include the date and amount paid:<textarea name="typeofclaim_2"></textarea></label>
     </div>
 
     <!-- Building Quote -->
@@ -689,13 +691,13 @@
         </div>
         <div class="horizontal-group">
             <div>
-                <label># of Employee FT:<input name="num_ft_employees" type="text"/></label>
+                <label># of Employee FT:<input name="fulltime_1" type="text"/></label>
             </div>
             <div>
-                <label># of Employee PT:<input name="num_pt_employees" type="text"/></label>
+                <label># of Employee PT:<input name="parttime_1" type="text"/></label>
             </div>
         </div>
-        <label>Est Annual Payroll:<input name="annual_payroll" type="text" inputmode="decimal" placeholder="Enter amount"/></label>
+        <label>Est Annual Payroll:<input name="wc_annual_payroll" type="text" inputmode="decimal" placeholder="Enter amount"/></label>
     </div>
 
     <!-- Additional Insureds - Updated -->
@@ -734,7 +736,7 @@
                 <option value="No">No</option>
             </select>
         </label>
-    <div class="conditional-section" data-show-when="additional_names=Yes">
+        <div class="conditional-section" data-show-when="additional_names=Yes">
             <div class="checkbox-horizontal">
                 <label><input type="checkbox" name="ai_loss_payee_2" value="Yes"/> Loss Payee</label>
                 <label><input type="checkbox" name="ai_lienholder_2" value="Yes"/> Lienholder</label>
@@ -764,15 +766,66 @@
         <label><input type="checkbox" name="payment_plan_Annual" value="Yes"/> Annual</label>
     </div>
 
-      </div>
-    </details>
-    
     <button type="submit">Submit</button>
 </form>
 <div class="small-text">© Commercial Insurance Direct LLC, 2025. All rights reserved.</div>
-</div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("quoteForm");
+
+        // INSTANTLY PREFILL + TRACKING
+        (function setupPrefill() {
+            if (!form) return;
+            const params = new URLSearchParams(window.location.search);
+            let prefilledCount = 0;
+
+            const prefillMap = {
+                bn: "premises_name",
+                em: "contact_email",
+                ph: "business_phone",
+                ad: "premise_address",
+                ct: "premise_city",
+                st: "premise_state",
+                zp: "premise_zip"
+            };
+
+            Object.entries(prefillMap).forEach(([param, fieldName]) => {
+                const value = params.get(param);
+                if (!value) return;
+                const field = form.querySelector(`[name="${fieldName}"]`);
+                if (field) {
+                    field.value = decodeURIComponent(value);
+                    field.classList.add("prefilled");
+                    prefilledCount++;
+                }
+            });
+
+            // Applicant name from fn/ln if present
+            const fn = params.get("fn");
+            const ln = params.get("ln");
+            if (fn || ln) {
+                const applicantField = form.querySelector('[name="applicant_name"]');
+                if (applicantField && !applicantField.value) {
+                    applicantField.value = [fn, ln].filter(Boolean).join(" ");
+                    applicantField.classList.add("prefilled");
+                    prefilledCount++;
+                }
+            }
+
+            // Tracking fields
+            const srcField = document.getElementById("traffic_source");
+            const cidField = document.getElementById("campaign_id");
+            if (srcField) srcField.value = params.get("src") || "direct";
+            if (cidField) cidField.value = params.get("cid") || "";
+
+            // Bridge text update if we have good prefill coverage
+            if (prefilledCount >= 3) {
+                const bridgeEl = document.getElementById("creative-bridge-text");
+                if (bridgeEl) {
+                    bridgeEl.textContent = "We've loaded your info — just confirm a few details and submit.";
+                }
+            }
+        })();
         // ROBUST GHOST SUBMIT PREVENTION
         let isSubmitting = false;
         let lastSubmitTime = 0;
@@ -820,13 +873,13 @@
         // Calculation logic for receipts/percent alcohol
         const foodInput = document.querySelector('[name="food_sales"]');
         const alcoholInput = document.querySelector('[name="alcohol_sales"]');
-        const totalInput = document.querySelector('[name="total_sales"]');
+        const totalInput = document.querySelector('[name="annual_revenue_1"]');
         const percentInput = document.querySelector('[name="Percent_Alcohol"]');
         
         // Business Personal Property and Workers Comp formatting
         const bppInput = document.querySelector('[name="business_personal_property"]');
         const deliveryInput = document.querySelector('[name="delivery_sales_insuredemp_autos"]');
-        const wcPayrollInput = document.querySelector('[name="annual_payroll"]');
+        const wcPayrollInput = document.querySelector('[name="wc_annual_payroll"]');
         
         function strip(value) {
             return parseFloat(value.replace(/[^0-9.-]+/g,"")) || 0;
@@ -920,7 +973,7 @@
             });
         }
 
-        const websiteInput = document.querySelector('[name="business_website"]');
+        const websiteInput = document.querySelector('[name="premises_website"]');
         if (websiteInput) websiteInput.setAttribute("type", "text");
 
         // PREVENT ENTER KEY SUBMITS ON ALL INPUTS
@@ -935,7 +988,6 @@
         });
 
         // --- ROBUST AJAX FORM SUBMIT SECTION ---
-        const form = document.getElementById("quoteForm");
         const submitButton = form.querySelector('button[type="submit"]');
         
         form.addEventListener("submit", async function (event) {
@@ -959,16 +1011,10 @@
 
             try {
                 // BAR mapping: set combined/duplicate fields before FormData so PDFs fill
-                const solidFuel = document.getElementById("solid_fuel_smoker_grill_within_10_ft");
-                const solidFuelHidden = document.getElementById("full_limited_none12_solid_fuel_10_ft_from_unit_hidden");
-                if (solidFuelHidden && solidFuel) solidFuelHidden.value = solidFuel.value || "";
-                const ulSuppress = document.getElementById("ul_suppression_over_cooking");
-                const ulSuppressHidden = document.getElementById("13_any_cooking_s_hidden");
-                if (ulSuppressHidden && ulSuppress) ulSuppressHidden.value = ulSuppress.value || "";
-                const addr = form.querySelector('[name="physical_address_1"]');
-                const city = form.querySelector('[name="physical_city"]');
-                const state = form.querySelector('[name="physical_state"]');
-                const zip = form.querySelector('[name="physical_zip"]');
+                const addr = form.querySelector('[name="premise_address"]');
+                const city = form.querySelector('[name="premise_city"]');
+                const state = form.querySelector('[name="premise_state"]');
+                const zip = form.querySelector('[name="premise_zip"]');
                 const premisesHidden = document.getElementById("premises_address_hidden");
                 if (premisesHidden && addr) premisesHidden.value = [addr.value, city?.value, state?.value, zip?.value].filter(Boolean).join(", ");
                 const openingDetails = form.querySelector('[name="opening_plan_details"]');
