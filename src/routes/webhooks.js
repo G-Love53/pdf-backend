@@ -65,12 +65,17 @@ function parseHelloSignPayload(req) {
 router.post("/api/webhooks/hellosign", async (req, res) => {
   try {
     const payload = parseHelloSignPayload(req);
+    // Handle HelloSign account-level test pings which expect a specific string
     if (!payload || !payload.event) {
-      // Handle HelloSign account-level test pings which may not include full event payload
-      return res.status(200).json({ ok: true, ignored: true });
+      return res.status(200).send("Hello API Event Received");
     }
 
     const eventType = payload.event?.event_type;
+
+    // Some HelloSign / Dropbox Sign docs mention a callback test event
+    if (eventType === "callback_test" || eventType === "account_callback_test") {
+      return res.status(200).send("Hello API Event Received");
+    }
     const reqObj = payload.signature_request || payload.signature_request?.signature_request || payload.signature_request;
 
     const hsId =
