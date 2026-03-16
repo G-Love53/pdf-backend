@@ -8,6 +8,7 @@ import { sendWithGmail } from "./email.js";
 import { recordSubmission } from "./db.js";
 import { startGmailPoller } from "./jobs/gmailPoller.js";
 import operatorRoutes from "./routes/operatorRoutes.js";
+import webhooksRouter from "./routes/webhooks.js";
 // Note: Ensure your enricher import matches the file name in your 'src' folder
 // import enrichFormData from '../mapping/data-enricher.js'; 
 
@@ -510,6 +511,10 @@ APP.post("/submit-quote", async (req, res) => {
 });
 
 APP.use(operatorRoutes);
+// HelloSign webhook: must be mounted with raw body for signature verification
+APP.use(
+  webhooksRouter,
+);
 
 startGmailPoller();
 
