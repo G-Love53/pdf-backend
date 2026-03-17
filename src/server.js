@@ -360,7 +360,7 @@ async function captureClientSubmissionPdf({
 }
 
 // Helper: Render Bundle
-async function renderBundleAndRespond({ templates, email }, res) {
+async function renderBundleAndRespond({ templates, email, extraAttachments = [] }, res) {
   if (!Array.isArray(templates) || templates.length === 0) {
     return res.status(400).json({ ok: false, error: "NO_TEMPLATES" });
   }
@@ -396,7 +396,11 @@ try {
 
   }
 
-  const attachments = results.filter(r => r.status === "fulfilled").map(r => r.value);
+  const baseAttachments = results
+    .filter((r) => r.status === "fulfilled")
+    .map((r) => r.value);
+
+  const attachments = [...baseAttachments, ...(extraAttachments || [])];
 
   if (email?.to?.length) {
     await sendWithGmail({
@@ -673,34 +677,26 @@ APP.post("/submit-quote", async (req, res) => {
 
     // 4) One call does it all (render + attach + email)
         // Optionally capture a client-submission snapshot PDF and attach it
-        let submissionAttachment = null;
+        let extraAttachments = [];
         if (submissionPublicId) {
-          submissionAttachment = await captureClientSubmissionPdf({
+          const submissionAttachment = await captureClientSubmissionPdf({
             segment,
             submissionPublicId,
             clientId: dbResult?.clientId,
             submissionId: dbResult?.submissionId,
             formData,
           });
-        }
-
-        const templatesWithSnapshot = [...templates];
-
-        if (submissionAttachment) {
-          // Attach as a virtual template at the end for email only
-          templatesWithSnapshot.push({
-            name: "CLIENT_SUBMISSION",
-            filename: submissionAttachment.filename,
-            data: {
-              ...formData,
-              submission_public_id: submissionPublicId,
-              segment,
-            },
-          });
+          if (submissionAttachment) {
+            extraAttachments.push({
+              filename: submissionAttachment.filename,
+              buffer: submissionAttachment.buffer,
+              contentType: submissionAttachment.contentType,
+            });
+          }
         }
 
         await renderBundleAndRespond(
-          { templates: templatesWithSnapshot, email: emailBlock },
+          { templates, email: emailBlock, extraAttachments },
           res,
         );
   } catch (e) {
