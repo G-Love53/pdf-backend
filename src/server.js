@@ -2,10 +2,11 @@ import fsSync from "fs";
 import express from "express";
 import path from "path";
 import fs from "fs/promises";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 import { generateDocument } from "./generators/index.js";
 import { sendWithGmail } from "./email.js";
-import { recordSubmission } from "./db.js";
+import { recordSubmission, getPool } from "./db.js";
 import { startGmailPoller } from "./jobs/gmailPoller.js";
 import operatorRoutes from "./routes/operatorRoutes.js";
 import webhooksRouter from "./routes/webhooks.js";
@@ -279,6 +280,84 @@ async function maybeMapData(name, rawData) {
   return d;
 }
 
+async function captureClientSubmissionPdf({
+  segment,
+  submissionPublicId,
+  clientId,
+  submissionId,
+  formData,
+}) {
+  if (!submissionPublicId || !segment) return null;
+
+  try {
+    const requestRow = {
+      ...formData,
+      segment,
+      submission_public_id: submissionPublicId,
+      form_id: "CLIENT_SUBMISSION",
+    };
+
+    const { buffer } = await generateDocument(requestRow);
+
+    const { uploadBuffer } = await import("./services/r2Service.js");
+    const pool = getPool();
+    const seg = String(segment || "bar").toLowerCase();
+
+    const pathKey = `submissions/${seg}/${submissionPublicId}/client-submission.pdf`;
+
+    await uploadBuffer(pathKey, buffer, "application/pdf", {
+      segment: seg,
+      type: "client_submission",
+    });
+
+    if (pool && clientId && submissionId) {
+      const sha = crypto.createHash("sha256").update(buffer).digest("hex");
+      await pool.query(
+        `
+          INSERT INTO documents (
+            client_id,
+            submission_id,
+            quote_id,
+            policy_id,
+            document_type,
+            document_role,
+            storage_provider,
+            storage_path,
+            mime_type,
+            sha256_hash,
+            is_original,
+            created_by
+          )
+          VALUES (
+            $1,
+            $2,
+            NULL,
+            NULL,
+            'pdf',
+            'client_submission',
+            'r2',
+            $3,
+            'application/pdf',
+            $4,
+            FALSE,
+            'system'
+          )
+        `,
+        [clientId, submissionId, pathKey, sha],
+      );
+    }
+
+    return {
+      filename: "Client-Submission.pdf",
+      buffer,
+      contentType: "application/pdf",
+    };
+  } catch (err) {
+    console.error("[submit-quote] captureClientSubmissionPdf error:", err);
+    return null;
+  }
+}
+
 // Helper: Render Bundle
 async function renderBundleAndRespond({ templates, email }, res) {
   if (!Array.isArray(templates) || templates.length === 0) {
@@ -512,7 +591,37 @@ APP.post("/submit-quote", async (req, res) => {
     };
 
     // 4) One call does it all (render + attach + email)
-    await renderBundleAndRespond({ templates, email: emailBlock }, res);
+        // Optionally capture a client-submission snapshot PDF and attach it
+        let submissionAttachment = null;
+        if (submissionPublicId) {
+          submissionAttachment = await captureClientSubmissionPdf({
+            segment,
+            submissionPublicId,
+            clientId: dbResult?.clientId,
+            submissionId: dbResult?.submissionId,
+            formData,
+          });
+        }
+
+        const templatesWithSnapshot = [...templates];
+
+        if (submissionAttachment) {
+          // Attach as a virtual template at the end for email only
+          templatesWithSnapshot.push({
+            name: "CLIENT_SUBMISSION",
+            filename: submissionAttachment.filename,
+            data: {
+              ...formData,
+              submission_public_id: submissionPublicId,
+              segment,
+            },
+          });
+        }
+
+        await renderBundleAndRespond(
+          { templates: templatesWithSnapshot, email: emailBlock },
+          res,
+        );
   } catch (e) {
     res.status(500).json({ ok: false, success: false, error: e.message });
   }
