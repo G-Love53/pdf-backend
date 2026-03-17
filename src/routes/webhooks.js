@@ -7,6 +7,7 @@ import {
   sendBindConfirmationEmail,
   sendWelcomeEmail,
 } from "../services/bindEmailService.js";
+import { notifyBarBindSigned } from "../services/agentNotificationService.js";
 
 const router = express.Router();
 
@@ -380,6 +381,15 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
           cidAppUrl: process.env.CID_APP_URL,
           segment,
         });
+
+        try {
+          await notifyBarBindSigned({ submissionId: row.submission_id });
+        } catch (err) {
+          console.error(
+            "[hellosign webhook] notifyBarBindSigned error:",
+            err.message || err,
+          );
+        }
 
         return res.status(200).json({ ok: true });
       } catch (err) {

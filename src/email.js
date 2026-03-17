@@ -88,21 +88,30 @@ function generateEmailSummary(formData = {}, attachments = []) {
   `;
 }
 
-export async function sendWithGmail({ to, subject, html, formData, attachments = [] }) {
+export async function sendWithGmail({
+  to,
+  subject,
+  html,
+  text,
+  formData,
+  attachments = [],
+}) {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
   });
 
-  const emailHtml = formData
-    ? generateEmailSummary(formData, attachments)
-    : html;
+  const emailHtml =
+    formData && !html && !text
+      ? generateEmailSummary(formData, attachments)
+      : html;
 
   await transporter.sendMail({
     from: process.env.GMAIL_USER,
     to,
     subject,
     html: emailHtml,
+    text,
     attachments: (attachments || []).map((a) => ({
       filename: a.filename,
       content: a.buffer,

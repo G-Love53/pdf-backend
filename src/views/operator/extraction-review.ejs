@@ -159,8 +159,11 @@
     <main>
       <section class="pdf-pane">
         <div class="pdf-header">
-          <div id="client-meta"></div>
-          <div id="match-meta"></div>
+          <div>
+            <div id="client-meta"></div>
+            <div id="match-meta" class="meta-row"></div>
+          </div>
+          <div id="pdf-actions" style="font-size:11px;"></div>
         </div>
         <div class="pdf-frame">
           <iframe id="pdf-frame" src=""></iframe>
@@ -236,6 +239,17 @@
 
         document.getElementById("match-meta").textContent =
           "Match: " + (data.match_confidence || "unknown");
+
+        const pdfActions = document.getElementById("pdf-actions");
+        if (data.pdf_signed_url) {
+          pdfActions.innerHTML = `
+            <a href="${data.pdf_signed_url}" target="_blank" rel="noopener noreferrer" style="color:#38bdf8; text-decoration:none;">
+              Open in new tab / Download
+            </a>
+          `;
+        } else {
+          pdfActions.textContent = "";
+        }
 
         document.getElementById("carrier-meta").textContent = [
           data.carrier_message?.from_email,

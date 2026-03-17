@@ -1,5 +1,6 @@
 import pg from "pg";
 import { createClient } from "@supabase/supabase-js";
+import { notifyBarSubmissionReceived } from "./services/agentNotificationService.js";
 
 const { Pool } = pg;
 
@@ -144,7 +145,27 @@ export async function recordSubmission({
     );
 
     await client.query("COMMIT");
-    return { clientId, submissionId, submissionPublicId };
+    const result = { clientId, submissionId, submissionPublicId };
+
+    try {
+      const name =
+        rawSubmission?.applicant_name ||
+        rawSubmission?.insured_name ||
+        rawSubmission?.premises_name ||
+        null;
+      await notifyBarSubmissionReceived({
+        segment: segEnum,
+        submissionPublicId,
+        clientName: name,
+      });
+    } catch (notifyErr) {
+      console.error(
+        "[db] notifyBarSubmissionReceived error:",
+        notifyErr.message || notifyErr,
+      );
+    }
+
+    return result;
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("[db] recordSubmission error:", err.message || err);

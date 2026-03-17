@@ -831,6 +831,27 @@
         let lastSubmitTime = 0;
         const MIN_SUBMIT_INTERVAL = 2000; // 2 seconds between submissions
         
+        // LIGHT CLIENT-SIDE VALIDATION (email, phone, ZIP)
+        function validateEmail(value) {
+            if (!value) return false;
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(value.trim());
+        }
+        function validatePhone(value) {
+            if (!value) return false;
+            const digits = value.replace(/\D/g, "");
+            return digits.length >= 10;
+        }
+        function validateZip(value) {
+            if (!value) return false;
+            const re = /^\d{5}(?:-\d{4})?$/;
+            return re.test(value.trim());
+        }
+        function showFieldError(input, message) {
+            alert(message);
+            input.focus();
+        }
+        
         // CONDITIONAL LOGIC SYSTEM
         function setupConditionalLogic() {
             const conditionalElements = document.querySelectorAll('[data-conditional]');
@@ -1010,6 +1031,24 @@
             submitButton.textContent = "Submitting...";
 
             try {
+                // Basic format validation before mapping
+                const emailInput = form.querySelector('[name="contact_email"]');
+                const phoneInput = form.querySelector('[name="business_phone"]');
+                const zipInput = form.querySelector('[name="premise_zip"]');
+
+                if (emailInput && !validateEmail(emailInput.value)) {
+                    showFieldError(emailInput, "Please enter a valid email address.");
+                    return;
+                }
+                if (phoneInput && phoneInput.value && !validatePhone(phoneInput.value)) {
+                    showFieldError(phoneInput, "Please enter a valid phone number (at least 10 digits).");
+                    return;
+                }
+                if (zipInput && !validateZip(zipInput.value)) {
+                    showFieldError(zipInput, "Please enter a valid ZIP code (5 digits or 5+4).");
+                    return;
+                }
+
                 // BAR mapping: set combined/duplicate fields before FormData so PDFs fill
                 const addr = form.querySelector('[name="premise_address"]');
                 const city = form.querySelector('[name="premise_city"]');

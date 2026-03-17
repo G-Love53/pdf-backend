@@ -3,6 +3,7 @@ import { getPool } from "../db.js";
 import { buildPacket, persistPacket } from "../services/packetService.js";
 import { sendPacketEmail } from "../services/packetEmailService.js";
 import { getObjectStream } from "../services/r2Service.js";
+import { notifyBarPacketSent } from "../services/agentNotificationService.js";
 
 const router = express.Router();
 const pool = getPool();
@@ -210,6 +211,15 @@ router.post("/api/quotes/:quoteId/packet/finalize", async (req, res) => {
       attachmentBuffer: combinedPdf,
       attachmentFilename: `${submission.submission_public_id || "packet"}.pdf`,
     });
+
+    try {
+      await notifyBarPacketSent({ packetId: persistResult.packetId });
+    } catch (err) {
+      console.error(
+        "[packetBuilder] notifyBarPacketSent error:",
+        err.message || err,
+      );
+    }
 
     res.json({
       success: true,

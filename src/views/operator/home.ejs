@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>CID — Operator Home</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #020617;
+        color: #e5e7eb;
+      }
+      header {
+        padding: 16px 24px;
+        border-bottom: 1px solid #1f2937;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      header h1 {
+        font-size: 20px;
+        margin: 0;
+      }
+      header span {
+        font-size: 13px;
+        color: #9ca3af;
+      }
+      main {
+        padding: 16px 24px 32px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .card {
+        background: #020617;
+        border-radius: 10px;
+        border: 1px solid #1f2937;
+        padding: 12px 14px;
+      }
+      .card h2 {
+        font-size: 13px;
+        font-weight: 500;
+        color: #9ca3af;
+        margin: 0 0 6px;
+      }
+      .metric {
+        font-size: 24px;
+        font-weight: 600;
+      }
+      .section-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #9ca3af;
+        margin: 20px 0 8px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th,
+      td {
+        padding: 6px 8px;
+        border-bottom: 1px solid #111827;
+      }
+      th {
+        text-align: left;
+        color: #9ca3af;
+        font-weight: 500;
+      }
+      tbody tr:hover {
+        background: #020617;
+      }
+      .pill {
+        border-radius: 999px;
+        padding: 2px 8px;
+        background: #020617;
+        border: 1px solid #1f2937;
+        font-size: 11px;
+        color: #9ca3af;
+      }
+      a {
+        color: #38bdf8;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 2fr 1.5fr;
+        gap: 24px;
+      }
+      @media (max-width: 960px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Operator Home</h1>
+        <span>Today at a glance — Bar segment</span>
+      </div>
+      <div style="font-size: 12px; color: #6b7280">
+        <a href="/operator/extraction-review">S4 queue</a> ·
+        <a href="/operator/packet-builder">S5 packets</a> ·
+        <a href="/operator/bind">S6 binds</a>
+      </div>
+    </header>
+    <main>
+      <div class="grid" id="today-metrics">
+        <div class="card">
+          <h2>Submissions (today)</h2>
+          <div class="metric" id="metric-submissions-today">—</div>
+        </div>
+        <div class="card">
+          <h2>Approved quotes (S4)</h2>
+          <div class="metric" id="metric-approved-quotes-today">—</div>
+        </div>
+        <div class="card">
+          <h2>Packets sent (S5)</h2>
+          <div class="metric" id="metric-packets-sent-today">—</div>
+        </div>
+        <div class="card">
+          <h2>Binds initiated (S6)</h2>
+          <div class="metric" id="metric-binds-initiated-today">—</div>
+        </div>
+        <div class="card">
+          <h2>Policies bound</h2>
+          <div class="metric" id="metric-policies-bound-today">—</div>
+        </div>
+      </div>
+
+      <div class="layout">
+        <div>
+          <div class="section-title">
+            Submissions waiting for carrier outreach
+          </div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Submission</th>
+                  <th>Client</th>
+                  <th>Received</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-submissions-waiting"></tbody>
+            </table>
+          </div>
+
+          <div class="section-title">Quotes pending S4 review</div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Submission</th>
+                  <th>Client</th>
+                  <th>Match</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-quotes-pending-s4"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-title">Binds awaiting signature</div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Submission</th>
+                  <th>Carrier</th>
+                  <th>Policy</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-binds-awaiting"></tbody>
+            </table>
+          </div>
+
+          <div class="section-title">Upcoming policy renewals</div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Renewal date</th>
+                  <th>Client</th>
+                  <th>Carrier</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-renewals"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      function fmtDate(iso) {
+        if (!iso) return "";
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return "";
+        return d.toLocaleDateString();
+      }
+
+      async function loadDashboard() {
+        try {
+          const res = await fetch("/api/operator/dashboard");
+          if (!res.ok) return;
+          const data = await res.json();
+
+          const counts = data.counts || {};
+          document.getElementById("metric-submissions-today").textContent =
+            counts.submissions_today ?? "0";
+          document.getElementById(
+            "metric-approved-quotes-today",
+          ).textContent = counts.approved_quotes_today ?? "0";
+          document.getElementById("metric-packets-sent-today").textContent =
+            counts.packets_sent_today ?? "0";
+          document.getElementById(
+            "metric-binds-initiated-today",
+          ).textContent = counts.binds_initiated_today ?? "0";
+          document.getElementById(
+            "metric-policies-bound-today",
+          ).textContent = counts.policies_bound_today ?? "0";
+
+          const queues = data.queues || {};
+
+          const subTbody = document.getElementById("tbody-submissions-waiting");
+          subTbody.innerHTML = "";
+          (queues.submissions_waiting_outreach || []).forEach((item) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${item.submission_public_id || "—"}</td>
+              <td>${item.client_name || ""}</td>
+              <td>${fmtDate(item.created_at)}</td>
+            `;
+            subTbody.appendChild(tr);
+          });
+
+          const s4Tbody = document.getElementById("tbody-quotes-pending-s4");
+          s4Tbody.innerHTML = "";
+          (queues.quotes_pending_s4 || []).forEach((item) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${item.submission_public_id || "—"}</td>
+              <td>${item.client_name || ""}</td>
+              <td>
+                <span class="pill">
+                  ${item.match_confidence_label || "unknown"}
+                </span>
+              </td>
+            `;
+            s4Tbody.appendChild(tr);
+          });
+
+          const bindTbody = document.getElementById("tbody-binds-awaiting");
+          bindTbody.innerHTML = "";
+          (queues.binds_awaiting_signature || []).forEach((item) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${item.submission_public_id || "—"}</td>
+              <td>${item.carrier_name || ""}</td>
+              <td>${item.policy_type || ""}</td>
+            `;
+            bindTbody.appendChild(tr);
+          });
+
+          const renTbody = document.getElementById("tbody-renewals");
+          renTbody.innerHTML = "";
+          (queues.upcoming_policy_renewals || []).forEach((item) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${fmtDate(item.renewal_date)}</td>
+              <td>${item.client_name || ""}</td>
+              <td>${item.carrier_name || ""}</td>
+            `;
+            renTbody.appendChild(tr);
+          });
+        } catch (err) {
+          // swallow for operator UI; console is enough
+          console.error("dashboard load error", err);
+        }
+      }
+
+      loadDashboard();
+      setInterval(loadDashboard, 30000);
+    </script>
+  </body>
+  </html>
+

@@ -5,6 +5,7 @@ import crypto from "crypto";
 import path from "path";
 import { fileURLToPath } from "url";
 import { getPool } from "../db.js";
+import { notifyBarCarrierQuoteReceived } from "../services/agentNotificationService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -249,6 +250,15 @@ async function processMessage(gmail, messageId, seg) {
   });
 
   await routeByConfidence(matchResult, quoteId, carrierMessageId, seg.segment);
+
+  try {
+    await notifyBarCarrierQuoteReceived({ quoteId });
+  } catch (err) {
+    console.error(
+      "[gmailPoller] notifyBarCarrierQuoteReceived error:",
+      err.message || err,
+    );
+  }
 
   console.log(
     `[${seg.segment}] Message ${messageId} processed. Quote: ${quoteId} | Match: ${matchResult.matchStatus} (${matchResult.confidence})`,

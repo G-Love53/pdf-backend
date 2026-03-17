@@ -8,6 +8,7 @@ import { generateDocument } from "./generators/index.js";
 import { sendWithGmail } from "./email.js";
 import { recordSubmission, getPool } from "./db.js";
 import { startGmailPoller } from "./jobs/gmailPoller.js";
+import { runFollowupScheduler } from "./jobs/followupScheduler.js";
 import operatorRoutes from "./routes/operatorRoutes.js";
 import webhooksRouter from "./routes/webhooks.js";
 // Note: Ensure your enricher import matches the file name in your 'src' folder
@@ -467,14 +468,94 @@ APP.post("/submit-quote", async (req, res) => {
     const segments = Array.isArray(body.segments) ? body.segments : [];
     const segment = String(body.segment || process.env.SEGMENT || "").trim().toLowerCase();
 
-    // Phase 2: write into CID schema (best-effort, never blocks PDF/email)
+    const pool = getPool();
+
+    // Phase 2: write into CID schema (best-effort) with duplicate detection
     let submissionPublicId = null;
+    let dbResult = null;
     try {
       const primaryEmail =
         formData.contact_email ||
         formData.email ||
         formData.applicant_email ||
         null;
+
+      const businessName =
+        formData.insured_name ||
+        formData.premises_name ||
+        formData.business_name ||
+        null;
+
+      const postalCode =
+        formData.premise_zip ||
+        formData.physical_zip ||
+        formData.zip ||
+        null;
+
+      if (pool && (primaryEmail || (businessName && postalCode))) {
+        // Duplicate submission detection (last 30 days, same segment)
+        const dupRes = await pool.query(
+          `
+            SELECT submission_id, submission_public_id
+            FROM submissions
+            WHERE segment = $1::segment_type
+              AND created_at >= NOW() - INTERVAL '30 days'
+              AND (
+                ($2::text IS NOT NULL AND lower(raw_submission_json->>'contact_email') = lower($2))
+                OR (
+                  $3::text IS NOT NULL
+                  AND $4::text IS NOT NULL
+                  AND lower(COALESCE(raw_submission_json->>'insured_name', raw_submission_json->>'premises_name', raw_submission_json->>'business_name')) = lower($3)
+                  AND COALESCE(raw_submission_json->>'premise_zip', raw_submission_json->>'physical_zip', raw_submission_json->>'zip') = $4
+                )
+              )
+            ORDER BY created_at DESC
+            LIMIT 1
+          `,
+          [segment || "bar", primaryEmail, businessName, postalCode],
+        );
+
+        if (dupRes.rows.length > 0) {
+          const existing = dupRes.rows[0];
+          submissionPublicId = existing.submission_public_id;
+
+          try {
+            await pool.query(
+              `
+                INSERT INTO timeline_events (
+                  client_id,
+                  submission_id,
+                  event_type,
+                  event_label,
+                  event_payload_json,
+                  created_by
+                )
+                VALUES (
+                  NULL,
+                  $1,
+                  'submission.duplicate_detected',
+                  'Duplicate submission detected (no new outreach triggered)',
+                  $2,
+                  'system'
+                )
+              `,
+              [existing.submission_id, formData],
+            );
+          } catch (timelineErr) {
+            console.error(
+              "[submit-quote] duplicate timeline error:",
+              timelineErr.message || timelineErr,
+            );
+          }
+
+          return res.json({
+            ok: true,
+            success: true,
+            duplicate: true,
+            submission_public_id: submissionPublicId,
+          });
+        }
+      }
 
       if (primaryEmail) {
         const sourceDomain =
@@ -492,7 +573,7 @@ APP.post("/submit-quote", async (req, res) => {
           site_domain: body.site_domain,
         };
 
-        const dbResult = await recordSubmission({
+        dbResult = await recordSubmission({
           segment,
           sourceDomain,
           sourceForm,
@@ -634,6 +715,22 @@ APP.use(
 );
 
 startGmailPoller();
+
+// Simple interval-based scheduler for follow-ups and expirations
+if (process.env.ENABLE_FOLLOWUP_SCHEDULER === "true") {
+  const intervalMinutes = Number(process.env.FOLLOWUP_SCHEDULER_INTERVAL_MINUTES || "15");
+  const intervalMs = Math.max(intervalMinutes, 5) * 60 * 1000;
+
+  console.log(
+    `[followupScheduler] Enabled, running every ${intervalMinutes} minutes.`,
+  );
+
+  setInterval(() => {
+    runFollowupScheduler().catch((err) =>
+      console.error("[followupScheduler] error:", err),
+    );
+  }, intervalMs);
+}
 
 const PORT = process.env.PORT || 8080;
 APP.listen(PORT, () => console.log(`PDF service listening on ${PORT}`));
