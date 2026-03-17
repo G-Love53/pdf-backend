@@ -471,6 +471,11 @@ APP.post("/submit-quote", async (req, res) => {
     const bundle_id = body.bundle_id;
     const segments = Array.isArray(body.segments) ? body.segments : [];
     const segment = String(body.segment || process.env.SEGMENT || "").trim().toLowerCase();
+    const forceResubmit = body.force_resubmit === true;
+    const submissionIntent =
+      body.submission_intent === "corrected" || body.submission_intent === "new"
+        ? body.submission_intent
+        : null;
 
     const pool = getPool();
 
@@ -496,7 +501,7 @@ APP.post("/submit-quote", async (req, res) => {
         formData.zip ||
         null;
 
-      if (pool && (primaryEmail || (businessName && postalCode))) {
+      if (!forceResubmit && pool && (primaryEmail || (businessName && postalCode))) {
         // Duplicate submission detection (same segment; avoid created_at for older schemas)
         const dupRes = await pool.query(
           `
@@ -574,6 +579,7 @@ APP.post("/submit-quote", async (req, res) => {
           segment,
           bundle_id,
           site_domain: body.site_domain,
+          submission_intent: submissionIntent,
         };
 
         dbResult = await recordSubmission({
