@@ -288,9 +288,22 @@ async function captureClientSubmissionPdf({
   submissionId,
   formData,
 }) {
-  if (!submissionPublicId || !segment) return null;
+  if (!submissionPublicId || !segment) {
+    console.log(
+      "[submit-quote] client_submission skipped (missing submissionPublicId or segment)",
+      { submissionPublicId, segment },
+    );
+    return null;
+  }
 
   try {
+    console.log("[submit-quote] client_submission start", {
+      submissionPublicId,
+      segment,
+      hasClientId: Boolean(clientId),
+      hasSubmissionId: Boolean(submissionId),
+    });
+
     const requestRow = {
       ...formData,
       segment,
@@ -299,6 +312,10 @@ async function captureClientSubmissionPdf({
     };
 
     const { buffer } = await generateDocument(requestRow);
+    console.log("[submit-quote] client_submission rendered", {
+      submissionPublicId,
+      bytes: buffer?.length || 0,
+    });
 
     const { uploadBuffer } = await import("./services/r2Service.js");
     const pool = getPool();
@@ -309,6 +326,10 @@ async function captureClientSubmissionPdf({
     await uploadBuffer(pathKey, buffer, "application/pdf", {
       segment: seg,
       type: "client_submission",
+    });
+    console.log("[submit-quote] client_submission uploaded", {
+      submissionPublicId,
+      pathKey,
     });
 
     if (pool && clientId && submissionId) {
@@ -335,7 +356,7 @@ async function captureClientSubmissionPdf({
             NULL,
             NULL,
             'pdf',
-            'client_submission',
+            'application_original',
             'r2',
             $3,
             'application/pdf',
@@ -346,6 +367,16 @@ async function captureClientSubmissionPdf({
         `,
         [clientId, submissionId, pathKey, sha],
       );
+      console.log("[submit-quote] client_submission document row inserted", {
+        submissionPublicId,
+      });
+    } else {
+      console.log("[submit-quote] client_submission document row skipped", {
+        submissionPublicId,
+        hasPool: Boolean(pool),
+        hasClientId: Boolean(clientId),
+        hasSubmissionId: Boolean(submissionId),
+      });
     }
 
     return {
@@ -354,7 +385,10 @@ async function captureClientSubmissionPdf({
       contentType: "application/pdf",
     };
   } catch (err) {
-    console.error("[submit-quote] captureClientSubmissionPdf error:", err);
+    console.error(
+      "[submit-quote] client_submission generate failed:",
+      err?.message || err,
+    );
     return null;
   }
 }
@@ -697,9 +731,22 @@ APP.post("/submit-quote", async (req, res) => {
               buffer: submissionAttachment.buffer,
               contentType: submissionAttachment.contentType,
             });
+            console.log("[submit-quote] client_submission attachment ready", {
+              submissionPublicId,
+              extraAttachmentsCount: extraAttachments.length,
+            });
+          } else {
+            console.log("[submit-quote] client_submission attachment missing", {
+              submissionPublicId,
+            });
           }
         }
 
+        console.log("[submit-quote] dispatch render/email", {
+          submissionPublicId,
+          templateCount: templates.length,
+          extraAttachmentsCount: extraAttachments.length,
+        });
         await renderBundleAndRespond(
           { templates, email: emailBlock, extraAttachments },
           res,
