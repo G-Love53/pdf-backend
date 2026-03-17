@@ -28,12 +28,11 @@ router.get("/api/operator/dashboard", async (_req, res) => {
         pool.query(
           `
             SELECT
-              -- Submissions received today
+              -- Submissions (all time, Bar)
               (
                 SELECT COUNT(*)::int
                 FROM submissions s
                 WHERE s.segment = 'bar'::segment_type
-                  AND s.created_at >= CURRENT_DATE
               ) AS submissions_today,
               -- Quotes approved in S4 today (approved extractions)
               (
@@ -79,7 +78,7 @@ router.get("/api/operator/dashboard", async (_req, res) => {
           `
             SELECT
               s.submission_public_id,
-              s.created_at,
+              NULL::timestamp AS created_at,
               c.primary_email AS client_email,
               COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name
             FROM submissions s
@@ -89,7 +88,7 @@ router.get("/api/operator/dashboard", async (_req, res) => {
             WHERE s.segment = 'bar'::segment_type
               AND s.status = 'received'
               AND q.submission_id IS NULL
-            ORDER BY s.created_at ASC
+            ORDER BY s.submission_public_id ASC
             LIMIT 20
           `,
         ),
@@ -151,7 +150,7 @@ router.get("/api/operator/dashboard", async (_req, res) => {
         pool.query(
           `
             SELECT
-              p.policy_id,
+              p.id AS policy_id,
               p.renewal_date,
               p.effective_date,
               p.expiration_date,

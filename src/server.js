@@ -497,13 +497,12 @@ APP.post("/submit-quote", async (req, res) => {
         null;
 
       if (pool && (primaryEmail || (businessName && postalCode))) {
-        // Duplicate submission detection (last 30 days, same segment)
+        // Duplicate submission detection (same segment; no created_at dependency for older schemas)
         const dupRes = await pool.query(
           `
             SELECT submission_id, submission_public_id
             FROM submissions
             WHERE segment = $1::segment_type
-              AND created_at >= NOW() - INTERVAL '30 days'
               AND (
                 ($2::text IS NOT NULL AND lower(raw_submission_json->>'contact_email') = lower($2))
                 OR (
