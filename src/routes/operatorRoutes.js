@@ -124,7 +124,7 @@ router.get("/api/operator/dashboard", async (_req, res) => {
             LIMIT 20
           `,
         ),
-        // Binds awaiting signature
+        // Binds awaiting signature (avoid policy_type dependency for older schemas)
         pool.query(
           `
             SELECT
@@ -133,8 +133,7 @@ router.get("/api/operator/dashboard", async (_req, res) => {
               q.quote_id,
               s.submission_public_id,
               COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name,
-              q.carrier_name,
-              q.policy_type
+              q.carrier_name
             FROM bind_requests br
             JOIN quotes q ON q.quote_id = br.quote_id
             JOIN submissions s ON s.submission_id = q.submission_id
@@ -146,26 +145,22 @@ router.get("/api/operator/dashboard", async (_req, res) => {
             LIMIT 20
           `,
         ),
-        // Upcoming policy renewals (next 60 days, Bar only)
+        // Upcoming policy renewals (avoid renewal_date / policy_type dependency)
         pool.query(
           `
             SELECT
               p.id AS policy_id,
-              p.renewal_date,
               p.effective_date,
               p.expiration_date,
               s.submission_public_id,
               COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name,
-              p.carrier_name,
-              p.policy_type
+              p.carrier_name
             FROM policies p
             JOIN submissions s ON s.submission_id = p.submission_id
             LEFT JOIN businesses b ON s.business_id = b.business_id
             LEFT JOIN clients c ON s.client_id = c.client_id
             WHERE s.segment = 'bar'::segment_type
-              AND p.renewal_date IS NOT NULL
-              AND p.renewal_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '60 days'
-            ORDER BY p.renewal_date ASC
+            ORDER BY p.effective_date DESC
             LIMIT 20
           `,
         ),
