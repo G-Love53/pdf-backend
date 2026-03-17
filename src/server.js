@@ -497,7 +497,7 @@ APP.post("/submit-quote", async (req, res) => {
         null;
 
       if (pool && (primaryEmail || (businessName && postalCode))) {
-        // Duplicate submission detection (same segment; no created_at dependency for older schemas)
+        // Duplicate submission detection (same segment; avoid created_at for older schemas)
         const dupRes = await pool.query(
           `
             SELECT submission_id, submission_public_id
@@ -512,7 +512,7 @@ APP.post("/submit-quote", async (req, res) => {
                   AND COALESCE(raw_submission_json->>'premise_zip', raw_submission_json->>'physical_zip', raw_submission_json->>'zip') = $4
                 )
               )
-            ORDER BY created_at DESC
+            ORDER BY submission_id DESC
             LIMIT 1
           `,
           [segment || "bar", primaryEmail, businessName, postalCode],
