@@ -49,7 +49,11 @@ Respond with ONLY valid JSON in this exact structure:
   "confidence_scores": { "field_name": 0.0-1.0, ... }
 }
 
-If a field cannot be found in the document, set it to null with confidence 0.0.`,
+If a field cannot be found in the document, set it to null with confidence 0.0.
+
+RESPOND WITH ONLY THE JSON OBJECT.
+NO MARKDOWN, NO CODE FENCES, NO EXPLANATION, NO PREAMBLE.
+Your entire response must start with { and end with }.`,
           },
         ],
       },

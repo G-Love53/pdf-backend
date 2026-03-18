@@ -56,14 +56,52 @@ async function callClaude(promptConfig) {
     throw new Error("Claude response missing text content");
   }
 
-  let parsed;
-  try {
-    parsed = JSON.parse(textPart.text);
-  } catch (err) {
-    throw new Error("Failed to parse Claude JSON response");
-  }
+  const rawText = String(textPart.text);
 
-  return parsed;
+  const extractJsonCandidate = (text) => {
+    // Strip common markdown code fences, if the model wrapped JSON in ```json ... ```
+    let cleaned = text.trim();
+    cleaned = cleaned.replace(/```(?:json)?/gi, "");
+    cleaned = cleaned.replace(/```/g, "");
+    cleaned = cleaned.trim();
+
+    // Fast path: exact JSON
+    try {
+      return JSON.parse(cleaned);
+    } catch {
+      // continue
+    }
+
+    // Try to grab the first JSON object substring.
+    const firstBrace = cleaned.indexOf("{");
+    const lastBrace = cleaned.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      const candidate = cleaned.slice(firstBrace, lastBrace + 1);
+      try {
+        return JSON.parse(candidate);
+      } catch {
+        // continue
+      }
+
+      // Retry after removing trailing commas before closing braces/brackets.
+      const noTrailingCommas = candidate.replace(/,\s*([}\]])/g, "$1");
+      try {
+        return JSON.parse(noTrailingCommas);
+      } catch {
+        // continue
+      }
+    }
+
+    throw new Error("Claude response did not contain valid JSON");
+  };
+
+  try {
+    return extractJsonCandidate(rawText);
+  } catch (err) {
+    // Include a small prefix to help debugging (no sensitive data).
+    const prefix = rawText.slice(0, 200).replace(/\s+/g, " ");
+    throw new Error(`Failed to parse Claude JSON response: ${err.message || err}. Prefix: ${prefix}`);
+  }
 }
 
 export async function runExtractionForWorkItem(workQueueItemId) {
