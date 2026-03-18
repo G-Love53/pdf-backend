@@ -120,6 +120,7 @@ export async function runExtractionForWorkItem(workQueueItemId) {
           wqi.work_queue_item_id,
           q.quote_id,
           q.segment,
+          q.carrier_name AS system_carrier_name,
           d.document_id,
           d.storage_path
         FROM work_queue_items wqi
@@ -144,7 +145,8 @@ export async function runExtractionForWorkItem(workQueueItemId) {
           SELECT
             wqi.work_queue_item_id,
             q.quote_id,
-            q.segment
+            q.segment,
+            q.carrier_name AS system_carrier_name
           FROM work_queue_items wqi
           JOIN quotes q
             ON wqi.related_entity_type = 'quote'
@@ -212,6 +214,7 @@ export async function runExtractionForWorkItem(workQueueItemId) {
             work_queue_item_id: baseRow.work_queue_item_id,
             quote_id: baseRow.quote_id,
             segment: baseRow.segment,
+            system_carrier_name: baseRow.system_carrier_name,
             document_id: docRowRes.rows[0].document_id,
             storage_path: docRowRes.rows[0].storage_path,
           },
@@ -231,6 +234,14 @@ export async function runExtractionForWorkItem(workQueueItemId) {
 
     const extractedData = aiResult.extracted_data || {};
     const confidenceScores = aiResult.confidence_scores || {};
+
+    // System-data-first rule:
+    // carrier_name is an email-derived fact set by gmailPoller. Claude is allowed
+    // to enrich other fields, but we should never let it erase system-known
+    // carrier_name (even if Claude extracted something else).
+    if (row.system_carrier_name) {
+      extractedData.carrier_name = row.system_carrier_name;
+    }
 
     const overallConfidence =
       typeof confidenceScores.annual_premium === "number"
