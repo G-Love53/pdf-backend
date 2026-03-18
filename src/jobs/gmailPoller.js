@@ -645,9 +645,11 @@ function resolveCarrierName(email) {
     "employers.com": "Employers",
     "biberk.com": "biBERK",
     "societyinsurance.com": "Society Insurance",
+    "allaccessins.com": "Society Insurance",
     "coterie.com": "Coterie",
   };
-  return map[domain.toLowerCase()] || null;
+  // quotes.carrier_name is NOT NULL, so never return null.
+  return map[domain.toLowerCase()] || (domain ? domain : "Unknown Carrier");
 }
 
 function buildMatchMethod(details) {
