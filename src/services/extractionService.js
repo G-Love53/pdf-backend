@@ -36,12 +36,10 @@ async function callClaude(promptConfig) {
         .map((s) => s.trim())
         .filter(Boolean)
     : [
-        // These have been stable across time; if your account doesn't have one,
-        // we retry the next.
+        // Only include models that support document (PDF base64) inputs.
+        // If a particular model isn't available for your account, we'll try the next one.
         "claude-3-5-sonnet-20240620",
-        "claude-3-5-haiku-20241022",
         "claude-3-opus-20240229",
-        "claude-3-haiku-20240307",
       ]
   ).map((m) => String(m));
 
@@ -72,6 +70,15 @@ async function callClaude(promptConfig) {
         // Anthropic returns 404 "model not found" for unavailable/unauthorized model IDs.
         if (resp.status === 404 && /not_found_error/i.test(text) && /model/i.test(text)) {
           lastErr = new Error(`Claude model not available (${modelId}): ${resp.status} ${text}`);
+          continue;
+        }
+
+        // Some models don't support PDF/document inputs and return a 400.
+        // If we hit that, try the next fallback model.
+        if (resp.status === 400 && /does not support pdf input/i.test(text)) {
+          lastErr = new Error(
+            `Claude model does not support PDF input (${modelId}): ${resp.status} ${text}`,
+          );
           continue;
         }
 
