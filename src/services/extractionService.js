@@ -30,83 +30,40 @@ async function callClaude(promptConfig) {
     throw new Error("ANTHROPIC_API_KEY not configured");
   }
 
-  const fallbackModels = (process.env.ANTHROPIC_MODEL_FALLBACKS
-    ? String(process.env.ANTHROPIC_MODEL_FALLBACKS)
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-    : [
-        // Only include models that support document (PDF base64) inputs.
-        // If a particular model isn't available for your account, we'll try the next one.
-        "claude-3-5-sonnet-20240620",
-        "claude-3-opus-20240229",
-      ]
-  ).map((m) => String(m));
+  // Locked model: extraction/letter PDF compatibility requires Sonnet 4.
+  // If you'd like, you can override via ANTHROPIC_MODEL_FALLBACKS later,
+  // but by default we do NOT fall back to Haiku or other non-PDF-capable models.
+  const lockedModel = promptConfig.model;
 
-  const candidates = [
-    promptConfig.model,
-    ...fallbackModels.filter((m) => m && m !== promptConfig.model),
-  ];
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({ ...promptConfig, model: lockedModel }),
+  });
 
-  let lastErr = null;
-  for (const modelId of candidates) {
-    const payload = { ...promptConfig, model: modelId };
-
-    try {
-      const resp = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!resp.ok) {
-        const text = await resp.text();
-
-        // If model is missing/unavailable, try the next candidate.
-        // Anthropic returns 404 "model not found" for unavailable/unauthorized model IDs.
-        if (resp.status === 404 && /not_found_error/i.test(text) && /model/i.test(text)) {
-          lastErr = new Error(`Claude model not available (${modelId}): ${resp.status} ${text}`);
-          continue;
-        }
-
-        // Some models don't support PDF/document inputs and return a 400.
-        // If we hit that, try the next fallback model.
-        if (resp.status === 400 && /does not support pdf input/i.test(text)) {
-          lastErr = new Error(
-            `Claude model does not support PDF input (${modelId}): ${resp.status} ${text}`,
-          );
-          continue;
-        }
-
-        // Any other failure: surface immediately.
-        throw new Error(`Claude API error: ${resp.status} ${text}`);
-      }
-
-      const data = await resp.json();
-      const textPart = (data.content || []).find((c) => c.type === "text");
-      if (!textPart || !textPart.text) {
-        throw new Error("Claude response missing text content");
-      }
-
-      let parsed;
-      try {
-        parsed = JSON.parse(textPart.text);
-      } catch (err) {
-        throw new Error("Failed to parse Claude JSON response");
-      }
-
-      return parsed;
-    } catch (err) {
-      lastErr = err;
-      break;
-    }
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`Claude API error: ${resp.status} ${text}`);
   }
 
-  throw lastErr || new Error("Claude API call failed");
+  const data = await resp.json();
+  const textPart = (data.content || []).find((c) => c.type === "text");
+  if (!textPart || !textPart.text) {
+    throw new Error("Claude response missing text content");
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(textPart.text);
+  } catch (err) {
+    throw new Error("Failed to parse Claude JSON response");
+  }
+
+  return parsed;
 }
 
 export async function runExtractionForWorkItem(workQueueItemId) {
