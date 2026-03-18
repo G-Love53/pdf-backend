@@ -186,9 +186,50 @@ router.get("/api/queue/extraction-review/:workQueueItemId", async (req, res) => 
       [row.submission_id],
     );
 
-    const pdfSignedUrl = row.pdf_r2_key
-      ? getDocumentPublicUrl(row.pdf_r2_key)
-      : null;
+    let pdfSignedUrl = row.pdf_r2_key ? getDocumentPublicUrl(row.pdf_r2_key) : null;
+
+    // Fallback: some carrier ingests have documents.quote_id still NULL, so the main
+    // JOIN can't find d.storage_path. In that case, try to read the document_ids
+    // from the most recent timeline_events.quote.received payload and then resolve
+    // storage_path from documents by document_id.
+    if (!pdfSignedUrl && row.quote_id) {
+      const quoteTimelineRes = await pool.query(
+        `
+          SELECT event_payload_json
+          FROM timeline_events
+          WHERE quote_id = $1
+            AND event_type = 'quote.received'
+          ORDER BY created_at DESC
+          LIMIT 1
+        `,
+        [row.quote_id],
+      );
+
+      const payload = quoteTimelineRes.rows[0]?.event_payload_json || null;
+      const documentIds = Array.isArray(payload?.document_ids)
+        ? payload.document_ids
+        : [];
+
+      if (documentIds.length > 0) {
+        const docRes = await pool.query(
+          `
+            SELECT storage_path
+            FROM documents
+            WHERE document_id = ANY($1::uuid[])
+              AND document_role = 'carrier_quote_original'
+              AND document_type = 'pdf'
+            ORDER BY created_at DESC
+            LIMIT 1
+          `,
+          [documentIds],
+        );
+
+        const storagePath = docRes.rows[0]?.storage_path || null;
+        if (storagePath) {
+          pdfSignedUrl = getDocumentPublicUrl(storagePath);
+        }
+      }
+    }
 
     const response = {
       work_queue_item_id: row.work_queue_item_id,
