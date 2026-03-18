@@ -23,7 +23,12 @@ export function getDocumentPublicUrl(storagePath) {
   if (!storagePath) return null;
 
   if (process.env.R2_PUBLIC_BASE_URL) {
-    const base = process.env.R2_PUBLIC_BASE_URL.replace(/\/+$/, "");
+    let base = process.env.R2_PUBLIC_BASE_URL.replace(/\/+$/, "");
+    // Some deployments set R2_PUBLIC_BASE_URL without a protocol (e.g. "bucket.r2.cloudflarestorage.com").
+    // Ensure the returned URL is always fully-qualified so the browser iframe/link works.
+    if (!/^https?:\/\//i.test(base)) {
+      base = `https://${base}`;
+    }
     const path = String(storagePath).replace(/^\/+/, "");
     return `${base}/${path}`;
   }
