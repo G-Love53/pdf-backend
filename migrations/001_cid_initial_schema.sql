@@ -707,7 +707,7 @@ COMMENT ON TRIGGER enforce_one_active_extraction ON quote_extractions IS 'Ensure
 -- Domains and inboxes per segment for Cursor/dev reference
 -- =============================================================================
 
--- bar     -> barinsurancedirect.com             -> quotes@barinsurancedirect.com
+-- bar     -> barinsurancedirect.com             -> quote@barinsurancedirect.com
 -- roofer  -> roofingcontractorinsurancedirect.com -> quotes@roofingcontractorinsurancedirect.com
 -- plumber -> plumbinginsurancedirect.com         -> quotes@plumbinginsurancedirect.com
 -- hvac    -> hvacinsurancedirect.com             -> quotes@hvacinsurancedirect.com

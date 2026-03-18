@@ -24,7 +24,8 @@ const storage = new S3Client({
 const BUCKET = process.env.R2_BUCKET_NAME;
 
 const SEGMENTS = [
-  { segment: "bar", email: "quotes@barinsurancedirect.com", label: "carrier-quotes" },
+  // Bar inbox uses singular "quote@..." (no trailing "s") per Gmail filter setup.
+  { segment: "bar", email: "quote@barinsurancedirect.com", label: "carrier-quotes" },
   {
     segment: "roofer",
     email: "quotes@roofingcontractorinsurancedirect.com",

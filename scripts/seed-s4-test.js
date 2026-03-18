@@ -47,7 +47,7 @@ async function main() {
         )
         VALUES ($1,'bar','inbound','SeedCarrier',
                 'underwriting@example.com',
-                'quotes@barinsurancedirect.com',
+                'quote@barinsurancedirect.com',
                 $2,
                 'Seed S4 test message body',
                 NOW())
