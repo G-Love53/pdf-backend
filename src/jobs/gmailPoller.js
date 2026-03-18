@@ -163,19 +163,52 @@ async function processMessage(gmail, messageId, seg) {
 
   const bodyText = extractBody(msg.payload);
 
-  const carrierMessageId = await createCarrierMessage({
-    submission_id: null,
-    segment: seg.segment,
-    direction: "inbound",
-    carrier_name: resolveCarrierName(fromEmail),
-    from_email: fromEmail,
-    to_email: toEmail,
-    subject,
-    gmail_message_id: gmailMsgId,
-    gmail_thread_id: threadId,
-    body_text: bodyText,
-    received_at: receivedAt,
-  });
+  // Dedupe: if we've already ingested this exact Gmail message for this segment,
+  // avoid creating duplicate carrier_messages/quotes/work items.
+  // - If a carrier_message exists but no quote exists (previous run failed), we retry quote creation.
+  let carrierMessageId = null;
+  const existingCarrierRes = await pool.query(
+    `
+      SELECT carrier_message_id
+      FROM carrier_messages
+      WHERE gmail_message_id = $1
+        AND segment = $2::segment_type
+      LIMIT 1
+    `,
+    [gmailMsgId, seg.segment],
+  );
+  if (existingCarrierRes.rows.length > 0) {
+    carrierMessageId = existingCarrierRes.rows[0].carrier_message_id;
+    const existingQuoteRes = await pool.query(
+      `
+        SELECT quote_id
+        FROM quotes
+        WHERE carrier_message_id = $1
+        LIMIT 1
+      `,
+      [carrierMessageId],
+    );
+    if (existingQuoteRes.rows.length > 0) {
+      console.log(
+        `[${seg.segment}] Skipping message ${messageId} (already has quote for gmail_message_id ${gmailMsgId})`,
+      );
+      return;
+    }
+  } else {
+    carrierMessageId = await createCarrierMessage({
+      submission_id: null,
+      segment: seg.segment,
+      direction: "inbound",
+      carrier_name: resolveCarrierName(fromEmail),
+      from_email: fromEmail,
+      to_email: toEmail,
+      subject,
+      gmail_message_id: gmailMsgId,
+      gmail_thread_id: threadId,
+      body_text: bodyText,
+      received_at: receivedAt,
+    });
+  }
 
   const attachments = await extractAttachments(gmail, msg, gmailMsgId);
   const documentIds = [];
