@@ -120,13 +120,15 @@ export async function runExtractionForWorkItem(workQueueItemId) {
           wqi.work_queue_item_id,
           q.quote_id,
           q.segment,
-          q.carrier_name AS system_carrier_name,
+          cm.carrier_name AS system_carrier_name,
           d.document_id,
           d.storage_path
         FROM work_queue_items wqi
         JOIN quotes q
           ON wqi.related_entity_type = 'quote'
          AND wqi.related_entity_id = q.quote_id
+        JOIN carrier_messages cm
+          ON cm.carrier_message_id = q.carrier_message_id
         JOIN documents d
           ON d.quote_id = q.quote_id
          AND d.document_role = 'carrier_quote_original'
@@ -146,11 +148,13 @@ export async function runExtractionForWorkItem(workQueueItemId) {
             wqi.work_queue_item_id,
             q.quote_id,
             q.segment,
-            q.carrier_name AS system_carrier_name
+            cm.carrier_name AS system_carrier_name
           FROM work_queue_items wqi
           JOIN quotes q
             ON wqi.related_entity_type = 'quote'
            AND wqi.related_entity_id = q.quote_id
+          JOIN carrier_messages cm
+            ON cm.carrier_message_id = q.carrier_message_id
           WHERE wqi.work_queue_item_id = $1
             AND wqi.queue_type = 'extraction_review'
         `,
