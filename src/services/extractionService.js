@@ -70,7 +70,8 @@ export async function runExtractionForWorkItem(workQueueItemId) {
   try {
     await client.query("BEGIN");
 
-    const lookup = await client.query(
+    // Primary lookup: documents linked to the quote via documents.quote_id
+    let lookup = await client.query(
       `
         SELECT
           wqi.work_queue_item_id,
@@ -92,9 +93,87 @@ export async function runExtractionForWorkItem(workQueueItemId) {
       [workQueueItemId],
     );
 
+    // Fallback: some existing ingests have documents rows with quote_id still NULL.
+    // We can still extract by reading document_ids from timeline_events.quote.received payload.
     if (lookup.rows.length === 0) {
-      await client.query("ROLLBACK");
-      throw new Error("work_queue_item_not_found");
+      const base = await client.query(
+        `
+          SELECT
+            wqi.work_queue_item_id,
+            q.quote_id,
+            q.segment
+          FROM work_queue_items wqi
+          JOIN quotes q
+            ON wqi.related_entity_type = 'quote'
+           AND wqi.related_entity_id = q.quote_id
+          WHERE wqi.work_queue_item_id = $1
+            AND wqi.queue_type = 'extraction_review'
+        `,
+        [workQueueItemId],
+      );
+
+      if (base.rows.length === 0) {
+        await client.query("ROLLBACK");
+        throw new Error("work_queue_item_not_found");
+      }
+
+      const baseRow = base.rows[0];
+
+      const timeline = await client.query(
+        `
+          SELECT event_payload_json
+          FROM timeline_events
+          WHERE quote_id = $1
+            AND event_type = 'quote.received'
+          ORDER BY created_at DESC
+          LIMIT 1
+        `,
+        [baseRow.quote_id],
+      );
+
+      const payload = timeline.rows[0]?.event_payload_json || null;
+      const documentIds = payload?.document_ids || [];
+
+      if (!Array.isArray(documentIds) || documentIds.length === 0) {
+        await client.query("ROLLBACK");
+        throw new Error(
+          "work_queue_item_no_linked_documents (no document_ids in timeline_events)",
+        );
+      }
+
+      const docRowRes = await client.query(
+        `
+          SELECT
+            d.document_id,
+            d.storage_path
+          FROM documents d
+          WHERE d.document_id = ANY($1::uuid[])
+            AND d.document_role = 'carrier_quote_original'
+            AND d.document_type = 'pdf'
+          ORDER BY d.created_at DESC
+          LIMIT 1
+        `,
+        [documentIds],
+      );
+
+      if (docRowRes.rows.length === 0) {
+        await client.query("ROLLBACK");
+        throw new Error(
+          "work_queue_item_no_matching_documents (document_ids found but no pdf carrier_quote_original)",
+        );
+      }
+
+      lookup = {
+        rows: [
+          {
+            work_queue_item_id: baseRow.work_queue_item_id,
+            quote_id: baseRow.quote_id,
+            segment: baseRow.segment,
+            document_id: docRowRes.rows[0].document_id,
+            storage_path: docRowRes.rows[0].storage_path,
+          },
+        ],
+      };
     }
 
     const row = lookup.rows[0];
