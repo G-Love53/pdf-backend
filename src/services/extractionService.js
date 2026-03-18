@@ -261,11 +261,12 @@ export async function runExtractionForWorkItem(workQueueItemId) {
           model_version,
           raw_extraction_json,
           normalized_json,
+          reviewed_json,
           overall_confidence,
           review_status,
           is_active
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', TRUE)
+        VALUES ($1, $2, $3, $4, $5, $6, $6, $7, 'pending', TRUE)
         RETURNING quote_extraction_id
       `,
       [
