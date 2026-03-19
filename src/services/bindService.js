@@ -25,34 +25,42 @@ export async function listReadyToBind({ segment }) {
   const pool = getPoolOrThrow();
 
   const params = [];
-  let where = "qp.status = 'sent'";
+  const where = ["qp.status = 'sent'", "qe.review_status = 'approved'"];
   if (segment) {
     params.push(segment);
-    where += ` AND q.segment = $${params.length}`;
+    where.push(`q.segment = $${params.length}`);
   }
 
   const sql = `
     SELECT
-      q.id AS quote_id,
+      q.quote_id AS quote_id,
       s.submission_public_id,
-      c.business_name,
+      COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name,
       c.primary_email AS client_email,
       c.primary_phone AS client_phone,
       q.segment,
       q.carrier_name,
-      q.policy_type,
-      q.annual_premium,
-      q.effective_date,
+      qe.reviewed_json->>'policy_type' AS policy_type,
+      NULLIF(
+        regexp_replace(qe.reviewed_json->>'annual_premium', '[^0-9.]', '', 'g'),
+        ''
+      )::numeric AS annual_premium,
+      (NULLIF(qe.reviewed_json->>'effective_date', ''))::date AS effective_date,
+      (NULLIF(qe.reviewed_json->>'expiration_date', ''))::date AS expiration_date,
       qp.sent_at AS packet_sent_at,
-      qp.id AS packet_id,
+      qp.packet_id AS packet_id,
       EXTRACT(DAY FROM (NOW() - qp.sent_at))::int AS days_since_sent,
       br.id AS bind_request_id
     FROM quote_packets qp
-    JOIN quotes q ON q.id = qp.quote_id
+    JOIN quotes q ON q.quote_id = qp.quote_id
+    JOIN quote_extractions qe ON qe.quote_extraction_id = qp.extraction_id
     JOIN submissions s ON s.submission_id = q.submission_id
     JOIN clients c ON c.client_id = s.client_id
-    LEFT JOIN bind_requests br ON br.quote_id = q.id
-    WHERE ${where}
+    LEFT JOIN businesses b ON b.business_id = s.business_id
+    LEFT JOIN bind_requests br
+      ON br.quote_id = q.quote_id
+     AND br.status = 'awaiting_signature'
+    WHERE ${where.join(" AND ")}
     ORDER BY qp.sent_at DESC
   `;
 
@@ -61,7 +69,7 @@ export async function listReadyToBind({ segment }) {
     items: rows.map((r) => ({
       quote_id: r.quote_id,
       submission_public_id: r.submission_public_id,
-      client_name: r.business_name,
+      client_name: r.client_name,
       client_email: r.client_email,
       client_phone: r.client_phone,
       segment: r.segment,
@@ -83,22 +91,31 @@ export async function getBindDetails(quoteId) {
 
   const sql = `
     SELECT
-      q.*,
       s.submission_public_id,
       s.segment,
       s.submission_id,
       c.client_id,
-      c.business_name,
+      COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS business_name,
+      CONCAT_WS(' ', c.first_name, c.last_name) AS contact_name,
       c.primary_email,
       c.primary_phone,
-      c.mailing_address,
-      qp.id AS packet_id,
-      qp.sent_at AS packet_sent_at
+      qp.packet_id AS packet_id,
+      qp.sent_at AS packet_sent_at,
+      COALESCE(qe.reviewed_json->>'carrier_name', q.carrier_name) AS carrier_name,
+      qe.reviewed_json->>'policy_type' AS policy_type,
+      NULLIF(
+        regexp_replace(qe.reviewed_json->>'annual_premium', '[^0-9.]', '', 'g'),
+        ''
+      )::numeric AS annual_premium,
+      (NULLIF(qe.reviewed_json->>'effective_date', ''))::date AS effective_date,
+      (NULLIF(qe.reviewed_json->>'expiration_date', ''))::date AS expiration_date
     FROM quotes q
     JOIN submissions s ON s.submission_id = q.submission_id
     JOIN clients c ON c.client_id = s.client_id
-    LEFT JOIN quote_packets qp ON qp.quote_id = q.id AND qp.status = 'sent'
-    WHERE q.id = $1
+    LEFT JOIN businesses b ON b.business_id = s.business_id
+    JOIN quote_packets qp ON qp.quote_id = q.quote_id AND qp.status = 'sent'
+    JOIN quote_extractions qe ON qe.quote_extraction_id = qp.extraction_id
+    WHERE q.quote_id = $1
   `;
 
   const { rows } = await pool.query(sql, [quoteId]);
@@ -106,8 +123,9 @@ export async function getBindDetails(quoteId) {
   const row = rows[0];
 
   return {
-    quote_id: row.id,
+    quote_id: row.quote_id,
     submission_public_id: row.submission_public_id,
+    submission_id: row.submission_id,
     segment: row.segment,
     client: {
       id: row.client_id,
@@ -115,7 +133,7 @@ export async function getBindDetails(quoteId) {
       contact_name: row.contact_name || null,
       email: row.primary_email,
       phone: row.primary_phone,
-      address: row.mailing_address,
+      address: null,
     },
     quote: {
       carrier_name: row.carrier_name,
@@ -207,7 +225,7 @@ export async function initiateBind({
       [
         quoteId,
         quoteDetail.packet.id,
-        docRecord.id,
+        null, // bind doc is attached after signature webhook completes
         hsReq.signatureRequestId || hsReq.signature_request_id,
         signerName,
         signerEmail,
@@ -218,7 +236,7 @@ export async function initiateBind({
     );
 
     await client.query(
-      "UPDATE quote_packets SET status = 'accepted' WHERE id = $1",
+      "UPDATE quote_packets SET status = 'approved' WHERE packet_id = $1",
       [quoteDetail.packet.id],
     );
 
@@ -260,6 +278,13 @@ export async function initiateBind({
 
 export async function resendBind({ quoteId, agentId }) {
   const pool = getPoolOrThrow();
+
+  const { rows: quoteRows } = await pool.query(
+    `SELECT submission_id FROM quotes WHERE quote_id = $1`,
+    [quoteId],
+  );
+  const submissionId = quoteRows[0]?.submission_id || null;
+
   const { rows } = await pool.query(
     `
       SELECT * FROM bind_requests
@@ -282,7 +307,7 @@ export async function resendBind({ quoteId, agentId }) {
       VALUES ($1, $2, $3, $4, $5)
     `,
     [
-      bind.submission_id,
+      submissionId,
       "bind.resent",
       "Bind signature request resent",
       { bind_request_id: bind.id },
@@ -297,6 +322,12 @@ export async function cancelBind({ quoteId, agentId, reason }) {
 
   try {
     await client.query("BEGIN");
+
+    const { rows: quoteRows } = await client.query(
+      `SELECT submission_id FROM quotes WHERE quote_id = $1`,
+      [quoteId],
+    );
+    const submissionId = quoteRows[0]?.submission_id || null;
 
     const { rows } = await client.query(
       `
@@ -324,7 +355,7 @@ export async function cancelBind({ quoteId, agentId, reason }) {
     );
 
     await client.query(
-      "UPDATE quote_packets SET status = 'sent' WHERE id = $1",
+      "UPDATE quote_packets SET status = 'sent' WHERE packet_id = $1",
       [bind.packet_id],
     );
 
@@ -334,7 +365,7 @@ export async function cancelBind({ quoteId, agentId, reason }) {
         VALUES ($1, $2, $3, $4, $5)
       `,
       [
-        bind.submission_id,
+        submissionId,
         "bind.cancelled",
         "Bind request cancelled",
         { bind_request_id: bind.id, reason: reason || null },

@@ -117,7 +117,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
             $2,
             'system'
           FROM bind_requests br
-          JOIN quotes q ON q.id = br.quote_id
+          JOIN quotes q ON q.quote_id = br.quote_id
           WHERE br.hellosign_request_id = $1
         `,
         [hsId, payload],
@@ -160,7 +160,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
             $4,
             'system'
           FROM bind_requests br
-          JOIN quotes q ON q.id = br.quote_id
+          JOIN quotes q ON q.quote_id = br.quote_id
           WHERE br.hellosign_request_id = $1
         `,
         [
@@ -189,6 +189,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
             SELECT
               br.*,
               q.*,
+              qe.reviewed_json AS reviewed_json,
               s.submission_id,
               s.submission_public_id,
               s.segment,
@@ -198,9 +199,11 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
               c.last_name,
               c.primary_phone
             FROM bind_requests br
-            JOIN quotes q ON q.id = br.quote_id
+            JOIN quotes q ON q.quote_id = br.quote_id
             JOIN submissions s ON s.submission_id = q.submission_id
             JOIN clients c ON c.client_id = s.client_id
+            JOIN quote_packets qp ON qp.packet_id = br.packet_id
+            JOIN quote_extractions qe ON qe.quote_extraction_id = qp.extraction_id
             WHERE br.hellosign_request_id = $1
             FOR UPDATE
           `,
@@ -245,7 +248,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
             VALUES (
               $1,
               $2,
-              $3,
+                $3,
               NULL,
               'pdf',
               'bind_confirmation_signed',
@@ -261,7 +264,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
           [
             row.client_id,
             row.submission_id,
-            row.id,
+            row.quote_id,
             r2Key,
           ],
         );
@@ -297,15 +300,11 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
             segment,
           },
           quote: {
-            id: row.id,
             carrier_name: row.carrier_name,
-            policy_type: row.policy_type,
-            annual_premium: row.annual_premium,
-            effective_date: row.effective_date,
-            expiration_date: row.expiration_date,
+            quote_id: row.quote_id,
           },
           bindRequest,
-          extraction: null,
+          extraction: { reviewed_json: row.reviewed_json },
           txClient: client,
           boundBy: "system",
         });
@@ -314,7 +313,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
         await client.query(
           `
             UPDATE quote_packets
-            SET status = 'bound', updated_at = NOW()
+            SET status = 'approved', updated_at = NOW()
             WHERE quote_id = $1
           `,
           [row.quote_id],
@@ -323,8 +322,8 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
         await client.query(
           `
             UPDATE quotes
-            SET status = 'bound', updated_at = NOW()
-            WHERE id = $1
+            SET status = 'accepted', updated_at = NOW()
+            WHERE quote_id = $1
           `,
           [row.quote_id],
         );

@@ -74,7 +74,7 @@ export async function createPolicy({
       [
         policyNumber,
         submission.submission_id || submission.id,
-        quote.id,
+        quote.quote_id || quote.id,
         bindRequest.id,
         client.client_id || client.id,
         submission.segment,
