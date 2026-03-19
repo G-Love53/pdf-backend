@@ -173,12 +173,33 @@ async function processMessage(gmail, messageId, seg) {
       FROM carrier_messages
       WHERE gmail_message_id = $1
         AND segment = $2::segment_type
+      ORDER BY created_at ASC, carrier_message_id ASC
       LIMIT 1
     `,
     [gmailMsgId, seg.segment],
   );
+
   if (existingCarrierRes.rows.length > 0) {
+    // Keep the oldest carrier_message per gmail_message_id so future ingestion can't branch
+    // into multiple carrier_message_id / quote duplicates.
     carrierMessageId = existingCarrierRes.rows[0].carrier_message_id;
+
+    // Purge any duplicate carrier_messages for this gmail_message_id (keeping the oldest),
+    // along with quotes + extraction review queue items that were attached to the duplicates.
+    // This is safe to run repeatedly: if there are no duplicates, the DELETEs are no-ops.
+    try {
+      await dedupeCarrierMessagesForGmail({
+        gmailMessageId: gmailMsgId,
+        segment: seg.segment,
+      });
+    } catch (err) {
+      console.error(
+        `[${seg.segment}] Failed dedupe for gmail_message_id=${gmailMsgId}:`,
+        err.message || err,
+      );
+      // Don't block message processing if cleanup fails; better to retry than to crash.
+    }
+
     const existingQuoteRes = await pool.query(
       `
         SELECT quote_id
@@ -188,6 +209,7 @@ async function processMessage(gmail, messageId, seg) {
       `,
       [carrierMessageId],
     );
+
     if (existingQuoteRes.rows.length > 0) {
       console.log(
         `[${seg.segment}] Skipping message ${messageId} (already has quote for gmail_message_id ${gmailMsgId})`,
@@ -297,6 +319,231 @@ async function processMessage(gmail, messageId, seg) {
   console.log(
     `[${seg.segment}] Message ${messageId} processed. Quote: ${quoteId} | Match: ${matchResult.matchStatus} (${matchResult.confidence})`,
   );
+}
+
+async function dedupeCarrierMessagesForGmail({ gmailMessageId, segment }) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // Determine which carrier_messages are duplicates for this gmail_message_id + segment
+    // (keep row_number = 1; delete all rn > 1).
+    //
+    // Note: the schema enforces ON DELETE RESTRICT in multiple places, so we must delete
+    // dependent rows in a safe order.
+    const deleteWorkQueueSql = `
+      WITH ranked AS (
+        SELECT carrier_message_id,
+               ROW_NUMBER() OVER (ORDER BY created_at ASC, carrier_message_id ASC) AS rn
+        FROM carrier_messages
+        WHERE gmail_message_id = $1
+          AND segment = $2::segment_type
+      ),
+      dupe_carriers AS (
+        SELECT carrier_message_id FROM ranked WHERE rn > 1
+      ),
+      dupe_quotes AS (
+        SELECT q.quote_id
+        FROM quotes q
+        WHERE q.carrier_message_id IN (SELECT carrier_message_id FROM dupe_carriers)
+      )
+      DELETE FROM work_queue_items wi
+      WHERE wi.related_entity_type = 'quote'
+        AND wi.related_entity_id IN (SELECT quote_id FROM dupe_quotes)
+    `;
+
+    const deleteQuotePacketsSql = `
+      WITH ranked AS (
+        SELECT carrier_message_id,
+               ROW_NUMBER() OVER (ORDER BY created_at ASC, carrier_message_id ASC) AS rn
+        FROM carrier_messages
+        WHERE gmail_message_id = $1
+          AND segment = $2::segment_type
+      ),
+      dupe_carriers AS (
+        SELECT carrier_message_id FROM ranked WHERE rn > 1
+      ),
+      dupe_quotes AS (
+        SELECT q.quote_id
+        FROM quotes q
+        WHERE q.carrier_message_id IN (SELECT carrier_message_id FROM dupe_carriers)
+      )
+      DELETE FROM quote_packets qp
+      WHERE qp.quote_id IN (SELECT quote_id FROM dupe_quotes)
+    `;
+
+    const deleteSignatureEventsSql = `
+      WITH ranked AS (
+        SELECT carrier_message_id,
+               ROW_NUMBER() OVER (ORDER BY created_at ASC, carrier_message_id ASC) AS rn
+        FROM carrier_messages
+        WHERE gmail_message_id = $1
+          AND segment = $2::segment_type
+      ),
+      dupe_carriers AS (
+        SELECT carrier_message_id FROM ranked WHERE rn > 1
+      ),
+      dupe_quotes AS (
+        SELECT q.quote_id
+        FROM quotes q
+        WHERE q.carrier_message_id IN (SELECT carrier_message_id FROM dupe_carriers)
+      ),
+      dupe_policies AS (
+        SELECT p.policy_id
+        FROM policies p
+        WHERE p.quote_id IN (SELECT quote_id FROM dupe_quotes)
+      )
+      DELETE FROM signature_events se
+      WHERE (se.quote_id IN (SELECT quote_id FROM dupe_quotes))
+         OR (se.policy_id IN (SELECT policy_id FROM dupe_policies))
+    `;
+
+    const deleteTimelineEventsSql = `
+      WITH ranked AS (
+        SELECT carrier_message_id,
+               ROW_NUMBER() OVER (ORDER BY created_at ASC, carrier_message_id ASC) AS rn
+        FROM carrier_messages
+        WHERE gmail_message_id = $1
+          AND segment = $2::segment_type
+      ),
+      dupe_carriers AS (
+        SELECT carrier_message_id FROM ranked WHERE rn > 1
+      ),
+      dupe_quotes AS (
+        SELECT q.quote_id
+        FROM quotes q
+        WHERE q.carrier_message_id IN (SELECT carrier_message_id FROM dupe_carriers)
+      )
+      DELETE FROM timeline_events te
+      WHERE te.quote_id IN (SELECT quote_id FROM dupe_quotes)
+    `;
+
+    const deleteQuoteExtractionsSql = `
+      WITH ranked AS (
+        SELECT carrier_message_id,
+               ROW_NUMBER() OVER (ORDER BY created_at ASC, carrier_message_id ASC) AS rn
+        FROM carrier_messages
+        WHERE gmail_message_id = $1
+          AND segment = $2::segment_type
+      ),
+      dupe_carriers AS (
+        SELECT carrier_message_id FROM ranked WHERE rn > 1
+      ),
+      dupe_quotes AS (
+        SELECT q.quote_id
+        FROM quotes q
+        WHERE q.carrier_message_id IN (SELECT carrier_message_id FROM dupe_carriers)
+      )
+      DELETE FROM quote_extractions qe
+      WHERE qe.quote_id IN (SELECT quote_id FROM dupe_quotes)
+    `;
+
+    // Remove carrier_quote_original PDFs tied to the duplicate carrier_message_ids.
+    // Note: our documents table doesn't store carrier_message_id directly, so we match
+    // via the storage_path segment (which includes the carrier_message_id).
+    const deleteDocumentsSql = `
+      WITH ranked AS (
+        SELECT carrier_message_id,
+               ROW_NUMBER() OVER (ORDER BY created_at ASC, carrier_message_id ASC) AS rn
+        FROM carrier_messages
+        WHERE gmail_message_id = $1
+          AND segment = $2::segment_type
+      ),
+      dupe_carriers AS (
+        SELECT carrier_message_id FROM ranked WHERE rn > 1
+      ),
+      dupe_quotes AS (
+        SELECT q.quote_id
+        FROM quotes q
+        WHERE q.carrier_message_id IN (SELECT carrier_message_id FROM dupe_carriers)
+      ),
+      dupe_policies AS (
+        SELECT p.policy_id
+        FROM policies p
+        WHERE p.quote_id IN (SELECT quote_id FROM dupe_quotes)
+      )
+      DELETE FROM documents d
+      WHERE d.quote_id IN (SELECT quote_id FROM dupe_quotes)
+         OR d.policy_id IN (SELECT policy_id FROM dupe_policies)
+         OR (
+           d.document_role = 'carrier_quote_original'
+           AND d.document_type = 'pdf'
+           AND EXISTS (
+             SELECT 1
+             FROM dupe_carriers dc
+             WHERE d.storage_path LIKE '%' || dc.carrier_message_id::text || '/%'
+           )
+         )
+    `;
+
+    const deletePoliciesSql = `
+      WITH ranked AS (
+        SELECT carrier_message_id,
+               ROW_NUMBER() OVER (ORDER BY created_at ASC, carrier_message_id ASC) AS rn
+        FROM carrier_messages
+        WHERE gmail_message_id = $1
+          AND segment = $2::segment_type
+      ),
+      dupe_carriers AS (
+        SELECT carrier_message_id FROM ranked WHERE rn > 1
+      ),
+      dupe_quotes AS (
+        SELECT q.quote_id
+        FROM quotes q
+        WHERE q.carrier_message_id IN (SELECT carrier_message_id FROM dupe_carriers)
+      )
+      DELETE FROM policies p
+      WHERE p.quote_id IN (SELECT quote_id FROM dupe_quotes)
+    `;
+
+    const deleteQuotesSql = `
+      WITH ranked AS (
+        SELECT carrier_message_id,
+               ROW_NUMBER() OVER (ORDER BY created_at ASC, carrier_message_id ASC) AS rn
+        FROM carrier_messages
+        WHERE gmail_message_id = $1
+          AND segment = $2::segment_type
+      ),
+      dupe_carriers AS (
+        SELECT carrier_message_id FROM ranked WHERE rn > 1
+      )
+      DELETE FROM quotes q
+      WHERE q.carrier_message_id IN (SELECT carrier_message_id FROM dupe_carriers)
+    `;
+
+    const deleteCarrierMessagesSql = `
+      WITH ranked AS (
+        SELECT carrier_message_id,
+               ROW_NUMBER() OVER (ORDER BY created_at ASC, carrier_message_id ASC) AS rn
+        FROM carrier_messages
+        WHERE gmail_message_id = $1
+          AND segment = $2::segment_type
+      ),
+      dupe_carriers AS (
+        SELECT carrier_message_id FROM ranked WHERE rn > 1
+      )
+      DELETE FROM carrier_messages cm
+      WHERE cm.carrier_message_id IN (SELECT carrier_message_id FROM dupe_carriers)
+    `;
+
+    const params = [gmailMessageId, segment];
+    await client.query(deleteWorkQueueSql, params);
+    await client.query(deleteQuotePacketsSql, params);
+    await client.query(deleteSignatureEventsSql, params);
+    await client.query(deleteTimelineEventsSql, params);
+    await client.query(deleteQuoteExtractionsSql, params);
+    await client.query(deleteDocumentsSql, params);
+    await client.query(deletePoliciesSql, params);
+    await client.query(deleteQuotesSql, params);
+    await client.query(deleteCarrierMessagesSql, params);
+
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 async function matchToSubmission(subject, bodyText, threadId, segment) {
