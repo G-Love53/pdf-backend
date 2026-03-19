@@ -62,7 +62,13 @@ router.get("/api/quotes/ready-for-packet", async (req, res) => {
         LEFT JOIN quote_packets qp
           ON qp.quote_id = q.quote_id
         WHERE ${where}
-        ORDER BY s.submission_public_id, (qe.reviewed_json->>'annual_premium')::numeric NULLS LAST
+        ORDER BY s.submission_public_id,
+          (
+            NULLIF(
+              regexp_replace(qe.reviewed_json->>'annual_premium', '[^0-9.]', '', 'g'),
+              ''
+            )::numeric
+          ) NULLS LAST
       `,
       params,
     );
