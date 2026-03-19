@@ -1,6 +1,7 @@
 import { getPool } from "../db.js";
 import { generateDocument } from "../generators/index.js";
 import { uploadBuffer } from "./r2Service.js";
+import { createSimplePagePdf } from "./pdfCombineService.js";
 import {
   createSignatureRequest,
   resendSignatureRequest,
@@ -173,21 +174,31 @@ export async function initiateBind({
       throw new Error("Quote does not have a sent packet");
     }
 
-    const tmplKey = BIND_TEMPLATES[quoteDetail.segment] || BIND_TEMPLATES.bar;
+    // There is no registered "bind-confirmation" template in forms.json.
+    // Generate a minimal bind confirmation PDF so HelloSign can run.
+    const effectiveDate =
+      effectiveDateOverride || quoteDetail.quote.effective_date;
+    const premium =
+      quoteDetail.quote.annual_premium != null
+        ? Number(quoteDetail.quote.annual_premium).toFixed(2)
+        : "—";
+    const pdfLines = [
+      "Commercial Insurance Direct",
+      "Bind Confirmation",
+      "",
+      `Client: ${quoteDetail.client.business_name || ""}`.trim(),
+      `Carrier: ${quoteDetail.quote.carrier_name || ""}`.trim(),
+      `Policy Type: ${quoteDetail.quote.policy_type || quoteDetail.quote.policy || ""}`.trim(),
+      `Annual Premium: ${premium}`,
+      `Effective Date: ${effectiveDate || ""}`.trim(),
+      "",
+      "Signer Agreement:",
+      "Please review and sign your bind confirmation to activate your policy.",
+      "",
+      `CID Submission ID: ${quoteDetail.submission_public_id}`,
+    ];
 
-    const doc = await generateDocument(tmplKey, {
-      client: quoteDetail.client,
-      quote: {
-        ...quoteDetail.quote,
-        effective_date:
-          effectiveDateOverride || quoteDetail.quote.effective_date,
-      },
-      payment_method: paymentMethod || "annual",
-      submission_public_id: quoteDetail.submission_public_id,
-      segment: quoteDetail.segment,
-    });
-
-    const pdfBuffer = doc.buffer;
+    const pdfBuffer = await createSimplePagePdf(pdfLines);
 
     const r2Key = `binds/${quoteDetail.segment}/${quoteDetail.submission_public_id}/${quoteDetail.quote.carrier_name}-bind-confirmation.pdf`;
     await uploadBuffer(r2Key, pdfBuffer, "application/pdf", {
