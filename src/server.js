@@ -74,6 +74,12 @@ APP.use(
   express.raw({ type: "*/*", limit: "5mb" }),
 );
 
+// BoldSign webhook: must see the raw body so we can parse JSON + (optionally) validate signature
+APP.use(
+  "/api/webhooks/boldsign",
+  express.raw({ type: "*/*", limit: "5mb" }),
+);
+
 // All other routes use normal JSON parsing
 APP.use(express.json({ limit: "20mb" }));
 

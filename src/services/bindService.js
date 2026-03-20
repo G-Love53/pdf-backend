@@ -1,12 +1,9 @@
 import { getPool } from "../db.js";
-import { generateDocument } from "../generators/index.js";
-import { uploadBuffer } from "./r2Service.js";
+import { getDocumentPublicUrl, uploadBuffer } from "./r2Service.js";
 import { createSimplePagePdf } from "./pdfCombineService.js";
 import {
-  createSignatureRequest,
-  resendSignatureRequest,
-  cancelSignatureRequest,
-} from "./hellosignService.js";
+  createEmbeddedSignatureRequest,
+} from "./boldsignService.js";
 import { createPolicy } from "./policyService.js";
 
 const BIND_TEMPLATES = {
@@ -92,6 +89,7 @@ export async function getBindDetails(quoteId) {
 
   const sql = `
     SELECT
+      q.quote_id AS quote_id,
       s.submission_public_id,
       s.segment,
       s.submission_id,
@@ -102,6 +100,7 @@ export async function getBindDetails(quoteId) {
       c.primary_phone,
       qp.packet_id AS packet_id,
       qp.sent_at AS packet_sent_at,
+      qp.status AS packet_status,
       COALESCE(qe.reviewed_json->>'carrier_name', q.carrier_name) AS carrier_name,
       qe.reviewed_json->>'policy_type' AS policy_type,
       NULLIF(
@@ -110,12 +109,25 @@ export async function getBindDetails(quoteId) {
       )::numeric AS annual_premium,
       (NULLIF(qe.reviewed_json->>'effective_date', ''))::date AS effective_date,
       (NULLIF(qe.reviewed_json->>'expiration_date', ''))::date AS expiration_date
+      ,
+      br.id AS bind_request_id,
+      br.status AS bind_request_status,
+      br.document_id AS signed_document_id,
+      d.storage_path AS signed_document_storage_path
     FROM quotes q
     JOIN submissions s ON s.submission_id = q.submission_id
     JOIN clients c ON c.client_id = s.client_id
     LEFT JOIN businesses b ON b.business_id = s.business_id
-    JOIN quote_packets qp ON qp.quote_id = q.quote_id AND qp.status = 'sent'
+    JOIN quote_packets qp ON qp.quote_id = q.quote_id AND qp.status IN ('sent', 'approved')
     JOIN quote_extractions qe ON qe.quote_extraction_id = qp.extraction_id
+    LEFT JOIN LATERAL (
+      SELECT *
+      FROM bind_requests br
+      WHERE br.quote_id = q.quote_id
+      ORDER BY br.initiated_at DESC
+      LIMIT 1
+    ) br ON true
+    LEFT JOIN documents d ON d.document_id = br.document_id
     WHERE q.quote_id = $1
   `;
 
@@ -146,8 +158,17 @@ export async function getBindDetails(quoteId) {
     packet: {
       id: row.packet_id,
       sent_at: row.packet_sent_at,
-      status: "sent",
+      status: row.packet_status || "sent",
     },
+    bind_request: row.bind_request_id
+      ? {
+          id: row.bind_request_id,
+          status: row.bind_request_status,
+          signed_document_url: getDocumentPublicUrl(
+            row.signed_document_storage_path,
+          ),
+        }
+      : null,
   };
 }
 
@@ -206,13 +227,15 @@ export async function initiateBind({
       type: "bind_confirmation",
     });
 
-    const hsReq = await createSignatureRequest({
+    const boldsignReq = await createEmbeddedSignatureRequest({
       pdfBuffer,
       signerName,
       signerEmail,
       metadata: {
-        quote_id: quoteId,
+        // CID-controlled identity: this is the value you later map back from webhooks.
+        cid_id: quoteDetail.submission_public_id,
         submission_public_id: quoteDetail.submission_public_id,
+        quote_id: quoteId,
         segment: quoteDetail.segment,
       },
       subject: `Bind Confirmation — ${quoteDetail.quote.policy_type} with ${quoteDetail.quote.carrier_name}`,
@@ -237,7 +260,7 @@ export async function initiateBind({
         quoteId,
         quoteDetail.packet.id,
         null, // bind doc is attached after signature webhook completes
-        hsReq.signatureRequestId || hsReq.signature_request_id,
+        boldsignReq.documentId,
         signerName,
         signerEmail,
         paymentMethod || "annual",
@@ -277,7 +300,10 @@ export async function initiateBind({
 
     return {
       bindRequest: insertRes.rows[0],
-      hellosign: hsReq,
+      boldsign: {
+        documentId: boldsignReq.documentId,
+        sendUrl: boldsignReq.sendUrl,
+      },
     };
   } catch (err) {
     await client.query("ROLLBACK");
@@ -310,7 +336,49 @@ export async function resendBind({ quoteId, agentId }) {
     throw new Error("No pending bind_request to resend");
   }
 
-  await resendSignatureRequest(bind.hellosign_request_id, bind.signer_email);
+  // Recreate the embedded request URL (provider can treat send URLs as one-time/short-lived).
+  // We update the existing bind_requests row to keep your workflow single-source.
+  const quoteDetail = await getBindDetails(quoteId);
+  if (!quoteDetail?.packet?.id) throw new Error("Quote does not have a sent packet");
+
+  const pdfLines = [
+    "Commercial Insurance Direct",
+    "Bind Confirmation",
+    "",
+    `Client: ${quoteDetail.client.business_name || ""}`.trim(),
+    `Carrier: ${quoteDetail.quote.carrier_name || ""}`.trim(),
+    `Policy Type: ${quoteDetail.quote.policy_type || quoteDetail.quote.policy || ""}`.trim(),
+    `Annual Premium: ${quoteDetail.quote.annual_premium != null ? Number(quoteDetail.quote.annual_premium).toFixed(2) : "—"}`,
+    `Effective Date: ${quoteDetail.quote.effective_date || ""}`.trim(),
+    "",
+    "Signer Agreement:",
+    "Please review and sign your bind confirmation to activate your policy.",
+    "",
+    `CID Submission ID: ${quoteDetail.submission_public_id}`,
+  ];
+  const pdfBuffer = await createSimplePagePdf(pdfLines);
+
+  const boldsignReq = await createEmbeddedSignatureRequest({
+    pdfBuffer,
+    signerName: bind.signer_name,
+    signerEmail: bind.signer_email,
+    metadata: {
+      cid_id: quoteDetail.submission_public_id,
+      submission_public_id: quoteDetail.submission_public_id,
+      quote_id: quoteId,
+      segment: quoteDetail.segment,
+    },
+    subject: `Bind Confirmation — ${quoteDetail.quote.policy_type} with ${quoteDetail.quote.carrier_name}`,
+  });
+
+  await pool.query(
+    `
+      UPDATE bind_requests
+      SET hellosign_request_id = $1, updated_at = NOW()
+      WHERE id = $2
+    `,
+    [boldsignReq.documentId, bind.id],
+  );
 
   await pool.query(
     `
@@ -354,7 +422,9 @@ export async function cancelBind({ quoteId, agentId, reason }) {
       throw new Error("No pending bind_request to cancel");
     }
 
-    await cancelSignatureRequest(bind.hellosign_request_id);
+    // Local cancellation: provider cancellation/revocation can be added once BoldSign revoke/cancel endpoints
+    // are wired. Webhook handling must also respect bind_requests.status to avoid duplicate binds.
+    // We keep this behavior consistent with idempotent post-sign processing.
 
     await client.query(
       `

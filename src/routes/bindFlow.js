@@ -51,9 +51,8 @@ router.post("/api/quotes/:quoteId/bind/initiate", async (req, res) => {
     res.json({
       success: true,
       bind_request_id: result.bindRequest.id,
-      hellosign_request_id:
-        result.hellosign.signatureRequestId ||
-        result.hellosign.signature_request_id,
+      boldsign_document_id: result.boldsign?.documentId || null,
+      boldsign_send_url: result.boldsign?.sendUrl || null,
       status: result.bindRequest.status,
     });
   } catch (err) {

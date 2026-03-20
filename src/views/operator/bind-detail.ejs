@@ -40,6 +40,20 @@
       </label>
       <button id="send-btn">Send for E‑Signature</button>
       <pre id="status"></pre>
+
+      <div style="margin-top: 12px; display: none;" id="iframe-wrap">
+        <h3 style="font-size: 14px; margin: 0 0 8px 0;">Signer</h3>
+        <iframe
+          id="boldsign-iframe"
+          style="width: 100%; height: 65vh; border: 1px solid #e5e7eb; border-radius: 8px;"
+          src=""
+        ></iframe>
+      </div>
+
+      <div style="margin-top: 12px; display: none;" id="signed-doc-wrap">
+        <h3 style="font-size: 14px; margin: 0 0 8px 0;">Signed Document</h3>
+        <a id="signed-doc-link" href="#" target="_blank" rel="noopener noreferrer">Open signed PDF</a>
+      </div>
     </div>
 
     <script>
@@ -62,6 +76,32 @@
         `;
         document.getElementById("signer-name").value = d.client.contact_name || "";
         document.getElementById("signer-email").value = d.client.email || "";
+
+        // If already signed, show signed doc link and avoid embedding.
+        const status = d.bind_request?.status || null;
+        const signedUrl = d.bind_request?.signed_document_url || null;
+        if (status === "signed" && signedUrl) {
+          const wrap = document.getElementById("signed-doc-wrap");
+          const link = document.getElementById("signed-doc-link");
+          wrap.style.display = "block";
+          link.href = signedUrl;
+          const iframeWrap = document.getElementById("iframe-wrap");
+          iframeWrap.style.display = "none";
+        }
+      }
+
+      let pollTimer = null;
+      async function pollBindStatus() {
+        const res = await fetch(`/api/quotes/${quoteId}/bind-details`);
+        if (!res.ok) return;
+        const d = await res.json();
+        const status = d.bind_request?.status || null;
+
+        if (status === "signed") {
+          if (pollTimer) clearInterval(pollTimer);
+          pollTimer = null;
+          loadDetails();
+        }
       }
 
       document.getElementById("send-btn").addEventListener("click", async () => {
@@ -80,6 +120,16 @@
         });
         const out = await res.json();
         document.getElementById("status").textContent = JSON.stringify(out, null, 2);
+
+        if (out.boldsign_send_url) {
+          const iframeWrap = document.getElementById("iframe-wrap");
+          const iframe = document.getElementById("boldsign-iframe");
+          iframeWrap.style.display = "block";
+          iframe.src = out.boldsign_send_url;
+        }
+
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = setInterval(pollBindStatus, 5000);
       });
 
       loadDetails();

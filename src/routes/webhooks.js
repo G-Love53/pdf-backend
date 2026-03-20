@@ -1,6 +1,7 @@
 import express from "express";
 import { getPool } from "../db.js";
 import { downloadSignedDocument } from "../services/hellosignService.js";
+import { downloadSignedDocument as downloadBoldSignDocument } from "../services/boldsignService.js";
 import { uploadBuffer } from "../services/r2Service.js";
 import { createPolicy } from "../services/policyService.js";
 import {
@@ -61,6 +62,32 @@ function parseHelloSignPayload(req) {
     }
   }
   return val;
+}
+
+// BoldSign sends webhook payloads as JSON.
+// Since we mount this route with express.raw(), req.body is a Buffer and we must JSON.parse it.
+function parseBoldSignPayload(req) {
+  const body = req.body;
+
+  if (Buffer.isBuffer(body)) {
+    const text = body.toString("utf8");
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
+  }
+
+  if (typeof body === "string") {
+    try {
+      return JSON.parse(body);
+    } catch {
+      return null;
+    }
+  }
+
+  // Fallback if some other middleware parsed it
+  return body && typeof body === "object" ? body : null;
 }
 
 router.post("/api/webhooks/hellosign", async (req, res) => {
@@ -406,6 +433,349 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
   } catch (err) {
     console.error("[hellosign webhook] error:", err);
     return res.status(500).json({ ok: false, error: err.message || "ERROR" });
+  }
+});
+
+// BoldSign webhook handler.
+// For now, we only ensure the URL verifies (and we safely acknowledge real events).
+// Next step after setup is to implement: correlation (CID-{submission_public_id}),
+// idempotency (event.id), and Completed -> download -> bind.
+router.post("/api/webhooks/boldsign", async (req, res) => {
+  try {
+    const payload = parseBoldSignPayload(req);
+
+    if (!payload?.event) {
+      return res.status(200).json({ ok: true, ignored: true });
+    }
+
+    const eventType = payload?.event?.eventType;
+    const eventId = payload?.event?.id;
+    const docId = payload?.data?.documentId;
+    const environment = payload?.event?.environment;
+
+    // BoldSign webhook URL verification uses eventType=Verification.
+    if (String(eventType).toLowerCase() === "verification") {
+      return res.status(200).json({ ok: true });
+    }
+
+    const pool = getPool();
+    if (!pool) {
+      console.warn("[boldsign webhook] no DB pool");
+      return res.status(200).json({ ok: true, ignored: true });
+    }
+
+    if (!docId) {
+      return res.status(200).json({ ok: true, ignored: true });
+    }
+
+    // SENT: primarily informational for now.
+    if (eventType === "Sent") {
+      await pool.query(
+        `
+          INSERT INTO timeline_events (
+            submission_id,
+            quote_id,
+            event_type,
+            event_label,
+            event_payload_json,
+            created_by
+          )
+          SELECT
+            s.submission_id,
+            q.quote_id,
+            'bind.sent',
+            'Bind confirmation sent',
+            $2,
+            'system'
+          FROM bind_requests br
+          JOIN quotes q ON q.quote_id = br.quote_id
+          JOIN submissions s ON s.submission_id = q.submission_id
+          WHERE br.hellosign_request_id = $1
+          LIMIT 1
+        `,
+        [docId, { event_id: eventId, payload, environment }],
+      );
+      return res.status(200).json({ ok: true });
+    }
+
+    if (eventType === "Viewed") {
+      // Mark bind request viewed if still awaiting signature.
+      const { rowCount } = await pool.query(
+        `
+          UPDATE bind_requests
+          SET status = 'viewed', viewed_at = NOW(), updated_at = NOW()
+          WHERE hellosign_request_id = $1
+            AND status = 'awaiting_signature'
+        `,
+        [docId],
+      );
+
+      // Record timeline event regardless of whether we transitioned,
+      // because viewed events are “nice to have” but should still be audit logged.
+      await pool.query(
+        `
+          INSERT INTO timeline_events (
+            submission_id,
+            event_type,
+            event_label,
+            event_payload_json,
+            created_by
+          )
+          SELECT
+            s.submission_id,
+            'bind.viewed',
+            'Bind confirmation viewed',
+            $2,
+            'system'
+          FROM bind_requests br
+          JOIN quotes q ON q.quote_id = br.quote_id
+          JOIN submissions s ON s.submission_id = q.submission_id
+          WHERE br.hellosign_request_id = $1
+          LIMIT 1
+        `,
+        [docId, { event_id: eventId, payload, environment }],
+      );
+
+      return res.status(200).json({ ok: true, transitioned: rowCount > 0 });
+    }
+
+    if (eventType === "Completed") {
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+
+        // Load bind_request, quote, submission, client
+        const { rows } = await client.query(
+          `
+            SELECT
+              br.*,
+              q.*,
+              qe.reviewed_json AS reviewed_json,
+              s.submission_id,
+              s.submission_public_id,
+              s.segment,
+              s.client_id,
+              c.primary_email,
+              c.first_name,
+              c.last_name,
+              c.primary_phone,
+              qe.quote_extraction_id AS quote_extraction_id,
+              qp.packet_document_id,
+              qe.reviewed_json->>'carrier_name' AS extracted_carrier_name
+            FROM bind_requests br
+            JOIN quotes q ON q.quote_id = br.quote_id
+            JOIN submissions s ON s.submission_id = q.submission_id
+            JOIN clients c ON c.client_id = s.client_id
+            JOIN quote_packets qp ON qp.packet_id = br.packet_id
+            JOIN quote_extractions qe ON qe.quote_extraction_id = qp.extraction_id
+            WHERE br.hellosign_request_id = $1
+            FOR UPDATE
+          `,
+          [docId],
+        );
+
+        if (!rows.length) {
+          await client.query("ROLLBACK");
+          return res.status(200).json({ ok: true, missing: true });
+        }
+
+        const row = rows[0];
+
+        if (row.status === "cancelled") {
+          await client.query("ROLLBACK");
+          return res.status(200).json({ ok: true, ignored: "cancelled" });
+        }
+
+        // Idempotency: Completed may be re-sent; only run full workflow once.
+        if (row.status === "signed") {
+          await client.query("COMMIT");
+          return res.status(200).json({ ok: true, ignored: "already_signed" });
+        }
+
+        const segment = row.segment || "bar";
+
+        // Download signed PDF from BoldSign
+        const signedBuffer = await downloadBoldSignDocument(docId);
+
+        // Reuse your existing naming scheme so downstream code finds it consistently.
+        const carrierName =
+          row.reviewed_json?.carrier_name || row.carrier_name || row.extracted_carrier_name || "carrier";
+        const submissionPublicId = row.submission_public_id;
+
+        const r2Key = `binds/${segment}/${submissionPublicId}/${carrierName}-bind-confirmation-signed.pdf`;
+
+        await uploadBuffer(r2Key, signedBuffer, "application/pdf", {
+          segment,
+          type: "bind_confirmation_signed",
+        });
+
+        const docRes = await client.query(
+          `
+            INSERT INTO documents (
+              client_id,
+              submission_id,
+              quote_id,
+              policy_id,
+              document_type,
+              document_role,
+              storage_provider,
+              storage_path,
+              mime_type,
+              sha256_hash,
+              is_original,
+              created_by
+            )
+            VALUES (
+              $1,
+              $2,
+              $3,
+              NULL,
+              'pdf',
+              'bind_confirmation_signed',
+              'r2',
+              $4,
+              'application/pdf',
+              NULL,
+              FALSE,
+              'system'
+            )
+            RETURNING document_id
+          `,
+          [row.client_id, row.submission_id, row.quote_id, r2Key],
+        );
+
+        const signedDocumentId = docRes.rows[0].document_id;
+
+        // Update bind_request status and link signed document
+        const brRes = await client.query(
+          `
+            UPDATE bind_requests
+            SET status = 'signed',
+                document_id = COALESCE(document_id, $2),
+                signed_at = COALESCE(signed_at, NOW()),
+                updated_at = NOW()
+            WHERE id = $1
+            RETURNING *
+          `,
+          [row.id, signedDocumentId],
+        );
+
+        const bindRequest = brRes.rows[0];
+
+        // Create policy
+        const policy = await createPolicy({
+          client: {
+            client_id: row.client_id,
+            primary_email: row.primary_email,
+            first_name: row.first_name,
+            last_name: row.last_name,
+          },
+          submission: {
+            submission_id: row.submission_id,
+            submission_public_id: row.submission_public_id,
+            segment,
+          },
+          quote: {
+            carrier_name: row.carrier_name,
+            quote_id: row.quote_id,
+          },
+          bindRequest,
+          extraction: { reviewed_json: row.reviewed_json },
+          txClient: client,
+          boundBy: "system",
+        });
+
+        // Cascade status updates
+        await client.query(
+          `
+            UPDATE quote_packets
+            SET status = 'approved', updated_at = NOW()
+            WHERE quote_id = $1
+          `,
+          [row.quote_id],
+        );
+
+        await client.query(
+          `
+            UPDATE quotes
+            SET status = 'accepted', updated_at = NOW()
+            WHERE quote_id = $1
+          `,
+          [row.quote_id],
+        );
+
+        await client.query(
+          `
+            UPDATE submissions
+            SET status = 'bound', updated_at = NOW()
+            WHERE submission_id = $1
+          `,
+          [row.submission_id],
+        );
+
+        await client.query(
+          `
+            INSERT INTO timeline_events (
+              submission_id,
+              event_type,
+              event_label,
+              event_payload_json,
+              created_by
+            )
+            VALUES ($1, $2, $3, $4, $5)
+          `,
+          [
+            row.submission_id,
+            "bind.signed",
+            "Bind confirmation signed",
+            { event_id: eventId, payload },
+            "system",
+          ],
+        );
+
+        await client.query("COMMIT");
+
+        // Emails (outside transaction)
+        const clientObj = {
+          primary_email: row.primary_email,
+          first_name: row.first_name,
+          last_name: row.last_name,
+        };
+
+        await sendBindConfirmationEmail({
+          client: clientObj,
+          policy,
+          segment,
+        });
+
+        await sendWelcomeEmail({
+          client: clientObj,
+          policy,
+          cidAppUrl: process.env.CID_APP_URL,
+          segment,
+        });
+
+        await notifyBarBindSigned({ submissionId: row.submission_id });
+
+        return res.status(200).json({ ok: true });
+      } catch (err) {
+        try {
+          await client.query("ROLLBACK");
+        } catch {
+          // ignore
+        }
+        throw err;
+      } finally {
+        client.release();
+      }
+    }
+
+    // Unknown / unhandled events
+    return res.status(200).json({ ok: true, ignored: true, eventType });
+  } catch (err) {
+    console.error("[boldsign webhook] error:", err);
+    // Still 200 to avoid retry storms during initial integration.
+    return res.status(200).json({ ok: true });
   }
 });
 
