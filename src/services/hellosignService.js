@@ -32,6 +32,14 @@ export async function createSignatureRequest({
 }) {
   const api = getSignatureApi();
 
+  // HelloSign SDK expects `files` to be either:
+  // - fs.ReadStream, or
+  // - { value: Buffer, options: { filename, contentType, ... } }
+  // Passing a raw Buffer causes the SDK to omit the upload and HelloSign
+  // responds with: "Must specify file(s) to be sent."
+  const bufferBytes = pdfBuffer?.length ?? 0;
+  console.log("[hellosignService] bind PDF buffer bytes:", bufferBytes);
+
   const request = {
     title: subject,
     subject,
@@ -44,11 +52,19 @@ export async function createSignatureRequest({
         order: 0,
       },
     ],
-    files: [pdfBuffer],
+    files: [
+      {
+        value: pdfBuffer,
+        options: {
+          filename: "bind-confirmation.pdf",
+          contentType: "application/pdf",
+        },
+      },
+    ],
     metadata: metadata || {},
     // Default behavior: use test_mode in non-production.
     // In production, some accounts may still require test_mode=1 unless paid.
-    testMode: process.env.NODE_ENV !== "production" ? 1 : 0,
+    testMode: process.env.NODE_ENV !== "production",
   };
 
   let response;
@@ -73,7 +89,7 @@ export async function createSignatureRequest({
       statusCode === 402 || String(errorName).includes("payment_required");
 
     if (isPaymentRequired) {
-      request.testMode = 1;
+      request.testMode = true;
       response = await api.signatureRequestSend(request);
     } else {
       throw err;
