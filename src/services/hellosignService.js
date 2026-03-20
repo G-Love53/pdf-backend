@@ -1,6 +1,6 @@
 import pkg from "@dropbox/sign";
 
-const { SignatureRequestApi, Configuration } = pkg;
+const { SignatureRequestApi } = pkg;
 
 const apiKey =
   process.env.HELLOSIGN_API_KEY || process.env.DROPBOX_SIGN_API_KEY || null;
@@ -12,9 +12,13 @@ function getSignatureApi() {
     throw new Error("HELLOSIGN_API_KEY not configured");
   }
   if (!signatureApi) {
-    const config = new Configuration();
-    config.username = apiKey;
-    signatureApi = new SignatureRequestApi(config);
+    // The generated SDK in this environment does not export a Configuration class.
+    // Authentication is done by setting the api_key username on the API client auth handler.
+    signatureApi = new SignatureRequestApi();
+    if (signatureApi?.authentications?.api_key) {
+      signatureApi.authentications.api_key.username = apiKey;
+      signatureApi.authentications.api_key.password = "";
+    }
   }
   return signatureApi;
 }
