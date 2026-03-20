@@ -46,10 +46,40 @@ export async function createSignatureRequest({
     ],
     files: [pdfBuffer],
     metadata: metadata || {},
+    // Default behavior: use test_mode in non-production.
+    // In production, some accounts may still require test_mode=1 unless paid.
     testMode: process.env.NODE_ENV !== "production" ? 1 : 0,
   };
 
-  const response = await api.signatureRequestSend(request);
+  let response;
+  try {
+    response = await api.signatureRequestSend(request);
+  } catch (err) {
+    // If the account isn't on a paid plan, HelloSign rejects with:
+    // "You must either upgrade ... or use the test_mode=1 parameter."
+    const statusCode =
+      err?.statusCode ||
+      err?.response?.status ||
+      err?.response?.statusCode ||
+      err?.response?.status_code;
+    const errorName =
+      err?.body?.error?.errorName ||
+      err?.error?.errorName ||
+      err?.response?.data?.error?.errorName ||
+      err?.response?.data?.error?.error ||
+      null;
+
+    const isPaymentRequired =
+      statusCode === 402 || String(errorName).includes("payment_required");
+
+    if (isPaymentRequired) {
+      request.testMode = 1;
+      response = await api.signatureRequestSend(request);
+    } else {
+      throw err;
+    }
+  }
+
   return response.body.signatureRequest;
 }
 
