@@ -22,7 +22,8 @@ router.get("/api/quotes/ready-to-bind", async (req, res) => {
 
 router.get("/api/quotes/:quoteId/bind-details", async (req, res) => {
   try {
-    const details = await getBindDetails(req.params.quoteId);
+    const syncBoldSign = req.query.sync !== "0";
+    const details = await getBindDetails(req.params.quoteId, { syncBoldSign });
     if (!details) {
       return res.status(404).json({ success: false, error: "Not found" });
     }

@@ -1,7 +1,6 @@
 import express from "express";
 import { getPool } from "../db.js";
 import { downloadSignedDocument } from "../services/hellosignService.js";
-import { downloadSignedDocument as downloadBoldSignDocument } from "../services/boldsignService.js";
 import { uploadBuffer } from "../services/r2Service.js";
 import { createPolicy } from "../services/policyService.js";
 import {
@@ -9,6 +8,10 @@ import {
   sendWelcomeEmail,
 } from "../services/bindEmailService.js";
 import { notifyBarBindSigned } from "../services/agentNotificationService.js";
+import {
+  processBoldSignDocumentCompleted,
+  tryFinalizeBoldSignFromDocumentId,
+} from "../services/boldsignBindCompletion.js";
 
 const router = express.Router();
 
@@ -448,15 +451,26 @@ router.post("/api/webhooks/boldsign", async (req, res) => {
       return res.status(200).json({ ok: true, ignored: true });
     }
 
-    const eventType = payload?.event?.eventType;
-    const eventId = payload?.event?.id;
-    const docId = payload?.data?.documentId;
+    const eventType =
+      payload?.event?.eventType ?? payload?.event?.EventType ?? payload?.EventType;
+    const eventId = payload?.event?.id ?? payload?.event?.Id;
+    const docId =
+      payload?.data?.documentId ??
+      payload?.data?.DocumentId ??
+      payload?.documentId ??
+      null;
     const environment = payload?.event?.environment;
 
     // BoldSign webhook URL verification uses eventType=Verification.
     if (String(eventType).toLowerCase() === "verification") {
       return res.status(200).json({ ok: true });
     }
+
+    console.log("[boldsign webhook] event", {
+      eventType,
+      documentId: docId,
+      environment,
+    });
 
     const pool = getPool();
     if (!pool) {
@@ -539,234 +553,54 @@ router.post("/api/webhooks/boldsign", async (req, res) => {
       return res.status(200).json({ ok: true, transitioned: rowCount > 0 });
     }
 
+    // Completed: trust BoldSign — finalize immediately (properties API can lag vs webhook).
     if (eventType === "Completed") {
-      const client = await pool.connect();
       try {
-        await client.query("BEGIN");
-
-        // Load bind_request, quote, submission, client
-        const { rows } = await client.query(
-          `
-            SELECT
-              br.*,
-              q.*,
-              qe.reviewed_json AS reviewed_json,
-              s.submission_id,
-              s.submission_public_id,
-              s.segment,
-              s.client_id,
-              c.primary_email,
-              c.first_name,
-              c.last_name,
-              c.primary_phone,
-              qe.quote_extraction_id AS quote_extraction_id,
-              qp.packet_document_id,
-              qe.reviewed_json->>'carrier_name' AS extracted_carrier_name
-            FROM bind_requests br
-            JOIN quotes q ON q.quote_id = br.quote_id
-            JOIN submissions s ON s.submission_id = q.submission_id
-            JOIN clients c ON c.client_id = s.client_id
-            JOIN quote_packets qp ON qp.packet_id = br.packet_id
-            JOIN quote_extractions qe ON qe.quote_extraction_id = qp.extraction_id
-            WHERE br.hellosign_request_id = $1
-            FOR UPDATE
-          `,
-          [docId],
-        );
-
-        if (!rows.length) {
-          await client.query("ROLLBACK");
+        const result = await processBoldSignDocumentCompleted(docId, {
+          eventId,
+          payload,
+          source: "webhook",
+        });
+        if (result.outcome === "missing") {
           return res.status(200).json({ ok: true, missing: true });
         }
-
-        const row = rows[0];
-
-        if (row.status === "cancelled") {
-          await client.query("ROLLBACK");
+        if (result.outcome === "cancelled") {
           return res.status(200).json({ ok: true, ignored: "cancelled" });
         }
-
-        // Idempotency: Completed may be re-sent; only run full workflow once.
-        if (row.status === "signed") {
-          await client.query("COMMIT");
+        if (result.outcome === "already_signed") {
           return res.status(200).json({ ok: true, ignored: "already_signed" });
         }
-
-        const segment = row.segment || "bar";
-
-        // Download signed PDF from BoldSign
-        const signedBuffer = await downloadBoldSignDocument(docId);
-
-        // Reuse your existing naming scheme so downstream code finds it consistently.
-        const carrierName =
-          row.reviewed_json?.carrier_name || row.carrier_name || row.extracted_carrier_name || "carrier";
-        const submissionPublicId = row.submission_public_id;
-
-        const r2Key = `binds/${segment}/${submissionPublicId}/${carrierName}-bind-confirmation-signed.pdf`;
-
-        await uploadBuffer(r2Key, signedBuffer, "application/pdf", {
-          segment,
-          type: "bind_confirmation_signed",
-        });
-
-        const docRes = await client.query(
-          `
-            INSERT INTO documents (
-              client_id,
-              submission_id,
-              quote_id,
-              policy_id,
-              document_type,
-              document_role,
-              storage_provider,
-              storage_path,
-              mime_type,
-              sha256_hash,
-              is_original,
-              created_by
-            )
-            VALUES (
-              $1,
-              $2,
-              $3,
-              NULL,
-              'pdf',
-              'bind_confirmation_signed',
-              'r2',
-              $4,
-              'application/pdf',
-              NULL,
-              FALSE,
-              'system'
-            )
-            RETURNING document_id
-          `,
-          [row.client_id, row.submission_id, row.quote_id, r2Key],
-        );
-
-        const signedDocumentId = docRes.rows[0].document_id;
-
-        // Update bind_request status and link signed document
-        const brRes = await client.query(
-          `
-            UPDATE bind_requests
-            SET status = 'signed',
-                document_id = COALESCE(document_id, $2),
-                signed_at = COALESCE(signed_at, NOW()),
-                updated_at = NOW()
-            WHERE id = $1
-            RETURNING *
-          `,
-          [row.id, signedDocumentId],
-        );
-
-        const bindRequest = brRes.rows[0];
-
-        // Create policy
-        const policy = await createPolicy({
-          client: {
-            client_id: row.client_id,
-            primary_email: row.primary_email,
-            first_name: row.first_name,
-            last_name: row.last_name,
-          },
-          submission: {
-            submission_id: row.submission_id,
-            submission_public_id: row.submission_public_id,
-            segment,
-          },
-          quote: {
-            carrier_name: row.carrier_name,
-            quote_id: row.quote_id,
-          },
-          bindRequest,
-          extraction: { reviewed_json: row.reviewed_json },
-          txClient: client,
-          boundBy: "system",
-        });
-
-        // Cascade status updates
-        await client.query(
-          `
-            UPDATE quote_packets
-            SET status = 'approved', updated_at = NOW()
-            WHERE quote_id = $1
-          `,
-          [row.quote_id],
-        );
-
-        await client.query(
-          `
-            UPDATE quotes
-            SET status = 'accepted', updated_at = NOW()
-            WHERE quote_id = $1
-          `,
-          [row.quote_id],
-        );
-
-        await client.query(
-          `
-            UPDATE submissions
-            SET status = 'bound', updated_at = NOW()
-            WHERE submission_id = $1
-          `,
-          [row.submission_id],
-        );
-
-        await client.query(
-          `
-            INSERT INTO timeline_events (
-              submission_id,
-              event_type,
-              event_label,
-              event_payload_json,
-              created_by
-            )
-            VALUES ($1, $2, $3, $4, $5)
-          `,
-          [
-            row.submission_id,
-            "bind.signed",
-            "Bind confirmation signed",
-            { event_id: eventId, payload },
-            "system",
-          ],
-        );
-
-        await client.query("COMMIT");
-
-        // Emails (outside transaction)
-        const clientObj = {
-          primary_email: row.primary_email,
-          first_name: row.first_name,
-          last_name: row.last_name,
-        };
-
-        await sendBindConfirmationEmail({
-          client: clientObj,
-          policy,
-          segment,
-        });
-
-        await sendWelcomeEmail({
-          client: clientObj,
-          policy,
-          cidAppUrl: process.env.CID_APP_URL,
-          segment,
-        });
-
-        await notifyBarBindSigned({ submissionId: row.submission_id });
-
         return res.status(200).json({ ok: true });
       } catch (err) {
-        try {
-          await client.query("ROLLBACK");
-        } catch {
-          // ignore
-        }
+        console.error("[boldsign webhook] Completed handler error:", err);
         throw err;
-      } finally {
-        client.release();
+      }
+    }
+
+    // Signed: per-signer; use properties + idempotent finalize (safe if Completed also fires).
+    if (eventType === "Signed") {
+      try {
+        const result = await tryFinalizeBoldSignFromDocumentId(docId, {
+          eventId,
+          payload,
+          source: "webhook",
+        });
+        if (result.outcome === "missing") {
+          return res.status(200).json({ ok: true, missing: true });
+        }
+        if (result.outcome === "cancelled") {
+          return res.status(200).json({ ok: true, ignored: "cancelled" });
+        }
+        if (result.outcome === "already_signed") {
+          return res.status(200).json({ ok: true, ignored: "already_signed" });
+        }
+        if (result.outcome === "not_ready") {
+          return res.status(200).json({ ok: true, ignored: "not_ready", eventType });
+        }
+        return res.status(200).json({ ok: true });
+      } catch (err) {
+        console.error("[boldsign webhook] Signed handler error:", err);
+        throw err;
       }
     }
 

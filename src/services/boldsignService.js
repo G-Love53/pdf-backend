@@ -144,20 +144,28 @@ export async function createEmbeddedSignatureRequest({
 
   const base64 = pdfBuffer.toString("base64");
 
-  // NOTE: BoldSign expects bounds for the Signature field. We place it near the bottom.
+  // Signature field Y: BoldSign typically uses **top-left** page coords (Y grows downward).
+  // ~680 places the field near the bottom of a 792pt Letter page. If your tenant uses
+  // **PDF bottom-left** coords instead, set BOLDSIGN_SIGNATURE_FIELD_Y=88 (or ~100).
+  const sigY = Number(
+    process.env.BOLDSIGN_SIGNATURE_FIELD_Y ||
+      process.env.BOLDSIGN_SIGNATURE_BOUNDS_Y ||
+      680,
+  );
   const signatureField = {
     FieldType: "Signature",
     Id: "signature_1",
     PageNumber: 1,
     Bounds: {
-      X: 120,
-      Y: 70,
-      Width: 360,
-      Height: 60,
+      X: 72,
+      Y: Number.isFinite(sigY) ? sigY : 680,
+      Width: 468,
+      Height: 52,
     },
     IsRequired: true,
   };
 
+  // After signing, BoldSign appends query params. `/operator` and `/operator/home` both finalize.
   const redirectUrl =
     process.env.BOLDSIGN_SIGN_REDIRECT_URL ||
     process.env.CID_APP_URL ||
@@ -168,6 +176,9 @@ export async function createEmbeddedSignatureRequest({
     Message:
       "Please review and sign your bind confirmation to activate your policy.",
     DisableEmails: true,
+    // Required for GET /v1/document/getEmbeddedSignLink — without this, BoldSign may
+    // return 403 Invalid Document ID for embedded signing even after /send returns 201.
+    EnableEmbeddedSigning: true,
     EnableSigningOrder: false,
     Signers: [
       {
@@ -258,5 +269,89 @@ export async function downloadSignedDocument(documentId) {
 
   const arr = await res.arrayBuffer();
   return Buffer.from(arr);
+}
+
+/**
+ * GET /v1/document/properties — used to poll completion when webhooks are delayed or
+ * application-scoped webhooks miss API-key sends (same pattern for every RSS segment).
+ */
+export async function getDocumentProperties(documentId) {
+  const apiKey = getBoldSignApiKey();
+  const apiBase = getApiBaseUrl();
+  if (!documentId) throw new Error("getDocumentProperties: documentId missing");
+
+  const url = new URL(`${apiBase}/v1/document/properties`);
+  url.searchParams.set("documentId", String(documentId).trim());
+
+  const res = await fetch(url.toString(), {
+    method: "GET",
+    headers: {
+      "X-API-KEY": apiKey,
+      Accept: "application/json",
+    },
+  });
+
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(
+      `BoldSign document/properties failed: ${res.status} ${res.statusText} - ${text}`,
+    );
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`BoldSign document/properties: invalid JSON: ${text.slice(0, 500)}`);
+  }
+}
+
+/**
+ * Normalize status string from BoldSign properties JSON (camelCase or PascalCase).
+ */
+export function parseBoldSignDocumentStatus(props) {
+  if (!props || typeof props !== "object") return null;
+  const p = props;
+  return (
+    p.status ??
+    p.Status ??
+    p.documentStatus ??
+    p.DocumentStatus ??
+    (p.document && (p.document.status || p.document.Status)) ??
+    (p.documentProperties && (p.documentProperties.status || p.documentProperties.Status)) ??
+    null
+  );
+}
+
+/** True when document-level status is terminal (download should succeed). */
+export function isBoldSignDocumentFullyExecuted(status) {
+  const s = String(status || "").trim().toLowerCase();
+  return s === "completed" || s === "complete";
+}
+
+/**
+ * True when BoldSign reports the document is ready to download — document status **Signed**
+ * often appears before **Completed** in /properties; signerDetails may show Completed first.
+ * Single-signer bind: treat Signed as sufficient to attempt finalize (download is authoritative).
+ */
+export function isBoldSignDocumentReadyForDownload(props) {
+  if (!props || typeof props !== "object") return false;
+
+  const status = parseBoldSignDocumentStatus(props);
+  const s = String(status || "").trim().toLowerCase();
+  if (s === "completed" || s === "complete" || s === "signed") {
+    return true;
+  }
+
+  const signers = props.signerDetails || props.SignerDetails;
+  if (Array.isArray(signers) && signers.length > 0) {
+    const allDone = signers.every((sg) => {
+      if (!sg || typeof sg !== "object") return false;
+      const st = String(sg.status || sg.Status || "").trim().toLowerCase();
+      return st === "completed" || st === "signed";
+    });
+    if (allDone) return true;
+  }
+
+  return false;
 }
 

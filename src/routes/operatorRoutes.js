@@ -3,6 +3,10 @@ import { getPool } from "../db.js";
 import extractionReviewApi from "./extractionReview.js";
 import packetBuilderApi from "./packetBuilder.js";
 import bindFlowApi from "./bindFlow.js";
+import {
+  processBoldSignDocumentCompleted,
+  tryFinalizeBoldSignFromDocumentId,
+} from "../services/boldsignBindCompletion.js";
 
 const router = express.Router();
 const pool = getPool();
@@ -12,7 +16,57 @@ router.use(packetBuilderApi);
 router.use(bindFlowApi);
 
 // Operator home dashboard
-router.get(["/operator", "/operator/home"], async (_req, res) => {
+// BoldSign redirects here after sign with ?documentId=&status=Signed&...
+// when webhooks are not delivered or lag; finalize the bind server-side.
+router.get(["/operator", "/operator/home"], async (req, res) => {
+  // BoldSign may use mixed-case query keys depending on redirect implementation.
+  const docId =
+    req.query.documentId ||
+    req.query.DocumentId ||
+    req.query.document_id ||
+    null;
+  const statusRaw = String(
+    req.query.status || req.query.Status || req.query.state || "",
+  ).trim();
+  const status = statusRaw.toLowerCase();
+  const looksSigned =
+    status === "signed" ||
+    status === "completed" ||
+    status === "complete";
+
+  if (docId && looksSigned) {
+    try {
+      let result = await tryFinalizeBoldSignFromDocumentId(String(docId), {
+        source: "redirect",
+        payload: { query: req.query },
+      });
+      // Redirect means the user finished in BoldSign; /properties may still say InProgress.
+      // Second path: trust download (same as Completed webhook).
+      if (result.outcome === "not_ready") {
+        result = await processBoldSignDocumentCompleted(String(docId), {
+          source: "redirect_download",
+          payload: { query: req.query },
+        });
+      }
+      if (result.outcome === "completed" || result.outcome === "already_signed") {
+        const q =
+          result.quoteId != null
+            ? `?bind_signed=1&quote_id=${encodeURIComponent(String(result.quoteId))}`
+            : "?bind_signed=1";
+        return res.redirect(302, `/operator${q}`);
+      }
+      if (result.outcome === "missing") {
+        return res.redirect(302, "/operator?bind_error=unknown_document");
+      }
+      if (result.outcome === "cancelled") {
+        return res.redirect(302, "/operator?bind_error=cancelled");
+      }
+    } catch (err) {
+      console.error("[operator] BoldSign redirect finalize failed:", err.message || err);
+      return res.redirect(302, "/operator?bind_pending=1");
+    }
+  }
+
   res.render("operator/home", {});
 });
 

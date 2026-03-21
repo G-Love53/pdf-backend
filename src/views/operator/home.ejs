@@ -116,6 +116,10 @@
       </div>
     </header>
     <main>
+      <div
+        id="bind-toast"
+        style="display: none; margin-bottom: 16px; padding: 12px 14px; border-radius: 8px; font-size: 14px; border: 1px solid #1f2937;"
+      ></div>
       <div class="grid" id="today-metrics">
         <div class="card">
           <h2>Submissions (today)</h2>
@@ -294,6 +298,33 @@
 
       loadDashboard();
       setInterval(loadDashboard, 30000);
+
+      (function bindRedirectToast() {
+        const p = new URLSearchParams(window.location.search);
+        const toast = document.getElementById("bind-toast");
+        if (!toast) return;
+        if (p.get("bind_signed") === "1") {
+          toast.style.display = "block";
+          toast.style.background = "#052e16";
+          toast.style.borderColor = "#166534";
+          const qid = p.get("quote_id");
+          toast.innerHTML = qid
+            ? `Bind completed — policy created. <a href="/operator/bind/${encodeURIComponent(qid)}">View bind</a>`
+            : "Bind completed — policy created.";
+        } else if (p.get("bind_pending") === "1") {
+          toast.style.display = "block";
+          toast.style.background = "#422006";
+          toast.style.borderColor = "#a16207";
+          toast.textContent =
+            "Signature is still processing on BoldSign’s side (or the webhook will finish shortly). Refresh this page in a minute.";
+        } else if (p.get("bind_error")) {
+          toast.style.display = "block";
+          toast.style.background = "#450a0a";
+          toast.style.borderColor = "#991b1b";
+          toast.textContent =
+            "Could not finalize bind from redirect. Check Render logs or BoldSign webhooks.";
+        }
+      })();
     </script>
   </body>
   </html>

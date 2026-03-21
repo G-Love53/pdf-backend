@@ -4,6 +4,7 @@ import { createSimplePagePdf } from "./pdfCombineService.js";
 import {
   createEmbeddedSignatureRequest,
 } from "./boldsignService.js";
+import { tryFinalizeBoldSignFromDocumentId } from "./boldsignBindCompletion.js";
 import { createPolicy } from "./policyService.js";
 
 const BIND_TEMPLATES = {
@@ -93,7 +94,14 @@ export async function listReadyToBind({ segment }) {
   };
 }
 
-export async function getBindDetails(quoteId) {
+/** Throttle BoldSign property polls per quote (operator UI polls every ~5s). */
+const boldsignSyncThrottle = new Map();
+const BOLDSIGN_SYNC_MIN_MS = Number(
+  process.env.BOLDSIGN_BIND_DETAILS_SYNC_MIN_MS || 5000,
+);
+
+export async function getBindDetails(quoteId, options = {}) {
+  const { syncBoldSign = true } = options;
   const pool = getPoolOrThrow();
 
   const sql = `
@@ -121,6 +129,7 @@ export async function getBindDetails(quoteId) {
       ,
       br.id AS bind_request_id,
       br.status AS bind_request_status,
+      br.hellosign_request_id AS bind_provider_document_id,
       br.document_id AS signed_document_id,
       d.storage_path AS signed_document_storage_path
     FROM quotes q
@@ -143,6 +152,36 @@ export async function getBindDetails(quoteId) {
   const { rows } = await pool.query(sql, [quoteId]);
   if (!rows.length) return null;
   const row = rows[0];
+
+  // RSS: same code path for every segment — when BoldSign webhooks don’t fire (e.g. app-level
+  // webhook + API-key send), poll document status and finalize while the operator page polls.
+  if (
+    syncBoldSign &&
+    row.bind_request_status === "awaiting_signature" &&
+    row.bind_provider_document_id
+  ) {
+    const now = Date.now();
+    const last = boldsignSyncThrottle.get(quoteId);
+    const allowSync =
+      last === undefined || now - last >= BOLDSIGN_SYNC_MIN_MS;
+    if (allowSync) {
+      boldsignSyncThrottle.set(quoteId, now);
+      try {
+        const syncResult = await tryFinalizeBoldSignFromDocumentId(
+          String(row.bind_provider_document_id),
+          { source: "bind_details_poll" },
+        );
+        if (
+          syncResult.outcome === "completed" ||
+          syncResult.outcome === "already_signed"
+        ) {
+          return getBindDetails(quoteId, { syncBoldSign: false });
+        }
+      } catch (err) {
+        console.warn("[bindService] BoldSign bind-details sync failed:", err.message || err);
+      }
+    }
+  }
 
   return {
     quote_id: row.quote_id,
@@ -173,6 +212,8 @@ export async function getBindDetails(quoteId) {
       ? {
           id: row.bind_request_id,
           status: row.bind_request_status,
+          /** BoldSign document id (stored in hellosign_request_id). */
+          provider_document_id: row.bind_provider_document_id || null,
           signed_document_url: getDocumentPublicUrl(
             row.signed_document_storage_path,
           ),
@@ -196,7 +237,7 @@ export async function initiateBind({
   try {
     await client.query("BEGIN");
 
-    const quoteDetail = await getBindDetails(quoteId);
+    const quoteDetail = await getBindDetails(quoteId, { syncBoldSign: false });
     if (!quoteDetail) {
       throw new Error("Quote not found");
     }
@@ -347,7 +388,7 @@ export async function resendBind({ quoteId, agentId }) {
 
   // Recreate the embedded request URL (provider can treat send URLs as one-time/short-lived).
   // We update the existing bind_requests row to keep your workflow single-source.
-  const quoteDetail = await getBindDetails(quoteId);
+  const quoteDetail = await getBindDetails(quoteId, { syncBoldSign: false });
   if (!quoteDetail?.packet?.id) throw new Error("Quote does not have a sent packet");
 
   const pdfLines = [
