@@ -23,9 +23,80 @@ function toIsoDateTimePlusDays(days) {
   return new Date(ms).toISOString();
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
- * Create an embedded signing request URL (in-app signing primary path).
- * Returns { documentId, sendUrl }.
+ * After POST /v1/document/send, BoldSign may still process the file asynchronously.
+ * getEmbeddedSignLink can fail briefly; retry a few times.
+ */
+async function getEmbeddedSignLinkWithRetry({
+  documentId,
+  signerEmail,
+  redirectUrl,
+}) {
+  const apiKey = getBoldSignApiKey();
+  const apiBase = getApiBaseUrl();
+  const validTill = toIsoDateTimePlusDays(7);
+
+  let lastErr = null;
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const url = new URL(`${apiBase}/v1/document/getEmbeddedSignLink`);
+    url.searchParams.set("documentId", String(documentId));
+    url.searchParams.set("signerEmail", String(signerEmail));
+    url.searchParams.set("signLinkValidTill", validTill);
+    if (redirectUrl) {
+      url.searchParams.set("redirectUrl", String(redirectUrl));
+    }
+
+    const res = await fetch(url.toString(), {
+      method: "GET",
+      headers: {
+        "X-API-KEY": apiKey,
+        Accept: "application/json",
+      },
+    });
+
+    const text = await res.text();
+    if (res.ok) {
+      try {
+        const data = JSON.parse(text);
+        const signLink = data.signLink || data.SignLink;
+        if (!signLink) {
+          throw new Error(`BoldSign getEmbeddedSignLink: missing signLink in ${text}`);
+        }
+        return signLink;
+      } catch (e) {
+        lastErr = e;
+        break;
+      }
+    }
+
+    // Retry while document is still spinning up (async processing).
+    const retryable =
+      res.status === 404 ||
+      res.status === 408 ||
+      res.status === 409 ||
+      res.status === 425 ||
+      res.status === 429 ||
+      res.status >= 500;
+    lastErr = new Error(
+      `BoldSign getEmbeddedSignLink failed: ${res.status} ${res.statusText} - ${text}`,
+    );
+    if (!retryable) {
+      throw lastErr;
+    }
+    await sleep(1500 * (attempt + 1));
+  }
+
+  throw lastErr || new Error("BoldSign getEmbeddedSignLink: exhausted retries");
+}
+
+/**
+ * Send document for signature, then return the embedded **signing** URL (not the draft/prepare UI).
+ * createEmbeddedRequestUrl shows BoldSign's composer (recipients, upload, etc.); RSS wants sign-in-iframe.
+ * Returns { documentId, sendUrl } where sendUrl is suitable for <iframe src>.
  */
 export async function createEmbeddedSignatureRequest({
   pdfBuffer,
@@ -44,13 +115,11 @@ export async function createEmbeddedSignatureRequest({
   const base64 = pdfBuffer.toString("base64");
 
   // NOTE: BoldSign expects bounds for the Signature field. We place it near the bottom.
-  // If this proves mispositioned after first tests, we adjust X/Y/Width/Height.
   const signatureField = {
     FieldType: "Signature",
     Id: "signature_1",
     PageNumber: 1,
     Bounds: {
-      // Using common PDF-ish coordinate examples from BoldSign samples.
       X: 120,
       Y: 70,
       Width: 360,
@@ -59,68 +128,69 @@ export async function createEmbeddedSignatureRequest({
     IsRequired: true,
   };
 
-  const requestBody = {
+  const redirectUrl =
+    process.env.BOLDSIGN_SIGN_REDIRECT_URL ||
+    process.env.CID_APP_URL ||
+    "https://cid-pdf-api.onrender.com/operator";
+
+  const sendBody = {
     Title: subject || "Bind Confirmation",
     Message:
       "Please review and sign your bind confirmation to activate your policy.",
-    Locale: "EN",
-    SendViewOption: "FillingPage",
-
-    // Primary flow is embedded signing; avoid email delivery here.
     DisableEmails: true,
-
-    // UI options: keep it minimal so signer focuses on the document.
-    ShowToolbar: false,
-    ShowNavigationButtons: false,
-    ShowPreviewButton: true,
-    ShowSendButton: true,
-    ShowSaveButton: false,
-
-    // Used by BoldSign after signing (not critical for webhook-driven workflow).
-    RedirectUrl: process.env.CID_APP_URL || "https://cid-pdf-api.onrender.com/",
-    SendLinkValidTill: toIsoDateTimePlusDays(7),
-
+    EnableSigningOrder: false,
     Signers: [
       {
         Name: signerName,
         EmailAddress: signerEmail,
-        SignerOrder: 1,
+        SignerType: "Signer",
         FormFields: [signatureField],
+        Locale: "EN",
       },
     ],
-
     Files: [`data:application/pdf;base64,${base64}`],
     MetaData: metadata || {},
   };
 
-  const res = await fetch(`${apiBase}/v1/document/createEmbeddedRequestUrl`, {
+  const sendRes = await fetch(`${apiBase}/v1/document/send`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "X-API-KEY": apiKey,
       Accept: "application/json",
     },
-    body: JSON.stringify(requestBody),
+    body: JSON.stringify(sendBody),
   });
 
-  const text = await res.text();
-  if (!res.ok) {
+  const sendText = await sendRes.text();
+  if (!sendRes.ok) {
     throw new Error(
-      `BoldSign createEmbeddedRequestUrl failed: ${res.status} ${res.statusText} - ${text}`,
+      `BoldSign document/send failed: ${sendRes.status} ${sendRes.statusText} - ${sendText}`,
     );
   }
 
-  let data;
+  let sendData;
   try {
-    data = JSON.parse(text);
+    sendData = JSON.parse(sendText);
   } catch {
-    throw new Error(`BoldSign createEmbeddedRequestUrl: invalid JSON response: ${text}`);
+    throw new Error(`BoldSign document/send: invalid JSON response: ${sendText}`);
   }
 
+  const documentId = sendData.documentId || sendData.DocumentId;
+  if (!documentId) {
+    throw new Error(`BoldSign document/send: missing documentId in ${sendText}`);
+  }
+
+  const signUrl = await getEmbeddedSignLinkWithRetry({
+    documentId,
+    signerEmail,
+    redirectUrl,
+  });
+
   return {
-    documentId: data.documentId,
-    sendUrl: data.sendUrl,
-    raw: data,
+    documentId,
+    sendUrl: signUrl,
+    raw: { send: sendData, signUrl },
   };
 }
 
