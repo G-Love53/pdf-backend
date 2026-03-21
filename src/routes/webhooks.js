@@ -1,4 +1,5 @@
 import express from "express";
+import crypto from "crypto";
 import { getPool } from "../db.js";
 import { downloadSignedDocument } from "../services/hellosignService.js";
 import { uploadBuffer } from "../services/r2Service.js";
@@ -259,6 +260,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
 
         // Download signed PDF from HelloSign
         const signedBuffer = await downloadSignedDocument(hsId);
+        const sha256 = crypto.createHash("sha256").update(signedBuffer).digest("hex");
 
         const r2Key = `binds/${segment}/${row.submission_public_id}/${row.carrier_name}-bind-confirmation-signed.pdf`;
 
@@ -293,7 +295,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
               $6,
               $7,
               'application/pdf',
-              NULL,
+              $8,
               FALSE,
               'system'
             )
@@ -307,6 +309,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
             DocumentRole.SIGNED_BIND_DOCS,
             StorageProvider.R2,
             r2Key,
+            sha256,
           ],
         );
 

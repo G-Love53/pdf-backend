@@ -3,6 +3,7 @@
  * Used by POST /api/webhooks/boldsign (Completed) and GET /operator redirect fallback
  * when webhooks are delayed or not delivered.
  */
+import crypto from "crypto";
 import { getPool } from "../db.js";
 import {
   downloadSignedDocument as downloadBoldSignDocument,
@@ -90,6 +91,7 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
     const segment = row.segment || "bar";
 
     const signedBuffer = await downloadBoldSignDocument(docId);
+    const sha256 = crypto.createHash("sha256").update(signedBuffer).digest("hex");
 
     const carrierName =
       row.reviewed_json?.carrier_name ||
@@ -131,7 +133,7 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
           $6,
           $7,
           'application/pdf',
-          NULL,
+          $8,
           FALSE,
           'system'
         )
@@ -145,6 +147,7 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
         DocumentRole.SIGNED_BIND_DOCS,
         StorageProvider.R2,
         r2Key,
+        sha256,
       ],
     );
 
