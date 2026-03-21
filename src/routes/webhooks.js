@@ -256,7 +256,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
 
         await uploadBuffer(r2Key, signedBuffer, "application/pdf", {
           segment,
-          type: "bind_confirmation_signed",
+          type: "signed_bind_docs",
         });
 
         const docRes = await client.query(
@@ -281,7 +281,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
                 $3,
               NULL,
               'pdf',
-              'bind_confirmation_signed',
+              'signed_bind_docs',
               'r2',
               $4,
               'application/pdf',

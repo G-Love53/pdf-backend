@@ -94,7 +94,7 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
 
     await uploadBuffer(r2Key, signedBuffer, "application/pdf", {
       segment,
-      type: "bind_confirmation_signed",
+      type: "signed_bind_docs",
     });
 
     const docRes = await client.query(
@@ -119,7 +119,7 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
           $3,
           NULL,
           'pdf',
-          'bind_confirmation_signed',
+              'signed_bind_docs',
           'r2',
           $4,
           'application/pdf',
