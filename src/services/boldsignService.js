@@ -31,6 +31,28 @@ function sleep(ms) {
  * After POST /v1/document/send, BoldSign may still process the file asynchronously.
  * getEmbeddedSignLink can fail briefly; retry a few times.
  */
+function isEmbeddedLinkNotReadyYet(res, text) {
+  // After document/send, BoldSign processes the file asynchronously. Until then,
+  // getEmbeddedSignLink may return 403 {"error":"Invalid Document ID"} — treat as transient.
+  const t = String(text || "");
+  if (res.status === 404) return true;
+  if (res.status === 403) {
+    if (/invalid document id/i.test(t)) return true;
+    try {
+      const j = JSON.parse(t);
+      const err = String(j.error || j.message || "");
+      if (/invalid document/i.test(err)) return true;
+    } catch {
+      // ignore
+    }
+  }
+  if (res.status === 408 || res.status === 409 || res.status === 425 || res.status === 429) {
+    return true;
+  }
+  if (res.status >= 500) return true;
+  return false;
+}
+
 async function getEmbeddedSignLinkWithRetry({
   documentId,
   signerEmail,
@@ -40,11 +62,15 @@ async function getEmbeddedSignLinkWithRetry({
   const apiBase = getApiBaseUrl();
   const validTill = toIsoDateTimePlusDays(7);
 
+  // Give BoldSign time to register the document after /send (async processing).
+  await sleep(2000);
+
   let lastErr = null;
-  for (let attempt = 0; attempt < 10; attempt += 1) {
+  const maxAttempts = 20;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const url = new URL(`${apiBase}/v1/document/getEmbeddedSignLink`);
-    url.searchParams.set("documentId", String(documentId));
-    url.searchParams.set("signerEmail", String(signerEmail));
+    url.searchParams.set("documentId", String(documentId).trim());
+    url.searchParams.set("signerEmail", String(signerEmail).trim());
     url.searchParams.set("signLinkValidTill", validTill);
     if (redirectUrl) {
       url.searchParams.set("redirectUrl", String(redirectUrl));
@@ -69,25 +95,29 @@ async function getEmbeddedSignLinkWithRetry({
         return signLink;
       } catch (e) {
         lastErr = e;
-        break;
+        if (attempt === maxAttempts - 1) throw e;
+        await sleep(2000 * (attempt + 1));
+        continue;
       }
     }
 
-    // Retry while document is still spinning up (async processing).
-    const retryable =
-      res.status === 404 ||
-      res.status === 408 ||
-      res.status === 409 ||
-      res.status === 425 ||
-      res.status === 429 ||
-      res.status >= 500;
     lastErr = new Error(
       `BoldSign getEmbeddedSignLink failed: ${res.status} ${res.statusText} - ${text}`,
     );
-    if (!retryable) {
-      throw lastErr;
+
+    if (isEmbeddedLinkNotReadyYet(res, text)) {
+      const delay = Math.min(8000, 1500 + attempt * 800);
+      console.warn("[boldsignService] getEmbeddedSignLink retry", {
+        attempt: attempt + 1,
+        documentId: String(documentId).slice(0, 8) + "…",
+        status: res.status,
+        delayMs: delay,
+      });
+      await sleep(delay);
+      continue;
     }
-    await sleep(1500 * (attempt + 1));
+
+    throw lastErr;
   }
 
   throw lastErr || new Error("BoldSign getEmbeddedSignLink: exhausted retries");
@@ -180,6 +210,10 @@ export async function createEmbeddedSignatureRequest({
   if (!documentId) {
     throw new Error(`BoldSign document/send: missing documentId in ${sendText}`);
   }
+
+  console.log("[boldsignService] document/send ok, waiting for embedded sign link", {
+    documentId: String(documentId),
+  });
 
   const signUrl = await getEmbeddedSignLinkWithRetry({
     documentId,
