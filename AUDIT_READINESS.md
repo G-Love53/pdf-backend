@@ -1,13 +1,21 @@
-## CID-PDF-API — Audit Readiness (S4/S5)
+## CID-PDF-API — Audit Readiness (S1-S6)
 
 ### What is auditable now
 
 - **Client + submission identity**
   - `clients`: immutable `client_id`, primary email, basic PII.
   - `submissions`: `submission_public_id` (CID‑SEG‑YYYYMMDD‑XXXXXX), original `raw_submission_json` (never mutated), `segment`, `source_domain`, and status history.
+  - Duplicate-aware intake controls:
+    - `submission.duplicate_detected` timeline event when a duplicate is detected.
+    - Operator/customer-driven resubmission path via `force_resubmit=true` with `submission_intent` (`corrected` or `new`) captured in `raw_submission_json`.
 - **Carrier correspondence**
   - `carrier_messages`: raw inbound/outbound carrier emails with headers, body, and Gmail IDs.
   - `documents` with `document_role='carrier_quote_original'`: canonical pointer to the exact PDF received from the carrier (hash + R2 path).
+- **Client submission snapshot PDF (S1-S3)**
+  - At `/submit-quote`, backend generates a canonical PDF snapshot of what the client submitted (`CLIENT_SUBMISSION` html template).
+  - Stored in R2 at `submissions/{segment}/{submission_public_id}/client-submission.pdf`.
+  - Recorded in `documents` as `document_role='application_original'` with hash/path metadata.
+  - Included as an extra attachment in carrier outreach packet emails.
 - **Quote and extraction trail**
   - `quotes`: carrier, segment, match/extraction confidence, and core quote fields (premium, dates, status).
   - `quote_extractions`:
@@ -25,9 +33,11 @@
   - `timeline_events`:
     - Append‑only log of key milestones:
       - `submission.received` (intake).
+      - `submission.duplicate_detected` (duplicate capture, no automatic re-outreach unless forced).
       - `quote.received` (poller ingestion).
       - `extraction.reviewed` / `extraction.skipped` (S4).
       - `packet.previewed` / `packet.sent` / `packet.resent` (S5).
+      - `bind.*` events in S6 (initiated, viewed, signed, etc.).
 
 ### How to reconstruct “what the client saw”
 
@@ -40,6 +50,7 @@ Given a `submission_public_id` or `quote_id`:
    - `quote_packet_sent` (combined packet actually sent).
    - `sales_letter_generated` (if needed for comparison).
    - `carrier_quote_original` (what the carrier provided).
+   - `application_original` (client-submitted application snapshot captured at intake).
 5. From `quote_extractions`, read the `reviewed_json` row linked via `extraction_id` on `quote_packets` to see the structured data that backed the packet.
 6. From `timeline_events`, read the full event stream to show when each step happened and by whom.
 

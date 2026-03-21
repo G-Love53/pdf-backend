@@ -1011,6 +1011,73 @@
         // --- ROBUST AJAX FORM SUBMIT SECTION ---
         const submitButton = form.querySelector('button[type="submit"]');
         
+        async function submitQuote({ forceResubmit = false, submissionIntent = null } = {}) {
+            // BAR mapping: set combined/duplicate fields before FormData so PDFs fill
+            const addr = form.querySelector('[name="premise_address"]');
+            const city = form.querySelector('[name="premise_city"]');
+            const state = form.querySelector('[name="premise_state"]');
+            const zip = form.querySelector('[name="premise_zip"]');
+            const premisesHidden = document.getElementById("premises_address_hidden");
+            if (premisesHidden && addr) premisesHidden.value = [addr.value, city?.value, state?.value, zip?.value].filter(Boolean).join(", ");
+            const openingDetails = form.querySelector('[name="opening_plan_details"]');
+            const ifNoExplain = document.getElementById("if_no_explain_hidden");
+            if (ifNoExplain && openingDetails) ifNoExplain.value = openingDetails.value;
+            const ownYes = form.querySelector('[name="ownership_experience_details_yes"]');
+            const ownNo = form.querySelector('[name="ownership_experience_details_no"]');
+            const priorExp = document.getElementById("prior_experience_details_hidden");
+            if (priorExp) priorExp.value = (ownYes?.value || "").trim() || (ownNo?.value || "").trim();
+            const ownSelect = form.querySelector('[name="2_at_least_3_years_restaurantbar_ownership_in_last_5_years"]');
+            const own2 = document.getElementById("ownership_2_hidden");
+            if (own2 && ownSelect) own2.value = ownSelect.value;
+            const pct25 = form.querySelector('[name="if_yes_more_than_25_for_onpremise"]');
+            const pct25_2 = document.getElementById("percent_25_2_hidden");
+            if (pct25_2 && pct25) pct25_2.value = pct25.value;
+            const del20 = form.querySelector('[name="delivery_20_explanation"]');
+            const ifYesExplai = document.getElementById("if_yes_explai_hidden");
+            if (ifYesExplai && del20) ifYesExplai.value = del20.value;
+            const after10 = form.querySelector('[name="after_10pm_explanation"]');
+            const ifYesExplain = document.getElementById("if_yes_explain_hidden");
+            if (ifYesExplain && after10) ifYesExplain.value = after10.value;
+            const entDetails = form.querySelector('[name="entertainment_details"]');
+            const detailsH = document.getElementById("details_hidden");
+            if (detailsH && entDetails) detailsH.value = entDetails.value;
+            const recDetails = form.querySelector('[name="recreational_details"]');
+            const details2H = document.getElementById("details_2_hidden");
+            if (details2H && recDetails) details2H.value = recDetails.value;
+
+            const formData = new FormData(form);
+            const formDataObj = Object.fromEntries(formData.entries());
+            if (formDataObj.org_type_llc === "Yes") formDataObj.organization_type = "LLC";
+            else if (formDataObj.org_type_corporation === "Yes") formDataObj.organization_type = "Corporation";
+            else if (formDataObj.org_type_individual === "Yes") formDataObj.organization_type = "Individual";
+            else formDataObj.organization_type = "";
+
+            const api_key = "CID9200$";
+
+            const response = await fetch("https://cid-pdf-api.onrender.com/submit-quote", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-API-Key": api_key
+                },
+                body: JSON.stringify({
+                    bundle_id: "BAR_INTAKE",
+                    formData: formDataObj,
+                    segment: "bar",
+                    email: { to: ["quote@barinsurancedirect.com"] },
+                    force_resubmit: forceResubmit,
+                    submission_intent: submissionIntent
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Submission failed");
+            }
+
+            return await response.json();
+        }
+
         form.addEventListener("submit", async function (event) {
             event.preventDefault();
             event.stopPropagation();
@@ -1049,67 +1116,18 @@
                     return;
                 }
 
-                // BAR mapping: set combined/duplicate fields before FormData so PDFs fill
-                const addr = form.querySelector('[name="premise_address"]');
-                const city = form.querySelector('[name="premise_city"]');
-                const state = form.querySelector('[name="premise_state"]');
-                const zip = form.querySelector('[name="premise_zip"]');
-                const premisesHidden = document.getElementById("premises_address_hidden");
-                if (premisesHidden && addr) premisesHidden.value = [addr.value, city?.value, state?.value, zip?.value].filter(Boolean).join(", ");
-                const openingDetails = form.querySelector('[name="opening_plan_details"]');
-                const ifNoExplain = document.getElementById("if_no_explain_hidden");
-                if (ifNoExplain && openingDetails) ifNoExplain.value = openingDetails.value;
-                const ownYes = form.querySelector('[name="ownership_experience_details_yes"]');
-                const ownNo = form.querySelector('[name="ownership_experience_details_no"]');
-                const priorExp = document.getElementById("prior_experience_details_hidden");
-                if (priorExp) priorExp.value = (ownYes?.value || "").trim() || (ownNo?.value || "").trim();
-                const ownSelect = form.querySelector('[name="2_at_least_3_years_restaurantbar_ownership_in_last_5_years"]');
-                const own2 = document.getElementById("ownership_2_hidden");
-                if (own2 && ownSelect) own2.value = ownSelect.value;
-                const pct25 = form.querySelector('[name="if_yes_more_than_25_for_onpremise"]');
-                const pct25_2 = document.getElementById("percent_25_2_hidden");
-                if (pct25_2 && pct25) pct25_2.value = pct25.value;
-                const del20 = form.querySelector('[name="delivery_20_explanation"]');
-                const ifYesExplai = document.getElementById("if_yes_explai_hidden");
-                if (ifYesExplai && del20) ifYesExplai.value = del20.value;
-                const after10 = form.querySelector('[name="after_10pm_explanation"]');
-                const ifYesExplain = document.getElementById("if_yes_explain_hidden");
-                if (ifYesExplain && after10) ifYesExplain.value = after10.value;
-                const entDetails = form.querySelector('[name="entertainment_details"]');
-                const detailsH = document.getElementById("details_hidden");
-                if (detailsH && entDetails) detailsH.value = entDetails.value;
-                const recDetails = form.querySelector('[name="recreational_details"]');
-                const details2H = document.getElementById("details_2_hidden");
-                if (details2H && recDetails) details2H.value = recDetails.value;
+                let result = await submitQuote();
 
-                const formData = new FormData(form);
-                const formDataObj = Object.fromEntries(formData.entries());
-                if (formDataObj.org_type_llc === "Yes") formDataObj.organization_type = "LLC";
-                else if (formDataObj.org_type_corporation === "Yes") formDataObj.organization_type = "Corporation";
-                else if (formDataObj.org_type_individual === "Yes") formDataObj.organization_type = "Individual";
-                else formDataObj.organization_type = "";
+                if (result.duplicate === true) {
+                    const isCorrected = confirm(
+                        "We found a recent submission for this business/email.\n\nPress OK for Corrected Submission.\nPress Cancel for New Submission."
+                    );
 
-                const api_key = "CID9200$";
-
-                const response = await fetch("https://cid-pdf-api.onrender.com/submit-quote", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-API-Key": api_key
-                    },
-                    body: JSON.stringify({
-                        bundle_id: "BAR_INTAKE",
-                        formData: formDataObj
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    alert("Error: " + errorText);
-                    return;
+                    result = await submitQuote({
+                        forceResubmit: true,
+                        submissionIntent: isCorrected ? "corrected" : "new"
+                    });
                 }
-
-                const result = await response.json();
                 
                 if (result.success) {
                     // Disable form completely before redirect
@@ -1137,16 +1155,6 @@
             
             return false;
         });
-        
-        // Block any programmatic submissions
-        form.addEventListener("submit", function(e) {
-            if (isSubmitting) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                return false;
-            }
-        }, true);
         
         // --- END ROBUST AJAX FORM SUBMIT SECTION ---
     });
