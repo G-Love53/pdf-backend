@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { getPool } from "../db.js";
 import { getObjectStream, uploadBuffer } from "./r2Service.js";
 import { combinePDFs, createSimplePagePdf } from "./pdfCombineService.js";
+import { DocumentRole, DocumentType, StorageProvider } from "../constants/postgresEnums.js";
 
 const pool = getPool();
 
@@ -261,12 +262,12 @@ export async function persistPacket({
           $2,
           $3,
           NULL,
-          'pdf',
-          'quote_packet_sent',
-          'r2',
           $4,
-          'application/pdf',
           $5,
+          $6,
+          $7,
+          'application/pdf',
+          $8,
           FALSE,
           'agent'
         )
@@ -276,6 +277,9 @@ export async function persistPacket({
         client.client_id,
         submission.submission_id,
         quote.quote_id,
+        DocumentType.PDF,
+        DocumentRole.QUOTE_PACKET_SENT,
+        StorageProvider.R2,
         packetPath,
         sha,
       ],
@@ -304,12 +308,12 @@ export async function persistPacket({
           $2,
           $3,
           NULL,
-          'pdf',
-          'sales_letter_generated',
-          'r2',
           $4,
-          'application/pdf',
           $5,
+          $6,
+          $7,
+          'application/pdf',
+          $8,
           FALSE,
           'agent'
         )
@@ -319,6 +323,9 @@ export async function persistPacket({
         client.client_id,
         submission.submission_id,
         quote.quote_id,
+        DocumentType.PDF,
+        DocumentRole.SALES_LETTER_GENERATED,
+        StorageProvider.R2,
         salesPath,
         sha,
       ],

@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { getPool } from "../db.js";
 import { notifyBarCarrierQuoteReceived } from "../services/agentNotificationService.js";
+import { DocumentRole, DocumentType, StorageProvider } from "../constants/postgresEnums.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -749,10 +750,16 @@ async function storeAttachment(att, seg, carrierMessageId) {
         mime_type, sha256_hash, is_original, created_by)
      VALUES
        (NULL, NULL, NULL, NULL,
-        'pdf', 'carrier_quote_original', 'r2', $1,
-        'application/pdf', $2, TRUE, 'carrier')
+        $1, $2, $3, $4,
+        'application/pdf', $5, TRUE, 'carrier')
      RETURNING document_id`,
-    [storagePath, sha256Hash],
+    [
+      DocumentType.PDF,
+      DocumentRole.CARRIER_QUOTE_ORIGINAL,
+      StorageProvider.R2,
+      storagePath,
+      sha256Hash,
+    ],
   );
 
   const documentId = docResult.rows[0].document_id;

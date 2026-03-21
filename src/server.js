@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import { generateDocument } from "./generators/index.js";
 import { sendWithGmail } from "./email.js";
 import { recordSubmission, getPool } from "./db.js";
+import { DocumentRole, DocumentType, StorageProvider } from "./constants/postgresEnums.js";
 import { startGmailPoller } from "./jobs/gmailPoller.js";
 import { runFollowupScheduler } from "./jobs/followupScheduler.js";
 import operatorRoutes from "./routes/operatorRoutes.js";
@@ -361,17 +362,25 @@ async function captureClientSubmissionPdf({
             $2,
             NULL,
             NULL,
-            'pdf',
-            'application_original',
-            'r2',
             $3,
-            'application/pdf',
             $4,
+            $5,
+            $6,
+            'application/pdf',
+            $7,
             FALSE,
             'system'
           )
         `,
-        [clientId, submissionId, pathKey, sha],
+        [
+          clientId,
+          submissionId,
+          DocumentType.PDF,
+          DocumentRole.APPLICATION_ORIGINAL,
+          StorageProvider.R2,
+          pathKey,
+          sha,
+        ],
       );
       console.log("[submit-quote] client_submission document row inserted", {
         submissionPublicId,

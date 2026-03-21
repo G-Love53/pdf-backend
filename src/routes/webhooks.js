@@ -12,6 +12,14 @@ import {
   processBoldSignDocumentCompleted,
   tryFinalizeBoldSignFromDocumentId,
 } from "../services/boldsignBindCompletion.js";
+import {
+  DocumentRole,
+  DocumentType,
+  PacketStatus,
+  QuoteStatus,
+  StorageProvider,
+  SubmissionStatus,
+} from "../constants/postgresEnums.js";
 
 const router = express.Router();
 
@@ -256,7 +264,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
 
         await uploadBuffer(r2Key, signedBuffer, "application/pdf", {
           segment,
-          type: "signed_bind_docs",
+          type: DocumentRole.SIGNED_BIND_DOCS,
         });
 
         const docRes = await client.query(
@@ -278,12 +286,12 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
             VALUES (
               $1,
               $2,
-                $3,
+              $3,
               NULL,
-              'pdf',
-              'signed_bind_docs',
-              'r2',
               $4,
+              $5,
+              $6,
+              $7,
               'application/pdf',
               NULL,
               FALSE,
@@ -295,6 +303,9 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
             row.client_id,
             row.submission_id,
             row.quote_id,
+            DocumentType.PDF,
+            DocumentRole.SIGNED_BIND_DOCS,
+            StorageProvider.R2,
             r2Key,
           ],
         );
@@ -343,28 +354,28 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
         await client.query(
           `
             UPDATE quote_packets
-            SET status = 'approved', updated_at = NOW()
+            SET status = $2, updated_at = NOW()
             WHERE quote_id = $1
           `,
-          [row.quote_id],
+          [row.quote_id, PacketStatus.APPROVED],
         );
 
         await client.query(
           `
             UPDATE quotes
-            SET status = 'accepted', updated_at = NOW()
+            SET status = $2, updated_at = NOW()
             WHERE quote_id = $1
           `,
-          [row.quote_id],
+          [row.quote_id, QuoteStatus.ACCEPTED],
         );
 
         await client.query(
           `
             UPDATE submissions
-            SET status = 'bound', updated_at = NOW()
+            SET status = $2, updated_at = NOW()
             WHERE submission_id = $1
           `,
-          [row.submission_id],
+          [row.submission_id, SubmissionStatus.BOUND],
         );
 
         await client.query(

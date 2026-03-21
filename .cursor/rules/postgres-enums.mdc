@@ -1,0 +1,25 @@
+---
+description: Postgres ENUM values must match migrations; use src/constants/postgresEnums.js
+globs: "**/*.js,migrations/**/*.sql"
+alwaysApply: false
+---
+
+# Postgres enums (RSS / pdf-backend)
+
+## Rule
+
+- Columns backed by Postgres `ENUM` types **only** accept values defined in `migrations/` (main file: `001_cid_initial_schema.sql`, plus any `ALTER TYPE ... ADD VALUE` in later migrations).
+- **Do not** invent new string literals for `INSERT`/`UPDATE`/`WHERE` on enum columns without a migration.
+- **Do** import canonical strings from `src/constants/postgresEnums.js` (`DocumentRole`, `DocumentType`, `PacketStatus`, `QuoteStatus`, `SubmissionStatus`, etc.).
+
+## Common footguns
+
+- **`document_role`** — must be one of the `DocumentRole` values (e.g. signed bind PDFs use `DocumentRole.SIGNED_BIND_DOCS`, not ad‑hoc names).
+- **`document_type`** — `pdf` | `json` | `image` | `other`.
+- **`submission_status`** — `followupScheduler` historically referenced `expired`; that label is **not** in `001` until a migration adds it (or the job is changed to use an existing status).
+
+## New values
+
+1. Add `ALTER TYPE ... ADD VALUE 'new_value'` in a new migration file.
+2. Add the constant to `src/constants/postgresEnums.js`.
+3. Use the constant in application code.
