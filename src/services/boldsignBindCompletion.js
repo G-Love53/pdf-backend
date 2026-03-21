@@ -13,6 +13,7 @@ import {
 import { uploadBuffer } from "./r2Service.js";
 import { createPolicy } from "./policyService.js";
 import {
+  bindSignedAttachmentFilename,
   sendBindConfirmationEmail,
   sendWelcomeEmail,
 } from "./bindEmailService.js";
@@ -245,6 +246,8 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
 
     await client.query("COMMIT");
 
+    const signedPdfFilename = bindSignedAttachmentFilename(carrierName);
+
     const clientObj = {
       primary_email: row.primary_email,
       first_name: row.first_name,
@@ -255,6 +258,8 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
       client: clientObj,
       policy,
       segment,
+      signedPdfBuffer: signedBuffer,
+      signedPdfFilename,
     });
 
     await sendWelcomeEmail({
@@ -264,7 +269,11 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
       segment,
     });
 
-    await notifyBarBindSigned({ submissionId: row.submission_id });
+    await notifyBarBindSigned({
+      submissionId: row.submission_id,
+      signedPdfBuffer: signedBuffer,
+      signedPdfFilename,
+    });
 
     return { outcome: "completed", quoteId: row.quote_id };
   } catch (err) {

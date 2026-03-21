@@ -21,3 +21,6 @@ See `.cursor/rules/postgres-enums.mdc` for agent guidance.
 |----------|---------|
 | `SEGMENT` | Deploy default segment when normalizing unknown slugs (`bar` / `roofer` / …). |
 | `CID_BRAND_NAME` | First line of generated bind-confirmation PDF (per-segment deploys). |
+| `R2_PUBLIC_BASE_URL` | **Public browser URL base** for `getDocumentPublicUrl()` (e.g. `https://files.yourdomain.com`). **Do not** use `https://<bucket>.r2.cloudflarestorage.com` — that is the S3 API host, not a website; browsers will TLS-error. In Cloudflare: R2 bucket → **Settings → Public access** → connect a **Custom Domain** (or serve via **Worker**), then set this env to that origin (no trailing slash). |
+
+Signed bind PDFs are also **attached** to the client bind email and the Bar agent `[CID][Bind]` email (Gmail), so operators get the file even before R2 links work in the browser.

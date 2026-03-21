@@ -135,7 +135,17 @@ export async function notifyBarPacketSent({ packetId }) {
   });
 }
 
-export async function notifyBarBindSigned({ submissionId }) {
+/**
+ * @param {object} opts
+ * @param {string} opts.submissionId
+ * @param {Buffer} [opts.signedPdfBuffer] - attach signed bind PDF for Bar inbox
+ * @param {string} [opts.signedPdfFilename]
+ */
+export async function notifyBarBindSigned({
+  submissionId,
+  signedPdfBuffer,
+  signedPdfFilename = "bind-confirmation-signed.pdf",
+}) {
   const pool = getPool();
   if (!pool) return;
 
@@ -167,15 +177,24 @@ export async function notifyBarBindSigned({ submissionId }) {
 
   const lines = [
     "Bind signed and policy created.",
+    signedPdfBuffer && Buffer.isBuffer(signedPdfBuffer)
+      ? "Signed bind confirmation PDF is attached."
+      : "",
     "",
     row.submission_public_id ? `Submission: ${row.submission_public_id}` : "",
     row.client_name ? `Client: ${row.client_name}` : "",
   ].filter(Boolean);
 
+  const attachments =
+    signedPdfBuffer && Buffer.isBuffer(signedPdfBuffer)
+      ? [{ filename: signedPdfFilename, buffer: signedPdfBuffer }]
+      : [];
+
   await sendWithGmail({
     to: [BAR_AGENT_EMAIL],
     subject,
     text: lines.join("\n"),
+    attachments,
   });
 }
 

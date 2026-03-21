@@ -1,10 +1,41 @@
 import { sendWithGmail } from "../email.js";
 
-export async function sendBindConfirmationEmail({ client, policy, segment }) {
+/** Filename for Gmail attachment; keep consistent with R2 key basename. */
+export function bindSignedAttachmentFilename(carrierName) {
+  const safe = String(carrierName || "carrier")
+    .replace(/[/\\?%*:|"<>]/g, "-")
+    .trim()
+    .slice(0, 80);
+  return `${safe || "carrier"}-bind-confirmation-signed.pdf`;
+}
+
+/**
+ * @param {{ primary_email?: string, first_name?: string, last_name?: string, contact_name?: string }} client
+ * @param {object} policy
+ * @param {string} [segment]
+ * @param {Buffer} [signedPdfBuffer] - same bytes as stored in R2 (BoldSign / HelloSign completion)
+ * @param {string} [signedPdfFilename] - e.g. Society-Insurance-bind-confirmation-signed.pdf
+ */
+export async function sendBindConfirmationEmail({
+  client,
+  policy,
+  segment,
+  signedPdfBuffer,
+  signedPdfFilename = "bind-confirmation-signed.pdf",
+}) {
   if (!client?.primary_email) return;
+
+  const attachments =
+    signedPdfBuffer && Buffer.isBuffer(signedPdfBuffer)
+      ? [{ filename: signedPdfFilename, buffer: signedPdfBuffer }]
+      : [];
 
   const to = [client.primary_email];
   const subject = `Your ${policy.policy_type} Policy is Bound — ${policy.carrier_name} | Commercial Insurance Direct`;
+  const attachmentNote = attachments.length
+    ? "Your signed bind confirmation is attached for your records."
+    : "Your signed bind confirmation is on file; reply to this email if you need a copy.";
+
   const text = [
     `Hi ${client.contact_name || client.first_name || "there"},`,
     "",
@@ -17,7 +48,7 @@ export async function sendBindConfirmationEmail({ client, policy, segment }) {
     `Effective Date: ${policy.effective_date}`,
     `Expiration Date: ${policy.expiration_date}`,
     "",
-    "Your signed bind confirmation is attached for your records.",
+    attachmentNote,
     "",
     "We'll have your full policy documents and certificate of insurance available within 24-48 hours.",
     "",
@@ -32,6 +63,7 @@ export async function sendBindConfirmationEmail({ client, policy, segment }) {
     subject,
     text,
     segment,
+    attachments,
   });
 }
 

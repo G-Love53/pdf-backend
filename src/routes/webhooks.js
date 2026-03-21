@@ -5,6 +5,7 @@ import { downloadSignedDocument } from "../services/hellosignService.js";
 import { uploadBuffer } from "../services/r2Service.js";
 import { createPolicy } from "../services/policyService.js";
 import {
+  bindSignedAttachmentFilename,
   sendBindConfirmationEmail,
   sendWelcomeEmail,
 } from "../services/bindEmailService.js";
@@ -404,6 +405,8 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
         await client.query("COMMIT");
         client.release();
 
+        const signedPdfFilename = bindSignedAttachmentFilename(row.carrier_name);
+
         // Emails (outside transaction)
         const clientObj = {
           primary_email: row.primary_email,
@@ -415,6 +418,8 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
           client: clientObj,
           policy,
           segment,
+          signedPdfBuffer: signedBuffer,
+          signedPdfFilename,
         });
 
         // Fire-and-forget welcome email (no delay scheduler here; can be added later)
@@ -426,7 +431,11 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
         });
 
         try {
-          await notifyBarBindSigned({ submissionId: row.submission_id });
+          await notifyBarBindSigned({
+            submissionId: row.submission_id,
+            signedPdfBuffer: signedBuffer,
+            signedPdfFilename,
+          });
         } catch (err) {
           console.error(
             "[hellosign webhook] notifyBarBindSigned error:",
