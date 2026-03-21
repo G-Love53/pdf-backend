@@ -11,6 +11,8 @@ R2 metadata (`uploadBuffer(..., { type: "..." })`) is **not** a DB enum — thos
 
 **Columns:** `quote_packets` and `submissions` have **no** `updated_at` in `001` (unlike `quotes`, `bind_requests`, `policies`). Do not `SET updated_at` on those tables unless a migration adds the column.
 
+**Policies:** `policy_number` is unique. `generatePolicyNumber()` includes a short `quote_id` suffix so multiple quotes on one submission do not collide. `createPolicy()` is idempotent on `bind_request_id` (retries / concurrent finalize).
+
 See `.cursor/rules/postgres-enums.mdc` for agent guidance.
 
 ## RSS / bind deploy env (optional)
