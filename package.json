@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.708.0",
+    "@aws-sdk/s3-request-presigner": "^3.1014.0",
     "@dropbox/sign": "^1.10.0",
     "@google/genai": "^0.15.0",
     "@supabase/supabase-js": "^2.43.4",

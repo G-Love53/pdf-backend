@@ -1,5 +1,5 @@
 import { getPool } from "../db.js";
-import { getDocumentPublicUrl, uploadBuffer } from "./r2Service.js";
+import { documentDownloadPath, uploadBuffer } from "./r2Service.js";
 import { createSimplePagePdf } from "./pdfCombineService.js";
 import {
   createEmbeddedSignatureRequest,
@@ -208,9 +208,9 @@ export async function getBindDetails(quoteId, options = {}) {
           status: row.bind_request_status,
           /** BoldSign document id (stored in hellosign_request_id). */
           provider_document_id: row.bind_provider_document_id || null,
-          signed_document_url: getDocumentPublicUrl(
-            row.signed_document_storage_path,
-          ),
+          signed_document_url: row.signed_document_id
+            ? documentDownloadPath(row.signed_document_id)
+            : null,
         }
       : null,
   };

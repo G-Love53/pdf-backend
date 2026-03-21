@@ -1,3 +1,4 @@
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const BUCKET = process.env.R2_BUCKET_NAME;
@@ -19,13 +20,24 @@ function getClient() {
   return client;
 }
 
+/**
+ * Same-origin path for GET /api/documents/:id/download (presigned redirect).
+ * Prefer this over public R2 hostnames — no custom DNS on the bucket required.
+ */
+export function documentDownloadPath(documentId) {
+  if (!documentId) return null;
+  return `/api/documents/${documentId}/download`;
+}
+
+/**
+ * @deprecated Prefer {@link documentDownloadPath} + GET /api/documents/:id/download.
+ * Kept only for legacy callers; do not use for operator UI.
+ */
 export function getDocumentPublicUrl(storagePath) {
   if (!storagePath) return null;
 
   if (process.env.R2_PUBLIC_BASE_URL) {
     let base = process.env.R2_PUBLIC_BASE_URL.replace(/\/+$/, "");
-    // Some deployments set R2_PUBLIC_BASE_URL without a protocol (e.g. "bucket.r2.cloudflarestorage.com").
-    // Ensure the returned URL is always fully-qualified so the browser iframe/link works.
     if (!/^https?:\/\//i.test(base)) {
       base = `https://${base}`;
     }
@@ -39,6 +51,21 @@ export function getDocumentPublicUrl(storagePath) {
   }
 
   return null;
+}
+
+/** Presigned GET for R2 (S3-compatible). Default 15 minutes. */
+export async function getPresignedGetObjectUrl(storagePath, options = {}) {
+  if (!BUCKET || !ENDPOINT || !storagePath) {
+    throw new Error("R2 not configured or missing storage path");
+  }
+  const expiresIn = options.expiresIn ?? 900;
+  const s3 = getClient();
+  const key = String(storagePath).replace(/^\/+/, "");
+  const command = new GetObjectCommand({
+    Bucket: BUCKET,
+    Key: key,
+  });
+  return getSignedUrl(s3, command, { expiresIn });
 }
 
 export async function getObjectStream(storagePath) {

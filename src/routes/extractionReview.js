@@ -1,6 +1,6 @@
 import express from "express";
 import { getPool } from "../db.js";
-import { getDocumentPublicUrl } from "../services/r2Service.js";
+import { documentDownloadPath } from "../services/r2Service.js";
 import { runExtractionForWorkItem, confirmExtractionForWorkItem, skipWorkItem } from "../services/extractionService.js";
 
 const router = express.Router();
@@ -186,7 +186,24 @@ router.get("/api/queue/extraction-review/:workQueueItemId", async (req, res) => 
       [row.submission_id],
     );
 
-    let pdfSignedUrl = row.pdf_r2_key ? getDocumentPublicUrl(row.pdf_r2_key) : null;
+    let pdfSignedUrl = row.document_id
+      ? documentDownloadPath(row.document_id)
+      : null;
+
+    if (!pdfSignedUrl && row.pdf_r2_key) {
+      const docIdRes = await pool.query(
+        `
+          SELECT document_id
+          FROM documents
+          WHERE storage_path = $1
+          LIMIT 1
+        `,
+        [row.pdf_r2_key],
+      );
+      if (docIdRes.rows[0]?.document_id) {
+        pdfSignedUrl = documentDownloadPath(docIdRes.rows[0].document_id);
+      }
+    }
 
     // Fallback: some carrier ingests have documents.quote_id still NULL, so the main
     // JOIN can't find d.storage_path. In that case, try to read the document_ids
@@ -213,7 +230,7 @@ router.get("/api/queue/extraction-review/:workQueueItemId", async (req, res) => 
       if (documentIds.length > 0) {
         const docRes = await pool.query(
           `
-            SELECT storage_path
+            SELECT document_id
             FROM documents
             WHERE document_id = ANY($1::uuid[])
               AND document_role = 'carrier_quote_original'
@@ -224,9 +241,9 @@ router.get("/api/queue/extraction-review/:workQueueItemId", async (req, res) => 
           [documentIds],
         );
 
-        const storagePath = docRes.rows[0]?.storage_path || null;
-        if (storagePath) {
-          pdfSignedUrl = getDocumentPublicUrl(storagePath);
+        const docId = docRes.rows[0]?.document_id || null;
+        if (docId) {
+          pdfSignedUrl = documentDownloadPath(docId);
         }
       }
     }
