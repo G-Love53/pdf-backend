@@ -23,7 +23,16 @@ export async function listReadyToBind({ segment }) {
   const pool = getPoolOrThrow();
 
   const params = [];
-  const where = ["qp.status = 'sent'", "qe.review_status = 'approved'"];
+  // - 'sent': packet emailed to client, bind not started yet.
+  // - 'approved': initiateBind() sets this when bind starts; quote must stay visible until signed
+  //   (otherwise Bind Queue looks empty right after "Send for E‑Signature").
+  const where = [
+    "qe.review_status = 'approved'",
+    `(qp.status = 'sent' OR (qp.status = 'approved' AND EXISTS (
+      SELECT 1 FROM bind_requests br2
+      WHERE br2.quote_id = q.quote_id AND br2.status = 'awaiting_signature'
+    )))`,
+  ];
   if (segment) {
     params.push(segment);
     where.push(`q.segment = $${params.length}`);
