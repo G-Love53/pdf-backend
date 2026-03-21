@@ -195,7 +195,7 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
     await client.query(
       `
         UPDATE quote_packets
-        SET status = $2, updated_at = NOW()
+        SET status = $2
         WHERE quote_id = $1
       `,
       [row.quote_id, PacketStatus.APPROVED],
@@ -213,7 +213,7 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
     await client.query(
       `
         UPDATE submissions
-        SET status = $2, updated_at = NOW()
+        SET status = $2
         WHERE submission_id = $1
       `,
       [row.submission_id, SubmissionStatus.BOUND],

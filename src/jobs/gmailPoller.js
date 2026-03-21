@@ -636,7 +636,7 @@ async function routeByConfidence(matchResult, quoteId, carrierMessageId, segment
   if (matchStatus === "auto_matched" && submissionId) {
     await pool.query(
       `UPDATE submissions
-       SET    status = 'quote_received', updated_at = NOW()
+       SET    status = 'quote_received'
        WHERE  submission_id = $1
          AND  status NOT IN ('accepted','bound','issued','closed_lost')`,
       [submissionId],

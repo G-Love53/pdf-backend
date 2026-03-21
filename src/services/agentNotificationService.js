@@ -94,7 +94,7 @@ export async function notifyBarPacketSent({ packetId }) {
   const { rows } = await pool.query(
     `
       SELECT
-        qp.id AS packet_id,
+        qp.packet_id AS packet_id,
         qp.sent_at,
         q.quote_id,
         s.submission_public_id,
@@ -105,7 +105,7 @@ export async function notifyBarPacketSent({ packetId }) {
       JOIN submissions s ON s.submission_id = q.submission_id
       LEFT JOIN businesses b ON s.business_id = b.business_id
       LEFT JOIN clients c ON s.client_id = c.client_id
-      WHERE qp.id = $1
+      WHERE qp.packet_id = $1
       LIMIT 1
     `,
     [packetId],

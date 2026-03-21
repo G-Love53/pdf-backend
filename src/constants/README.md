@@ -9,6 +9,8 @@ R2 metadata (`uploadBuffer(..., { type: "..." })`) is **not** a DB enum — thos
 
 **Non-enum:** `documents.sha256_hash` is `NOT NULL` — always set when inserting rows (hash the PDF bytes).
 
+**Columns:** `quote_packets` and `submissions` have **no** `updated_at` in `001` (unlike `quotes`, `bind_requests`, `policies`). Do not `SET updated_at` on those tables unless a migration adds the column.
+
 See `.cursor/rules/postgres-enums.mdc` for agent guidance.
 
 ## RSS / bind deploy env (optional)
