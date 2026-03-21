@@ -74,8 +74,7 @@ export const QuoteStatus = Object.freeze({
 
 /**
  * @see CREATE TYPE submission_status
- * Note: `followupScheduler.js` historically used `expired` — that value is NOT in 001;
- * fix via migration or change the job to use an existing status (e.g. closed_lost).
+ * Note: stale-intake cleanup uses `closed_lost` (there is no `expired` in 001).
  */
 export const SubmissionStatus = Object.freeze({
   RECEIVED: "received",

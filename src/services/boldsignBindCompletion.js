@@ -25,6 +25,7 @@ import {
   StorageProvider,
   SubmissionStatus,
 } from "../constants/postgresEnums.js";
+import { normalizeSegment } from "../utils/rss.js";
 
 /**
  * @param {string} docId - BoldSign documentId (stored in bind_requests.hellosign_request_id)
@@ -88,7 +89,7 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
       return { outcome: "already_signed", quoteId: row.quote_id };
     }
 
-    const segment = row.segment || "bar";
+    const segment = normalizeSegment(row.segment);
 
     const signedBuffer = await downloadBoldSignDocument(docId);
     const sha256 = crypto.createHash("sha256").update(signedBuffer).digest("hex");
@@ -187,7 +188,8 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
       bindRequest,
       extraction: { reviewed_json: row.reviewed_json },
       txClient: client,
-      boundBy: source === "redirect" ? "redirect" : "system",
+      // policies.bound_by is UUID (agent who bound). Webhook/redirect finalize has no agent id here;
+      // createPolicy falls back to bind_requests.initiated_by or NULL.
     });
 
     await client.query(

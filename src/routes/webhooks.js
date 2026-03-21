@@ -350,7 +350,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
           bindRequest,
           extraction: { reviewed_json: row.reviewed_json },
           txClient: client,
-          boundBy: "system",
+          // policies.bound_by is UUID — omit; createPolicy uses bind_requests.initiated_by or NULL
         });
 
         // Cascade status updates

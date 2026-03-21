@@ -5,14 +5,8 @@ import {
   createEmbeddedSignatureRequest,
 } from "./boldsignService.js";
 import { tryFinalizeBoldSignFromDocumentId } from "./boldsignBindCompletion.js";
-import { createPolicy } from "./policyService.js";
-
-const BIND_TEMPLATES = {
-  bar: "bar/bind-confirmation",
-  roofer: "roofer/bind-confirmation",
-  plumber: "plumber/bind-confirmation",
-  hvac: "hvac/bind-confirmation",
-};
+import { brandLineForBindPdf, normalizeSegment } from "../utils/rss.js";
+import { parseOptionalUuid } from "../utils/uuid.js";
 
 function getPoolOrThrow() {
   const pool = getPool();
@@ -80,7 +74,7 @@ export async function listReadyToBind({ segment }) {
       client_name: r.client_name,
       client_email: r.client_email,
       client_phone: r.client_phone,
-      segment: r.segment,
+      segment: normalizeSegment(r.segment),
       carrier_name: r.carrier_name,
       policy_type: r.policy_type,
       annual_premium: Number(r.annual_premium || 0),
@@ -187,7 +181,7 @@ export async function getBindDetails(quoteId, options = {}) {
     quote_id: row.quote_id,
     submission_public_id: row.submission_public_id,
     submission_id: row.submission_id,
-    segment: row.segment,
+    segment: normalizeSegment(row.segment),
     client: {
       id: row.client_id,
       business_name: row.business_name,
@@ -253,8 +247,9 @@ export async function initiateBind({
       quoteDetail.quote.annual_premium != null
         ? Number(quoteDetail.quote.annual_premium).toFixed(2)
         : "—";
+    const brand = brandLineForBindPdf();
     const pdfLines = [
-      "Commercial Insurance Direct",
+      brand,
       "Bind Confirmation",
       "",
       `Client: ${quoteDetail.client.business_name || ""}`.trim(),
@@ -271,9 +266,10 @@ export async function initiateBind({
 
     const pdfBuffer = await createSimplePagePdf(pdfLines);
 
-    const r2Key = `binds/${quoteDetail.segment}/${quoteDetail.submission_public_id}/${quoteDetail.quote.carrier_name}-bind-confirmation.pdf`;
+    const seg = normalizeSegment(quoteDetail.segment);
+    const r2Key = `binds/${seg}/${quoteDetail.submission_public_id}/${quoteDetail.quote.carrier_name}-bind-confirmation.pdf`;
     await uploadBuffer(r2Key, pdfBuffer, "application/pdf", {
-      segment: quoteDetail.segment,
+      segment: seg,
       type: "bind_confirmation",
     });
 
@@ -286,10 +282,12 @@ export async function initiateBind({
         cid_id: quoteDetail.submission_public_id,
         submission_public_id: quoteDetail.submission_public_id,
         quote_id: quoteId,
-        segment: quoteDetail.segment,
+        segment: seg,
       },
       subject: `Bind Confirmation — ${quoteDetail.quote.policy_type} with ${quoteDetail.quote.carrier_name}`,
     });
+
+    const agentUuid = parseOptionalUuid(agentId);
 
     const insertRes = await client.query(
       `
@@ -314,7 +312,7 @@ export async function initiateBind({
         signerName,
         signerEmail,
         paymentMethod || "annual",
-        agentId || null,
+        agentUuid,
         agentNotes || null,
       ],
     );
@@ -341,8 +339,9 @@ export async function initiateBind({
         {
           quote_id: quoteId,
           bind_request_id: insertRes.rows[0].id,
+          segment: seg,
         },
-        agentId || "system",
+        agentUuid ?? "system",
       ],
     );
 
@@ -391,8 +390,9 @@ export async function resendBind({ quoteId, agentId }) {
   const quoteDetail = await getBindDetails(quoteId, { syncBoldSign: false });
   if (!quoteDetail?.packet?.id) throw new Error("Quote does not have a sent packet");
 
+  const brand = brandLineForBindPdf();
   const pdfLines = [
-    "Commercial Insurance Direct",
+    brand,
     "Bind Confirmation",
     "",
     `Client: ${quoteDetail.client.business_name || ""}`.trim(),
@@ -407,6 +407,8 @@ export async function resendBind({ quoteId, agentId }) {
     `CID Submission ID: ${quoteDetail.submission_public_id}`,
   ];
   const pdfBuffer = await createSimplePagePdf(pdfLines);
+
+  const agentUuid = parseOptionalUuid(agentId);
 
   const boldsignReq = await createEmbeddedSignatureRequest({
     pdfBuffer,
@@ -439,8 +441,8 @@ export async function resendBind({ quoteId, agentId }) {
       submissionId,
       "bind.resent",
       "Bind signature request resent",
-      { bind_request_id: bind.id },
-      agentId || "system",
+      { bind_request_id: bind.id, segment: normalizeSegment(quoteDetail.segment) },
+      agentUuid ?? "system",
     ],
   );
 }
@@ -472,6 +474,8 @@ export async function cancelBind({ quoteId, agentId, reason }) {
       throw new Error("No pending bind_request to cancel");
     }
 
+    const agentUuid = parseOptionalUuid(agentId);
+
     // Local cancellation: provider cancellation/revocation can be added once BoldSign revoke/cancel endpoints
     // are wired. Webhook handling must also respect bind_requests.status to avoid duplicate binds.
     // We keep this behavior consistent with idempotent post-sign processing.
@@ -500,7 +504,7 @@ export async function cancelBind({ quoteId, agentId, reason }) {
         "bind.cancelled",
         "Bind request cancelled",
         { bind_request_id: bind.id, reason: reason || null },
-        agentId || "system",
+        agentUuid ?? "system",
       ],
     );
 

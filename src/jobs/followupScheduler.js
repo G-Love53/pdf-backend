@@ -27,7 +27,7 @@ async function carrierFollowups() {
       JOIN submissions s ON s.submission_id = q.submission_id
       WHERE
         q.status IN ('matched','match_review')
-        AND s.status NOT IN ('expired','closed_lost','rejected')
+        AND s.status NOT IN ('closed_lost','rejected','bound','issued')
         AND q.created_at <= NOW() - INTERVAL '48 hours'
         AND NOT EXISTS (
           SELECT 1 FROM timeline_events te
@@ -105,7 +105,7 @@ async function carrierFollowups() {
       JOIN submissions s ON s.submission_id = q.submission_id
       WHERE
         q.status IN ('matched','match_review')
-        AND s.status NOT IN ('expired','closed_lost','rejected')
+        AND s.status NOT IN ('closed_lost','rejected','bound','issued')
         AND EXISTS (
           SELECT 1 FROM timeline_events te
           WHERE te.quote_id = q.quote_id
@@ -131,7 +131,7 @@ async function clientFollowups() {
   const { rows } = await pool.query(
     `
       SELECT
-        qp.id AS packet_id,
+        qp.packet_id AS packet_id,
         qp.quote_id,
         qp.sent_at,
         q.submission_id,
@@ -144,7 +144,7 @@ async function clientFollowups() {
       JOIN clients c ON c.client_id = s.client_id
       WHERE
         qp.status = 'sent'
-        AND s.status NOT IN ('expired','closed_lost','rejected')
+        AND s.status NOT IN ('closed_lost','rejected','bound','issued')
         AND c.primary_email IS NOT NULL
     `,
   );
@@ -254,14 +254,13 @@ async function clientFollowups() {
 }
 
 async function expireSubmissions() {
-  // Expire submissions after 30 days with no bind
+  // Stale intake cleanup: mark old non-terminal submissions closed_lost (submission_status has no "expired" in 001).
   await pool.query(
     `
       UPDATE submissions s
-      SET status = 'expired',
-          expired_at = NOW()
+      SET status = 'closed_lost'
       WHERE
-        s.status NOT IN ('expired','closed_lost','rejected')
+        s.status NOT IN ('closed_lost','rejected','bound','issued')
         AND s.created_at <= NOW() - INTERVAL '30 days'
         AND NOT EXISTS (
           SELECT 1 FROM policies p

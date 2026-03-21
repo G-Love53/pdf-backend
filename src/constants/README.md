@@ -10,3 +10,10 @@ R2 metadata (`uploadBuffer(..., { type: "..." })`) is **not** a DB enum — thos
 **Non-enum:** `documents.sha256_hash` is `NOT NULL` — always set when inserting rows (hash the PDF bytes).
 
 See `.cursor/rules/postgres-enums.mdc` for agent guidance.
+
+## RSS / bind deploy env (optional)
+
+| Variable | Purpose |
+|----------|---------|
+| `SEGMENT` | Deploy default segment when normalizing unknown slugs (`bar` / `roofer` / …). |
+| `CID_BRAND_NAME` | First line of generated bind-confirmation PDF (per-segment deploys). |

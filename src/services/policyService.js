@@ -15,6 +15,9 @@ export function generatePolicyNumber(segment, submissionPublicId) {
 /**
  * Create a policy record in Postgres.
  * Expects the core entities already loaded from the DB.
+ *
+ * @param {string|null} [boundBy] - Agent user UUID for `policies.bound_by` only (column is UUID).
+ *   Omit or pass null to use `bindRequest.initiated_by`.
  */
 export async function createPolicy({
   client,
