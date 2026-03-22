@@ -2,40 +2,156 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>CID — Bind Queue</title>
+    <title>CID — Bind Queue (S6)</title>
     <style>
-      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; padding: 16px; }
-      h1 { font-size: 20px; margin-bottom: 8px; }
-      table { border-collapse: collapse; width: 100%; margin-top: 12px; }
-      th, td { border: 1px solid #ddd; padding: 8px; font-size: 13px; }
-      th { background: #f3f4f6; text-align: left; }
-      a { color: #2563eb; text-decoration: none; }
-      a:hover { text-decoration: underline; }
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #0f172a;
+        color: #e5e7eb;
+      }
+      header {
+        padding: 16px 24px;
+        border-bottom: 1px solid #1f2937;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      header h1 {
+        font-size: 18px;
+        margin: 0;
+      }
+      header span {
+        font-size: 13px;
+        color: #9ca3af;
+      }
+      main {
+        padding: 16px 24px 32px;
+      }
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .filter-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      select {
+        background: #020617;
+        color: #e5e7eb;
+        border-radius: 999px;
+        border: 1px solid #1f2937;
+        padding: 4px 12px;
+        font-size: 13px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 8px;
+        font-size: 13px;
+      }
+      th,
+      td {
+        padding: 8px 10px;
+        border-bottom: 1px solid #1f2937;
+        text-align: left;
+      }
+      th {
+        color: #9ca3af;
+        font-weight: 500;
+      }
+      a {
+        color: #38bdf8;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
-    <h1>Bind Queue</h1>
-    <p>Quotes with packets sent and ready to bind.</p>
-
-    <table id="bind-table">
-      <thead>
-        <tr>
-          <th>Submission</th>
-          <th>Client</th>
-          <th>Carrier</th>
-          <th>Policy</th>
-          <th>Premium</th>
-          <th>Sent</th>
-          <th>Days</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <header>
+      <div>
+        <h1>Bind Queue</h1>
+        <span>S6 &mdash; quotes with packets sent, ready to bind</span>
+        <div style="margin-top: 8px; font-size: 12px">
+          <a id="nav-operator-home" href="/operator" style="color: #38bdf8">&larr; Operator Home</a>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="filter-group">
+          <label for="segment-filter">Segment:</label>
+          <select id="segment-filter">
+            <option value="">All</option>
+            <option value="bar">Bar</option>
+            <option value="roofer">Roofer</option>
+            <option value="plumber">Plumber</option>
+            <option value="hvac">HVAC</option>
+          </select>
+        </div>
+      </div>
+    </header>
+    <main>
+      <table id="bind-table">
+        <thead>
+          <tr>
+            <th>Submission</th>
+            <th>Client</th>
+            <th>Carrier</th>
+            <th>Policy</th>
+            <th>Premium</th>
+            <th>Sent</th>
+            <th>Days</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </main>
 
     <script>
+      function pushSegmentToUrl(segment) {
+        const u = new URL(window.location.href);
+        if (segment) u.searchParams.set("segment", segment);
+        else u.searchParams.delete("segment");
+        history.replaceState({}, "", u);
+        syncOperatorHomeLink();
+      }
+
+      function syncOperatorHomeLink() {
+        const s = document.getElementById("segment-filter").value;
+        const a = document.getElementById("nav-operator-home");
+        if (a)
+          a.href = s
+            ? "/operator?segment=" + encodeURIComponent(s)
+            : "/operator";
+      }
+
+      (function initSegmentFromUrl() {
+        const p = new URLSearchParams(window.location.search);
+        const seg = (p.get("segment") || "").toLowerCase();
+        const allowed = ["", "bar", "roofer", "plumber", "hvac"];
+        const el = document.getElementById("segment-filter");
+        if (el && allowed.includes(seg)) el.value = seg;
+      })();
+      syncOperatorHomeLink();
+
       async function loadBindQueue() {
-        const res = await fetch("/api/quotes/ready-to-bind");
+        const segment = document.getElementById("segment-filter").value;
+        const params = new URLSearchParams();
+        if (segment) params.set("segment", segment);
+        const res = await fetch(
+          "/api/quotes/ready-to-bind?" + params.toString(),
+        );
         if (!res.ok) return;
         const data = await res.json();
         const tbody = document.querySelector("#bind-table tbody");
@@ -56,8 +172,15 @@
         });
       }
 
+      document
+        .getElementById("segment-filter")
+        .addEventListener("change", function () {
+          pushSegmentToUrl(this.value);
+          loadBindQueue();
+        });
+
       loadBindQueue();
+      setInterval(loadBindQueue, 30000);
     </script>
   </body>
 </html>
-

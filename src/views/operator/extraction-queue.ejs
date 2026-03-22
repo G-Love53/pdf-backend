@@ -113,6 +113,9 @@
       <div>
         <h1>Extraction Review Queue</h1>
         <span>S4 &mdash; Agent Gate 2</span>
+        <div style="margin-top: 8px; font-size: 12px">
+          <a id="nav-operator-home" href="/operator" style="color: #38bdf8">&larr; Operator Home</a>
+        </div>
       </div>
       <div class="pending-count">
         Pending: <span id="pending-count">0</span>
@@ -213,9 +216,38 @@
         });
       }
 
+      function pushSegmentToUrl(segment) {
+        const u = new URL(window.location.href);
+        if (segment) u.searchParams.set("segment", segment);
+        else u.searchParams.delete("segment");
+        history.replaceState({}, "", u);
+        syncOperatorHomeLink();
+      }
+
+      function syncOperatorHomeLink() {
+        const s = document.getElementById("segment-filter").value;
+        const a = document.getElementById("nav-operator-home");
+        if (a)
+          a.href = s
+            ? "/operator?segment=" + encodeURIComponent(s)
+            : "/operator";
+      }
+
+      (function initSegmentFromUrl() {
+        const p = new URLSearchParams(window.location.search);
+        const seg = (p.get("segment") || "").toLowerCase();
+        const allowed = ["", "bar", "roofer", "plumber", "hvac"];
+        const el = document.getElementById("segment-filter");
+        if (el && allowed.includes(seg)) el.value = seg;
+      })();
+      syncOperatorHomeLink();
+
       document
         .getElementById("segment-filter")
-        .addEventListener("change", fetchQueue);
+        .addEventListener("change", function () {
+          pushSegmentToUrl(this.value);
+          fetchQueue();
+        });
       document
         .getElementById("sort-order")
         .addEventListener("change", fetchQueue);

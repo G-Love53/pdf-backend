@@ -7,6 +7,11 @@ import {
   processBoldSignDocumentCompleted,
   tryFinalizeBoldSignFromDocumentId,
 } from "../services/boldsignBindCompletion.js";
+import {
+  parseOperatorSegmentQuery,
+  segmentQuerySuffix,
+  sqlSegmentFilter,
+} from "../utils/operatorSegment.js";
 
 const router = express.Router();
 const pool = getPool();
@@ -49,32 +54,48 @@ router.get(["/operator", "/operator/home"], async (req, res) => {
         });
       }
       if (result.outcome === "completed" || result.outcome === "already_signed") {
+        const seg = parseOperatorSegmentQuery(req.query.segment);
+        const segExtra =
+          seg !== "all" ? `&segment=${encodeURIComponent(seg)}` : "";
         const q =
           result.quoteId != null
-            ? `?bind_signed=1&quote_id=${encodeURIComponent(String(result.quoteId))}`
-            : "?bind_signed=1";
+            ? `?bind_signed=1&quote_id=${encodeURIComponent(String(result.quoteId))}${segExtra}`
+            : `?bind_signed=1${segExtra}`;
         return res.redirect(302, `/operator${q}`);
       }
       if (result.outcome === "missing") {
-        return res.redirect(302, "/operator?bind_error=unknown_document");
+        return res.redirect(
+          302,
+          `/operator?bind_error=unknown_document${segmentQuerySuffix(req)}`,
+        );
       }
       if (result.outcome === "cancelled") {
-        return res.redirect(302, "/operator?bind_error=cancelled");
+        return res.redirect(
+          302,
+          `/operator?bind_error=cancelled${segmentQuerySuffix(req)}`,
+        );
       }
     } catch (err) {
       console.error("[operator] BoldSign redirect finalize failed:", err.message || err);
-      return res.redirect(302, "/operator?bind_pending=1");
+      return res.redirect(
+        302,
+        `/operator?bind_pending=1${segmentQuerySuffix(req)}`,
+      );
     }
   }
 
   res.render("operator/home", {});
 });
 
-// Lightweight dashboard API for counts + key queues (Bar segment)
-router.get("/api/operator/dashboard", async (_req, res) => {
+// Dashboard API: counts + queues — ?segment=all|bar|roofer|plumber|hvac (default all)
+router.get("/api/operator/dashboard", async (req, res) => {
   if (!pool) {
     return res.status(503).json({ error: "database_not_configured" });
   }
+
+  const segment = parseOperatorSegmentQuery(req.query.segment);
+  const segSql = ` ${sqlSegmentFilter("s")} `;
+  const segParams = [segment];
 
   try {
     const [countsResult, submissionsQueueResult, s4QueueResult, bindsAwaitingResult, renewalsResult] =
@@ -82,55 +103,50 @@ router.get("/api/operator/dashboard", async (_req, res) => {
         pool.query(
           `
             SELECT
-              -- Submissions received today (Bar, UTC calendar day — matches Render CURRENT_DATE)
               (
                 SELECT COUNT(*)::int
                 FROM submissions s
-                WHERE s.segment = 'bar'::segment_type
-                  AND s.submitted_at IS NOT NULL
+                WHERE s.submitted_at IS NOT NULL
                   AND s.submitted_at >= CURRENT_DATE
                   AND s.submitted_at < CURRENT_DATE + INTERVAL '1 day'
+                  ${segSql}
               ) AS submissions_today,
-              -- Quotes approved in S4 today (approved extractions)
               (
                 SELECT COUNT(*)::int
                 FROM quote_extractions qe
                 JOIN quotes q ON q.quote_id = qe.quote_id
                 JOIN submissions s ON s.submission_id = q.submission_id
-                WHERE s.segment = 'bar'::segment_type
-                  AND qe.review_status = 'approved'
+                WHERE qe.review_status = 'approved'
                   AND qe.reviewed_at >= CURRENT_DATE
+                  ${segSql}
               ) AS approved_quotes_today,
-              -- Packets sent today (S5)
               (
                 SELECT COUNT(*)::int
                 FROM quote_packets qp
                 JOIN quotes q ON q.quote_id = qp.quote_id
                 JOIN submissions s ON s.submission_id = q.submission_id
-                WHERE s.segment = 'bar'::segment_type
-                  AND qp.status = 'sent'
+                WHERE qp.status = 'sent'
                   AND qp.sent_at >= CURRENT_DATE
+                  ${segSql}
               ) AS packets_sent_today,
-              -- Binds initiated today
               (
                 SELECT COUNT(*)::int
                 FROM bind_requests br
                 JOIN quotes q ON q.quote_id = br.quote_id
                 JOIN submissions s ON s.submission_id = q.submission_id
-                WHERE s.segment = 'bar'::segment_type
-                  AND br.created_at >= CURRENT_DATE
+                WHERE br.created_at >= CURRENT_DATE
+                  ${segSql}
               ) AS binds_initiated_today,
-              -- Policies bound today
               (
                 SELECT COUNT(*)::int
                 FROM policies p
                 JOIN submissions s ON s.submission_id = p.submission_id
-                WHERE s.segment = 'bar'::segment_type
-                  AND p.created_at >= CURRENT_DATE
+                WHERE p.created_at >= CURRENT_DATE
+                  ${segSql}
               ) AS policies_bound_today
           `,
+          segParams,
         ),
-        // Submissions waiting for carrier outreach (received, no quotes yet)
         pool.query(
           `
             SELECT
@@ -142,14 +158,14 @@ router.get("/api/operator/dashboard", async (_req, res) => {
             JOIN clients c ON c.client_id = s.client_id
             LEFT JOIN businesses b ON b.business_id = s.business_id
             LEFT JOIN quotes q ON q.submission_id = s.submission_id
-            WHERE s.segment = 'bar'::segment_type
-              AND s.status = 'received'
+            WHERE s.status = 'received'
               AND q.submission_id IS NULL
+              ${segSql}
             ORDER BY s.submission_public_id ASC
             LIMIT 20
           `,
+          segParams,
         ),
-        // Quotes pending S4 extraction review (open work_queue_items)
         pool.query(
           `
             SELECT
@@ -176,10 +192,11 @@ router.get("/api/operator/dashboard", async (_req, res) => {
               ON s.client_id = c.client_id
             WHERE wqi.queue_type = 'extraction_review'
               AND wqi.status = 'open'
-              AND s.segment = 'bar'::segment_type
+              ${segSql}
             ORDER BY wqi.created_at ASC
             LIMIT 20
           `,
+          segParams,
         ),
         // Binds awaiting signature (avoid policy_type dependency for older schemas)
         pool.query(
@@ -197,10 +214,11 @@ router.get("/api/operator/dashboard", async (_req, res) => {
             LEFT JOIN businesses b ON s.business_id = b.business_id
             LEFT JOIN clients c ON s.client_id = c.client_id
             WHERE br.status = 'awaiting_signature'
-              AND s.segment = 'bar'::segment_type
+              ${segSql}
             ORDER BY br.initiated_at ASC
             LIMIT 20
           `,
+          segParams,
         ),
         // Upcoming policy renewals (avoid renewal_date / policy_type dependency)
         pool.query(
@@ -216,16 +234,19 @@ router.get("/api/operator/dashboard", async (_req, res) => {
             JOIN submissions s ON s.submission_id = p.submission_id
             LEFT JOIN businesses b ON s.business_id = b.business_id
             LEFT JOIN clients c ON s.client_id = c.client_id
-            WHERE s.segment = 'bar'::segment_type
+            WHERE 1=1
+              ${segSql}
             ORDER BY p.effective_date DESC
             LIMIT 20
           `,
+          segParams,
         ),
       ]);
 
     const countsRow = countsResult.rows[0] || {};
 
     res.json({
+      segment,
       counts: {
         submissions_today: countsRow.submissions_today ?? 0,
         approved_quotes_today: countsRow.approved_quotes_today ?? 0,
@@ -246,11 +267,15 @@ router.get("/api/operator/dashboard", async (_req, res) => {
   }
 });
 
-/** Drill-down for dashboard “today” tiles — same Bar + UTC-day filters as /api/operator/dashboard. */
+/** Drill-down for dashboard “today” tiles — same segment + UTC-day filters as /api/operator/dashboard. */
 router.get("/operator/today/:metric", async (req, res) => {
   if (!pool) {
     return res.status(503).send("database_not_configured");
   }
+
+  const segment = parseOperatorSegmentQuery(req.query.segment);
+  const segSql = ` ${sqlSegmentFilter("s")} `;
+  const segParams = [segment];
 
   const metric = String(req.params.metric || "").toLowerCase();
   const configs = {
@@ -266,10 +291,10 @@ router.get("/operator/today/:metric", async (req, res) => {
         FROM submissions s
         JOIN clients c ON c.client_id = s.client_id
         LEFT JOIN businesses b ON b.business_id = s.business_id
-        WHERE s.segment = 'bar'::segment_type
-          AND s.submitted_at IS NOT NULL
+        WHERE s.submitted_at IS NOT NULL
           AND s.submitted_at >= CURRENT_DATE
           AND s.submitted_at < CURRENT_DATE + INTERVAL '1 day'
+          ${segSql}
         ORDER BY s.submitted_at DESC
         LIMIT 200
       `,
@@ -295,9 +320,9 @@ router.get("/operator/today/:metric", async (req, res) => {
         JOIN submissions s ON s.submission_id = q.submission_id
         LEFT JOIN businesses b ON b.business_id = s.business_id
         LEFT JOIN clients c ON c.client_id = s.client_id
-        WHERE s.segment = 'bar'::segment_type
-          AND qe.review_status = 'approved'
+        WHERE qe.review_status = 'approved'
           AND qe.reviewed_at >= CURRENT_DATE
+          ${segSql}
         ORDER BY qe.reviewed_at DESC
         LIMIT 200
       `,
@@ -323,9 +348,9 @@ router.get("/operator/today/:metric", async (req, res) => {
         JOIN submissions s ON s.submission_id = q.submission_id
         LEFT JOIN businesses b ON b.business_id = s.business_id
         LEFT JOIN clients c ON c.client_id = s.client_id
-        WHERE s.segment = 'bar'::segment_type
-          AND qp.status = 'sent'
+        WHERE qp.status = 'sent'
           AND qp.sent_at >= CURRENT_DATE
+          ${segSql}
         ORDER BY qp.sent_at DESC
         LIMIT 200
       `,
@@ -351,8 +376,8 @@ router.get("/operator/today/:metric", async (req, res) => {
         JOIN submissions s ON s.submission_id = q.submission_id
         LEFT JOIN businesses b ON b.business_id = s.business_id
         LEFT JOIN clients c ON c.client_id = s.client_id
-        WHERE s.segment = 'bar'::segment_type
-          AND br.created_at >= CURRENT_DATE
+        WHERE br.created_at >= CURRENT_DATE
+          ${segSql}
         ORDER BY br.created_at DESC
         LIMIT 200
       `,
@@ -378,8 +403,8 @@ router.get("/operator/today/:metric", async (req, res) => {
         JOIN submissions s ON s.submission_id = p.submission_id
         LEFT JOIN businesses b ON b.business_id = s.business_id
         LEFT JOIN clients c ON c.client_id = s.client_id
-        WHERE s.segment = 'bar'::segment_type
-          AND p.created_at >= CURRENT_DATE
+        WHERE p.created_at >= CURRENT_DATE
+          ${segSql}
         ORDER BY p.created_at DESC
         LIMIT 200
       `,
@@ -400,7 +425,7 @@ router.get("/operator/today/:metric", async (req, res) => {
   }
 
   try {
-    const result = await pool.query(cfg.sql);
+    const result = await pool.query(cfg.sql, segParams);
     const rows = result.rows.map((row) => {
       const out = { ...row };
       if (out.submitted_at) out.submitted_at = new Date(out.submitted_at).toISOString();
@@ -409,10 +434,19 @@ router.get("/operator/today/:metric", async (req, res) => {
       if (out.created_at) out.created_at = new Date(out.created_at).toISOString();
       return out;
     });
+    const segmentLabel =
+      segment === "all"
+        ? "All segments"
+        : `${segment.charAt(0).toUpperCase() + segment.slice(1)} segment`;
+    const segmentQuery =
+      segment === "all" ? "" : `?segment=${encodeURIComponent(segment)}`;
+
     res.render("operator/today-metric", {
       title: cfg.title,
       columns: cfg.columns,
       rows,
+      segmentLabel,
+      segmentQuery,
     });
   } catch (err) {
     console.error("[operator/today] error:", err.message || err);
