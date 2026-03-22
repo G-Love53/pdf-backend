@@ -74,6 +74,10 @@ export async function createPolicy({
       quoteId,
     );
 
+    // SAVEPOINT: INSERT unique violation aborts the txn; without this, recovery SELECT
+    // fails with "current transaction is aborted" (bind-details poll / concurrent finalize).
+    await clientOrTx.query("SAVEPOINT policy_insert");
+
     let result;
     try {
       result = await clientOrTx.query(
@@ -119,8 +123,10 @@ export async function createPolicy({
           boundBy || bindRequest.initiated_by || null,
         ],
       );
+      await clientOrTx.query("RELEASE SAVEPOINT policy_insert");
     } catch (err) {
-      // Concurrent finalize or legacy row: policy_number unique — load and return.
+      await clientOrTx.query("ROLLBACK TO SAVEPOINT policy_insert");
+      // Concurrent finalize: policy_number unique — load and return within same txn.
       if (err && err.code === "23505") {
         const again = await clientOrTx.query(
           `SELECT * FROM policies WHERE bind_request_id = $1 OR quote_id = $2 LIMIT 1`,
