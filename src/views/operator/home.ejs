@@ -36,11 +36,34 @@
         gap: 12px;
         margin-bottom: 24px;
       }
+      a.card-metric-link {
+        display: block;
+        color: inherit;
+        text-decoration: none;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      a.card-metric-link:focus-visible {
+        outline: 2px solid #38bdf8;
+        outline-offset: 2px;
+      }
+      a.card-metric-link:hover .card {
+        border-color: #0ea5e9;
+        background: #0f172a;
+      }
+      a.card-metric-link:hover {
+        text-decoration: none;
+      }
+      a.card-metric-link:hover .card-metric-cta {
+        color: #7dd3fc;
+        text-decoration: underline;
+      }
       .card {
         background: #020617;
         border-radius: 10px;
         border: 1px solid #1f2937;
         padding: 12px 14px;
+        transition: border-color 0.15s ease, background 0.15s ease;
       }
       .card h2 {
         font-size: 13px;
@@ -51,6 +74,13 @@
       .metric {
         font-size: 24px;
         font-weight: 600;
+      }
+      /* Same sky-blue cue as header shortcuts — whole card is the hit target */
+      .card-metric-cta {
+        margin-top: 10px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #38bdf8;
       }
       .section-title {
         font-size: 14px;
@@ -107,7 +137,7 @@
     <header>
       <div>
         <h1>Operator Home</h1>
-        <span>Today at a glance — Bar segment</span>
+        <span>Today at a glance — Bar segment (UTC day, server time)</span>
       </div>
       <div style="font-size: 12px; color: #6b7280">
         <a href="/operator/extraction-review">S4 queue</a> ·
@@ -121,26 +151,41 @@
         style="display: none; margin-bottom: 16px; padding: 12px 14px; border-radius: 8px; font-size: 14px; border: 1px solid #1f2937;"
       ></div>
       <div class="grid" id="today-metrics">
-        <div class="card">
-          <h2>Submissions (today)</h2>
-          <div class="metric" id="metric-submissions-today">—</div>
-        </div>
-        <div class="card">
-          <h2>Approved quotes (S4)</h2>
-          <div class="metric" id="metric-approved-quotes-today">—</div>
-        </div>
-        <div class="card">
-          <h2>Packets sent (S5)</h2>
-          <div class="metric" id="metric-packets-sent-today">—</div>
-        </div>
-        <div class="card">
-          <h2>Binds initiated (S6)</h2>
-          <div class="metric" id="metric-binds-initiated-today">—</div>
-        </div>
-        <div class="card">
-          <h2>Policies bound</h2>
-          <div class="metric" id="metric-policies-bound-today">—</div>
-        </div>
+        <a class="card-metric-link" href="/operator/today/submissions" title="Open list: submissions received today (UTC)" aria-label="Submissions today: open full list">
+          <div class="card">
+            <h2>Submissions (today)</h2>
+            <div class="metric" id="metric-submissions-today">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/today/approved-quotes" title="Open list: quotes approved in S4 today" aria-label="Approved quotes today: open full list">
+          <div class="card">
+            <h2>Approved quotes (S4)</h2>
+            <div class="metric" id="metric-approved-quotes-today">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/today/packets-sent" title="Open list: packets marked sent today" aria-label="Packets sent today: open full list">
+          <div class="card">
+            <h2>Packets sent (S5)</h2>
+            <div class="metric" id="metric-packets-sent-today">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/today/binds-initiated" title="Open list: bind requests created today" aria-label="Binds initiated today: open full list">
+          <div class="card">
+            <h2>Binds initiated (S6)</h2>
+            <div class="metric" id="metric-binds-initiated-today">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/today/policies-bound" title="Open list: policy rows created today" aria-label="Policies bound today: open full list">
+          <div class="card">
+            <h2>Policies bound (today)</h2>
+            <div class="metric" id="metric-policies-bound-today">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
       </div>
 
       <div class="layout">

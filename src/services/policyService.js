@@ -1,5 +1,30 @@
 import { getPool } from "../db.js";
 
+/** Bind finalize must never fail on NULL dates/premium — policies.* NOT NULL columns. */
+function resolvePolicyFinancials(coverage, quote) {
+  const rawPrem = coverage?.annual_premium ?? quote?.annual_premium ?? 0;
+  const annual_premium = Number(rawPrem);
+  const premium = Number.isFinite(annual_premium) ? annual_premium : 0;
+
+  let effective_date = coverage?.effective_date ?? quote?.effective_date ?? null;
+  let expiration_date = coverage?.expiration_date ?? quote?.expiration_date ?? null;
+
+  if (!effective_date) {
+    effective_date = new Date().toISOString().slice(0, 10);
+  }
+  if (!expiration_date) {
+    const d = new Date(String(effective_date) + "T12:00:00Z");
+    d.setUTCFullYear(d.getUTCFullYear() + 1);
+    expiration_date = d.toISOString().slice(0, 10);
+  }
+
+  return {
+    annual_premium: premium,
+    effective_date,
+    expiration_date,
+  };
+}
+
 /**
  * Generate a CID policy number from submission + quote.
  * CID-BAR-20260310-000001 → CID-POL-BAR-20260310-000001
@@ -53,6 +78,7 @@ export async function createPolicy({
     const bindId = bindRequest.id;
 
     const coverage = extraction?.reviewed_json || {};
+    const fin = resolvePolicyFinancials(coverage, quote);
 
     // Idempotent: BoldSign poll + redirect, or webhook retries, must not double-insert.
     const existing = await clientOrTx.query(
@@ -115,10 +141,10 @@ export async function createPolicy({
           submission.segment,
           coverage.carrier_name || quote.carrier_name,
           coverage.policy_type || quote.policy_type,
-          coverage.annual_premium || quote.annual_premium,
+          fin.annual_premium,
           bindRequest.payment_method || "annual",
-          coverage.effective_date || quote.effective_date,
-          coverage.expiration_date || quote.expiration_date,
+          fin.effective_date,
+          fin.expiration_date,
           coverage,
           boundBy || bindRequest.initiated_by || null,
         ],
@@ -148,6 +174,13 @@ export async function createPolicy({
       await clientOrTx.query("COMMIT");
       clientOrTx.release();
     }
+
+    console.log("[policyService] policy row ready", {
+      policy_id: policy.id,
+      policy_number: policy.policy_number,
+      quote_id: policy.quote_id,
+      bind_request_id: policy.bind_request_id,
+    });
 
     return policy;
   } catch (err) {

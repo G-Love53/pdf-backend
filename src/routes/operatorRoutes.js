@@ -82,11 +82,14 @@ router.get("/api/operator/dashboard", async (_req, res) => {
         pool.query(
           `
             SELECT
-              -- Submissions (all time, Bar)
+              -- Submissions received today (Bar, UTC calendar day — matches Render CURRENT_DATE)
               (
                 SELECT COUNT(*)::int
                 FROM submissions s
                 WHERE s.segment = 'bar'::segment_type
+                  AND s.submitted_at IS NOT NULL
+                  AND s.submitted_at >= CURRENT_DATE
+                  AND s.submitted_at < CURRENT_DATE + INTERVAL '1 day'
               ) AS submissions_today,
               -- Quotes approved in S4 today (approved extractions)
               (
@@ -240,6 +243,180 @@ router.get("/api/operator/dashboard", async (_req, res) => {
   } catch (err) {
     console.error("[operator/dashboard] error:", err.message || err);
     res.status(500).json({ error: "internal_error" });
+  }
+});
+
+/** Drill-down for dashboard “today” tiles — same Bar + UTC-day filters as /api/operator/dashboard. */
+router.get("/operator/today/:metric", async (req, res) => {
+  if (!pool) {
+    return res.status(503).send("database_not_configured");
+  }
+
+  const metric = String(req.params.metric || "").toLowerCase();
+  const configs = {
+    submissions: {
+      title: "Submissions (today)",
+      sql: `
+        SELECT
+          s.submission_public_id,
+          s.submitted_at,
+          s.status::text AS status,
+          c.primary_email AS client_email,
+          COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name
+        FROM submissions s
+        JOIN clients c ON c.client_id = s.client_id
+        LEFT JOIN businesses b ON b.business_id = s.business_id
+        WHERE s.segment = 'bar'::segment_type
+          AND s.submitted_at IS NOT NULL
+          AND s.submitted_at >= CURRENT_DATE
+          AND s.submitted_at < CURRENT_DATE + INTERVAL '1 day'
+        ORDER BY s.submitted_at DESC
+        LIMIT 200
+      `,
+      columns: [
+        { key: "submission_public_id", label: "Submission" },
+        { key: "submitted_at", label: "Submitted (UTC)" },
+        { key: "status", label: "Status" },
+        { key: "client_name", label: "Client" },
+        { key: "client_email", label: "Email" },
+      ],
+    },
+    "approved-quotes": {
+      title: "Approved quotes (S4, today)",
+      sql: `
+        SELECT
+          s.submission_public_id,
+          q.quote_id,
+          qe.reviewed_at,
+          q.carrier_name,
+          COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name
+        FROM quote_extractions qe
+        JOIN quotes q ON q.quote_id = qe.quote_id
+        JOIN submissions s ON s.submission_id = q.submission_id
+        LEFT JOIN businesses b ON b.business_id = s.business_id
+        LEFT JOIN clients c ON c.client_id = s.client_id
+        WHERE s.segment = 'bar'::segment_type
+          AND qe.review_status = 'approved'
+          AND qe.reviewed_at >= CURRENT_DATE
+        ORDER BY qe.reviewed_at DESC
+        LIMIT 200
+      `,
+      columns: [
+        { key: "submission_public_id", label: "Submission" },
+        { key: "quote_id", label: "Quote", link: "quote_packet" },
+        { key: "reviewed_at", label: "Approved (UTC)" },
+        { key: "carrier_name", label: "Carrier" },
+        { key: "client_name", label: "Client" },
+      ],
+    },
+    "packets-sent": {
+      title: "Packets sent (S5, today)",
+      sql: `
+        SELECT
+          s.submission_public_id,
+          q.quote_id,
+          qp.sent_at,
+          q.carrier_name,
+          COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name
+        FROM quote_packets qp
+        JOIN quotes q ON q.quote_id = qp.quote_id
+        JOIN submissions s ON s.submission_id = q.submission_id
+        LEFT JOIN businesses b ON b.business_id = s.business_id
+        LEFT JOIN clients c ON c.client_id = s.client_id
+        WHERE s.segment = 'bar'::segment_type
+          AND qp.status = 'sent'
+          AND qp.sent_at >= CURRENT_DATE
+        ORDER BY qp.sent_at DESC
+        LIMIT 200
+      `,
+      columns: [
+        { key: "submission_public_id", label: "Submission" },
+        { key: "quote_id", label: "Quote", link: "quote_packet" },
+        { key: "sent_at", label: "Sent (UTC)" },
+        { key: "carrier_name", label: "Carrier" },
+        { key: "client_name", label: "Client" },
+      ],
+    },
+    "binds-initiated": {
+      title: "Binds initiated (S6, today)",
+      sql: `
+        SELECT
+          s.submission_public_id,
+          q.quote_id,
+          br.created_at,
+          br.status::text AS status,
+          COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name
+        FROM bind_requests br
+        JOIN quotes q ON q.quote_id = br.quote_id
+        JOIN submissions s ON s.submission_id = q.submission_id
+        LEFT JOIN businesses b ON b.business_id = s.business_id
+        LEFT JOIN clients c ON c.client_id = s.client_id
+        WHERE s.segment = 'bar'::segment_type
+          AND br.created_at >= CURRENT_DATE
+        ORDER BY br.created_at DESC
+        LIMIT 200
+      `,
+      columns: [
+        { key: "submission_public_id", label: "Submission" },
+        { key: "quote_id", label: "Quote", link: "quote_bind" },
+        { key: "created_at", label: "Initiated (UTC)" },
+        { key: "status", label: "Bind status" },
+        { key: "client_name", label: "Client" },
+      ],
+    },
+    "policies-bound": {
+      title: "Policies bound (today)",
+      sql: `
+        SELECT
+          p.policy_number,
+          p.quote_id,
+          p.created_at,
+          s.submission_public_id,
+          p.carrier_name,
+          COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name
+        FROM policies p
+        JOIN submissions s ON s.submission_id = p.submission_id
+        LEFT JOIN businesses b ON b.business_id = s.business_id
+        LEFT JOIN clients c ON c.client_id = s.client_id
+        WHERE s.segment = 'bar'::segment_type
+          AND p.created_at >= CURRENT_DATE
+        ORDER BY p.created_at DESC
+        LIMIT 200
+      `,
+      columns: [
+        { key: "policy_number", label: "Policy #" },
+        { key: "submission_public_id", label: "Submission" },
+        { key: "quote_id", label: "Quote", link: "quote_bind" },
+        { key: "created_at", label: "Bound (UTC)" },
+        { key: "carrier_name", label: "Carrier" },
+        { key: "client_name", label: "Client" },
+      ],
+    },
+  };
+
+  const cfg = configs[metric];
+  if (!cfg) {
+    return res.status(404).send("Unknown metric");
+  }
+
+  try {
+    const result = await pool.query(cfg.sql);
+    const rows = result.rows.map((row) => {
+      const out = { ...row };
+      if (out.submitted_at) out.submitted_at = new Date(out.submitted_at).toISOString();
+      if (out.reviewed_at) out.reviewed_at = new Date(out.reviewed_at).toISOString();
+      if (out.sent_at) out.sent_at = new Date(out.sent_at).toISOString();
+      if (out.created_at) out.created_at = new Date(out.created_at).toISOString();
+      return out;
+    });
+    res.render("operator/today-metric", {
+      title: cfg.title,
+      columns: cfg.columns,
+      rows,
+    });
+  } catch (err) {
+    console.error("[operator/today] error:", err.message || err);
+    res.status(500).send("internal_error");
   }
 });
 
