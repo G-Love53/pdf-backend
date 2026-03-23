@@ -259,19 +259,41 @@ async function processMessage(gmail, messageId, seg) {
 
   const matchResult = await matchToSubmission(subject, bodyText, threadId, seg.segment);
 
-  const quoteId = await createQuote({
-    submission_id: matchResult.submissionId,
-    carrier_message_id: carrierMessageId,
-    carrier_name: resolveCarrierName(fromEmail),
-    segment: seg.segment,
-    match_confidence: matchResult.confidence,
-    match_status: matchResult.matchStatus,
-    match_method: matchResult.matchMethod,
-    match_details_json: matchResult.details,
-  });
+  // Hard idempotency: if we've already created a quote for this exact Gmail message
+  // (across any duplicated carrier_message rows), do not create a second quote.
+  let quoteId = null;
+  const existingQuoteRes = await pool.query(
+    `
+      SELECT q.quote_id, q.carrier_message_id
+      FROM quotes q
+      JOIN carrier_messages cm
+        ON cm.carrier_message_id = q.carrier_message_id
+      WHERE cm.gmail_message_id = $1
+        AND cm.segment = $2::segment_type
+      ORDER BY q.created_at ASC, q.quote_id ASC
+      LIMIT 1
+    `,
+    [gmailMsgId, seg.segment],
+  );
+
+  if (existingQuoteRes.rows.length > 0) {
+    quoteId = existingQuoteRes.rows[0].quote_id;
+    carrierMessageId = existingQuoteRes.rows[0].carrier_message_id;
+  } else {
+    quoteId = await createQuote({
+      submission_id: matchResult.submissionId,
+      carrier_message_id: carrierMessageId,
+      carrier_name: resolveCarrierName(fromEmail),
+      segment: seg.segment,
+      match_confidence: matchResult.confidence,
+      match_status: matchResult.matchStatus,
+      match_method: matchResult.matchMethod,
+      match_details_json: matchResult.details,
+    });
+  }
 
   if (documentIds.length > 0) {
-    await createWorkQueueItem({
+    await createWorkQueueItemIfMissingOpen({
       queue_type: "extraction_review",
       related_entity_type: "quote",
       related_entity_id: quoteId,
@@ -282,10 +304,17 @@ async function processMessage(gmail, messageId, seg) {
   }
 
   if (matchResult.submissionId) {
-    await pool.query("UPDATE carrier_messages SET submission_id = $1 WHERE carrier_message_id = $2", [
-      matchResult.submissionId,
-      carrierMessageId,
-    ]);
+    // Ensure all duplicated carrier_message rows for this Gmail message converge
+    // on the same matched submission_id.
+    await pool.query(
+      `
+        UPDATE carrier_messages
+        SET submission_id = $1
+        WHERE gmail_message_id = $2
+          AND segment = $3::segment_type
+      `,
+      [matchResult.submissionId, gmailMsgId, seg.segment],
+    );
   }
 
   await createTimelineEvent({
@@ -646,7 +675,7 @@ async function routeByConfidence(matchResult, quoteId, carrierMessageId, segment
   }
 
   if (matchStatus === "review_required") {
-    await createWorkQueueItem({
+    await createWorkQueueItemIfMissingOpen({
       queue_type: "quote_match_review",
       related_entity_type: "quote",
       related_entity_id: quoteId,
@@ -658,7 +687,7 @@ async function routeByConfidence(matchResult, quoteId, carrierMessageId, segment
     return;
   }
 
-  await createWorkQueueItem({
+  await createWorkQueueItemIfMissingOpen({
     queue_type: "quote_unmatched",
     related_entity_type: "quote",
     related_entity_id: quoteId,
@@ -835,6 +864,26 @@ async function createWorkQueueItem(data) {
       data.reason_detail,
     ],
   );
+}
+
+async function createWorkQueueItemIfMissingOpen(data) {
+  // Idempotency: prevent duplicate open queue items when the same Gmail message
+  // (or a previously-ingested attachment set) is reprocessed.
+  const exists = await pool.query(
+    `
+      SELECT 1
+      FROM work_queue_items
+      WHERE queue_type = $1::queue_type
+        AND related_entity_type = $2
+        AND related_entity_id = $3
+        AND status = 'open'
+      LIMIT 1
+    `,
+    [data.queue_type, data.related_entity_type, data.related_entity_id],
+  );
+
+  if (exists.rows.length > 0) return;
+  await createWorkQueueItem(data);
 }
 
 async function safeCreateWorkQueueItem(data) {

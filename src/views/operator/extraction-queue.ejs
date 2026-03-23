@@ -71,6 +71,18 @@
       tr:hover {
         background: #111827;
       }
+      .btn-dismiss {
+        background: #7f1d1d;
+        color: #fee2e2;
+        border: 1px solid #b91c1c;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .btn-dismiss:hover {
+        background: #991b1b;
+      }
       .badge {
         display: inline-flex;
         align-items: center;
@@ -150,6 +162,7 @@
             <th>Segment</th>
             <th>Match</th>
             <th>Received</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody id="queue-body"></tbody>
@@ -210,7 +223,43 @@
             <td>
               <div>${item.email_received_at || ""}</div>
             </td>
+            <td>
+              <button type="button" class="btn-dismiss">
+                Dismiss
+              </button>
+            </td>
           `;
+
+          const btnDismiss = tr.querySelector(".btn-dismiss");
+          btnDismiss.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+
+            const reason =
+              prompt("Dismiss this S4 item? (e.g. not a quote / old submission)") ||
+              "dismissed by operator queue";
+
+            const res = await fetch(
+              "/api/queue/extraction-review/" +
+                item.work_queue_item_id +
+                "/skip",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  reason,
+                  agent_id: "operator",
+                }),
+              },
+            );
+
+            if (!res.ok) {
+              alert("Dismiss failed. Check server logs.");
+              return;
+            }
+
+            fetchQueue();
+          });
 
           tbody.appendChild(tr);
         });
