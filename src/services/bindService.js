@@ -321,6 +321,7 @@ export async function initiateBind({
         submission_public_id: quoteDetail.submission_public_id,
         quote_id: quoteId,
         segment: seg,
+        carrier_name: quoteDetail.quote.carrier_name,
       },
       subject: `Signed Quote — ${quoteDetail.quote.policy_type} with ${quoteDetail.quote.carrier_name}`,
     });
@@ -493,6 +494,7 @@ export async function resendBind({ quoteId, agentId }) {
       submission_public_id: quoteDetail.submission_public_id,
       quote_id: quoteId,
       segment: quoteDetail.segment,
+      carrier_name: quoteDetail.quote?.carrier_name || null,
     },
     subject: `Signed Quote — ${quoteDetail.quote.policy_type} with ${quoteDetail.quote.carrier_name}`,
   });

@@ -1,3 +1,5 @@
+import pdfParse from "pdf-parse";
+
 const DEFAULT_API_BASE = "https://api.boldsign.com";
 
 function getBoldSignApiKey() {
@@ -25,6 +27,84 @@ function toIsoDateTimePlusDays(days) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function getPdfPageCount(pdfBuffer) {
+  try {
+    const data = await pdfParse(pdfBuffer);
+    const n = data?.numpages;
+    if (typeof n === "number" && Number.isFinite(n) && n > 0) return n;
+    const nn = Number(n);
+    if (Number.isFinite(nn) && nn > 0) return nn;
+    return 1;
+  } catch (_err) {
+    return 1;
+  }
+}
+
+function parseCarrierPlacementOverridesJson(jsonStr) {
+  if (!jsonStr) return null;
+  try {
+    const parsed = JSON.parse(jsonStr);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveSignaturePlacement({ carrierName, metadata, pdfBuffer, numPages }) {
+  const globalX = Number(process.env.BOLDSIGN_SIGNATURE_FIELD_X || 72);
+  const globalY = Number(
+    process.env.BOLDSIGN_SIGNATURE_FIELD_Y ||
+      process.env.BOLDSIGN_SIGNATURE_BOUNDS_Y ||
+      680,
+  );
+  const globalWidth = Number(process.env.BOLDSIGN_SIGNATURE_FIELD_WIDTH || 468);
+  const globalHeight = Number(process.env.BOLDSIGN_SIGNATURE_FIELD_HEIGHT || 52);
+
+  const globalPageMode =
+    process.env.BOLDSIGN_SIGNATURE_FIELD_PAGE_MODE || "last"; // first | last | 1..N
+
+  const overrides = parseCarrierPlacementOverridesJson(
+    process.env.BOLDSIGN_SIGNATURE_PLACEMENTS_BY_CARRIER_JSON,
+  );
+
+  const carrierKey = String(carrierName || metadata?.carrier_name || "")
+    .toLowerCase()
+    .trim();
+
+  const carrierOverride = overrides && carrierKey ? overrides[carrierKey] : null;
+  const fallbackOverride = overrides && overrides["*"] ? overrides["*"] : null;
+  const cfg = carrierOverride || fallbackOverride || {};
+
+  // PageNumber resolution
+  let pageNumber = 1;
+  const pageCfg =
+    cfg.page ??
+    cfg.page_mode ??
+    cfg.pageMode ??
+    process.env.BOLDSIGN_SIGNATURE_FIELD_PAGE_MODE ??
+    globalPageMode;
+
+  const pageStr = String(pageCfg || "").toLowerCase().trim();
+  if (pageStr === "first") pageNumber = 1;
+  else if (pageStr === "last")
+    pageNumber = Math.max(1, Number(numPages) || 1);
+  else {
+    const pn = Number(pageCfg);
+    pageNumber = Number.isFinite(pn) && pn > 0 ? pn : 1;
+  }
+
+  // X/Y/size resolution
+  const x = Number.isFinite(Number(cfg.x)) ? Number(cfg.x) : globalX;
+  const y = Number.isFinite(Number(cfg.y)) ? Number(cfg.y) : globalY;
+  const width = Number.isFinite(Number(cfg.width)) ? Number(cfg.width) : globalWidth;
+  const height = Number.isFinite(Number(cfg.height)) ? Number(cfg.height) : globalHeight;
+
+  return {
+    pageNumber,
+    bounds: { X: x, Y: y, Width: width, Height: height },
+  };
 }
 
 /**
@@ -144,23 +224,23 @@ export async function createEmbeddedSignatureRequest({
 
   const base64 = pdfBuffer.toString("base64");
 
-  // Signature field Y: BoldSign typically uses **top-left** page coords (Y grows downward).
-  // ~680 places the field near the bottom of a 792pt Letter page. If your tenant uses
-  // **PDF bottom-left** coords instead, set BOLDSIGN_SIGNATURE_FIELD_Y=88 (or ~100).
-  const sigY = Number(
-    process.env.BOLDSIGN_SIGNATURE_FIELD_Y ||
-      process.env.BOLDSIGN_SIGNATURE_BOUNDS_Y ||
-      680,
-  );
+  const numPages = await getPdfPageCount(pdfBuffer);
+  const carrierName =
+    metadata?.carrier_name || metadata?.carrierName || metadata?.carrier || null;
+
+  const placement = resolveSignaturePlacement({
+    carrierName,
+    metadata,
+    pdfBuffer,
+    numPages,
+  });
+
   const signatureField = {
     FieldType: "Signature",
     Id: "signature_1",
-    PageNumber: 1,
+    PageNumber: placement.pageNumber,
     Bounds: {
-      X: 72,
-      Y: Number.isFinite(sigY) ? sigY : 680,
-      Width: 468,
-      Height: 52,
+      ...placement.bounds,
     },
     IsRequired: true,
   };
