@@ -102,15 +102,20 @@ export async function runPoller() {
 async function pollSegmentInbox(seg) {
   const gmail = buildGmailClient(seg.email);
 
-  const labelId = await resolveLabelId(gmail, seg.label);
-  if (!labelId) {
-    console.warn(`[${seg.segment}] Label "${seg.label}" not found — skipping`);
-    return;
+  // Optional: carrier-quotes label is just for organizing the Gmail mailbox.
+  // The poller should still ingest quotes even if the carrier hasn't auto-labeled them.
+  const carrierQuotesLabelId = await resolveLabelId(gmail, seg.label);
+  if (!carrierQuotesLabelId) {
+    console.warn(
+      `[${seg.segment}] Label "${seg.label}" not found — will ingest without auto-labeling`,
+    );
   }
 
   const res = await gmail.users.messages.list({
     userId: "me",
-    labelIds: [labelId, "UNREAD"],
+    // RSS-safe robustness: poll the segment inbox even if Gmail filters don't apply our label.
+    // We still require CID token + PDF attachment in `processMessage()` as the "quote signal".
+    labelIds: ["INBOX", "UNREAD"],
     maxResults: 20,
   });
 
@@ -124,11 +129,18 @@ async function pollSegmentInbox(seg) {
 
   for (const msg of messages) {
     try {
-      await processMessage(gmail, msg.id, seg);
+      const shouldAutoLabel = await processMessage(gmail, msg.id, seg);
+
+      const addLabelIds =
+        shouldAutoLabel && carrierQuotesLabelId ? [carrierQuotesLabelId] : [];
+
       await gmail.users.messages.modify({
         userId: "me",
         id: msg.id,
-        resource: { removeLabelIds: ["UNREAD"] },
+        resource: {
+          removeLabelIds: ["UNREAD"],
+          ...(addLabelIds.length ? { addLabelIds } : {}),
+        },
       });
     } catch (err) {
       console.error(`[${seg.segment}] Failed to process message ${msg.id}:`, err.message);
@@ -163,6 +175,26 @@ async function processMessage(gmail, messageId, seg) {
   const gmailMsgId = msg.id;
 
   const bodyText = extractBody(msg.payload);
+
+  // Robust RSS criteria:
+  // - Quotes must include a CID token (subject or body)
+  // - Quotes must include at least one PDF attachment
+  // This prevents non-carrier unread mail from getting ingested when we poll INBOX+UNREAD.
+  const cidCandidate = extractPublicId(subject) || extractPublicId(bodyText);
+  const attachmentMetas = [];
+  collectParts(msg.payload, attachmentMetas);
+  const hasPdfAttachment = attachmentMetas.some((a) =>
+    String(a.filename || "").toLowerCase().endsWith(".pdf"),
+  );
+
+  if (!cidCandidate || !hasPdfAttachment) {
+    console.log(
+      `[${seg.segment}] Skipping message ${messageId} (cid=${cidCandidate ? cidCandidate : "none"} pdf=${
+        hasPdfAttachment ? "yes" : "no"
+      })`,
+    );
+    return false;
+  }
 
   // Dedupe: if we've already ingested this exact Gmail message for this segment,
   // avoid creating duplicate carrier_messages/quotes/work items.
@@ -215,7 +247,7 @@ async function processMessage(gmail, messageId, seg) {
       console.log(
         `[${seg.segment}] Skipping message ${messageId} (already has quote for gmail_message_id ${gmailMsgId})`,
       );
-      return;
+      return true;
     }
   } else {
     carrierMessageId = await createCarrierMessage({
@@ -254,7 +286,7 @@ async function processMessage(gmail, messageId, seg) {
       reason_code: "attachment_storage_failed",
       reason_detail: `All ${attachments.length} attachment(s) failed to store for message ${gmailMsgId}`,
     });
-    return;
+    return true;
   }
 
   const matchResult = await matchToSubmission(subject, bodyText, threadId, seg.segment);
@@ -349,6 +381,8 @@ async function processMessage(gmail, messageId, seg) {
   console.log(
     `[${seg.segment}] Message ${messageId} processed. Quote: ${quoteId} | Match: ${matchResult.matchStatus} (${matchResult.confidence})`,
   );
+
+  return true;
 }
 
 async function dedupeCarrierMessagesForGmail({ gmailMessageId, segment }) {
