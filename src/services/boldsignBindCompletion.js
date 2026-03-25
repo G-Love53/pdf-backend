@@ -102,7 +102,7 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
       "carrier";
     const submissionPublicId = row.submission_public_id;
 
-    const r2Key = `binds/${segment}/${submissionPublicId}/${carrierName}-bind-confirmation-signed.pdf`;
+    const r2Key = `binds/${segment}/${submissionPublicId}/${carrierName}-quote-signed.pdf`;
 
     await uploadBuffer(r2Key, signedBuffer, "application/pdf", {
       segment,

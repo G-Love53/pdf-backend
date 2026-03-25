@@ -58,6 +58,45 @@ export async function loadPacketData(quoteId) {
 
   const row = res.rows[0];
 
+  // RSS: carrier quote PDFs can be ingested with documents.quote_id still NULL
+  // (poller stores originals as orphan documents). extractionService handles this
+  // by reading document_ids from `timeline_events.quote.received` payload; packet
+  // building needs the same fallback so the generated packet actually includes the
+  // carrier quote PDF.
+  let carrier_pdf_path = row.carrier_pdf_path;
+  if (!carrier_pdf_path) {
+    const timelineRes = await pool.query(
+      `
+        SELECT event_payload_json
+        FROM timeline_events
+        WHERE quote_id = $1
+          AND event_type = 'quote.received'
+        ORDER BY created_at DESC
+        LIMIT 1
+      `,
+      [quoteId],
+    );
+
+    const payload = timelineRes.rows[0]?.event_payload_json || null;
+    const documentIds = Array.isArray(payload?.document_ids) ? payload.document_ids : [];
+
+    if (documentIds.length > 0) {
+      const docRes = await pool.query(
+        `
+          SELECT storage_path
+          FROM documents
+          WHERE document_id = ANY($1::uuid[])
+            AND document_role = 'carrier_quote_original'
+            AND document_type = 'pdf'
+          ORDER BY created_at DESC
+          LIMIT 1
+        `,
+        [documentIds],
+      );
+      carrier_pdf_path = docRes.rows[0]?.storage_path || null;
+    }
+  }
+
   return {
     quote: {
       quote_id: row.quote_id,
@@ -86,7 +125,7 @@ export async function loadPacketData(quoteId) {
       reviewed_json: row.reviewed_json || {},
       review_status: row.review_status,
     },
-    carrierPdfPath: row.carrier_pdf_path,
+    carrierPdfPath: carrier_pdf_path,
   };
 }
 

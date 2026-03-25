@@ -6,7 +6,7 @@ export function bindSignedAttachmentFilename(carrierName) {
     .replace(/[/\\?%*:|"<>]/g, "-")
     .trim()
     .slice(0, 80);
-  return `${safe || "carrier"}-bind-confirmation-signed.pdf`;
+  return `${safe || "carrier"}-quote-signed.pdf`;
 }
 
 /**
@@ -21,7 +21,7 @@ export async function sendBindConfirmationEmail({
   policy,
   segment,
   signedPdfBuffer,
-  signedPdfFilename = "bind-confirmation-signed.pdf",
+  signedPdfFilename = "quote-signed.pdf",
 }) {
   if (!client?.primary_email) return;
 
@@ -33,8 +33,8 @@ export async function sendBindConfirmationEmail({
   const to = [client.primary_email];
   const subject = `Your ${policy.policy_type} Policy is Bound — ${policy.carrier_name} | Commercial Insurance Direct`;
   const attachmentNote = attachments.length
-    ? "Your signed bind confirmation is attached for your records."
-    : "Your signed bind confirmation is on file; reply to this email if you need a copy.";
+    ? "Your signed carrier quote is attached for your records."
+    : "Your signed carrier quote is on file; reply to this email if you need a copy.";
 
   const text = [
     `Hi ${client.contact_name || client.first_name || "there"},`,
