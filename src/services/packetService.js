@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { getPool } from "../db.js";
 import { getObjectStream, uploadBuffer } from "./r2Service.js";
 import { combinePDFs, createSimplePagePdf } from "./pdfCombineService.js";
+import { generateLetter } from "./aiLetterService.js";
 import { DocumentRole, DocumentType, StorageProvider } from "../constants/postgresEnums.js";
 
 const pool = getPool();
@@ -184,17 +185,44 @@ export async function buildPacket(quoteId) {
     `Aggregate: $${data.gl_aggregate ?? ""}`,
   ];
 
-  const salesLetterLines = [
-    "Commercial Insurance Direct",
-    "",
-    `Dear ${data.client_name || "client"},`,
-    "",
-    "Thank you for the opportunity to quote your insurance.",
-    "The attached packet includes our recommended coverage summary",
-    "and the carrier's official quote document.",
-    "",
-    "We look forward to earning your business.",
-  ];
+  function wrapToLines(text, maxChars = 90) {
+    const words = String(text || "").replace(/\s+/g, " ").trim().split(" ");
+    const out = [];
+    let line = "";
+    for (const w of words) {
+      const next = line ? `${line} ${w}` : w;
+      if (next.length > maxChars) {
+        if (line) out.push(line);
+        line = w;
+      } else {
+        line = next;
+      }
+    }
+    if (line) out.push(line);
+    return out;
+  }
+
+  function letterTextToPdfLines(letterText) {
+    const paragraphs = String(letterText || "")
+      .split(/\n\s*\n/g)
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    const lines = [];
+    paragraphs.forEach((p, idx) => {
+      if (idx > 0) lines.push(""); // blank line between paragraphs
+      lines.push(...wrapToLines(p, 90));
+    });
+    return lines;
+  }
+
+  const letterText = await generateLetter(submission.segment, extraction.reviewed_json || {}, {
+    business_name: data.client_name || null,
+    contact_name: data.contact_name || null,
+    email: data.client_email || null,
+  });
+
+  const salesLetterLines = letterTextToPdfLines(letterText);
 
   const salesLetterPdf = await createSimplePagePdf(salesLetterLines);
   const summaryPdf = await createSimplePagePdf(summaryLines);
