@@ -53,6 +53,23 @@ function parseCarrierPlacementOverridesJson(jsonStr) {
 }
 
 function resolveSignaturePlacement({ carrierName, metadata, pdfBuffer, numPages }) {
+  const signatureTemplate = String(metadata?.signature_template || "").toLowerCase().trim();
+  if (signatureTemplate === "bind_confirmation_v1") {
+    const x = Number(process.env.BOLDSIGN_BIND_CONFIRMATION_SIGNATURE_X || 72);
+    const y = Number(process.env.BOLDSIGN_BIND_CONFIRMATION_SIGNATURE_Y || 650);
+    const width = Number(process.env.BOLDSIGN_BIND_CONFIRMATION_SIGNATURE_WIDTH || 468);
+    const height = Number(process.env.BOLDSIGN_BIND_CONFIRMATION_SIGNATURE_HEIGHT || 56);
+    return {
+      pageNumber: 1,
+      bounds: {
+        X: Number.isFinite(x) ? x : 72,
+        Y: Number.isFinite(y) ? y : 650,
+        Width: Number.isFinite(width) ? width : 468,
+        Height: Number.isFinite(height) ? height : 56,
+      },
+    };
+  }
+
   const globalX = Number(process.env.BOLDSIGN_SIGNATURE_FIELD_X || 72);
   const globalY = Number(
     process.env.BOLDSIGN_SIGNATURE_FIELD_Y ||

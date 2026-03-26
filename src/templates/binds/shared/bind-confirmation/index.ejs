@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; color: #1a1a2e; line-height: 1.45; }
+  .page { width: 8.5in; min-height: 11in; padding: 0.7in 0.8in; margin: 0 auto; position: relative; }
+  .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 3px solid <%= segmentColor %>; margin-bottom: 18px; }
+  .logo-block { display: flex; align-items: center; gap: 12px; }
+  .logo-icon { width: 40px; height: 40px; border-radius: 8px; background: <%= segmentColor %>; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; font-weight: 700; }
+  .logo-brand { font-size: 17px; font-weight: 700; color: #1a1a2e; }
+  .logo-sub { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.04em; }
+  .doc-type { font-size: 19px; font-weight: 700; color: <%= segmentColor %>; }
+  .doc-id { font-size: 11px; color: #888; margin-top: 2px; }
+  .tracking { background: #f8f9fb; border: 1px solid #e8eaef; border-radius: 8px; padding: 10px 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .tracking .k { color: #888; text-transform: uppercase; letter-spacing: 0.05em; font-size: 9px; font-weight: 700; }
+  .tracking .v { color: #1a1a2e; font-weight: 700; font-size: 12px; margin-top: 2px; }
+  .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: <%= segmentColor %>; margin: 14px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #e8eaef; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; }
+  .row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; }
+  .label { color: #666; font-weight: 600; }
+  .val { color: #1a1a2e; font-weight: 700; text-align: right; }
+  .legal { margin-top: 10px; font-size: 10px; color: #444; line-height: 1.5; }
+  .legal p { margin-bottom: 6px; }
+  .signature-section { margin-top: 20px; padding-top: 12px; border-top: 2px solid #e8eaef; }
+  .sig-intro { font-size: 12px; color: #333; margin-bottom: 10px; }
+  .sig-box { border: 1px dashed #bbb; height: 56px; border-radius: 6px; margin-top: 6px; }
+  .footer { margin-top: 18px; padding-top: 10px; border-top: 1px solid #e8eaef; display: flex; justify-content: space-between; font-size: 10px; color: #999; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="logo-block">
+      <div class="logo-icon"><%= segmentIcon %></div>
+      <div>
+        <div class="logo-brand"><%= segmentBrandName %></div>
+        <div class="logo-sub">Commercial Insurance Direct</div>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div class="doc-type">Bind Confirmation</div>
+      <div class="doc-id"><%= submission_public_id %></div>
+    </div>
+  </div>
+
+  <div class="tracking">
+    <div><div class="k">Submission ID</div><div class="v"><%= submission_public_id %></div></div>
+    <div><div class="k">Carrier</div><div class="v"><%= carrier_name || "N/A" %></div></div>
+    <div><div class="k">Policy Type</div><div class="v"><%= policy_type || "N/A" %></div></div>
+    <div><div class="k">Date</div><div class="v"><%= issued_on || "" %></div></div>
+  </div>
+
+  <div class="section-title">Insured Information</div>
+  <div class="info-grid">
+    <div class="row"><span class="label">Business Name</span><span class="val"><%= business_name || "N/A" %></span></div>
+    <div class="row"><span class="label">Contact</span><span class="val"><%= contact_name || "N/A" %></span></div>
+    <div class="row"><span class="label">Email</span><span class="val"><%= client_email || "N/A" %></span></div>
+    <div class="row"><span class="label">Phone</span><span class="val"><%= client_phone || "On file" %></span></div>
+  </div>
+
+  <div class="section-title">Policy Details</div>
+  <div class="info-grid">
+    <div class="row"><span class="label">Annual Premium</span><span class="val">$<%= annual_premium %></span></div>
+    <div class="row"><span class="label">Payment Method</span><span class="val"><%= payment_method === "monthly" ? "Monthly Installments" : "Annual (Pay in Full)" %></span></div>
+    <div class="row"><span class="label">Effective Date</span><span class="val"><%= effective_date || "N/A" %></span></div>
+    <div class="row"><span class="label">Expiration Date</span><span class="val"><%= expiration_date || "N/A" %></span></div>
+  </div>
+
+  <div class="legal">
+    <p><strong>Authorization to Bind.</strong> By signing, the insured authorizes Commercial Insurance Direct to bind coverage described above with the named carrier effective on the stated date.</p>
+    <p><strong>Policy Supremacy.</strong> This confirmation acknowledges intent to bind based on the quote packet previously provided. The final carrier policy terms, conditions, and exclusions govern coverage.</p>
+    <p><strong>Accuracy & Payment.</strong> The insured confirms application information is accurate and understands premium obligations under the selected payment plan.</p>
+  </div>
+
+  <div class="signature-section">
+    <div class="sig-intro">
+      By signing, I confirm review of submission <strong><%= submission_public_id %></strong> and authorize bind with <strong><%= carrier_name || "the carrier" %></strong>.
+    </div>
+    <div style="font-size:10px;color:#777;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">Electronic Signature Area</div>
+    <div class="sig-box"></div>
+  </div>
+
+  <div class="footer">
+    <span>Commercial Insurance Direct</span>
+    <span><%= segmentDomain %></span>
+    <span><%= submission_public_id %></span>
+  </div>
+</div>
+</body>
+</html>
+

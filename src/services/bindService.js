@@ -1,19 +1,12 @@
 import { getPool } from "../db.js";
-import { documentDownloadPath, getObjectStream, uploadBuffer } from "./r2Service.js";
+import { documentDownloadPath, uploadBuffer } from "./r2Service.js";
 import {
   createEmbeddedSignatureRequest,
 } from "./boldsignService.js";
 import { tryFinalizeBoldSignFromDocumentId } from "./boldsignBindCompletion.js";
 import { normalizeSegment } from "../utils/rss.js";
 import { parseOptionalUuid } from "../utils/uuid.js";
-
-async function bufferFromStream(stream) {
-  const chunks = [];
-  for await (const chunk of stream) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  }
-  return Buffer.concat(chunks);
-}
+import { buildBindConfirmationPdf } from "./bindConfirmationPdfService.js";
 
 function getPoolOrThrow() {
   const pool = getPool();
@@ -246,66 +239,17 @@ export async function initiateBind({
       throw new Error("Quote does not have a sent packet");
     }
 
-    // RSS: sign the actual carrier quote PDF (not a generic bind confirmation).
-    // This ensures the signing box appears on the quote document where the carrier expects it.
-    let carrierQuoteStoragePath = null;
-    const directDocRes = await client.query(
-      `
-        SELECT d.storage_path
-        FROM documents d
-        WHERE d.document_role = 'carrier_quote_original'
-          AND d.document_type = 'pdf'
-          AND d.quote_id = $1
-        ORDER BY d.created_at DESC
-        LIMIT 1
-      `,
-      [quoteId],
-    );
-    carrierQuoteStoragePath = directDocRes.rows[0]?.storage_path || null;
-
-    if (!carrierQuoteStoragePath) {
-      const timelineRes = await client.query(
-        `
-          SELECT event_payload_json
-          FROM timeline_events
-          WHERE quote_id = $1
-            AND event_type = 'quote.received'
-          ORDER BY created_at DESC
-          LIMIT 1
-        `,
-        [quoteId],
-      );
-
-      const payload = timelineRes.rows[0]?.event_payload_json || null;
-      const documentIds = Array.isArray(payload?.document_ids) ? payload.document_ids : [];
-
-      if (documentIds.length > 0) {
-        const docRes = await client.query(
-          `
-            SELECT d.storage_path
-            FROM documents d
-            WHERE d.document_id = ANY($1::uuid[])
-              AND d.document_role = 'carrier_quote_original'
-              AND d.document_type = 'pdf'
-            ORDER BY d.created_at DESC
-            LIMIT 1
-          `,
-          [documentIds],
-        );
-        carrierQuoteStoragePath = docRes.rows[0]?.storage_path || null;
-      }
-    }
-
-    if (!carrierQuoteStoragePath) {
-      throw new Error("carrier_quote_pdf_not_found_for_bind");
-    }
-
-    const carrierQuoteStream = await getObjectStream(carrierQuoteStoragePath);
-    const pdfBuffer = await bufferFromStream(carrierQuoteStream);
-
     const seg = normalizeSegment(quoteDetail.segment);
-    const r2Key = `binds/${seg}/${quoteDetail.submission_public_id}/${quoteDetail.quote.carrier_name}-quote-bind.pdf`;
-    // Save for audit/troubleshooting; the signed doc will be stored separately by the webhook completion.
+    const pdfBuffer = await buildBindConfirmationPdf({
+      segment: seg,
+      submissionPublicId: quoteDetail.submission_public_id,
+      client: quoteDetail.client,
+      quote: quoteDetail.quote,
+      paymentMethod,
+    });
+
+    const r2Key = `binds/${seg}/${quoteDetail.submission_public_id}/${quoteDetail.quote.carrier_name}-bind-confirmation.pdf`;
+    // Save unsigned source doc for audit/troubleshooting.
     await uploadBuffer(r2Key, pdfBuffer, "application/pdf", {
       segment: seg,
       type: "bind_confirmation",
@@ -322,8 +266,9 @@ export async function initiateBind({
         quote_id: quoteId,
         segment: seg,
         carrier_name: quoteDetail.quote.carrier_name,
+        signature_template: "bind_confirmation_v1",
       },
-      subject: `Signed Quote — ${quoteDetail.quote.policy_type} with ${quoteDetail.quote.carrier_name}`,
+      subject: `Bind Confirmation — ${quoteDetail.quote.policy_type} with ${quoteDetail.quote.carrier_name}`,
     });
 
     const agentUuid = parseOptionalUuid(agentId);
@@ -429,59 +374,14 @@ export async function resendBind({ quoteId, agentId }) {
   const quoteDetail = await getBindDetails(quoteId, { syncBoldSign: false });
   if (!quoteDetail?.packet?.id) throw new Error("Quote does not have a sent packet");
 
-  // RSS: sign the same carrier quote PDF as the original bind request.
-  let carrierQuoteStoragePath = null;
-  const directDocRes = await pool.query(
-    `
-      SELECT d.storage_path
-      FROM documents d
-      WHERE d.document_role = 'carrier_quote_original'
-        AND d.document_type = 'pdf'
-        AND d.quote_id = $1
-      ORDER BY d.created_at DESC
-      LIMIT 1
-    `,
-    [quoteId],
-  );
-  carrierQuoteStoragePath = directDocRes.rows[0]?.storage_path || null;
-
-  if (!carrierQuoteStoragePath) {
-    const timelineRes = await pool.query(
-      `
-        SELECT event_payload_json
-        FROM timeline_events
-        WHERE quote_id = $1
-          AND event_type = 'quote.received'
-        ORDER BY created_at DESC
-        LIMIT 1
-      `,
-      [quoteId],
-    );
-    const payload = timelineRes.rows[0]?.event_payload_json || null;
-    const documentIds = Array.isArray(payload?.document_ids) ? payload.document_ids : [];
-    if (documentIds.length > 0) {
-      const docRes = await pool.query(
-        `
-          SELECT d.storage_path
-          FROM documents d
-          WHERE d.document_id = ANY($1::uuid[])
-            AND d.document_role = 'carrier_quote_original'
-            AND d.document_type = 'pdf'
-          ORDER BY d.created_at DESC
-          LIMIT 1
-        `,
-        [documentIds],
-      );
-      carrierQuoteStoragePath = docRes.rows[0]?.storage_path || null;
-    }
-  }
-
-  if (!carrierQuoteStoragePath) {
-    throw new Error("carrier_quote_pdf_not_found_for_resend_bind");
-  }
-
-  const carrierQuoteStream = await getObjectStream(carrierQuoteStoragePath);
-  const pdfBuffer = await bufferFromStream(carrierQuoteStream);
+  const seg = normalizeSegment(quoteDetail.segment);
+  const pdfBuffer = await buildBindConfirmationPdf({
+    segment: seg,
+    submissionPublicId: quoteDetail.submission_public_id,
+    client: quoteDetail.client,
+    quote: quoteDetail.quote,
+    paymentMethod: bind.payment_method || "annual",
+  });
 
   const agentUuid = parseOptionalUuid(agentId);
 
@@ -495,8 +395,9 @@ export async function resendBind({ quoteId, agentId }) {
       quote_id: quoteId,
       segment: quoteDetail.segment,
       carrier_name: quoteDetail.quote?.carrier_name || null,
+      signature_template: "bind_confirmation_v1",
     },
-    subject: `Signed Quote — ${quoteDetail.quote.policy_type} with ${quoteDetail.quote.carrier_name}`,
+    subject: `Bind Confirmation — ${quoteDetail.quote.policy_type} with ${quoteDetail.quote.carrier_name}`,
   });
 
   await pool.query(
