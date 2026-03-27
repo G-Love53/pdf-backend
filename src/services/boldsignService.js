@@ -56,9 +56,9 @@ function resolveSignaturePlacement({ carrierName, metadata, pdfBuffer, numPages 
   const signatureTemplate = String(metadata?.signature_template || "").toLowerCase().trim();
   if (signatureTemplate === "bind_confirmation_v1") {
     const x = Number(process.env.BOLDSIGN_BIND_CONFIRMATION_SIGNATURE_X || 72);
-    const y = Number(process.env.BOLDSIGN_BIND_CONFIRMATION_SIGNATURE_Y || 650);
+    const y = Number(process.env.BOLDSIGN_BIND_CONFIRMATION_SIGNATURE_Y || 618);
     const width = Number(process.env.BOLDSIGN_BIND_CONFIRMATION_SIGNATURE_WIDTH || 468);
-    const height = Number(process.env.BOLDSIGN_BIND_CONFIRMATION_SIGNATURE_HEIGHT || 56);
+    const height = Number(process.env.BOLDSIGN_BIND_CONFIRMATION_SIGNATURE_HEIGHT || 64);
     return {
       pageNumber: 1,
       bounds: {

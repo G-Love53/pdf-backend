@@ -185,6 +185,29 @@ export async function buildPacket(quoteId) {
     `Aggregate: $${data.gl_aggregate ?? ""}`,
   ];
 
+  const legalBindLines = [
+    "Bind Authorization and Signature Notice",
+    "",
+    `Submission ID: ${data.submission_public_id || ""}`,
+    `Carrier: ${data.carrier_name || ""}`,
+    `Policy Type: ${data.policy_type || ""}`,
+    `Annual Premium: $${data.annual_premium ?? ""}`,
+    `Effective Date: ${data.effective_date || ""}`,
+    "",
+    "By proceeding to bind, the insured authorizes Commercial Insurance Direct to",
+    "submit the bind request to the carrier using the quoted terms and effective date.",
+    "",
+    "This packet is informational. The legally binding e-signature is captured only in",
+    "the BoldSign bind-confirmation document during S6.",
+    "",
+    "After packet approval, the signer will receive an embedded signature request that",
+    "contains the legal bind confirmation and required signature block.",
+    "",
+    "Signer Name: ________________________________",
+    "Date: _______________________________________",
+    "Title: ______________________________________",
+  ];
+
   function wrapToLines(text, maxChars = 90) {
     const words = String(text || "").replace(/\s+/g, " ").trim().split(" ");
     const out = [];
@@ -226,6 +249,7 @@ export async function buildPacket(quoteId) {
 
   const salesLetterPdf = await createSimplePagePdf(salesLetterLines);
   const summaryPdf = await createSimplePagePdf(summaryLines);
+  const legalBindPdf = await createSimplePagePdf(legalBindLines);
 
   let carrierPdf = null;
   if (carrierPdfPath) {
@@ -238,7 +262,9 @@ export async function buildPacket(quoteId) {
   }
 
   const combinedPdf = await combinePDFs(
-    carrierPdf ? [salesLetterPdf, summaryPdf, carrierPdf] : [salesLetterPdf, summaryPdf],
+    carrierPdf
+      ? [salesLetterPdf, summaryPdf, legalBindPdf, carrierPdf]
+      : [salesLetterPdf, summaryPdf, legalBindPdf],
   );
 
   return {

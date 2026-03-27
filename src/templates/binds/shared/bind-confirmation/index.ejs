@@ -25,7 +25,8 @@
   .legal p { margin-bottom: 6px; }
   .signature-section { margin-top: 20px; padding-top: 12px; border-top: 2px solid #e8eaef; }
   .sig-intro { font-size: 12px; color: #333; margin-bottom: 10px; }
-  .sig-box { border: 1px dashed #bbb; height: 56px; border-radius: 6px; margin-top: 6px; }
+  .sig-box { border: 2px dashed #4b5563; background: #f9fafb; height: 70px; border-radius: 6px; margin-top: 6px; }
+  .sig-caption { font-size: 10px; color: #374151; margin-top: 6px; }
   .footer { margin-top: 18px; padding-top: 10px; border-top: 1px solid #e8eaef; display: flex; justify-content: space-between; font-size: 10px; color: #999; }
 </style>
 </head>
@@ -69,9 +70,10 @@
   </div>
 
   <div class="legal">
-    <p><strong>Authorization to Bind.</strong> By signing, the insured authorizes Commercial Insurance Direct to bind coverage described above with the named carrier effective on the stated date.</p>
-    <p><strong>Policy Supremacy.</strong> This confirmation acknowledges intent to bind based on the quote packet previously provided. The final carrier policy terms, conditions, and exclusions govern coverage.</p>
-    <p><strong>Accuracy & Payment.</strong> The insured confirms application information is accurate and understands premium obligations under the selected payment plan.</p>
+    <p><strong>Authorization to Bind.</strong> By signing this document, the insured authorizes Commercial Insurance Direct to bind the policy shown above with <%= carrier_name || "the carrier" %> effective on the stated date.</p>
+    <p><strong>Premium and Terms.</strong> The insured acknowledges premium obligations and confirms this request is based on the reviewed quote packet and carrier terms.</p>
+    <p><strong>Representations.</strong> The insured represents that submission and underwriting information is accurate to the best of their knowledge.</p>
+    <p><strong>Policy Controls.</strong> The issued carrier policy controls final terms, limitations, and exclusions.</p>
   </div>
 
   <div class="signature-section">
@@ -80,6 +82,7 @@
     </div>
     <div style="font-size:10px;color:#777;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">Electronic Signature Area</div>
     <div class="sig-box"></div>
+    <div class="sig-caption">BoldSign signature block is applied inside this box.</div>
   </div>
 
   <div class="footer">
