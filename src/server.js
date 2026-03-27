@@ -224,7 +224,7 @@ async function maybeMapData(name, rawData) {
 
     // --- BAR SEGMENT ONLY: extra text/checkboxes for ACORDs (does not change universal ACORD for other segments) ---
     // Default "bar" so this backend (cid-pdf-api) runs Bar block even if Render env SEGMENT is not set
-    const segment = String(process.env.SEGMENT || "bar").trim().toLowerCase();
+    const segment = String(d.segment || process.env.SEGMENT || "bar").trim().toLowerCase();
     if (segment === "bar") {
       if (name === "ACORD125") {
         // Bar: Lines of Business — add "X" to GL, Property (when "Do you want property coverage" Yes), Cyber (when selected), Liquor Liability
@@ -425,8 +425,8 @@ async function renderBundleAndRespond({ templates, email, extraAttachments = [] 
 const rawData = t.data || {};
 const unified = await maybeMapData(name, rawData);
 
-// RSS: backend sets segment from env; template name drives form_id (must match forms.json keys).
-unified.segment = String(process.env.SEGMENT || "bar").trim().toLowerCase();
+// RSS: segment comes from request payload when present; env remains fallback.
+unified.segment = String(rawData.segment || process.env.SEGMENT || "bar").trim().toLowerCase();
 // form_id must match forms.json resolution rules
 if (/^ACORD\d+$/i.test(name)) {
   unified.form_id = name.toLowerCase();      // ACORD125 -> acord125
@@ -723,7 +723,7 @@ APP.post("/submit-quote", async (req, res) => {
       return {
         name,
         filename: FILENAME_MAP[resolved] || `${name}.pdf`,
-        data: formData,
+        data: { ...formData, segment },
       };
     });
 
