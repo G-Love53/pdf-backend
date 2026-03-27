@@ -6,6 +6,27 @@
     "ACORD130",
     "ACORD140"
   ],
+  "PLUMBER_INTAKE": [
+    "SUPP_PLUMBER",
+    "ACORD125",
+    "ACORD126",
+    "ACORD130",
+    "ACORD140"
+  ],
+  "ROOFER_INTAKE": [
+    "SUPP_ROOFER",
+    "ACORD125",
+    "ACORD126",
+    "ACORD130",
+    "ACORD140"
+  ],
+  "HVAC_INTAKE": [
+    "SUPP_HVAC",
+    "ACORD125",
+    "ACORD126",
+    "ACORD130",
+    "ACORD140"
+  ],
   "COI_STANDARD": [
     "ACORD25"
   ],

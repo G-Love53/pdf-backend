@@ -49,6 +49,16 @@
     "engine": "svg",
     "templatePath": "CID_HomeBase/templates/SUPP_ROOFER"
   },
+  "SUPP_PLUMBER": {
+    "enabled": true,
+    "engine": "svg",
+    "templatePath": "CID_HomeBase/templates/SUPP_PLUMBER"
+  },
+  "SUPP_HVAC": {
+    "enabled": true,
+    "engine": "svg",
+    "templatePath": "CID_HomeBase/templates/SUPP_HVAC"
+  },
   "CLIENT_SUBMISSION": {
     "enabled": true,
     "engine": "html",
