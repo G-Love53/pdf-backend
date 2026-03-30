@@ -10,6 +10,6 @@
 
 **Local clone (this machine):** `~/GitHub/cid-connect` — remote `https://github.com/G-Love53/cid-connect.git`.
 
-**Default workflow:** local **`npm run dev`** + **`git push`**. Optional hosted deploy: see **`cid-connect/docs/DEPLOY.md`** (Netlify only if you want it).
+**Default workflow:** local **`npm run dev`** + **`git push`**. Optional hosted deploy: **`cid-connect/docs/DEPLOY.md`**. **Architecture (Famous vs Netlify vs Git):** **`cid-connect/docs/ARCHITECTURE.md`**.
 
 **When synchronized:** Say the Connect repo path or remote URL so agents know where `src/api.ts` and components live.
