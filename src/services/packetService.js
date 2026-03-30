@@ -175,38 +175,30 @@ export async function buildPacket(quoteId) {
 
   const data = buildPacketData({ quote, extraction, submission, client });
 
-  const summaryLines = [
-    `Quote for ${data.client_name || "client"}`,
-    `Carrier: ${data.carrier_name || ""}`,
-    `Policy Type: ${data.policy_type || ""}`,
-    `Annual Premium: $${data.annual_premium ?? ""}`,
-    `Effective: ${data.effective_date || ""}`,
-    `Per Occurrence: $${data.gl_per_occurrence ?? ""}`,
-    `Aggregate: $${data.gl_aggregate ?? ""}`,
-  ];
+  function formatPremiumDisplay(val) {
+    if (val == null || val === "") return "";
+    const n = typeof val === "number" ? val : parseFloat(String(val).replace(/[^0-9.-]/g, ""));
+    if (Number.isNaN(n)) return `$${val}`;
+    return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
 
-  const legalBindLines = [
-    "Bind Authorization and Signature Notice",
-    "",
-    `Submission ID: ${data.submission_public_id || ""}`,
-    `Carrier: ${data.carrier_name || ""}`,
-    `Policy Type: ${data.policy_type || ""}`,
-    `Annual Premium: $${data.annual_premium ?? ""}`,
-    `Effective Date: ${data.effective_date || ""}`,
-    "",
-    "By proceeding to bind, the insured authorizes Commercial Insurance Direct to",
-    "submit the bind request to the carrier using the quoted terms and effective date.",
-    "",
-    "This packet is informational. The legally binding e-signature is captured only in",
-    "the BoldSign bind-confirmation document during S6.",
-    "",
-    "After packet approval, the signer will receive an embedded signature request that",
-    "contains the legal bind confirmation and required signature block.",
-    "",
-    "Signer Name: ________________________________",
-    "Date: _______________________________________",
-    "Title: ______________________________________",
-  ];
+  function formatDateDisplay(val) {
+    if (val == null || val === "") return "";
+    const d = val instanceof Date ? val : new Date(val);
+    if (Number.isNaN(d.getTime())) return String(val);
+    return d.toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+    });
+  }
+
+  const premiumStr = formatPremiumDisplay(data.annual_premium);
+  const effStr = formatDateDisplay(data.effective_date);
+  const carrierLabel = data.carrier_name || "the carrier";
+  const contactEmail =
+    data.agent_email ||
+    `quotes@${String(submission.segment || "plumber").toLowerCase()}insurancedirect.com`;
 
   function wrapToLines(text, maxChars = 90) {
     const words = String(text || "").replace(/\s+/g, " ").trim().split(" ");
@@ -224,6 +216,31 @@ export async function buildPacket(quoteId) {
     if (line) out.push(line);
     return out;
   }
+
+  const legalBindLines = [
+    "Bind Authorization",
+    "",
+    `Submission ID: ${data.submission_public_id || ""}`,
+    `Carrier: ${data.carrier_name || ""}`,
+    `Policy Type: ${data.policy_type || ""}`,
+    `Annual Premium: ${premiumStr}`,
+    `Effective Date: ${effStr}`,
+    "",
+    ...wrapToLines(
+      `By proceeding, you authorize Commercial Insurance Direct, operating under All Access Insurance LLC, to bind the coverage described above with ${carrierLabel} on your behalf.`,
+      90,
+    ),
+    "",
+    ...wrapToLines(
+      "To confirm your bind request, you will receive a separate e-signature document at your email address. Review the full bind confirmation, sign electronically, and your coverage will be active on the effective date shown above.",
+      90,
+    ),
+    "",
+    ...wrapToLines(`Questions? Reply to this email or contact us at ${contactEmail}.`, 90),
+    "",
+    "— CID Team",
+    "Commercial Insurance Direct",
+  ];
 
   function letterTextToPdfLines(letterText) {
     const paragraphs = String(letterText || "")
@@ -248,7 +265,6 @@ export async function buildPacket(quoteId) {
   const salesLetterLines = letterTextToPdfLines(letterText);
 
   const salesLetterPdf = await createSimplePagePdf(salesLetterLines);
-  const summaryPdf = await createSimplePagePdf(summaryLines);
   const legalBindPdf = await createSimplePagePdf(legalBindLines);
 
   let carrierPdf = null;
@@ -263,8 +279,8 @@ export async function buildPacket(quoteId) {
 
   const combinedPdf = await combinePDFs(
     carrierPdf
-      ? [salesLetterPdf, summaryPdf, legalBindPdf, carrierPdf]
-      : [salesLetterPdf, summaryPdf, legalBindPdf],
+      ? [salesLetterPdf, legalBindPdf, carrierPdf]
+      : [salesLetterPdf, legalBindPdf],
   );
 
   return {
