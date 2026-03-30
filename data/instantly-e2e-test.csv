@@ -1,0 +1,2 @@
+email,firstName,lastName,companyName,phone,city,state,prefilledUrl,displayName,segment,dataSource,campaignTag,licenseExpiry
+gtjoneshome@gmail.com,Gerry,Jones,Bar Insurance Test,,,CO,https://barinsurancedirect.com/quote?bn=Bar+Insurance+Test&fn=Gerry&ln=Jones&em=gtjoneshome%40gmail.com&st=CO&src=instantly&cid=bar_co_e2e_test,Gerry,bar,manual,bar_co_e2e_test,

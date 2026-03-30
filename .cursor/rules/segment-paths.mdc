@@ -1,0 +1,19 @@
+---
+description: Segment backend paths — BAR vs Roofer vs Plumber. Always use the correct repo for each segment.
+alwaysApply: true
+---
+
+# Segment paths (CID_HomeBase and backends)
+
+**This repo is BAR.** Do not add or edit Roofer-only or Plumber-only assets/mapping here.
+
+| Segment | Backend repo | CID_HomeBase location |
+|--------|----------------|------------------------|
+| **BAR** | `pdf-backend` (this repo) | This repo’s `CID_HomeBase/` submodule |
+| **Roofer** (SUPP_ROOFER) | `roofing-pdf-backend` | `roofing-pdf-backend/CID_HomeBase/` and standalone `CID_HomeBase` |
+| **Plumber** | `plumber-pdf-backend` | `plumber-pdf-backend/CID_HomeBase/` and standalone `CID_HomeBase` |
+
+- **Standalone** `~/GitHub/CID_HomeBase` is the single source of truth for templates, mapping, and assets.
+- When working on **SUPP_ROOFER** or Roofer: edit/copy in **standalone CID_HomeBase** and **roofing-pdf-backend** only. Never use `pdf-backend/CID_HomeBase` for Roofer.
+- When working on **BAR**: use this repo and its `CID_HomeBase` submodule (or standalone).
+- Always verify which segment a template belongs to before writing mapping or assets; use the correct backend path.

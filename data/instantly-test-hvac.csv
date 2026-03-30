@@ -1,0 +1,4 @@
+email,firstName,lastName,companyName,phone,city,state,displayName,prefilledUrl,segment,dataSource,campaignTag,licenseExpiry
+gtjoneshomes@gmail.com,Gerry,Test,,,,,Gerry,https://hvacinsurancedirect.com/quote?fn=Gerry&ln=Test&em=gtjoneshomes%40gmail.com&src=instantly&cid=hvac_co_test_001,hvac,apollo,hvac_co_test_001,
+g@commercialinsurancedirect.com,Jane,Demo,,,,,Jane,https://hvacinsurancedirect.com/quote?fn=Jane&ln=Demo&em=g%40commercialinsurancedirect.com&src=instantly&cid=hvac_co_test_001,hvac,apollo,hvac_co_test_001,
+geeforthree@yahoo.com,Mike,Blank,,,,,Mike,https://hvacinsurancedirect.com/quote?fn=Mike&ln=Blank&em=geeforthree%40yahoo.com&src=instantly&cid=hvac_co_test_001,hvac,apollo,hvac_co_test_001,

@@ -1,0 +1,37 @@
+---
+description: CID-PDF-API is one backend (pdf-backend); segment repos are Netlify + forms only — never duplicate operator/S4–S6.
+alwaysApply: true
+---
+
+# CID-PDF-API — single backend (do not fragment)
+
+## Where the pipeline lives
+
+**`pdf-backend`** (Render: CID-PDF-API, e.g. `cid-pdf-api.onrender.com`) is the **only** service that runs:
+
+- Operator UI: `/operator`, dashboard, segment switcher, `/operator/today/*`
+- S4 extraction review (queue + APIs + prompts wired from `src/`)
+- S5 packet builder
+- S6 bind flow + BoldSign webhooks + policy creation
+- Shared Postgres schema; all segments distinguished by **`segment`** on submissions/quotes
+
+**Do not** add or push operator routes, dashboard code, extraction review server code, packet builder server code, or bind flow server code into **`plumber-pdf-backend`**, **`roofing-pdf-backend`**, **`hvac-pdf-backend`**, or any other segment repo.
+
+## What segment-specific repos are for
+
+| In segment repo (e.g. `plumber-pdf-backend`) | Allowed |
+|-----------------------------------------------|--------|
+| **`Netlify/`** (or publish dir) — static landing, `fetch` to the **CID-PDF-API** `POST /submit-quote` | ✅ |
+| Segment **HTML/CSS** + client-side form mapping for intake | ✅ |
+| **CID_HomeBase** submodule + SUPP/ACORD assets for that segment | ✅ |
+| Duplicating **operator / S4 / S5 / S6** backend code | ❌ |
+
+Intake forms **POST to the same API host** (CID-PDF-API) with `segment: "plumber"` | `"roofer"` | etc. — not a separate operator stack per segment repo.
+
+## Segment switcher and operator features
+
+Commits for operator dashboard, segment filtering, S4–S6 behavior: **`pdf-backend` only** (`main`).
+
+## Docs
+
+- Canonical docs may live in `~/GitHub/CID-docs/` (outside repos). See repo `DOCUMENTATION.md`.

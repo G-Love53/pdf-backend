@@ -1,0 +1,5 @@
+first_name,last_name,email,organization_name,phone_numbers,street_address,city,state,postal_code,website_url,estimated_num_employees,id,
+Gerry,Test,gtjoneshomes@gmail.com,The Test Tavern,3035551234,123 Main St,Denver,CO,80202,https://testtavern.com,8,apollo_test_001,
+Jane,Demo,g@commercialinsurancedirect.com,Demo Bar & Grill,3035555678,456 Elm Ave,Boulder,CO,80301,https://demobar.com,12,apollo_test_002,
+Mike,Blank,geeforthree@yahoo.com,The No Email Pub,,,789 Oak Dr,Colorado Springs,CO,80901,,5,apollo_test_003
+,,,Minimal Data LLC,geeforthree@yahoo.com,,,,,,3,apollo_test_004,
