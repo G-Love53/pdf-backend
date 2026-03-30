@@ -3,6 +3,7 @@ import { getPool } from "../db.js";
 import extractionReviewApi from "./extractionReview.js";
 import packetBuilderApi from "./packetBuilder.js";
 import bindFlowApi from "./bindFlow.js";
+import clientContactApi from "./clientContactRoutes.js";
 import {
   processBoldSignDocumentCompleted,
   tryFinalizeBoldSignFromDocumentId,
@@ -19,6 +20,7 @@ const pool = getPool();
 router.use(extractionReviewApi);
 router.use(packetBuilderApi);
 router.use(bindFlowApi);
+router.use(clientContactApi);
 
 // Operator home dashboard
 // BoldSign redirects here after sign with ?documentId=&status=Signed&...
