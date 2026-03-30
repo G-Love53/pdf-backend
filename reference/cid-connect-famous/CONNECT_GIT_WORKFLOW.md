@@ -10,6 +10,6 @@
 
 **Local clone (this machine):** `~/GitHub/cid-connect` — remote `https://github.com/G-Love53/cid-connect.git`.
 
-**Deploy without Famous Git:** Netlify (or Vercel) → import **GitHub** `cid-connect` → set `VITE_*` env vars. See **`cid-connect/docs/DEPLOY.md`**.
+**Default workflow:** local **`npm run dev`** + **`git push`**. Optional hosted deploy: see **`cid-connect/docs/DEPLOY.md`** (Netlify only if you want it).
 
 **When synchronized:** Say the Connect repo path or remote URL so agents know where `src/api.ts` and components live.
