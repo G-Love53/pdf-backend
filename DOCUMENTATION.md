@@ -11,5 +11,6 @@
 | [CID-docs/AUDIT_READINESS.md](../CID-docs/AUDIT_READINESS.md) | Audit / S1–S6 |
 | [CID-docs/CID_ARCHITECTURE.md](../CID-docs/CID_ARCHITECTURE.md) | Architecture |
 | [CID-docs/DEPLOY_SEGMENTS.md](../CID-docs/DEPLOY_SEGMENTS.md) | New segment checklist |
+| [CID-docs/CID_CONNECT.md](../CID-docs/CID_CONNECT.md) | **CID Connect** (LEG 3 app): Famous vs API, Cloudflare, RSS |
 
 Clone or copy `CID-docs` into its **own git repo** (or a monorepo root) if the team needs it versioned independently of `pdf-backend`.
