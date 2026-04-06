@@ -31,7 +31,27 @@
       .grid {
         display: grid;
         grid-template-columns: 160px 1fr;
-        gap: 2px 12px;
+        gap: 4px 14px;
+        align-items: start;
+      }
+      /* Long snake_case keys need a wider label track + gap so values don't overlap labels */
+      .grid.grid-all-fields {
+        grid-template-columns: minmax(0, 46%) minmax(0, 54%);
+        column-gap: 22px;
+        row-gap: 6px;
+      }
+      .grid.grid-all-fields .label {
+        font-size: 10.5px;
+        line-height: 1.35;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        padding-right: 6px;
+        box-sizing: border-box;
+      }
+      .grid.grid-all-fields .value {
+        padding-left: 4px;
+        min-width: 0;
       }
       .label {
         font-weight: 600;
@@ -100,7 +120,7 @@
 
     <div class="section">
       <h2>All Submitted Fields</h2>
-      <div class="grid">
+      <div class="grid grid-all-fields">
         <% Object.keys(data || {}).sort().forEach(function(key) { if (key ===
         "site_domain" || key === "segment" || key === "submission_public_id")
         return; const value = data[key]; if (value === undefined || value ===
