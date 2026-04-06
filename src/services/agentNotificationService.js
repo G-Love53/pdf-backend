@@ -198,3 +198,44 @@ export async function notifyBarBindSigned({
   });
 }
 
+/**
+ * Carrier email with PDF + CID but no quote-keyword signal (poller UW fork — not routed to S4).
+ */
+export async function notifyBarUwQuestionPdf({
+  segment,
+  submissionPublicId,
+  clientName,
+  carrierName,
+  emailSubject,
+  gmailMessageId,
+  carrierMessageId,
+  pdfCount,
+}) {
+  if (!isBarSegment(segment)) return;
+
+  const subject = buildSubject(
+    "[CID][Carrier][UW]",
+    submissionPublicId || "",
+    carrierName || "",
+  );
+
+  const lines = [
+    "Underwriter replied with a PDF, but no quote keywords were found in the subject/body.",
+    "This message was not routed to S4 extraction. Review in Gmail or the operator UI.",
+    "",
+    submissionPublicId ? `Submission: ${submissionPublicId}` : "",
+    clientName ? `Client: ${clientName}` : "",
+    carrierName ? `Carrier: ${carrierName}` : "",
+    emailSubject ? `Subject: ${emailSubject}` : "",
+    `Carrier message ID: ${carrierMessageId}`,
+    `Gmail message ID: ${gmailMessageId}`,
+    pdfCount != null ? `PDFs stored: ${pdfCount}` : "",
+  ].filter(Boolean);
+
+  await sendWithGmail({
+    to: [BAR_AGENT_EMAIL],
+    subject,
+    text: lines.join("\n"),
+  });
+}
+

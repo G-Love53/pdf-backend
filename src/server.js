@@ -458,7 +458,8 @@ try {
       subject: email.subject || "Submission Packet",
       formData: email.formData,
       html: email.bodyHtml,
-      attachments
+      attachments,
+      headers: email.headers || {},
     });
     return res.json({ ok: true, success: true, sent: true, count: attachments.length });
   }
@@ -728,7 +729,12 @@ APP.post("/submit-quote", async (req, res) => {
     });
 
     // 3) Email block (canonical)
-    const defaultTo = process.env.CARRIER_EMAIL || process.env.GMAIL_USER;
+    // Optional: CLIENT_SUBMISSION_EMAIL_TO sends the packet to a different mailbox than the
+    // carrier-reply poller inbox (cleanest split). Defaults match prior behavior.
+    const defaultTo =
+      process.env.CLIENT_SUBMISSION_EMAIL_TO?.trim() ||
+      process.env.CARRIER_EMAIL ||
+      process.env.GMAIL_USER;
     const to =
       body.email?.to?.length ? body.email.to
       : body.email_to ? [body.email_to] // optional backward compat
@@ -752,6 +758,11 @@ APP.post("/submit-quote", async (req, res) => {
       to,       // ensure canonical wins
       subject,  // ensure canonical wins
       formData, // ensure canonical wins
+      // So Gmail poller does not treat our own outbound submission packet as a carrier quote.
+      headers: {
+        ...((body.email && typeof body.email === "object" && body.email.headers) || {}),
+        "X-CID-Origin": "client-submission",
+      },
     };
 
     // 4) One call does it all (render + attach + email)

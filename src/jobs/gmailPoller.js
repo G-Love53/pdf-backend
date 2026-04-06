@@ -5,7 +5,10 @@ import crypto from "crypto";
 import path from "path";
 import { fileURLToPath } from "url";
 import { getPool } from "../db.js";
-import { notifyBarCarrierQuoteReceived } from "../services/agentNotificationService.js";
+import {
+  notifyBarCarrierQuoteReceived,
+  notifyBarUwQuestionPdf,
+} from "../services/agentNotificationService.js";
 import { DocumentRole, DocumentType, StorageProvider } from "../constants/postgresEnums.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -44,6 +47,74 @@ const CONFIDENCE = {
   AUTO_MATCH: 0.95,
   REVIEW_LOWER: 0.7,
 };
+
+// Quote-signal keywords — UW clarification emails often omit these; formal quotes usually include at least one.
+const QUOTE_SIGNALS = [
+  "quote",
+  "quotation",
+  "proposal",
+  "premium",
+  "indication",
+  "terms",
+  "coverage offered",
+  "rate",
+  "rated",
+  "pricing",
+];
+
+function hasQuoteSignal(subject = "", body = "") {
+  const text = `${subject} ${body}`.toLowerCase();
+  return QUOTE_SIGNALS.some((signal) => {
+    if (signal.includes(" ")) return text.includes(signal);
+    const escaped = signal.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`\\b${escaped}\\b`, "i").test(text);
+  });
+}
+
+function extractEmail(str) {
+  if (!str) return "";
+  const match = String(str).match(/<([^>]+)>/);
+  return match ? match[1].trim() : String(str).trim();
+}
+
+/**
+ * Gmail list query: exclude messages our own SMTP account sent into this inbox (client submission
+ * packets), so they never hit carrier_message / S4. Complements header + subject checks in
+ * processMessage().
+ *
+ * Env:
+ * - GMAIL_POLLER_EXCLUDE_SELF_SENT=false — disable this layer (use if you forward carrier PDFs from the same address).
+ * - GMAIL_POLLER_EXCLUDE_FROM_SENDER — override sender to exclude (default: GMAIL_USER).
+ * - GMAIL_POLLER_EXTRA_QUERY — extra Gmail search terms (space-separated), e.g. -label:foo
+ *
+ * When the send-from address equals the segment inbox address, uses -from:me (handles aliases).
+ */
+function getExcludeFromQueryPart(seg) {
+  if (process.env.GMAIL_POLLER_EXCLUDE_SELF_SENT === "false") {
+    return "";
+  }
+  const explicit = process.env.GMAIL_POLLER_EXCLUDE_FROM_SENDER?.trim();
+  if (explicit && explicit.toLowerCase() === "none") {
+    return "";
+  }
+  const raw = explicit || process.env.GMAIL_USER || "";
+  if (!raw) return "";
+  const sendFrom = extractEmail(raw);
+  if (!sendFrom) return "";
+  if (seg.email && sendFrom.toLowerCase() === String(seg.email).toLowerCase()) {
+    return "-from:me";
+  }
+  return `-from:${sendFrom}`;
+}
+
+function buildSegmentPollQuery(seg) {
+  const parts = ["in:inbox", "is:unread"];
+  const exclude = getExcludeFromQueryPart(seg);
+  if (exclude) parts.push(exclude);
+  const extra = process.env.GMAIL_POLLER_EXTRA_QUERY?.trim();
+  if (extra) parts.push(extra);
+  return parts.join(" ");
+}
 
 function buildGmailClient(inboxEmail) {
   const auth = new google.auth.OAuth2(
@@ -111,11 +182,13 @@ async function pollSegmentInbox(seg) {
     );
   }
 
+  const pollQuery = buildSegmentPollQuery(seg);
+
   const res = await gmail.users.messages.list({
     userId: "me",
-    // RSS-safe robustness: poll the segment inbox even if Gmail filters don't apply our label.
+    // Use search query (not labelIds) so we can exclude our own outbound client packets (-from:me / -from:sender).
     // We still require CID token + PDF attachment in `processMessage()` as the "quote signal".
-    labelIds: ["INBOX", "UNREAD"],
+    q: pollQuery,
     maxResults: 20,
   });
 
@@ -125,14 +198,19 @@ async function pollSegmentInbox(seg) {
     return;
   }
 
-  console.log(`[${seg.segment}] Found ${messages.length} new message(s)`);
+  console.log(`[${seg.segment}] Found ${messages.length} new message(s) (q=${pollQuery})`);
 
   for (const msg of messages) {
     try {
-      const shouldAutoLabel = await processMessage(gmail, msg.id, seg);
+      const processed = await processMessage(gmail, msg.id, seg);
+
+      // Do not mark read or label — ops still triage / forward to carriers from inbox.
+      if (processed === "leave_unread") {
+        continue;
+      }
 
       const addLabelIds =
-        shouldAutoLabel && carrierQuotesLabelId ? [carrierQuotesLabelId] : [];
+        processed && carrierQuotesLabelId ? [carrierQuotesLabelId] : [];
 
       await gmail.users.messages.modify({
         userId: "me",
@@ -194,6 +272,13 @@ async function processMessage(gmail, messageId, seg) {
       })`,
     );
     return false;
+  }
+
+  if (isOutboundClientSubmissionPacket(headers, subject, fromEmail)) {
+    console.log(
+      `[${seg.segment}] Skipping message ${messageId} (cid=${cidCandidate}) — outbound client submission packet (not a carrier quote); leaving unread`,
+    );
+    return "leave_unread";
   }
 
   // Dedupe: if we've already ingested this exact Gmail message for this segment,
@@ -290,6 +375,99 @@ async function processMessage(gmail, messageId, seg) {
   }
 
   const matchResult = await matchToSubmission(subject, bodyText, threadId, seg.segment);
+
+  // UW fork: PDF + CID but no quote-keyword signal (questions, clarifications) — do not create quote / S4.
+  // Set GMAIL_POLLER_QUOTE_SIGNAL_FORK=false to always use the legacy S4 path when PDF+CID match.
+  const quoteSignalForkEnabled = process.env.GMAIL_POLLER_QUOTE_SIGNAL_FORK !== "false";
+  if (quoteSignalForkEnabled && !hasQuoteSignal(subject, bodyText)) {
+    if (matchResult.submissionId) {
+      await pool.query(
+        `
+          UPDATE carrier_messages
+          SET submission_id = $1
+          WHERE gmail_message_id = $2
+            AND segment = $3::segment_type
+        `,
+        [matchResult.submissionId, gmailMsgId, seg.segment],
+      );
+    }
+
+    const uwEventExists = await pool.query(
+      `
+        SELECT 1
+        FROM timeline_events
+        WHERE event_type = 'carrier.uw_question'
+          AND (event_payload_json->>'carrier_message_id')::uuid = $1
+        LIMIT 1
+      `,
+      [carrierMessageId],
+    );
+
+    if (uwEventExists.rows.length === 0) {
+      await createWorkQueueItemIfMissingOpen({
+        queue_type: "uw_question",
+        related_entity_type: "carrier_message",
+        related_entity_id: carrierMessageId,
+        priority: 2,
+        reason_code: "uw_pdf_no_quote_signal",
+        reason_detail: `CID ${cidCandidate}: PDF from ${fromEmail}, no quote keywords in subject/body. Gmail message ${gmailMsgId}`,
+      });
+
+      await createTimelineEvent({
+        client_id: matchResult.clientId || null,
+        submission_id: matchResult.submissionId || null,
+        quote_id: null,
+        policy_id: null,
+        event_type: "carrier.uw_question",
+        event_label: `Underwriter reply (PDF, no quote keywords) from ${resolveCarrierName(fromEmail) || fromEmail}`,
+        event_payload_json: {
+          carrier_message_id: carrierMessageId,
+          from_email: fromEmail,
+          subject,
+          attachment_count: attachments.length,
+          document_ids: documentIds,
+          match_confidence: matchResult.confidence,
+          match_status: matchResult.matchStatus,
+        },
+        created_by: "system",
+      });
+
+      let clientName = null;
+      if (matchResult.submissionId) {
+        const cn = await pool.query(
+          `
+            SELECT COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS name
+            FROM submissions s
+            JOIN clients c ON c.client_id = s.client_id
+            LEFT JOIN businesses b ON b.business_id = s.business_id
+            WHERE s.submission_id = $1
+          `,
+          [matchResult.submissionId],
+        );
+        clientName = cn.rows[0]?.name || null;
+      }
+
+      try {
+        await notifyBarUwQuestionPdf({
+          segment: seg.segment,
+          submissionPublicId: cidCandidate,
+          clientName,
+          carrierName: resolveCarrierName(fromEmail),
+          emailSubject: subject,
+          gmailMessageId: gmailMsgId,
+          carrierMessageId,
+          pdfCount: documentIds.length,
+        });
+      } catch (err) {
+        console.error("[gmailPoller] notifyBarUwQuestionPdf error:", err.message || err);
+      }
+    }
+
+    console.warn(
+      `[${seg.segment}] UW question fork (no quote keywords) — ${cidCandidate} — skipping quote/S4`,
+    );
+    return true;
+  }
 
   // Hard idempotency: if we've already created a quote for this exact Gmail message
   // (across any duplicated carrier_message rows), do not create a second quote.
@@ -975,9 +1153,34 @@ function parseHeaders(headers) {
   return map;
 }
 
-function extractEmail(str) {
-  const match = str.match(/<([^>]+)>/);
-  return match ? match[1] : str.trim();
+/** Case-insensitive header lookup (Gmail uses mixed-case names). */
+function getHeaderCI(map, name) {
+  const want = String(name).toLowerCase();
+  for (const k of Object.keys(map || {})) {
+    if (k.toLowerCase() === want) return map[k];
+  }
+  return undefined;
+}
+
+/**
+ * Outbound client submission packets are often addressed TO the same segment inbox the poller reads.
+ * They match CID + PDF like a carrier quote but must not create carrier_message / S4.
+ * Detect via X-CID-Origin (new) or From=GMAIL_USER + subject line (legacy emails without header).
+ */
+function isOutboundClientSubmissionPacket(headers, subject, fromEmail) {
+  const origin = String(getHeaderCI(headers, "X-CID-Origin") || "").toLowerCase();
+  if (origin === "client-submission") return true;
+
+  const gmailUser = process.env.GMAIL_USER ? extractEmail(process.env.GMAIL_USER) : "";
+  if (
+    gmailUser &&
+    fromEmail &&
+    fromEmail.toLowerCase() === gmailUser.toLowerCase() &&
+    /CID Submission Packet/i.test(String(subject || ""))
+  ) {
+    return true;
+  }
+  return false;
 }
 
 function extractBody(payload) {

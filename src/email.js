@@ -95,6 +95,8 @@ export async function sendWithGmail({
   text,
   formData,
   attachments = [],
+  /** Optional RFC822 headers (e.g. X-CID-Origin for poller to ignore client submission mail). */
+  headers = {},
 }) {
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -106,7 +108,7 @@ export async function sendWithGmail({
       ? generateEmailSummary(formData, attachments)
       : html;
 
-  await transporter.sendMail({
+  const mail = {
     from: process.env.GMAIL_USER,
     to,
     subject,
@@ -116,5 +118,9 @@ export async function sendWithGmail({
       filename: a.filename,
       content: a.buffer,
     })),
-  });
+  };
+  if (headers && typeof headers === "object" && Object.keys(headers).length > 0) {
+    mail.headers = headers;
+  }
+  await transporter.sendMail(mail);
 }
