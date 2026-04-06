@@ -4,6 +4,7 @@ import { getObjectStream, uploadBuffer } from "./r2Service.js";
 import { combinePDFs, createSimplePagePdf } from "./pdfCombineService.js";
 import { generateLetter } from "./aiLetterService.js";
 import { DocumentRole, DocumentType, StorageProvider } from "../constants/postgresEnums.js";
+import { orderByPrimaryCarrierPdf } from "../utils/carrierPdfPrimaryOrder.js";
 
 const pool = getPool();
 
@@ -85,11 +86,11 @@ export async function loadPacketData(quoteId) {
       const docRes = await pool.query(
         `
           SELECT storage_path
-          FROM documents
-          WHERE document_id = ANY($1::uuid[])
-            AND document_role = 'carrier_quote_original'
-            AND document_type = 'pdf'
-          ORDER BY created_at DESC
+          FROM documents d
+          WHERE d.document_id = ANY($1::uuid[])
+            AND d.document_role = 'carrier_quote_original'
+            AND d.document_type = 'pdf'
+          ${orderByPrimaryCarrierPdf("d")}
           LIMIT 1
         `,
         [documentIds],

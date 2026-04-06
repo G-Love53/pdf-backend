@@ -338,16 +338,46 @@
       }
 
       async function runExtraction() {
-        const res = await fetch(
-          "/api/queue/extraction-review/" + workQueueItemId + "/extract",
-          { method: "POST" }
-        );
-        if (!res.ok) return;
-        const data = await res.json();
-        currentData = currentData || {};
-        currentData.extracted_data = data.extracted_data;
-        currentData.confidence_scores = data.confidence_scores;
-        renderForm(currentData);
+        const btn = document.getElementById("rerun-btn");
+        const prev = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Running…";
+        try {
+          const res = await fetch(
+            "/api/queue/extraction-review/" + workQueueItemId + "/extract",
+            { method: "POST" }
+          );
+          let data = {};
+          try {
+            data = await res.json();
+          } catch {
+            data = {};
+          }
+          if (!res.ok) {
+            const detail =
+              data.message ||
+              data.error ||
+              res.statusText ||
+              "unknown error";
+            alert(
+              "Re-Run failed (" +
+                res.status +
+                "): " +
+                detail +
+                "\n\nCheck Render logs if this persists (Claude API, R2, or DB)."
+            );
+            return;
+          }
+          currentData = currentData || {};
+          currentData.extracted_data = data.extracted_data;
+          currentData.confidence_scores = data.confidence_scores;
+          renderForm(currentData);
+        } catch (e) {
+          alert("Re-Run failed: " + (e && e.message ? e.message : String(e)));
+        } finally {
+          btn.disabled = false;
+          btn.textContent = prev;
+        }
       }
 
       function collectFormData() {
@@ -374,7 +404,21 @@
             }),
           }
         );
-        if (!res.ok) return;
+        if (!res.ok) {
+          let err = {};
+          try {
+            err = await res.json();
+          } catch {
+            /* ignore */
+          }
+          alert(
+            "Confirm failed (" +
+              res.status +
+              "): " +
+              (err.message || err.error || res.statusText || "unknown")
+          );
+          return;
+        }
         window.location.href = "/operator/extraction-review";
       }
 
@@ -394,7 +438,21 @@
             }),
           }
         );
-        if (!res.ok) return;
+        if (!res.ok) {
+          let err = {};
+          try {
+            err = await res.json();
+          } catch {
+            /* ignore */
+          }
+          alert(
+            "Skip failed (" +
+              res.status +
+              "): " +
+              (err.message || err.error || res.statusText || "unknown")
+          );
+          return;
+        }
         window.location.href = "/operator/extraction-review";
       }
 

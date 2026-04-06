@@ -4,6 +4,7 @@ import buildBarExtractionPrompt from "../prompts/extraction/bar.js";
 import buildRooferExtractionPrompt from "../prompts/extraction/roofer.js";
 import buildPlumberExtractionPrompt from "../prompts/extraction/plumber.js";
 import buildHvacExtractionPrompt from "../prompts/extraction/hvac.js";
+import { orderByPrimaryCarrierPdf } from "../utils/carrierPdfPrimaryOrder.js";
 
 const pool = getPool();
 
@@ -199,7 +200,7 @@ export async function runExtractionForWorkItem(workQueueItemId) {
           WHERE d.document_id = ANY($1::uuid[])
             AND d.document_role = 'carrier_quote_original'
             AND d.document_type = 'pdf'
-          ORDER BY d.created_at DESC
+          ${orderByPrimaryCarrierPdf("d")}
           LIMIT 1
         `,
         [documentIds],

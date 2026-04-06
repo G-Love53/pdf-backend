@@ -2,6 +2,7 @@ import express from "express";
 import { getPool } from "../db.js";
 import { documentDownloadPath } from "../services/r2Service.js";
 import { runExtractionForWorkItem, confirmExtractionForWorkItem, skipWorkItem } from "../services/extractionService.js";
+import { orderByPrimaryCarrierPdf } from "../utils/carrierPdfPrimaryOrder.js";
 
 const router = express.Router();
 const pool = getPool();
@@ -231,11 +232,11 @@ router.get("/api/queue/extraction-review/:workQueueItemId", async (req, res) => 
         const docRes = await pool.query(
           `
             SELECT document_id
-            FROM documents
-            WHERE document_id = ANY($1::uuid[])
-              AND document_role = 'carrier_quote_original'
-              AND document_type = 'pdf'
-            ORDER BY created_at DESC
+            FROM documents d
+            WHERE d.document_id = ANY($1::uuid[])
+              AND d.document_role = 'carrier_quote_original'
+              AND d.document_type = 'pdf'
+            ${orderByPrimaryCarrierPdf("d")}
             LIMIT 1
           `,
           [documentIds],
@@ -305,8 +306,12 @@ router.post("/api/queue/extraction-review/:workQueueItemId/extract", async (req,
     const result = await runExtractionForWorkItem(workQueueItemId);
     res.json(result);
   } catch (err) {
-    console.error("[extractionReview] extract error:", err.message || err);
-    res.status(500).json({ error: "internal_error" });
+    const msg = err?.message || String(err);
+    console.error("[extractionReview] extract error:", msg);
+    res.status(500).json({
+      error: "internal_error",
+      message: msg,
+    });
   }
 });
 
