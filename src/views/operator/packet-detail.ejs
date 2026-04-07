@@ -113,6 +113,14 @@
         color: #e5e7eb;
         border-color: #374151;
       }
+      .btn-amber {
+        background: #422006;
+        color: #fde68a;
+        border-color: #b45309;
+      }
+      .btn-amber:hover {
+        background: #78350f;
+      }
     </style>
   </head>
   <body>
@@ -158,8 +166,9 @@
           </div>
         </div>
         <div class="actions">
-          <button class="btn-secondary" id="preview-btn">Preview</button>
-          <button class="btn-primary" id="send-btn">Send Packet</button>
+          <button class="btn-secondary" id="preview-btn" type="button">Preview</button>
+          <button class="btn-amber" id="reopen-s4-btn" type="button">Reopen in S4</button>
+          <button class="btn-primary" id="send-btn" type="button">Send Packet</button>
         </div>
       </section>
     </main>
@@ -258,9 +267,42 @@
         window.location.href = "/operator/packet-builder";
       }
 
+      async function reopenInS4() {
+        if (
+          !confirm(
+            "Send this quote back to S4 extraction review? It will leave the Ready packet queue until reviewed again."
+          )
+        ) {
+          return;
+        }
+        const res = await fetch(
+          "/api/queue/extraction-review/reopen/" + quoteId,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ agent_id: "operator" }),
+          }
+        );
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (_) {}
+        if (!res.ok) {
+          alert(
+            (data && (data.message || data.error)) ||
+              "Reopen failed. Check quote status (needs S5-ready: needs_review or sent)."
+          );
+          return;
+        }
+        window.location.href = "/operator/packet-builder";
+      }
+
       document
         .getElementById("preview-btn")
         .addEventListener("click", preview);
+      document
+        .getElementById("reopen-s4-btn")
+        .addEventListener("click", reopenInS4);
       document.getElementById("send-btn").addEventListener("click", sendPacket);
 
       document.addEventListener("keydown", (e) => {

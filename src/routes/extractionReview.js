@@ -1,7 +1,12 @@
 import express from "express";
 import { getPool } from "../db.js";
 import { documentDownloadPath } from "../services/r2Service.js";
-import { runExtractionForWorkItem, confirmExtractionForWorkItem, skipWorkItem } from "../services/extractionService.js";
+import {
+  runExtractionForWorkItem,
+  confirmExtractionForWorkItem,
+  skipWorkItem,
+  reopenExtractionForQuote,
+} from "../services/extractionService.js";
 import { orderByPrimaryCarrierPdf } from "../utils/carrierPdfPrimaryOrder.js";
 
 const router = express.Router();
@@ -359,6 +364,46 @@ router.post("/api/queue/extraction-review/:workQueueItemId/skip", async (req, re
     res.status(500).json({ error: "internal_error" });
   }
 });
+
+/**
+ * Reopen a quote from S5 (packet builder) back to S4 extraction review.
+ * Quote status must be needs_review or sent; sets status to extracting (schema has no extraction_pending).
+ */
+async function handleReopenExtraction(req, res) {
+  if (!pool) {
+    return res.status(503).json({ error: "database_not_configured" });
+  }
+
+  const { quoteId } = req.params;
+  const agent_id = req.body?.agent_id || "operator";
+
+  try {
+    const result = await reopenExtractionForQuote(quoteId, { agentId: agent_id });
+    if (!result.ok) {
+      const code = result.code;
+      const http =
+        code === "quote_not_found"
+          ? 404
+          : code === "extraction_review_already_open"
+            ? 409
+            : code === "invalid_quote_status" || code === "no_active_extraction"
+              ? 400
+              : 400;
+      return res.status(http).json({
+        error: code,
+        message: result.message,
+        quote_status: result.status,
+      });
+    }
+    return res.json({ ok: true, quote_id: result.quote_id });
+  } catch (err) {
+    console.error("[extractionReview] reopen error:", err.message || err);
+    return res.status(500).json({ error: "internal_error", message: err.message });
+  }
+}
+
+router.post("/api/queue/extraction-review/reopen/:quoteId", handleReopenExtraction);
+router.post("/api/reopen-extraction/:quoteId", handleReopenExtraction);
 
 export default router;
 

@@ -5,8 +5,13 @@ import buildRooferExtractionPrompt from "../prompts/extraction/roofer.js";
 import buildPlumberExtractionPrompt from "../prompts/extraction/plumber.js";
 import buildHvacExtractionPrompt from "../prompts/extraction/hvac.js";
 import { orderByPrimaryCarrierPdf } from "../utils/carrierPdfPrimaryOrder.js";
+import { QuoteStatus } from "../constants/postgresEnums.js";
 
 const pool = getPool();
+
+/** DB has no extraction_pending; extracting = back in human review pipeline before packet. */
+const REOPEN_REASON_DETAIL = "Reopened from S5";
+const REOPEN_REASON_CODE = "reopened_from_s5";
 
 async function bufferFromStream(stream) {
   const chunks = [];
@@ -552,6 +557,189 @@ export async function skipWorkItem(workQueueItemId, { reason, agentId }) {
     await client.query("COMMIT");
   } catch (err) {
     await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Return a quote from S5 to S4: un-approve active extraction, reset quote status, reopen extraction_review queue.
+ * RSS: single transaction, idempotent conflict if S4 already open, audit timeline.
+ *
+ * @param {string} quoteId
+ * @param {{ agentId: string }} opts
+ * @returns {Promise<{ ok: true, quote_id: string } | { ok: false, code: string, message?: string, status?: string }>}
+ */
+export async function reopenExtractionForQuote(quoteId, { agentId }) {
+  if (!pool) {
+    return { ok: false, code: "database_not_configured" };
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const qRes = await client.query(
+      `
+        SELECT q.quote_id, q.submission_id, q.status::text AS status
+        FROM quotes q
+        WHERE q.quote_id = $1
+        FOR UPDATE
+      `,
+      [quoteId],
+    );
+
+    if (qRes.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return { ok: false, code: "quote_not_found" };
+    }
+
+    const { submission_id: submissionId, status } = qRes.rows[0];
+
+    if (status !== "needs_review" && status !== "sent") {
+      await client.query("ROLLBACK");
+      return {
+        ok: false,
+        code: "invalid_quote_status",
+        message: "Reopen only allowed for quotes in needs_review or sent (S5-ready).",
+        status,
+      };
+    }
+
+    const openS4 = await client.query(
+      `
+        SELECT work_queue_item_id
+        FROM work_queue_items
+        WHERE queue_type = 'extraction_review'::queue_type
+          AND related_entity_type = 'quote'
+          AND related_entity_id = $1
+          AND status = 'open'
+        LIMIT 1
+      `,
+      [quoteId],
+    );
+
+    if (openS4.rows.length > 0) {
+      await client.query("ROLLBACK");
+      return {
+        ok: false,
+        code: "extraction_review_already_open",
+        message: "This quote already has an open S4 extraction review item.",
+      };
+    }
+
+    const exRes = await client.query(
+      `
+        SELECT quote_extraction_id
+        FROM quote_extractions
+        WHERE quote_id = $1
+          AND is_active = TRUE
+        ORDER BY created_at DESC
+        LIMIT 1
+      `,
+      [quoteId],
+    );
+
+    if (exRes.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return { ok: false, code: "no_active_extraction" };
+    }
+
+    const extractionId = exRes.rows[0].quote_extraction_id;
+
+    await client.query(
+      `
+        UPDATE quote_extractions
+        SET review_status = 'pending',
+            reviewed_by = NULL,
+            reviewed_at = NULL
+        WHERE quote_extraction_id = $1
+      `,
+      [extractionId],
+    );
+
+    await client.query(
+      `
+        UPDATE quotes
+        SET status = $2::quote_status,
+            packet_ready = FALSE,
+            updated_at = NOW()
+        WHERE quote_id = $1
+      `,
+      [quoteId, QuoteStatus.EXTRACTING],
+    );
+
+    await client.query(
+      `
+        UPDATE work_queue_items
+        SET status = 'resolved',
+            resolved_at = NOW(),
+            resolved_by = $2,
+            reason_detail = COALESCE(reason_detail, '') || ' [superseded: reopened to S4]'
+        WHERE queue_type = 'packet_review'::queue_type
+          AND related_entity_type = 'quote'
+          AND related_entity_id = $1
+          AND status = 'open'
+      `,
+      [quoteId, agentId],
+    );
+
+    await client.query(
+      `
+        INSERT INTO work_queue_items (
+          queue_type,
+          related_entity_type,
+          related_entity_id,
+          priority,
+          reason_code,
+          reason_detail,
+          status
+        )
+        VALUES (
+          'extraction_review'::queue_type,
+          'quote',
+          $1,
+          3,
+          $2,
+          $3,
+          'open'
+        )
+      `,
+      [quoteId, REOPEN_REASON_CODE, REOPEN_REASON_DETAIL],
+    );
+
+    await client.query(
+      `
+        INSERT INTO timeline_events (
+          submission_id,
+          quote_id,
+          event_type,
+          event_label,
+          event_payload_json,
+          created_by
+        )
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `,
+      [
+        submissionId,
+        quoteId,
+        "extraction.reopened",
+        "Extraction reopened from S5 for re-review",
+        {
+          agent_id: agentId,
+          quote_extraction_id: extractionId,
+          reason_code: REOPEN_REASON_CODE,
+        },
+        agentId || "agent",
+      ],
+    );
+
+    await client.query("COMMIT");
+    return { ok: true, quote_id: quoteId };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("[extractionService] reopenExtractionForQuote:", err.message || err);
     throw err;
   } finally {
     client.release();
