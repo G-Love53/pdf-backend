@@ -599,7 +599,7 @@ router.post(
       });
       res.json({ ok: true, data: { message: reply } });
     } catch (err) {
-      console.error("[ConnectAPI] /chat", err?.message || err);
+      console.error("[ConnectAPI] /chat", err?.code || "", err?.message || err);
       res.status(503).json({
         ok: false,
         error: "Coverage assistant is temporarily unavailable.",

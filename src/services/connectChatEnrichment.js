@@ -60,14 +60,11 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
   const clientPolicy =
     body?.policyContext && typeof body.policyContext === "object" ? body.policyContext : {};
 
+  // SELECT * only — do not JOIN on policies.carrier_slug; many DBs have no carrier_slug column yet.
   const pol = await pool.query(
-    `SELECT
-       p.*,
-       c.name AS carrier_catalog_name
-     FROM policies p
-     LEFT JOIN carriers c ON c.slug = p.carrier_slug
-     WHERE p.client_id = $1::uuid AND p.status = 'active'
-     ORDER BY p.effective_date DESC NULLS LAST
+    `SELECT * FROM policies
+     WHERE client_id = $1::uuid AND status = 'active'
+     ORDER BY effective_date DESC NULLS LAST
      LIMIT 1`,
     [clientId],
   );
@@ -83,9 +80,7 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
 
     if (row.carrier_slug) {
       carrierSlug = row.carrier_slug;
-      carrierDisplayName =
-        row.carrier_catalog_name ||
-        (await resolveCatalogName(pool, carrierSlug));
+      carrierDisplayName = await resolveCatalogName(pool, carrierSlug);
     }
     if (!carrierSlug) {
       const cn = row.carrier_name || "";
@@ -114,14 +109,19 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
     };
   }
 
-  const knowledgeRows = carrierSlug
-    ? await searchCarrierKnowledgeRows(pool, {
+  let knowledgeRows = [];
+  if (carrierSlug) {
+    try {
+      knowledgeRows = await searchCarrierKnowledgeRows(pool, {
         carrierSlug,
         segment,
         searchText: message,
         limit: 10,
-      })
-    : [];
+      });
+    } catch (e) {
+      console.error("[connectChatEnrichment] carrier_knowledge search failed:", e?.message || e);
+    }
+  }
 
   return {
     policyContext: mergedPolicy,
