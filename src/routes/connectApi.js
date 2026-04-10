@@ -589,7 +589,7 @@ router.post(
         req.connectClient.client_id,
         body,
       );
-      const reply = await generateConnectChatReply({
+      const { reply, systemPrompt } = await generateConnectChatReply({
         message: String(message).trim(),
         policyContext: enriched.policyContext,
         chatHistory: enriched.chatHistory,
@@ -597,7 +597,11 @@ router.post(
         carrierDisplayName: enriched.carrierDisplayName,
         knowledgeBlock: enriched.knowledgeBlock,
       });
-      res.json({ ok: true, data: { message: reply } });
+      const data = { message: reply };
+      if (process.env.CONNECT_CHAT_PROMPT_DEBUG === "true") {
+        data._promptDebug = String(systemPrompt || "").substring(0, 120);
+      }
+      res.json({ ok: true, data });
     } catch (err) {
       console.error("[ConnectAPI] /chat", err?.code || "", err?.message || err);
       res.status(503).json({

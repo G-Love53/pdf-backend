@@ -253,12 +253,12 @@ function fallbackReply() {
  *   carrierDisplayName?: string | null,
  *   knowledgeBlock?: string,
  * }} input
- * @returns {Promise<string>}
+ * @returns {Promise<{ reply: string, systemPrompt: string }>}
  */
 export async function generateConnectChatReply(input) {
   const message = String(input?.message || "").trim();
   if (!message) {
-    return "Please enter a question.";
+    return { reply: "Please enter a question.", systemPrompt: "" };
   }
 
   const history = Array.isArray(input?.chatHistory) ? input.chatHistory : [];
@@ -272,20 +272,22 @@ export async function generateConnectChatReply(input) {
   const anthropicMessages = buildAnthropicMessages(input?.chatHistory, message);
 
   try {
-    return await callClaudeChat(systemPrompt, anthropicMessages);
+    const reply = await callClaudeChat(systemPrompt, anthropicMessages);
+    return { reply, systemPrompt };
   } catch (err) {
     console.warn("[connectChatService] Claude failed:", err?.message || err);
   }
 
   try {
-    return await callGeminiChat(
+    const reply = await callGeminiChat(
       systemPrompt,
       input?.chatHistory,
       message,
     );
+    return { reply, systemPrompt };
   } catch (err) {
     console.warn("[connectChatService] Gemini failed:", err?.message || err);
   }
 
-  return fallbackReply();
+  return { reply: fallbackReply(), systemPrompt };
 }
