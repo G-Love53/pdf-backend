@@ -589,6 +589,8 @@ router.post(
         req.connectClient.client_id,
         body,
       );
+      // Prompt string is built inside generateConnectChatReply → buildSystemPrompt (connectChatService.js).
+      // Logging returned systemPrompt verifies the same string passed to Claude/Gemini (log runs after the model returns).
       const { reply, systemPrompt } = await generateConnectChatReply({
         message: String(message).trim(),
         policyContext: enriched.policyContext,
@@ -597,6 +599,7 @@ router.post(
         carrierDisplayName: enriched.carrierDisplayName,
         knowledgeBlock: enriched.knowledgeBlock,
       });
+      console.log("SYSTEM PROMPT:", String(systemPrompt || "").substring(0, 200));
       const data = { message: reply };
       if (process.env.CONNECT_CHAT_PROMPT_DEBUG === "true") {
         data._promptDebug = String(systemPrompt || "").substring(0, 120);
