@@ -10,3 +10,15 @@
 **CID_HomeBase submodule:** On GitHub you’ll see `CID_HomeBase @ a1d0f5b` (or another short hash). That’s the **commit** of CID_HomeBase this repo is using, not a file path. SUPP_BAR lives at `CID_HomeBase/templates/SUPP_BAR/`. To use the latest SUPP_BAR (or any HomeBase change), update the submodule and push: run `bash CID_HomeBase/scripts/deploy-bar-backend.sh` from CID_HomeBase (after pushing your HomeBase changes to `main`). That script pulls latest `main` into the submodule, commits the new commit ref in pdf-backend, and pushes so Render deploys with the updated templates.
 
 Deploy: Docker (Render). Build clones CID_HomeBase when submodules are not available.
+
+## CID-PDF-API — data store and Gmail poller (read once)
+
+- **Postgres (`DATABASE_URL` on Render):** Canonical DB for **submissions, quotes, `carrier_messages`, operator queue, bind**, etc. — **not** the Famous/Supabase project used for Connect **auth** (unless you replicate). Debug SQL for **`carrier_messages`** belongs on this host.
+- **Gmail poller:** Runs on a schedule (default cron **every 3 minutes** when **`ENABLE_GMAIL_POLLING=true`**). Ingestion requires **CID token + PDF**; other mail may be skipped and marked read. **Dedupe** logic lives in **`src/jobs/gmailPoller.js`** (`dedupeCarrierMessagesForGmail`). Optional **one-off** cleanup: **`npm run dedupe:carrier-messages`** and/or browser **`POST /operator/maintenance/dedupe-carrier-messages`** (requires **`CID_MAINTENANCE_SECRET`**) — ops-only, destructive to duplicate-linked rows.
+- **March 2026:** Duplicate rows were traced to **historical bursts**; **recent-window** duplicate checks were clean at verification — see **`cid-connect/docs/WORKFLOW_HANDOFF.md`**.
+
+## CID Connect API (`/api/connect`)
+
+- **Routes:** `src/routes/connectApi.js` — profile, policies, quotes, documents, COI, claims, carrier knowledge search, chat stub (`501` until Step 5).
+- **Auth (Phase 1):** `src/middleware/connectAuth.js` — requires **`X-User-Email`**; optional **`X-User-Id`** (Supabase user UUID) for `clients.famous_user_id` mapping.
+- **Migration:** Run **`migrations/007_connect_api.sql`** on Render `DATABASE_URL` (adds `famous_user_id`, KB tables, `coi_requests`, `claims` if missing).

@@ -13,6 +13,8 @@ import { runFollowupScheduler } from "./jobs/followupScheduler.js";
 import documentRoutes from "./routes/documentRoutes.js";
 import operatorRoutes from "./routes/operatorRoutes.js";
 import webhooksRouter from "./routes/webhooks.js";
+import { connectAuthMiddleware } from "./middleware/connectAuth.js";
+import connectApiRouter from "./routes/connectApi.js";
 // Note: Ensure your enricher import matches the file name in your 'src' folder
 // import enrichFormData from '../mapping/data-enricher.js'; 
 
@@ -85,14 +87,23 @@ APP.use(
 // All other routes use normal JSON parsing
 APP.use(express.json({ limit: "20mb" }));
 
+// CID Connect API bridge (Phase 1: X-User-Email + optional X-User-Id)
+APP.use("/api/connect", connectAuthMiddleware, connectApiRouter);
+
 APP.set("view engine", "ejs");
 APP.set("views", path.join(__dirname, "views"));
 
-// CORS
+// CORS (includes CID Connect /api/connect: GET + custom identity headers)
 APP.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-API-Key");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-API-Key, X-User-Email, X-User-Id",
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+  );
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
