@@ -215,15 +215,21 @@ async function callGeminiChat(systemPrompt, chatHistory, message) {
     model,
   )}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
+  const genBody = {
+    contents: [{ role: "user", parts: [{ text: lines.join("\n") }] }],
+  };
+  const gt = Number(process.env.GEMINI_CONNECT_CHAT_TEMPERATURE);
+  if (Number.isFinite(gt) && gt >= 0 && gt <= 2) {
+    genBody.generationConfig = { temperature: gt };
+  }
+
   const resp = await withTimeout(
     (signal) =>
       fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal,
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: lines.join("\n") }] }],
-        }),
+        body: JSON.stringify(genBody),
       }),
     timeoutMs,
   );
@@ -242,6 +248,15 @@ async function callGeminiChat(systemPrompt, chatHistory, message) {
 
 function fallbackReply() {
   return "I'm temporarily unable to reach our coverage assistant. Please try again in a moment.";
+}
+
+/** @returns {("claude"|"gemini")[]} */
+function connectChatProviderOrder() {
+  const p = String(process.env.CONNECT_CHAT_PRIMARY || "claude")
+    .trim()
+    .toLowerCase();
+  if (p === "gemini") return ["gemini", "claude"];
+  return ["claude", "gemini"];
 }
 
 /**
@@ -271,22 +286,24 @@ export async function generateConnectChatReply(input) {
   });
   const anthropicMessages = buildAnthropicMessages(input?.chatHistory, message);
 
-  try {
-    const reply = await callClaudeChat(systemPrompt, anthropicMessages);
-    return { reply, systemPrompt };
-  } catch (err) {
-    console.warn("[connectChatService] Claude failed:", err?.message || err);
-  }
-
-  try {
-    const reply = await callGeminiChat(
-      systemPrompt,
-      input?.chatHistory,
-      message,
-    );
-    return { reply, systemPrompt };
-  } catch (err) {
-    console.warn("[connectChatService] Gemini failed:", err?.message || err);
+  for (const provider of connectChatProviderOrder()) {
+    try {
+      if (provider === "claude") {
+        const reply = await callClaudeChat(systemPrompt, anthropicMessages);
+        return { reply, systemPrompt };
+      }
+      const reply = await callGeminiChat(
+        systemPrompt,
+        input?.chatHistory,
+        message,
+      );
+      return { reply, systemPrompt };
+    } catch (err) {
+      console.warn(
+        `[connectChatService] ${provider} failed:`,
+        err?.message || err,
+      );
+    }
   }
 
   return { reply: fallbackReply(), systemPrompt };
