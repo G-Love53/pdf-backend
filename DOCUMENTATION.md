@@ -14,3 +14,10 @@
 | [CID-docs/CID_CONNECT.md](../CID-docs/CID_CONNECT.md) | **CID Connect** (LEG 3 app): Famous vs API, Cloudflare, RSS |
 
 Clone or copy `CID-docs` into its **own git repo** (or a monorepo root) if the team needs it versioned independently of `pdf-backend`.
+
+---
+
+## Repo-local notes (`pdf-backend`)
+
+- **`README.md`** — Bar segment + **Gmail poller / `DATABASE_URL` / optional dedupe** (short operational summary).
+- **`cid-connect`** (sibling repo): **`docs/ARCHITECTURE.md`**, **`docs/WORKFLOW_HANDOFF.md`**, **`docs/STAGING_INTEGRATION_TEST_PLAN_DRAFT.md`** — Connect vs pipeline DB, staging E2E.

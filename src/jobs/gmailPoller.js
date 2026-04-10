@@ -563,7 +563,7 @@ async function processMessage(gmail, messageId, seg) {
   return true;
 }
 
-async function dedupeCarrierMessagesForGmail({ gmailMessageId, segment }) {
+export async function dedupeCarrierMessagesForGmail({ gmailMessageId, segment }) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");

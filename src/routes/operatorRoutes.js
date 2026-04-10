@@ -13,6 +13,7 @@ import {
   segmentQuerySuffix,
   sqlSegmentFilter,
 } from "../utils/operatorSegment.js";
+import { dedupeCarrierMessagesForGmail } from "../jobs/gmailPoller.js";
 
 const router = express.Router();
 const pool = getPool();
@@ -485,6 +486,113 @@ router.get("/operator/bind/:quoteId", async (req, res) => {
     quoteId: req.params.quoteId,
   });
 });
+
+/** HTML escape for maintenance response bodies */
+function escapeHtml(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Deduplicate carrier_messages rows that share the same (gmail_message_id, segment).
+ * Requires env CID_MAINTENANCE_SECRET (set once on Render). Browser form — no local DATABASE_URL.
+ */
+router.get("/operator/maintenance/dedupe-carrier-messages", (_req, res) => {
+  const configured = Boolean(process.env.CID_MAINTENANCE_SECRET?.trim());
+  const body = `
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><title>Dedupe carrier messages</title>
+<style>body{font-family:system-ui,sans-serif;max-width:40rem;margin:2rem auto;padding:0 1rem}
+code{background:#f6f6f6;padding:2px 6px;border-radius:4px}</style></head><body>
+<h1>Dedupe carrier messages</h1>
+<p>Removes duplicate <code>carrier_messages</code> rows (keeps oldest per Gmail id + segment), same logic as the poller.</p>
+${
+  configured
+    ? `<form method="post" action="/operator/maintenance/dedupe-carrier-messages">
+<p><label>Maintenance secret<br><input name="maintenance_secret" type="password" required autocomplete="off" style="width:100%;max-width:24rem"/></label></p>
+<p><button type="submit">Run dedupe</button></p>
+</form>`
+    : `<p><strong>Not available.</strong> Set environment variable <code>CID_MAINTENANCE_SECRET</code> on this service, redeploy, then reload this page.</p>`
+}
+</body></html>`;
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.status(configured ? 200 : 503).send(body);
+});
+
+router.post(
+  "/operator/maintenance/dedupe-carrier-messages",
+  express.urlencoded({ extended: true }),
+  async (req, res) => {
+    const expected = process.env.CID_MAINTENANCE_SECRET?.trim();
+    if (!expected) {
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      return res
+        .status(503)
+        .send(
+          `<p>Set <code>CID_MAINTENANCE_SECRET</code> on the server and redeploy.</p>`,
+        );
+    }
+    const got = String(req.body?.maintenance_secret || "").trim();
+    if (!got || got !== expected) {
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      return res.status(401).send("<p>Unauthorized.</p>");
+    }
+
+    if (!pool) {
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      return res.status(503).send("<p>Database not configured.</p>");
+    }
+
+    try {
+      const { rows } = await pool.query(`
+        SELECT gmail_message_id, segment::text AS segment
+        FROM carrier_messages
+        WHERE gmail_message_id IS NOT NULL
+        GROUP BY gmail_message_id, segment
+        HAVING COUNT(*) > 1
+        ORDER BY gmail_message_id, segment
+      `);
+
+      if (rows.length === 0) {
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        return res.send(
+          `<p>No duplicate groups found. <a href="/operator/maintenance/dedupe-carrier-messages">Back</a></p>`,
+        );
+      }
+
+      for (const row of rows) {
+        await dedupeCarrierMessagesForGmail({
+          gmailMessageId: row.gmail_message_id,
+          segment: row.segment,
+        });
+      }
+
+      const { rows: verify } = await pool.query(`
+        SELECT COUNT(*)::int AS c FROM (
+          SELECT 1
+          FROM carrier_messages
+          WHERE gmail_message_id IS NOT NULL
+          GROUP BY gmail_message_id, segment
+          HAVING COUNT(*) > 1
+        ) t
+      `);
+      const remaining = verify[0]?.c ?? 0;
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      return res.send(
+        `<p>Processed <strong>${rows.length}</strong> duplicate group(s). Remaining duplicate groups: <strong>${remaining}</strong>.</p>
+<p><a href="/operator/maintenance/dedupe-carrier-messages">Back</a></p>`,
+      );
+    } catch (err) {
+      console.error("[maintenance/dedupe-carrier-messages]", err);
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      return res
+        .status(500)
+        .send(`<p>Dedupe failed: ${escapeHtml(err.message)}</p>`);
+    }
+  },
+);
 
 export default router;
 
