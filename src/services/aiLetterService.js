@@ -80,7 +80,7 @@ async function callClaude(systemPrompt, userPrompt) {
         signal,
         body: JSON.stringify({
           model,
-          max_tokens: Number(process.env.LETTER_MAX_TOKENS || 900),
+          max_tokens: Number(process.env.LETTER_MAX_TOKENS || 1200),
           system: systemPrompt,
           messages: [{ role: "user", content: userPrompt }],
           temperature: Number(process.env.LETTER_TEMPERATURE || 0.4),

@@ -109,24 +109,39 @@ VOICE AND TONE:
 STRUCTURE (follow this every time):
 1. HOOK (2-3 sentences max) — Acknowledge them by name, reference their business, and connect to why they reached out. If we know the trigger (renewal, requirement, price), lean into it. If not, use the universal: "You asked us to shop your insurance. We did. Here's what we found."
 
-2. THE QUOTE (clear, scannable) — State the carrier, the premium, and the key coverages in plain English. Not a coverage schedule — a human summary. One paragraph, done.
+2. THE QUOTE (clear, scannable) — State the carrier, the premium, and the key coverages in plain English. Not a coverage schedule — a human summary. "All Access is offering your bar $4,200/year for GL with $1M limits, liquor liability included, plus property coverage for your building and equipment." One paragraph, done.
 
-3. WHY THIS QUOTE (2-3 sentences) — What makes this competitive or right for their business specifically. Reference their trade/segment.
+3. WHY THIS QUOTE (2-3 sentences) — What makes this competitive or right for their business specifically. Reference their segment: e.g. completed operations tail for trades, or liquor liability built in for bars — use what fits the data.
 
-4. WHAT HAPPENS NEXT (clear action) — Tell them exactly what to do. Reply to move forward; COI timing if relevant. Remove obstacles.
+4. CID CONNECT — THE CLOSER (This is the differentiator. Sell it hard.) — Every policy comes with free access to CID Connect, your insurance app. This is what separates us from every other agent. Frame it as the reason to choose CID over anyone else, even if the premium is similar. Hit these points naturally — don't list them like bullet points; weave them into 3-4 sentences:
+   - Instant COIs: Need a certificate for a landlord, GC, or event? Pull it from your phone in under 5 minutes. No calling, no waiting, no "I'll get back to you Monday."
+   - "Am I Covered?" AI chat: Got a question at 11pm about whether your policy covers something? Ask the app. It reads your actual policy and gives you a real answer, not a generic FAQ.
+   - Everything in one place: Your policy, your documents, your coverage details, your claims — all on your phone. No digging through emails or filing cabinets.
+   - It's free. Every CID policy includes it. No other agent gives you this.
+   The tone should be: "This is the part most people don't expect. You're not just getting a policy — you're getting an insurance agent in your pocket."
 
-5. URGENCY (one line, honest) — Not fake scarcity. Real urgency: quote validity, expiration, or timing.
+5. WHAT HAPPENS NEXT (clear action) — Tell them exactly what to do. E.g. reply to bind; they'll get COI within 24 hours AND their CID Connect login so they never have to chase down a certificate again. Remove every possible obstacle. Make saying yes the easiest thing they do today.
+
+6. URGENCY (one line, honest) — Not fake scarcity. Real urgency: quote validity, current policy expiration, or carrier rate timing.
 
 WHAT YOU DON'T DO:
 - Don't open with "Dear Valued Customer" or "Thank you for your interest." Open with their name and their business.
 - Don't list every coverage in a table. That's what the quote PDF is for. The letter is the sell, not the spec sheet.
 - Don't use words like "comprehensive," "tailored," "solutions," or "leverage." Those are empty. Be specific.
-- Don't write more than 250 words. Shorter is better. If you can say it in 150, do it.
+- Don't write more than 300 words. Shorter is better. The CID Connect section earns its space — everything else should be tight.
 - Don't end with "Please don't hesitate to reach out." End with a clear ask.
 - Don't include disclaimers in the letter. Those are in the quote document.
 - Use ONLY the data provided below. Do not invent carriers, premiums, or limits.
 
 Sign the letter as Commercial Insurance Direct (no fictional agent names unless provided in data).`;
+
+  const cidConnectBlock = `CID CONNECT APP (Sell this in every letter — it's the differentiator):
+Every CID policy includes free access to CID Connect, a customer insurance app. No other agent offers this. Key selling points:
+- Instant COIs: Customer pulls certificates from their phone in under 5 minutes. No calling, no waiting, no "I'll get back to you Monday." Landlords, GCs, event venues — handled instantly.
+- "Am I Covered?" AI chat: Customer asks plain-English coverage questions anytime — nights, weekends, holidays. The app reads their actual policy and carrier guidelines, not a generic FAQ. It's like having an insurance agent in their pocket 24/7.
+- Everything in one place: Policy details, documents, coverage limits, claims filing, certificates — all on their phone. No digging through email, no filing cabinets, no calling the office.
+- Free with every policy. Not an upsell, not an add-on. Every CID policyholder gets it.
+Frame CID Connect as the reason to choose CID even if a competitor matches the price. The policy is the product. The app is the experience. Together they make switching impossible.`;
 
   const userPrompt = `PERSONALIZATION DATA:
 Business Name: ${businessName}
@@ -144,8 +159,10 @@ Key Coverages:
 ${keyCoverages}
 Quote Valid Until: ${quoteExpiration || "—"}
 
-SEGMENT-SPECIFIC VALUE PROPS (weave in where natural):
+SEGMENT-SPECIFIC VALUE PROPS:
 ${segmentProps}
+
+${cidConnectBlock}
 
 Write the letter. Return ONLY the letter body text — no subject line, no markdown fences, no preamble.`;
 
