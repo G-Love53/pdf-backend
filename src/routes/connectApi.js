@@ -4,6 +4,7 @@
  */
 import express from "express";
 import { getPool } from "../db.js";
+import { generateConnectChatReply } from "../services/connectChatService.js";
 
 const router = express.Router();
 
@@ -563,15 +564,32 @@ router.get(
   }),
 );
 
-// --- Chat (stub until Step 5) ---
+// --- Chat (Claude + Gemini fallback) ---
 
 router.post(
   "/chat",
-  asyncHandler(async (_req, res) => {
-    res.status(501).json({
-      ok: false,
-      error: "Chat endpoint not yet implemented — coming in Step 5",
-    });
+  asyncHandler(async (req, res) => {
+    const body = req.body || {};
+    const message = body.message;
+    if (!message || !String(message).trim()) {
+      return res.status(400).json({ ok: false, error: "message is required" });
+    }
+
+    try {
+      const reply = await generateConnectChatReply({
+        message: String(message).trim(),
+        policyContext: body.policyContext,
+        chatHistory: Array.isArray(body.chatHistory) ? body.chatHistory : [],
+        aiSummary: body.aiSummary,
+      });
+      res.json({ ok: true, data: { message: reply } });
+    } catch (err) {
+      console.error("[ConnectAPI] /chat", err?.message || err);
+      res.status(503).json({
+        ok: false,
+        error: "Coverage assistant is temporarily unavailable.",
+      });
+    }
   }),
 );
 

@@ -101,6 +101,13 @@ export async function connectAuthMiddleware(req, res, next) {
     next();
   } catch (err) {
     console.error("[connectAuth] error:", err.message || err);
+    if (err.code === "42703") {
+      return res.status(503).json({
+        ok: false,
+        error:
+          "Database schema missing Connect columns (e.g. famous_user_id). Run migrations/007_connect_api.sql on cid-postgres.",
+      });
+    }
     return res.status(500).json({
       ok: false,
       error: "Internal error during identity lookup",

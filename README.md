@@ -19,6 +19,8 @@ Deploy: Docker (Render). Build clones CID_HomeBase when submodules are not avail
 
 ## CID Connect API (`/api/connect`)
 
-- **Routes:** `src/routes/connectApi.js` — profile, policies, quotes, documents, COI, claims, carrier knowledge search, chat stub (`501` until Step 5).
+- **Routes:** `src/routes/connectApi.js` — profile, policies, quotes, documents, COI, claims, carrier knowledge search, **`POST /api/connect/chat`** (Claude primary, Gemini fallback — `src/services/connectChatService.js`).
 - **Auth (Phase 1):** `src/middleware/connectAuth.js` — requires **`X-User-Email`**; optional **`X-User-Id`** (Supabase user UUID) for `clients.famous_user_id` mapping.
 - **Migration:** Run **`migrations/007_connect_api.sql`** on Render `DATABASE_URL` (adds `famous_user_id`, KB tables, `coi_requests`, `claims` if missing).
+- **Chat env (Render):** `ANTHROPIC_API_KEY` (required for Claude), optional `ANTHROPIC_CONNECT_CHAT_MODEL`, `CONNECT_CHAT_TIMEOUT_MS`, `GEMINI_API_KEY` + `GEMINI_CONNECT_CHAT_MODEL` for fallback.
+- **Smoke test (bash):** after deploy, run **`scripts/smoke-connect-api.sh`** with `CID_API_URL` and `TEST_EMAIL` set (see script header).
