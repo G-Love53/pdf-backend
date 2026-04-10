@@ -7,7 +7,13 @@ function truncate(str, max) {
   return `${s.slice(0, max)}… [truncated]`;
 }
 
-function buildSystemPrompt(policyContext, aiSummary) {
+function buildSystemPrompt(policyContext, aiSummary, opts = {}) {
+  const carrierDisplayName =
+    typeof opts.carrierDisplayName === "string" && opts.carrierDisplayName.trim()
+      ? opts.carrierDisplayName.trim()
+      : null;
+  const knowledgeBlock = String(opts.knowledgeBlock || "").trim();
+
   const policyJson = truncate(
     JSON.stringify(policyContext || {}, null, 0),
     12000,
@@ -17,15 +23,29 @@ function buildSystemPrompt(policyContext, aiSummary) {
       ? truncate(aiSummary, 8000)
       : truncate(JSON.stringify(aiSummary ?? null, null, 0), 8000);
 
+  const carrierSection = carrierDisplayName
+    ? `Authoritative insurer name (use exactly this name; do not substitute any other carrier):
+${carrierDisplayName}
+
+`
+    : "";
+
+  const kbSection = knowledgeBlock
+    ? `Carrier knowledge base (use when relevant to the user's question; prefer these details over general knowledge; mention the topic or source when you use them):
+${truncate(knowledgeBlock, 10000)}
+
+`
+    : "";
+
   return `You are CID Connect's commercial insurance coverage assistant.
 
 Rules:
 - Answer clearly and concisely in plain English.
-- Use only the policy context and coverage summary below; do not invent limits, carriers, or endorsements.
+- Use only the policy context, carrier name, knowledge base, and coverage summary below; do not invent limits, carriers, or endorsements.
 - If something is not in the context, say you don't have that detail and suggest contacting their agent or broker.
 - Do not give legal advice; remind the user that the policy document is authoritative.
 
-Policy context (JSON):
+${carrierSection}${kbSection}Policy context (JSON):
 ${policyJson}
 
 Coverage analysis summary (may be empty):
@@ -158,7 +178,14 @@ function fallbackReply() {
 }
 
 /**
- * @param {{ message: string, policyContext?: unknown, chatHistory?: Array<{role: string, content: string}>, aiSummary?: unknown }} input
+ * @param {{
+ *   message: string,
+ *   policyContext?: unknown,
+ *   chatHistory?: Array<{role: string, content: string}>,
+ *   aiSummary?: unknown,
+ *   carrierDisplayName?: string | null,
+ *   knowledgeBlock?: string,
+ * }} input
  * @returns {Promise<string>}
  */
 export async function generateConnectChatReply(input) {
@@ -167,7 +194,10 @@ export async function generateConnectChatReply(input) {
     return "Please enter a question.";
   }
 
-  const systemPrompt = buildSystemPrompt(input?.policyContext, input?.aiSummary);
+  const systemPrompt = buildSystemPrompt(input?.policyContext, input?.aiSummary, {
+    carrierDisplayName: input?.carrierDisplayName,
+    knowledgeBlock: input?.knowledgeBlock,
+  });
   const anthropicMessages = buildAnthropicMessages(input?.chatHistory, message);
 
   try {

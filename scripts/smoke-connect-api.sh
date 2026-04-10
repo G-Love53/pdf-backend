@@ -29,15 +29,15 @@ echo ""
 echo "HTTP ${code}"
 [[ "${code}" == "200" ]] || { echo "FAIL: expected 200" >&2; exit 1; }
 
-HDR_EMAIL=( -H "X-User-Email: ${TEST_EMAIL}" )
-HDR_USER=()
+# One array avoids "${empty[@]}" under `set -u` (macOS / older bash quirk).
+CURL_HDRS=( -H "X-User-Email: ${TEST_EMAIL}" )
 if [[ -n "${TEST_USER_ID:-}" ]]; then
-  HDR_USER=( -H "X-User-Id: ${TEST_USER_ID}" )
+  CURL_HDRS+=( -H "X-User-Id: ${TEST_USER_ID}" )
 fi
 
 echo ""
 echo "=== 2) GET ${BASE}/api/connect/profile ==="
-code=$(curl -sS -o /tmp/smoke-profile.json -w "%{http_code}" "${HDR_EMAIL[@]}" "${HDR_USER[@]}" "${BASE}/api/connect/profile")
+code=$(curl -sS -o /tmp/smoke-profile.json -w "%{http_code}" "${CURL_HDRS[@]}" "${BASE}/api/connect/profile")
 cat /tmp/smoke-profile.json | head -c 800
 echo ""
 echo "HTTP ${code}"
@@ -48,8 +48,7 @@ echo ""
 echo "=== 3) POST ${BASE}/api/connect/chat ==="
 code=$(curl -sS -o /tmp/smoke-chat.json -w "%{http_code}" \
   -H "Content-Type: application/json" \
-  "${HDR_EMAIL[@]}" \
-  "${HDR_USER[@]}" \
+  "${CURL_HDRS[@]}" \
   -d '{"message":"Reply with exactly: smoke-ok","policyContext":null,"chatHistory":[],"aiSummary":null}' \
   "${BASE}/api/connect/chat")
 cat /tmp/smoke-chat.json | head -c 1200

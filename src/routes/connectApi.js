@@ -5,6 +5,7 @@
 import express from "express";
 import { getPool } from "../db.js";
 import { generateConnectChatReply } from "../services/connectChatService.js";
+import { buildEnrichedChatInput } from "../services/connectChatEnrichment.js";
 
 const router = express.Router();
 
@@ -466,7 +467,7 @@ router.get(
     }
 
     const pol = await pool.query(
-      `SELECT carrier_name, segment::text AS segment FROM policies
+      `SELECT * FROM policies
        WHERE client_id = $1::uuid AND status = 'active'
        ORDER BY effective_date DESC NULLS LAST
        LIMIT 1`,
@@ -482,15 +483,18 @@ router.get(
       });
     }
 
-    const cn = pol.rows[0].carrier_name;
-    let carrierSlug = await resolveCarrierSlug(pool, cn);
+    const pr = pol.rows[0];
+    let carrierSlug = pr.carrier_slug || null;
     if (!carrierSlug) {
-      carrierSlug = String(cn || "unknown")
+      carrierSlug = await resolveCarrierSlug(pool, pr.carrier_name);
+    }
+    if (!carrierSlug) {
+      carrierSlug = String(pr.carrier_name || "unknown")
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "")
         .slice(0, 64) || "unknown";
     }
-    const segment = pol.rows[0].segment;
+    const segment = pr.segment;
     const searchText = String(q).trim();
 
     const params = [carrierSlug, segment, searchText];
@@ -528,7 +532,7 @@ router.get(
     const { client_id } = req.connectClient;
 
     const pol = await pool.query(
-      `SELECT carrier_name, segment::text AS segment FROM policies
+      `SELECT * FROM policies
        WHERE client_id = $1::uuid AND status = 'active'
        ORDER BY effective_date DESC NULLS LAST
        LIMIT 1`,
@@ -539,15 +543,18 @@ router.get(
       return res.json({ ok: true, data: [], count: 0 });
     }
 
-    const cn = pol.rows[0].carrier_name;
-    let carrierSlug = await resolveCarrierSlug(pool, cn);
+    const pr = pol.rows[0];
+    let carrierSlug = pr.carrier_slug || null;
     if (!carrierSlug) {
-      carrierSlug = String(cn || "unknown")
+      carrierSlug = await resolveCarrierSlug(pool, pr.carrier_name);
+    }
+    if (!carrierSlug) {
+      carrierSlug = String(pr.carrier_name || "unknown")
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "")
         .slice(0, 64) || "unknown";
     }
-    const segment = pol.rows[0].segment;
+    const segment = pr.segment;
 
     const result = await pool.query(
       `SELECT topic, content, tags, source_label, category
@@ -575,12 +582,22 @@ router.post(
       return res.status(400).json({ ok: false, error: "message is required" });
     }
 
+    const pool = requirePool(res);
+    if (!pool) return;
+
     try {
+      const enriched = await buildEnrichedChatInput(
+        pool,
+        req.connectClient.client_id,
+        body,
+      );
       const reply = await generateConnectChatReply({
         message: String(message).trim(),
-        policyContext: body.policyContext,
-        chatHistory: Array.isArray(body.chatHistory) ? body.chatHistory : [],
-        aiSummary: body.aiSummary,
+        policyContext: enriched.policyContext,
+        chatHistory: enriched.chatHistory,
+        aiSummary: enriched.aiSummary,
+        carrierDisplayName: enriched.carrierDisplayName,
+        knowledgeBlock: enriched.knowledgeBlock,
       });
       res.json({ ok: true, data: { message: reply } });
     } catch (err) {
