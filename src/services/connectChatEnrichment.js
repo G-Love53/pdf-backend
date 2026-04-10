@@ -4,21 +4,29 @@
 
 async function resolveCarrierSlug(pool, carrierName) {
   if (!carrierName) return null;
+  const raw = String(carrierName).trim();
+  const slugify = (s) =>
+    String(s)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "")
+      .slice(0, 64) || null;
+
+  const exact = await pool.query(
+    `SELECT slug FROM carriers WHERE lower(trim(name)) = lower(trim($1)) LIMIT 1`,
+    [raw],
+  );
+  if (exact.rows.length) return exact.rows[0].slug;
+
   const r = await pool.query(
     `SELECT slug FROM carriers
      WHERE $1::text ILIKE '%' || name || '%'
         OR name ILIKE '%' || $1 || '%'
      ORDER BY length(name) ASC
      LIMIT 1`,
-    [carrierName],
+    [raw],
   );
   if (r.rows.length) return r.rows[0].slug;
-  return (
-    String(carrierName)
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "")
-      .slice(0, 64) || null
-  );
+  return slugify(raw);
 }
 
 async function resolveCatalogName(pool, slug) {
@@ -133,23 +141,19 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
       carrierDisplayName = row.carrier_name || null;
     }
 
+    // Server policy row is source of truth (avoid stale client policyContext overriding DB).
     mergedPolicy = {
       ...mergedPolicy,
-      id: mergedPolicy.id ?? row.id,
-      policy_number: mergedPolicy.policy_number ?? row.policy_number,
-      segment: mergedPolicy.segment ?? row.segment,
-      carrier: carrierDisplayName || row.carrier_name || mergedPolicy.carrier,
+      id: row.id,
+      policy_number: row.policy_number,
+      segment: row.segment,
+      carrier: carrierDisplayName || row.carrier_name || null,
       carrier_slug: carrierSlug,
-      premium:
-        mergedPolicy.premium != null
-          ? mergedPolicy.premium
-          : row.annual_premium != null
-            ? Number(row.annual_premium)
-            : undefined,
-      coverage_data: mergedPolicy.coverage_data ?? row.coverage_data,
-      effective_date: mergedPolicy.effective_date ?? row.effective_date,
-      expiration_date: mergedPolicy.expiration_date ?? row.expiration_date,
-      status: mergedPolicy.status ?? row.status,
+      premium: row.annual_premium != null ? Number(row.annual_premium) : undefined,
+      coverage_data: row.coverage_data,
+      effective_date: row.effective_date,
+      expiration_date: row.expiration_date,
+      status: row.status,
     };
   }
 

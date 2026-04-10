@@ -64,19 +64,29 @@ function mapPolicy(row, supabaseUserId) {
 /** Resolve carrier slug for KB search from policies.carrier_name */
 async function resolveCarrierSlug(pool, carrierName) {
   if (!carrierName) return null;
+  const raw = String(carrierName).trim();
+  const slugify = (s) =>
+    String(s)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "")
+      .slice(0, 64) || null;
+
+  const exact = await pool.query(
+    `SELECT slug FROM carriers WHERE lower(trim(name)) = lower(trim($1)) LIMIT 1`,
+    [raw],
+  );
+  if (exact.rows.length) return exact.rows[0].slug;
+
   const r = await pool.query(
     `SELECT slug FROM carriers
      WHERE $1::text ILIKE '%' || name || '%'
         OR name ILIKE '%' || $1 || '%'
      ORDER BY length(name) ASC
      LIMIT 1`,
-    [carrierName],
+    [raw],
   );
   if (r.rows.length) return r.rows[0].slug;
-  return String(carrierName)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "")
-    .slice(0, 64) || null;
+  return slugify(raw);
 }
 
 // --- Profile ---

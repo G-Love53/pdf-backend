@@ -44,6 +44,8 @@ Rules:
 - Use only the policy context, carrier name, knowledge base, and coverage summary below; do not invent limits, carriers, or endorsements.
 - If something is not in the context, say you don't have that detail and suggest contacting their agent or broker.
 - Do not give legal advice; remind the user that the policy document is authoritative.
+- When an authoritative insurer name is given above, you MUST use that exact name only. Do not substitute another insurance company name from general knowledge or training.
+- Deductibles in coverage_data are often per-line (e.g. property). For a general liability / premises injury question, do not cite a property or equipment deductible as applying to GL liability unless the JSON explicitly ties that deductible to GL liability or the claim type.
 
 ${carrierSection}${kbSection}Policy context (JSON):
 ${policyJson}
