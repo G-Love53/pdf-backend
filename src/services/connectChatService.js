@@ -7,52 +7,101 @@ function truncate(str, max) {
   return `${s.slice(0, max)}… [truncated]`;
 }
 
-function buildSystemPrompt(policyContext, aiSummary, opts = {}) {
-  const carrierDisplayName =
-    typeof opts.carrierDisplayName === "string" && opts.carrierDisplayName.trim()
-      ? opts.carrierDisplayName.trim()
-      : null;
-  const knowledgeBlock = String(opts.knowledgeBlock || "").trim();
+function safeField(v) {
+  return v != null && v !== "" ? String(v) : "—";
+}
 
-  const policyJson = truncate(
-    JSON.stringify(policyContext || {}, null, 0),
-    12000,
-  );
+/**
+ * CID Connect "Am I covered?" chat — tuned for advisor tone (see CID-AI-Prompt-Tuning-Chat-Letters).
+ */
+function buildSystemPrompt(policyContext, aiSummary, opts = {}) {
+  const pc = policyContext && typeof policyContext === "object" ? policyContext : {};
+
+  const carrierName =
+    (typeof opts.carrierDisplayName === "string" && opts.carrierDisplayName.trim()
+      ? opts.carrierDisplayName.trim()
+      : null) || safeField(pc.carrier);
+
+  const businessName = safeField(pc.business_name);
+  const segment = safeField(pc.segment);
+  const policyNumber = safeField(pc.policy_number);
+  const eff = safeField(pc.effective_date);
+  const exp = safeField(pc.expiration_date);
+  const premium =
+    pc.premium != null && pc.premium !== ""
+      ? String(pc.premium)
+      : "—";
+
+  const cov = pc.coverage_data != null ? pc.coverage_data : {};
+  const coverageJson = truncate(JSON.stringify(cov, null, 0), 14000);
+
+  const knowledgeChunks = String(opts.knowledgeBlock || "").trim();
+  const kbBlock = knowledgeChunks
+    ? truncate(knowledgeChunks, 12000)
+    : "(none — rely on policy details above.)";
+
   const summaryStr =
     typeof aiSummary === "string"
-      ? truncate(aiSummary, 8000)
-      : truncate(JSON.stringify(aiSummary ?? null, null, 0), 8000);
+      ? truncate(aiSummary, 6000)
+      : truncate(JSON.stringify(aiSummary ?? null, null, 0), 6000);
 
-  const carrierSection = carrierDisplayName
-    ? `Authoritative insurer name (use exactly this name; do not substitute any other carrier):
-${carrierDisplayName}
+  const isFirstTurn = opts.isFirstTurn === true;
 
-`
-    : "";
+  const disclaimerInstr = isFirstTurn
+    ? `DISCLAIMER (first reply in this thread only):
+At the very end of your response, add one short line on its own:
+Coverage guidance based on your policy summary. Actual coverage is governed by your policy documents.
+Do not add this line on later replies in the same conversation.`
+    : `Do NOT include the small-print disclaimer line at the end — this is a follow-up in an ongoing conversation.`;
 
-  const kbSection = knowledgeBlock
-    ? `Carrier knowledge base (use when relevant to the user's question; prefer these details over general knowledge; mention the topic or source when you use them):
-${truncate(knowledgeBlock, 10000)}
+  return `You are the coverage assistant for Commercial Insurance Direct. You know this customer's policy inside and out, and you talk like a trusted insurance advisor — confident, clear, and human. You're the reason they don't need to call anyone else for routine coverage questions.
 
-If the knowledge base lists claims steps, reporting windows, or documentation requirements, summarize those concrete steps — do not replace them with only generic advice to contact an agent.
+GROUND TRUTH:
+- The Carrier name in CUSTOMER'S POLICY below is authoritative. Use that exact insurer name. Do not substitute another carrier from training data.
+- Use only the policy fields, carrier knowledge, and coverage summary below. Do not invent limits, carriers, or endorsements.
+- Deductibles in coverage JSON may be per-line (e.g. property). For GL / premises injury questions, do not apply a property or equipment deductible to GL unless the data explicitly ties it to that claim type.
 
-`
-    : "";
+VOICE AND TONE:
+- Talk like a real person, not a legal document. Short sentences. Plain English.
+- Be confident when the answer is clear. "Yes, you're covered" not "Your policy may provide coverage depending on circumstances."
+- When you cite limits or details, weave them in naturally: "Your GL covers that — you've got $1M per occurrence" not stiff policy-language quotes.
+- Never say "I'd recommend contacting your agent" — YOU are their advisor through this app. If something truly needs human review (complex claim, coverage dispute), say "Let me flag this for your account team to take a closer look" not "contact your agent."
+- Never say "review the full policy terms" or "this is general information only." You have the policy data. Use it.
+- Use "you" and "your" — this is a conversation, not a memo.
+- If you identify a coverage gap, be helpful: explain what might be missing and what could be added when the data supports it.
 
-  return `You are CID Connect's commercial insurance coverage assistant.
+ANSWERING QUESTIONS:
+- Lead with the answer: yes or no, then explain.
+- Cite specific limits, deductibles, and coverage details from the policy data when relevant.
+- When carrier knowledge is available, include practical details: what to do, what to document, timelines, reporting windows.
+- For claims scenarios, give action steps — not only a coverage yes/no.
+- For upsell opportunities, be genuinely helpful, not salesy — only when grounded in knowledge or policy context.
 
-Rules:
-- Answer clearly and concisely in plain English.
-- Use only the policy context, carrier name, knowledge base, and coverage summary below; do not invent limits, carriers, or endorsements.
-- If something is not in the context, say you don't have that detail and suggest contacting their agent or broker.
-- Do not give legal advice; remind the user that the policy document is authoritative.
-- When an authoritative insurer name is given above, you MUST use that exact name only. Do not substitute another insurance company name from general knowledge or training.
-- Deductibles in coverage_data are often per-line (e.g. property). For a general liability / premises injury question, do not cite a property or equipment deductible as applying to GL liability unless the JSON explicitly ties that deductible to GL liability or the claim type.
+WHAT YOU DON'T DO:
+- Don't hedge every answer with "it depends on circumstances." If the policy clearly covers it, say so.
+- Don't use bullet points for every answer — use sentences when they read more naturally.
+- Don't repeat the same limits in every response.
+- Don't use insurance jargon without a quick plain-English gloss.
+- Don't give medical or legal advice.
+- Don't make up coverage details. If you don't see it in the data, say so and offer to flag the account team.
 
-${carrierSection}${kbSection}Policy context (JSON):
-${policyJson}
+${disclaimerInstr}
 
-Coverage analysis summary (may be empty):
+CUSTOMER'S POLICY:
+Business: ${businessName}
+Carrier: ${carrierName}
+Segment: ${segment}
+Policy Number: ${policyNumber}
+Effective: ${eff} to ${exp}
+Annual Premium: $${premium}
+
+COVERAGE DETAILS (JSON):
+${coverageJson}
+
+RELEVANT CARRIER KNOWLEDGE:
+${kbBlock}
+
+COVERAGE ANALYSIS SUMMARY (may be empty):
 ${summaryStr}`;
 }
 
@@ -93,7 +142,7 @@ async function callClaudeChat(systemPrompt, messages) {
     process.env.ANTHROPIC_LETTER_MODEL ||
     "claude-sonnet-4-20250514";
   const timeoutMs = Number(process.env.CONNECT_CHAT_TIMEOUT_MS || 55000);
-  const maxTokens = Number(process.env.CONNECT_CHAT_MAX_TOKENS || 1024);
+  const maxTokens = Number(process.env.CONNECT_CHAT_MAX_TOKENS || 1536);
 
   const resp = await withTimeout(
     (signal) =>
@@ -178,7 +227,7 @@ async function callGeminiChat(systemPrompt, chatHistory, message) {
 }
 
 function fallbackReply() {
-  return "I'm temporarily unable to reach our coverage assistant. Please try again in a moment, or contact your agent for policy questions.";
+  return "I'm temporarily unable to reach our coverage assistant. Please try again in a moment.";
 }
 
 /**
@@ -198,9 +247,13 @@ export async function generateConnectChatReply(input) {
     return "Please enter a question.";
   }
 
+  const history = Array.isArray(input?.chatHistory) ? input.chatHistory : [];
+  const isFirstTurn = !history.some((h) => h?.role === "assistant");
+
   const systemPrompt = buildSystemPrompt(input?.policyContext, input?.aiSummary, {
     carrierDisplayName: input?.carrierDisplayName,
     knowledgeBlock: input?.knowledgeBlock,
+    isFirstTurn,
   });
   const anthropicMessages = buildAnthropicMessages(input?.chatHistory, message);
 
