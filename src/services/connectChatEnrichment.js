@@ -1,6 +1,7 @@
 /**
  * Server-side context for /api/connect/chat: authoritative carrier name + carrier_knowledge FTS.
  */
+import { searchCarrierKnowledgeRows } from "../lib/carrierKnowledgeSearch.js";
 
 async function resolveCarrierSlug(pool, carrierName) {
   if (!carrierName) return null;
@@ -35,56 +36,6 @@ async function resolveCatalogName(pool, slug) {
   return r.rows.length ? r.rows[0].name : null;
 }
 
-/**
- * Same FTS + rank as GET /api/connect/knowledge/search (aligned WHERE clause).
- */
-async function fetchKnowledgeSnippets(pool, carrierSlug, segment, searchText, limit = 8) {
-  const q = String(searchText || "").trim();
-  if (!q || !carrierSlug) return [];
-
-  const cap = Math.min(Math.max(Number(limit) || 8, 1), 15);
-  const params = [carrierSlug, segment, q];
-  const sql = `
-    SELECT id, topic, content, category, source_label
-    FROM carrier_knowledge
-    WHERE carrier_slug = $1
-      AND is_published = true
-      AND (segment::text = $2 OR segment IS NULL)
-      AND to_tsvector('english', topic || ' ' || content) @@ plainto_tsquery('english', $3)
-    ORDER BY ts_rank(
-      to_tsvector('english', topic || ' ' || content),
-      plainto_tsquery('english', $3)
-    ) DESC
-    LIMIT ${cap}
-  `;
-  const { rows } = await pool.query(sql, params);
-  if (rows.length > 0) return rows;
-
-  // Fallback: ILIKE on long keywords if FTS is too strict
-  const words = q
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter((w) => w.length >= 3)
-    .slice(0, 5);
-  if (words.length === 0) return [];
-
-  const orConds = words.map((_, i) => `(topic || ' ' || content) ILIKE $${i + 3}`);
-  const params2 = [carrierSlug, segment, ...words.map((w) => `%${w}%`)];
-  const sql2 = `
-    SELECT id, topic, content, category, source_label
-    FROM carrier_knowledge
-    WHERE carrier_slug = $1
-      AND is_published = true
-      AND (segment::text = $2 OR segment IS NULL)
-      AND (${orConds.join(" OR ")})
-    ORDER BY category, topic ASC
-    LIMIT ${cap}
-  `;
-  const res2 = await pool.query(sql2, params2);
-  return res2.rows;
-}
-
 function formatKnowledgeBlock(rows) {
   if (!rows || rows.length === 0) {
     return "";
@@ -110,9 +61,13 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
     body?.policyContext && typeof body.policyContext === "object" ? body.policyContext : {};
 
   const pol = await pool.query(
-    `SELECT * FROM policies
-     WHERE client_id = $1::uuid AND status = 'active'
-     ORDER BY effective_date DESC NULLS LAST
+    `SELECT
+       p.*,
+       c.name AS carrier_catalog_name
+     FROM policies p
+     LEFT JOIN carriers c ON c.slug = p.carrier_slug
+     WHERE p.client_id = $1::uuid AND p.status = 'active'
+     ORDER BY p.effective_date DESC NULLS LAST
      LIMIT 1`,
     [clientId],
   );
@@ -128,7 +83,9 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
 
     if (row.carrier_slug) {
       carrierSlug = row.carrier_slug;
-      carrierDisplayName = await resolveCatalogName(pool, carrierSlug);
+      carrierDisplayName =
+        row.carrier_catalog_name ||
+        (await resolveCatalogName(pool, carrierSlug));
     }
     if (!carrierSlug) {
       const cn = row.carrier_name || "";
@@ -158,7 +115,12 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
   }
 
   const knowledgeRows = carrierSlug
-    ? await fetchKnowledgeSnippets(pool, carrierSlug, segment, message)
+    ? await searchCarrierKnowledgeRows(pool, {
+        carrierSlug,
+        segment,
+        searchText: message,
+        limit: 10,
+      })
     : [];
 
   return {

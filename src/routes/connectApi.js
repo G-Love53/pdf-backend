@@ -6,6 +6,7 @@ import express from "express";
 import { getPool } from "../db.js";
 import { generateConnectChatReply } from "../services/connectChatService.js";
 import { buildEnrichedChatInput } from "../services/connectChatEnrichment.js";
+import { searchCarrierKnowledgeRows } from "../lib/carrierKnowledgeSearch.js";
 
 const router = express.Router();
 
@@ -507,28 +508,13 @@ router.get(
     const segment = pr.segment;
     const searchText = String(q).trim();
 
-    const params = [carrierSlug, segment, searchText];
-    let sql = `
-      SELECT id, topic, content, category, source_label, tags, carrier_slug, segment
-      FROM carrier_knowledge
-      WHERE carrier_slug = $1
-        AND is_published = true
-        AND (segment::text = $2 OR segment IS NULL)
-        AND to_tsvector('english', topic || ' ' || content) @@ plainto_tsquery('english', $3)
-    `;
-    if (category) {
-      sql += ` AND category = $4`;
-      params.push(category);
-    }
-    sql += `
-      ORDER BY ts_rank(
-        to_tsvector('english', topic || ' ' || content),
-        plainto_tsquery('english', $3)
-      ) DESC
-      LIMIT 10
-    `;
-
-    const { rows } = await pool.query(sql, params);
+    const rows = await searchCarrierKnowledgeRows(pool, {
+      carrierSlug,
+      segment,
+      searchText,
+      category: category || null,
+      limit: 10,
+    });
 
     res.json({ ok: true, data: rows, count: rows.length });
   }),
@@ -572,7 +558,9 @@ router.get(
        WHERE carrier_slug = $1
          AND category = 'coverage_options'
          AND is_published = true
-         AND (segment::text = $2 OR segment IS NULL)
+         AND (
+           ($2::text IS NULL OR segment::text = $2 OR segment IS NULL)
+         )
        ORDER BY topic ASC`,
       [carrierSlug, segment],
     );

@@ -34,6 +34,8 @@ ${carrierDisplayName}
     ? `Carrier knowledge base (use when relevant to the user's question; prefer these details over general knowledge; mention the topic or source when you use them):
 ${truncate(knowledgeBlock, 10000)}
 
+If the knowledge base lists claims steps, reporting windows, or documentation requirements, summarize those concrete steps — do not replace them with only generic advice to contact an agent.
+
 `
     : "";
 

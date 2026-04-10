@@ -1219,7 +1219,7 @@ function resolveCarrierName(email) {
     "employers.com": "Employers",
     "biberk.com": "biBERK",
     "societyinsurance.com": "Society Insurance",
-    "allaccessins.com": "Society Insurance",
+    "allaccessins.com": "All Access Insurance",
     "coterie.com": "Coterie",
   };
   // quotes.carrier_name is NOT NULL, so never return null.
