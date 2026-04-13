@@ -160,8 +160,6 @@ async function callClaudeChat(systemPrompt, messages) {
   const timeoutMs = Number(process.env.CONNECT_CHAT_TIMEOUT_MS || 55000);
   const maxTokens = Number(process.env.CONNECT_CHAT_MAX_TOKENS || 1536);
 
-  console.log("SYSTEM PROMPT:", systemPrompt.substring(0, 300));
-
   const resp = await withTimeout(
     (signal) =>
       fetch("https://api.anthropic.com/v1/messages", {
