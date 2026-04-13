@@ -186,7 +186,7 @@ ${lines.join("\n")}
 
 Rules when any line is NOT IN SUMMARY (ABSENT) — Reliable + Sellable:
 - State clearly that the line is not shown on this policy summary. Be direct, not scary: you're protecting them from a wrong "yes," not delivering bad news for its own sake.
-- Offer a helpful next beat: what to document, that the account team can confirm against full documents, or whether carrier knowledge mentions the line as a common add-on (only as optional, not in force).
+- Offer a helpful next beat: what to document, that you can look into or flag for a closer look against full documents, or whether carrier knowledge mentions the line as a common add-on (only as optional, not in force).
 - Do NOT use RELEVANT CARRIER KNOWLEDGE to imply the coverage is already in force. KB is for exclusions, claims process, and add-on context — not proof they have the line.
 - Do NOT invent reporting windows, deductibles, or claim steps for that absent line. Property or GL deductibles apply to those lines only, not to this absent line.
 
@@ -214,33 +214,33 @@ export function sanitizeConnectReplyAgainstVerdicts(reply, triggeredResults) {
     if (row.intent === "equipment_breakdown" && ebAbsentViolated(t)) {
       return (
         "Based only on your policy summary, equipment breakdown coverage is not listed — so I can't say your walk-in cooler or similar equipment is covered under an equipment breakdown line here. " +
-        "Note what failed and when, keep any repair quotes, and ask your account team to confirm whether equipment breakdown exists on your full policy or as an endorsement. " +
-        "If something else on your summary (like property) might apply, they can review that with you. " +
-        "Let me know if you'd like me to flag your account team.\n\n" +
+        "Note what failed and when, keep any repair quotes, and I can look into whether equipment breakdown exists on your full policy or as an endorsement. " +
+        "If something else on your summary (like property) might apply, we can take a closer look together. " +
+        "Want me to look into that for you?\n\n" +
         "Coverage guidance based on your policy summary. Actual coverage is governed by your policy documents."
       );
     }
     if (row.intent === "flood" && floodAbsentViolated(t)) {
       return (
         "Based only on your policy summary, flood coverage is not listed — so I can't confirm you're covered for flood or rising water here. " +
-        "Document the damage, mitigate further loss if you can do so safely, and ask your account team about flood or excess flood options. " +
-        "Let me know if you'd like me to flag your account team.\n\n" +
+        "Document the damage, mitigate further loss if you can do so safely, and I can look into flood or excess flood options for you. " +
+        "Want me to look into that for you?\n\n" +
         "Coverage guidance based on your policy summary. Actual coverage is governed by your policy documents."
       );
     }
     if (row.intent === "cyber" && cyberAbsentViolated(t)) {
       return (
         "Based only on your policy summary, cyber or data-breach coverage is not listed — so I can't confirm you're covered for that here. " +
-        "Preserve logs, avoid paying ransom without guidance, and ask your account team about cyber endorsements. " +
-        "Let me know if you'd like me to flag your account team.\n\n" +
+        "Preserve logs, avoid paying ransom without guidance, and I can get cyber endorsements quoted or looked into for you. " +
+        "Want me to look into that for you?\n\n" +
         "Coverage guidance based on your policy summary. Actual coverage is governed by your policy documents."
       );
     }
     if (row.intent === "liquor_liability" && liquorAbsentViolated(t)) {
       return (
         "Based only on your policy summary, liquor liability is not listed — so I can't confirm you're covered for that exposure here. " +
-        "Ask your account team about dram shop or host liquor coverage. " +
-        "Let me know if you'd like me to flag your account team.\n\n" +
+        "I can get dram shop or host liquor coverage quoted or looked into for you. " +
+        "Want me to look into that for you?\n\n" +
         "Coverage guidance based on your policy summary. Actual coverage is governed by your policy documents."
       );
     }
