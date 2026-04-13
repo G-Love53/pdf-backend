@@ -599,7 +599,9 @@ router.post(
         carrierDisplayName: enriched.carrierDisplayName,
         knowledgeBlock: enriched.knowledgeBlock,
       });
-      console.log("SYSTEM PROMPT:", String(systemPrompt || "").substring(0, 200));
+      if (process.env.CONNECT_CHAT_PROMPT_DEBUG === "true") {
+        console.log("[ConnectAPI] /chat systemPrompt prefix:", String(systemPrompt || "").substring(0, 400));
+      }
       const data = { message: reply };
       if (process.env.CONNECT_CHAT_PROMPT_DEBUG === "true") {
         data._promptDebug = String(systemPrompt || "").substring(0, 120);
