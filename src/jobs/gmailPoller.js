@@ -1246,7 +1246,7 @@ export function startGmailPoller() {
     return;
   }
 
-  const schedule = process.env.GMAIL_POLL_CRON || "*/3 * * * *";
+  const schedule = process.env.GMAIL_POLL_CRON || "*/15 * * * *";
 
   cron.schedule(schedule, async () => {
     try {
