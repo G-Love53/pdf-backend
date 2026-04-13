@@ -86,12 +86,30 @@ const LIQUOR_KEY_SNIPPETS = ["liquor_liability", "liquorliability", "dram_shop",
  * @param {string[]} paths
  * @param {string[]} stringHints
  */
+/**
+ * String leaves can mention "equipment breakdown" in exclusions or marketing blurbs.
+ * Only treat as present if the phrase appears in a non-negated coverage context.
+ * @param {string} blob
+ */
+function equipmentBreakdownStringIndicatesPresent(blob) {
+  if (!/\bequipment breakdown\b/i.test(blob) && !/\bboiler and machinery\b/i.test(blob)) {
+    return false;
+  }
+  const negated = /\b(excluded|not included|not covered|not part of|does not include|no equipment breakdown|optional add|may be purchased|not applicable|na\b|not selected)\b/i;
+  const chunks = blob.split(/[.;\n]/);
+  for (const chunk of chunks) {
+    if (!/\bequipment breakdown\b/i.test(chunk) && !/\bboiler and machinery\b/i.test(chunk)) continue;
+    if (negated.test(chunk)) continue;
+    return true;
+  }
+  return false;
+}
+
 function intentPresentInJson(intent, paths, stringHints) {
   const blob = stringHints.join(" | ");
   if (intent === "equipment_breakdown") {
     if (paths.some((p) => EB_KEY_SNIPPETS.some((s) => p.includes(s)))) return true;
-    if (/\bequipment breakdown\b/i.test(blob)) return true;
-    if (/\bboiler and machinery\b/i.test(blob)) return true;
+    if (equipmentBreakdownStringIndicatesPresent(blob)) return true;
     return false;
   }
   if (intent === "flood") {
@@ -231,15 +249,35 @@ export function sanitizeConnectReplyAgainstVerdicts(reply, triggeredResults) {
   return text;
 }
 
-/** @param {string} t lowercase reply */
+/**
+ * When verdict is ABSENT, catch common false-yes phrasings (models vary wording).
+ * @param {string} t lowercase reply
+ */
 function ebAbsentViolated(t) {
+  if (!/\bequipment breakdown\b/.test(t) && !/\bwalk-?in cooler\b/.test(t)) {
+    return false;
+  }
+  // Clearly safe: summary says EB is not listed / can't confirm in-force
+  if (
+    /\b(not listed|not on (this|your) (policy )?summary|not shown|isn't shown|can't confirm|cannot confirm|can't say you're covered|no equipment breakdown|don't have equipment breakdown|do not have equipment breakdown)\b/i.test(
+      t,
+    )
+  ) {
+    return false;
+  }
+
   return (
-    /equipment breakdown coverage kicks in/.test(t) ||
+    /^yes\b/.test(t) ||
+    /\byou have equipment breakdown\b/.test(t) ||
+    /\byou've got equipment breakdown\b/.test(t) ||
+    /\bequipment breakdown coverage on your policy\b/.test(t) ||
+    /\bequipment breakdown coverage kicks in\b/.test(t) ||
     /your equipment breakdown/.test(t) ||
     /(mechanical|electrical) (or )?breakdown of your cooler would be covered/.test(t) ||
     /you've got this protection/.test(t) ||
-    (/walk-?in cooler/.test(t) && /\b(covered|coverage kicks|kicks in)\b/.test(t)) ||
-    (/equipment breakdown/.test(t) && /\b(kicks in|you're covered|you are covered|you've got)\b/.test(t))
+    (/walk-?in cooler/.test(t) && /\b(covered|would respond|would apply|coverage kicks|kicks in)\b/.test(t)) ||
+    (/\bequipment breakdown\b/.test(t) &&
+      /\b(kicks in|you're covered|you are covered|you've got|you have coverage|would respond|would apply|covered if|this coverage would)\b/.test(t))
   );
 }
 
