@@ -1,4 +1,5 @@
 import { sendWithGmail } from "../email.js";
+import { createSignedBindLinkParams } from "../utils/bindLinkToken.js";
 
 const SEGMENT_DISPLAY = {
   bar: "Bar & Restaurant",
@@ -14,6 +15,29 @@ const SEGMENT_LINE = {
   hvac: "This quote includes pollution liability and refrigerant coverage designed for HVAC contractors.",
 };
 
+function escapeHtml(v) {
+  return String(v ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatMoney(v) {
+  if (v == null || v === "") return "—";
+  const n = Number(v);
+  if (!Number.isFinite(n)) return escapeHtml(v);
+  return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function formatDate(v) {
+  if (!v) return "—";
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return escapeHtml(v);
+  return d.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+}
+
 export async function sendPacketEmail({
   segment,
   to,
@@ -28,41 +52,72 @@ export async function sendPacketEmail({
   const display = SEGMENT_DISPLAY[seg] || "Commercial Insurance";
   const line = SEGMENT_LINE[seg] || "";
 
-  const premium = packetData.annual_premium ?? packetData.premium;
+  const premium = packetData.annual_premium ?? packetData.premium ?? null;
+  const glSummary =
+    packetData.gl_per_occurrence || packetData.gl_aggregate
+      ? `${packetData.gl_per_occurrence ? `$${Number(packetData.gl_per_occurrence).toLocaleString()} per occurrence` : "—"}${packetData.gl_per_occurrence && packetData.gl_aggregate ? " / " : ""}${packetData.gl_aggregate ? `$${Number(packetData.gl_aggregate).toLocaleString()} aggregate` : ""}`
+      : "—";
+  const submissionId = packetData.submission_public_id || "—";
+  const apiBase =
+    process.env.PUBLIC_API_BASE_URL ||
+    process.env.CID_API_BASE_URL ||
+    "https://cid-pdf-api.onrender.com";
+  const bindNowUrl =
+    packetData.quote_id
+      ? (() => {
+          const base = `${apiBase.replace(/\/$/, "")}/api/quotes/${encodeURIComponent(String(packetData.quote_id))}/bind/initiate`;
+          const signed = createSignedBindLinkParams({
+            quoteId: String(packetData.quote_id),
+            submissionPublicId: String(packetData.submission_public_id || ""),
+          });
+          if (!signed) return `${base}?redirect=1&source=email`;
+          return `${base}?redirect=1&source=email&t=${encodeURIComponent(signed.t)}&exp=${encodeURIComponent(signed.exp)}`;
+        })()
+      : null;
+  const questionsTo = `quotes@${seg}insurancedirect.com`;
+  const questionSubject = `Question re: Quote ${submissionId}`;
+  const questionBody = "My question about my quote: ";
+  const questionMailto = `mailto:${encodeURIComponent(questionsTo)}?subject=${encodeURIComponent(questionSubject)}&body=${encodeURIComponent(questionBody)}`;
 
   const html =
     bodyOverride ||
     `
-    <p>Hi ${packetData.contact_name || packetData.client_name || ""},</p>
-    <p>
-      Thank you for requesting a commercial insurance quote through
-      ${display} Insurance Direct.
-    </p>
-    <p>
-      We've reviewed options from our carrier partners and have a
-      ${packetData.policy_type || ""} quote ready for you from
-      ${packetData.carrier_name || ""}:
-    </p>
-    <ul>
-      <li>Annual Premium: $${premium != null ? Number(premium).toLocaleString() : "—"}</li>
-      <li>Effective Date: ${packetData.effective_date || "—"}</li>
-      <li>Per Occurrence Limit: $${packetData.gl_per_occurrence != null ? Number(packetData.gl_per_occurrence).toLocaleString() : "—"}</li>
-      <li>Aggregate Limit: $${packetData.gl_aggregate != null ? Number(packetData.gl_aggregate).toLocaleString() : "—"}</li>
-    </ul>
-    <p>
-      Your full quote packet is attached, including a detailed coverage summary
-      and the carrier's official quote document.
-    </p>
-    <p>${line}</p>
-    <p>
-      If you'd like to move forward, simply reply to this email or call us.
-      We can bind coverage and have your certificate of insurance ready the same day.
-    </p>
-    <p>
-      You can also manage your policy, generate certificates, and ask coverage
-      questions anytime through the CID app:<br/>
-      ${packetData.cid_app_url || "https://app.commercialinsurancedirect.com"}
-    </p>
+<div style="font-family: Arial, sans-serif; color:#111827; line-height:1.45;">
+  <p>Hi ${escapeHtml(packetData.contact_name || packetData.client_name || "there")},</p>
+  <p>Your quote packet is ready. Your AI sales letter and full carrier quote are attached.</p>
+  <p style="margin:0 0 8px 0;">${escapeHtml(line)}</p>
+
+  <table cellpadding="8" cellspacing="0" border="1" style="border-collapse:collapse; width:100%; max-width:720px; border-color:#e5e7eb; font-size:14px; margin: 12px 0 20px 0;">
+    <tr style="background:#f9fafb;"><th align="left">Business Name</th><td>${escapeHtml(packetData.client_name || "—")}</td></tr>
+    <tr><th align="left">Coverage Type</th><td>${escapeHtml(packetData.policy_type || "—")}</td></tr>
+    <tr style="background:#f9fafb;"><th align="left">Carrier Name</th><td>${escapeHtml(packetData.carrier_name || "—")}</td></tr>
+    <tr><th align="left">General Liability Limits</th><td>${escapeHtml(glSummary)}</td></tr>
+    <tr style="background:#f9fafb;"><th align="left">Annual Premium</th><td>${formatMoney(premium)}</td></tr>
+    <tr><th align="left">Effective Date</th><td>${formatDate(packetData.effective_date)}</td></tr>
+    <tr style="background:#f9fafb;"><th align="left">Submission ID</th><td>${escapeHtml(submissionId)}</td></tr>
+  </table>
+
+  <div style="margin: 16px 0 8px 0;">
+    ${
+      bindNowUrl
+        ? `<a href="${escapeHtml(bindNowUrl)}" style="display:inline-block; background:#111827; color:#ffffff; text-decoration:none; padding:12px 18px; border-radius:8px; font-weight:700;">Bind Now</a>`
+        : `<span style="display:inline-block; background:#9ca3af; color:#ffffff; padding:12px 18px; border-radius:8px; font-weight:700;">Bind Now unavailable</span>`
+    }
+  </div>
+  <div style="margin: 10px 0;">
+    <a href="${escapeHtml(questionMailto)}" style="display:inline-block; background:#ffffff; color:#111827; text-decoration:none; padding:10px 14px; border-radius:8px; border:1px solid #d1d5db; font-weight:600;">I Have Questions</a>
+  </div>
+  <div style="margin: 8px 0 16px 0;">
+    <a href="#" style="font-size:13px; color:#6b7280; text-decoration:underline;">Not Right Now</a>
+  </div>
+
+  <p style="font-size:13px; color:#374151;">
+    Premium is billed directly by your carrier per the payment schedule included with your policy documents.
+    No payment is collected by Commercial Insurance Direct.
+  </p>
+
+  <p style="font-size:13px; color:#6b7280;">${escapeHtml(display)} Insurance Direct</p>
+</div>
   `;
 
   await sendWithGmail({

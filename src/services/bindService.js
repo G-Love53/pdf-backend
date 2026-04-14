@@ -2,6 +2,7 @@ import { getPool } from "../db.js";
 import { documentDownloadPath, uploadBuffer } from "./r2Service.js";
 import {
   createEmbeddedSignatureRequest,
+  createEmbeddedSignatureRequestFromTemplate,
 } from "./boldsignService.js";
 import { tryFinalizeBoldSignFromDocumentId } from "./boldsignBindCompletion.js";
 import { normalizeSegment } from "../utils/rss.js";
@@ -12,6 +13,33 @@ function getPoolOrThrow() {
   const pool = getPool();
   if (!pool) throw new Error("Postgres not configured");
   return pool;
+}
+
+function getSignedRedirectUrl(submissionPublicId) {
+  const base =
+    process.env.PUBLIC_API_BASE_URL ||
+    process.env.CID_API_BASE_URL ||
+    "https://cid-pdf-api.onrender.com";
+  return `${String(base).replace(/\/$/, "")}/signed?sid=${encodeURIComponent(String(submissionPublicId || ""))}`;
+}
+
+function buildTemplateMergeFields(quoteDetail, paymentMethod) {
+  const q = quoteDetail?.quote || {};
+  const c = quoteDetail?.client || {};
+  return {
+    submission_public_id: quoteDetail?.submission_public_id || "",
+    business_name: c.business_name || "",
+    contact_name: c.contact_name || "",
+    signer_email: c.email || "",
+    carrier_name: q.carrier_name || "",
+    policy_type: q.policy_type || "",
+    annual_premium: q.annual_premium != null ? String(q.annual_premium) : "",
+    effective_date: q.effective_date ? String(q.effective_date) : "",
+    expiration_date: q.expiration_date ? String(q.expiration_date) : "",
+    payment_method: paymentMethod || "annual",
+    gl_per_occurrence: q.gl_per_occurrence != null ? String(q.gl_per_occurrence) : "",
+    gl_aggregate: q.gl_aggregate != null ? String(q.gl_aggregate) : "",
+  };
 }
 
 export async function listReadyToBind({ segment }) {
@@ -255,23 +283,53 @@ export async function initiateBind({
       type: "bind_confirmation",
     });
 
-    const boldsignReq = await createEmbeddedSignatureRequest({
-      pdfBuffer,
-      signerName,
-      signerEmail,
-      metadata: {
-        // CID-controlled identity: this is the value you later map back from webhooks.
-        cid_id: quoteDetail.submission_public_id,
-        submission_public_id: quoteDetail.submission_public_id,
-        quote_id: quoteId,
-        segment: seg,
-        carrier_name: quoteDetail.quote.carrier_name,
-        signature_template: "bind_confirmation_v1",
-      },
-      subject: `Bind Confirmation — ${quoteDetail.quote.policy_type} with ${quoteDetail.quote.carrier_name}`,
-    });
-
     const agentUuid = parseOptionalUuid(agentId);
+    const redirectUrl = agentUuid
+      ? undefined
+      : getSignedRedirectUrl(quoteDetail.submission_public_id);
+
+    const metadata = {
+      // CID-controlled identity: this is the value you later map back from webhooks.
+      cid_id: quoteDetail.submission_public_id,
+      submission_public_id: quoteDetail.submission_public_id,
+      quote_id: quoteId,
+      segment: seg,
+      carrier_name: quoteDetail.quote.carrier_name,
+      signature_template: "bind_confirmation_v1",
+    };
+    const subject = `Bind Confirmation — ${quoteDetail.quote.policy_type} with ${quoteDetail.quote.carrier_name}`;
+    const templateId =
+      process.env.BOLDSIGN_BIND_TEMPLATE_ID || process.env.BOLD_SIGN_BIND_TEMPLATE_ID || null;
+
+    let boldsignReq;
+    if (templateId) {
+      try {
+        boldsignReq = await createEmbeddedSignatureRequestFromTemplate({
+          templateId,
+          signerName,
+          signerEmail,
+          redirectUrl,
+          metadata,
+          subject,
+          mergeFields: buildTemplateMergeFields(quoteDetail, paymentMethod),
+        });
+      } catch (err) {
+        console.warn(
+          "[bindService] template bind failed; falling back to PDF bind confirmation:",
+          err?.message || err,
+        );
+      }
+    }
+    if (!boldsignReq) {
+      boldsignReq = await createEmbeddedSignatureRequest({
+        pdfBuffer,
+        signerName,
+        signerEmail,
+        redirectUrl,
+        metadata,
+        subject,
+      });
+    }
 
     const insertRes = await client.query(
       `
@@ -385,20 +443,45 @@ export async function resendBind({ quoteId, agentId }) {
 
   const agentUuid = parseOptionalUuid(agentId);
 
-  const boldsignReq = await createEmbeddedSignatureRequest({
-    pdfBuffer,
-    signerName: bind.signer_name,
-    signerEmail: bind.signer_email,
-    metadata: {
-      cid_id: quoteDetail.submission_public_id,
-      submission_public_id: quoteDetail.submission_public_id,
-      quote_id: quoteId,
-      segment: quoteDetail.segment,
-      carrier_name: quoteDetail.quote?.carrier_name || null,
-      signature_template: "bind_confirmation_v1",
-    },
-    subject: `Bind Confirmation — ${quoteDetail.quote.policy_type} with ${quoteDetail.quote.carrier_name}`,
-  });
+  const metadata = {
+    cid_id: quoteDetail.submission_public_id,
+    submission_public_id: quoteDetail.submission_public_id,
+    quote_id: quoteId,
+    segment: quoteDetail.segment,
+    carrier_name: quoteDetail.quote?.carrier_name || null,
+    signature_template: "bind_confirmation_v1",
+  };
+  const subject = `Bind Confirmation — ${quoteDetail.quote.policy_type} with ${quoteDetail.quote.carrier_name}`;
+  const templateId =
+    process.env.BOLDSIGN_BIND_TEMPLATE_ID || process.env.BOLD_SIGN_BIND_TEMPLATE_ID || null;
+
+  let boldsignReq;
+  if (templateId) {
+    try {
+      boldsignReq = await createEmbeddedSignatureRequestFromTemplate({
+        templateId,
+        signerName: bind.signer_name,
+        signerEmail: bind.signer_email,
+        metadata,
+        subject,
+        mergeFields: buildTemplateMergeFields(quoteDetail, bind.payment_method || "annual"),
+      });
+    } catch (err) {
+      console.warn(
+        "[bindService] template bind resend failed; falling back to PDF bind confirmation:",
+        err?.message || err,
+      );
+    }
+  }
+  if (!boldsignReq) {
+    boldsignReq = await createEmbeddedSignatureRequest({
+      pdfBuffer,
+      signerName: bind.signer_name,
+      signerEmail: bind.signer_email,
+      metadata,
+      subject,
+    });
+  }
 
   await pool.query(
     `

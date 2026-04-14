@@ -139,6 +139,7 @@ export function buildPacketData({ quote, extraction, submission, client }) {
     `${client.first_name || ""} ${client.last_name || ""}`.trim();
 
   return {
+    quote_id: quote.quote_id,
     client_name: name || null,
     contact_name: name || null,
     client_email: client.primary_email,

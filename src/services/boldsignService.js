@@ -231,6 +231,7 @@ export async function createEmbeddedSignatureRequest({
   signerEmail,
   metadata,
   subject,
+  redirectUrl,
 }) {
   const apiKey = getBoldSignApiKey();
   const apiBase = getApiBaseUrl();
@@ -263,7 +264,8 @@ export async function createEmbeddedSignatureRequest({
   };
 
   // After signing, BoldSign appends query params. `/operator` and `/operator/home` both finalize.
-  const redirectUrl =
+  const resolvedRedirectUrl =
+    redirectUrl ||
     process.env.BOLDSIGN_SIGN_REDIRECT_URL ||
     process.env.CID_APP_URL ||
     "https://cid-pdf-api.onrender.com/operator";
@@ -326,7 +328,90 @@ export async function createEmbeddedSignatureRequest({
   const signUrl = await getEmbeddedSignLinkWithRetry({
     documentId,
     signerEmail,
-    redirectUrl,
+    redirectUrl: resolvedRedirectUrl,
+  });
+
+  return {
+    documentId,
+    sendUrl: signUrl,
+    raw: { send: sendData, signUrl },
+  };
+}
+
+/**
+ * Template-based embedded signing request.
+ * If provider/template payload differs, caller should catch and fallback to PDF flow.
+ */
+export async function createEmbeddedSignatureRequestFromTemplate({
+  templateId,
+  signerName,
+  signerEmail,
+  metadata,
+  subject,
+  redirectUrl,
+  mergeFields = {},
+}) {
+  const apiKey = getBoldSignApiKey();
+  const apiBase = getApiBaseUrl();
+  const resolvedRedirectUrl =
+    redirectUrl ||
+    process.env.BOLDSIGN_SIGN_REDIRECT_URL ||
+    process.env.CID_APP_URL ||
+    "https://cid-pdf-api.onrender.com/operator";
+
+  const roleName = process.env.BOLDSIGN_TEMPLATE_ROLE_NAME || "Signer";
+  const sendBody = {
+    TemplateId: String(templateId || "").trim(),
+    Title: subject || "Bind Confirmation",
+    Message:
+      "Please review and sign your bind confirmation to activate your policy.",
+    DisableEmails: true,
+    EnableEmbeddedSigning: true,
+    Roles: [
+      {
+        RoleName: roleName,
+        SignerName: signerName,
+        SignerEmail: signerEmail,
+      },
+    ],
+    MergeFields: Object.entries(mergeFields || {}).map(([Name, Value]) => ({
+      Name,
+      Value: Value == null ? "" : String(Value),
+    })),
+    MetaData: metadata || {},
+  };
+
+  const sendRes = await fetch(`${apiBase}/v1/template/send`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-API-KEY": apiKey,
+      Accept: "application/json",
+    },
+    body: JSON.stringify(sendBody),
+  });
+  const sendText = await sendRes.text();
+  if (!sendRes.ok) {
+    throw new Error(
+      `BoldSign template/send failed: ${sendRes.status} ${sendRes.statusText} - ${sendText}`,
+    );
+  }
+
+  let sendData;
+  try {
+    sendData = JSON.parse(sendText);
+  } catch {
+    throw new Error(`BoldSign template/send: invalid JSON response: ${sendText}`);
+  }
+  const documentId = sendData.documentId || sendData.DocumentId;
+  if (!documentId) {
+    throw new Error(`BoldSign template/send: missing documentId in ${sendText}`);
+  }
+
+  const signUrl = await getEmbeddedSignLinkWithRetry({
+    documentId,
+    signerEmail,
+    redirectUrl: resolvedRedirectUrl,
   });
 
   return {

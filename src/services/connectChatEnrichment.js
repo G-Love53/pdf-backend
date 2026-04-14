@@ -123,8 +123,6 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
     }
   }
 
-  console.log("KB RESULTS:", JSON.stringify(knowledgeRows, null, 2));
-
   return {
     policyContext: mergedPolicy,
     chatHistory: Array.isArray(body?.chatHistory) ? body.chatHistory : [],

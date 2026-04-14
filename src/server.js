@@ -138,6 +138,88 @@ function flattenData(body = {}) {
 APP.get("/healthz", (_req, res) => res.status(200).send("ok"));
 APP.get("/", (_req, res) => res.status(200).send("ok"));
 
+function htmlEscape(v) {
+  return String(v ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+APP.get("/signed", async (req, res) => {
+  const sid = String(req.query.sid || "").trim();
+  let carrierName = "your carrier";
+  try {
+    const pool = getPool();
+    if (pool && sid) {
+      const r = await pool.query(
+        `
+        SELECT COALESCE(p.carrier_name, q.carrier_name) AS carrier_name
+        FROM submissions s
+        LEFT JOIN quotes q ON q.submission_id = s.submission_id
+        LEFT JOIN policies p ON p.submission_id = s.submission_id
+        WHERE s.submission_public_id = $1
+        ORDER BY p.created_at DESC NULLS LAST, q.updated_at DESC NULLS LAST
+        LIMIT 1
+        `,
+        [sid],
+      );
+      if (r.rows.length && r.rows[0].carrier_name) {
+        carrierName = String(r.rows[0].carrier_name);
+      }
+    }
+  } catch (err) {
+    console.warn("[/signed] carrier lookup failed:", err?.message || err);
+  }
+
+  const appUrl = "https://cid-connect.netlify.app";
+  const safeCarrier = htmlEscape(carrierName);
+  const safeSid = htmlEscape(sid);
+
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  return res.status(200).send(`
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bind Request Received</title>
+  <style>
+    body { margin: 0; background: #f7f7fb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; color: #111827; }
+    .wrap { max-width: 680px; margin: 0 auto; padding: 20px; }
+    .card { background: #fff; border-radius: 14px; box-shadow: 0 6px 24px rgba(17,24,39,0.08); padding: 20px; }
+    h1 { margin: 0 0 12px; font-size: 26px; line-height: 1.2; }
+    p { margin: 0 0 12px; line-height: 1.45; }
+    ul { margin: 10px 0 18px 18px; padding: 0; }
+    li { margin: 6px 0; }
+    .btn { display:inline-block; background:#111827; color:#fff; text-decoration:none; padding:12px 16px; border-radius:10px; font-weight:700; }
+    .meta { margin-top: 12px; font-size: 13px; color: #6b7280; }
+    .tips { margin-top: 16px; font-size: 14px; color: #374151; background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>You're covered — your bind request has been received.</h1>
+      <p>Your binder will be issued by <strong>${safeCarrier}</strong> and your policy documents will follow within the timeframe required by your state.</p>
+      <ul>
+        <li>Instant certificates of insurance</li>
+        <li>"Am I Covered?" chat</li>
+        <li>Policy documents in one place</li>
+        <li>Free with every CID policy</li>
+      </ul>
+      <p><a class="btn" href="${appUrl}" target="_blank" rel="noopener">Open CID Connect</a></p>
+      <div class="tips">
+        <p><strong>iOS:</strong> Open CID Connect in Safari, tap Share, then tap "Add to Home Screen."</p>
+        <p><strong>Desktop:</strong> Open CID Connect and bookmark it in your browser for one-click access.</p>
+      </div>
+      <p class="meta">Submission ID: ${safeSid || "—"}</p>
+    </div>
+  </div>
+</body>
+</html>`);
+});
+
 // Temporary debug endpoint to verify DB wiring
 APP.get("/debug-db", (_req, res) => {
   res.json({

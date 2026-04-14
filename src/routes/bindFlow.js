@@ -7,6 +7,7 @@ import {
   cancelBind,
 } from "../services/bindService.js";
 import { parseOptionalUuid } from "../utils/uuid.js";
+import { verifySignedBindLinkParams } from "../utils/bindLinkToken.js";
 
 const router = express.Router();
 
@@ -73,6 +74,70 @@ router.post("/api/quotes/:quoteId/bind/initiate", async (req, res) => {
   } catch (err) {
     console.error("bind initiate error:", err);
     res.status(500).json({ success: false, error: err.message || "error" });
+  }
+});
+
+// Customer-facing one-click bind from quote packet email.
+// Initiates bind and redirects directly to the BoldSign embedded sign URL.
+router.get("/api/quotes/:quoteId/bind/initiate", async (req, res) => {
+  try {
+    const quoteId = quoteIdOr400(req, res);
+    if (!quoteId) return;
+    const details = await getBindDetails(quoteId, { syncBoldSign: false });
+    if (!details) {
+      return res.status(404).send("Quote not found.");
+    }
+    const signerName =
+      details.client?.contact_name ||
+      details.client?.business_name ||
+      "Insured";
+    const signerEmail = details.client?.email || null;
+    if (!signerEmail) {
+      return res
+        .status(400)
+        .send("Unable to initiate bind: signer email is missing on this quote.");
+    }
+
+    const requireSignature = String(process.env.BIND_LINK_REQUIRE_SIGNATURE || "false") === "true";
+    const token = req.query.t;
+    const exp = req.query.exp;
+    if (token || exp || requireSignature) {
+      const vr = verifySignedBindLinkParams({
+        quoteId,
+        submissionPublicId: details.submission_public_id || "",
+        token: token || null,
+        exp: exp || null,
+      });
+      if (!vr.ok) {
+        return res
+          .status(403)
+          .send("This bind link is invalid or expired. Please request a new quote packet.");
+      }
+    }
+
+    const result = await initiateBind({
+      quoteId,
+      agentId: null,
+      paymentMethod: "annual",
+      effectiveDateOverride: null,
+      agentNotes: "initiated_via_quote_email",
+      signerName,
+      signerEmail,
+    });
+
+    const signUrl = result.boldsign?.sendUrl || null;
+    if (!signUrl) {
+      return res
+        .status(503)
+        .send("Unable to start signature right now. Please reply to your quote email for help.");
+    }
+
+    return res.redirect(signUrl);
+  } catch (err) {
+    console.error("bind initiate redirect error:", err);
+    return res
+      .status(500)
+      .send("Unable to start signature right now. Please reply to your quote email for help.");
   }
 });
 
