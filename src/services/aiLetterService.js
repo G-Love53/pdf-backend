@@ -2,6 +2,7 @@ import { build as buildBarPrompt } from "../prompts/letters/bar.js";
 import { build as buildPlumberPrompt } from "../prompts/letters/plumber.js";
 import { build as buildRooferPrompt } from "../prompts/letters/roofer.js";
 import { build as buildHvacPrompt } from "../prompts/letters/hvac.js";
+import { computeQuoteValidityDisplay } from "../prompts/letters/sharedSalesLetter.js";
 
 const LETTER_PROMPTS = {
   bar: buildBarPrompt,
@@ -14,7 +15,7 @@ function segmentKey(segment) {
   return String(segment || "bar").trim().toLowerCase();
 }
 
-function buildFallbackLetter(segment, extractionData, clientData) {
+function buildFallbackLetter(segment, extractionData, clientData, letterContext = {}) {
   const policyType = extractionData?.policy_type || "insurance";
   const carrierName = extractionData?.carrier_name || "a carrier";
   const annualPremium = extractionData?.annual_premium ?? "";
@@ -22,7 +23,12 @@ function buildFallbackLetter(segment, extractionData, clientData) {
   const perOcc = extractionData?.gl_per_occurrence || "N/A";
   const agg = extractionData?.gl_aggregate || "N/A";
 
-  const dearName = clientData?.contact_name || clientData?.business_name || "Business Owner";
+  const dearName =
+    clientData?.business_name || clientData?.contact_name || "Business Owner";
+  const { display: validThrough } = computeQuoteValidityDisplay(
+    extractionData || {},
+    letterContext,
+  );
 
   return `Dear ${dearName},
 
@@ -34,7 +40,11 @@ Annual Premium: $${annualPremium}
 Per Occurrence Limit: ${perOcc}
 Aggregate Limit: ${agg}
 
+This quote is valid through ${validThrough} (14 days from the quote issue date unless your carrier states otherwise).
+
 Your full quote packet is attached. If you'd like to move forward, simply reply to this email.
+
+Thank you for choosing Commercial Insurance Direct.
 
 — CID Team
 Commercial Insurance Direct`;
@@ -46,9 +56,16 @@ function normalizeLetterText(text) {
   return t.replace(/^```(?:text|markdown)?/i, "").replace(/```$/i, "").trim();
 }
 
+function ensureClosingThankYou(text) {
+  const t = String(text || "").trim();
+  if (!t) return t;
+  if (/thank you for choosing commercial insurance direct/i.test(t)) return t;
+  return `${t}\n\nThank you for choosing Commercial Insurance Direct.`;
+}
+
 function rewriteSalutation(letterText, businessName) {
   const bn = String(businessName || "").trim();
-  const target = bn ? `${bn},` : "Dear Business Owner,";
+  const target = bn ? `Dear ${bn},` : "Dear Business Owner,";
   const lines = String(letterText || "").split(/\r?\n/);
   let replaced = false;
   for (let i = 0; i < Math.min(lines.length, 5); i += 1) {
@@ -132,7 +149,9 @@ async function callClaude(systemPrompt, userPrompt) {
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
 
   const model = process.env.ANTHROPIC_LETTER_MODEL || "claude-sonnet-4-20250514";
-  const timeoutMs = Number(process.env.CLAUDE_LETTER_TIMEOUT_MS || 9000);
+  // Default 28s: 9s was aborting healthy Sonnet calls ("This operation was aborted").
+  // Keep under typical ~30s edge timeouts; raise via CLAUDE_LETTER_TIMEOUT_MS if your host allows.
+  const timeoutMs = Number(process.env.CLAUDE_LETTER_TIMEOUT_MS || 28000);
 
   const resp = await withTimeout(
     (signal) =>
@@ -195,7 +214,9 @@ async function callGeminiFallback(systemPrompt, userPrompt) {
 
   if (!resp.ok) {
     const txt = await resp.text().catch(() => "");
-    throw new Error(`Gemini letter failed: ${resp.status} ${resp.statusText} - ${txt}`);
+    const err = new Error(`Gemini letter failed: ${resp.status} ${resp.statusText} - ${txt}`);
+    err.status = resp.status;
+    throw err;
   }
 
   const data = await resp.json();
@@ -206,7 +227,11 @@ async function callGeminiFallback(systemPrompt, userPrompt) {
   return fallbackText;
 }
 
-export async function generateLetter(segment, extractionData, clientData) {
+function finalizeLetterBody(text, extraction) {
+  return ensureClosingThankYou(applyCoverageGuardrails(text, extraction));
+}
+
+export async function generateLetter(segment, extractionData, clientData, letterContext = {}) {
   const seg = segmentKey(segment);
   const promptBuilder = LETTER_PROMPTS[seg];
   const extraction = extractionData || {};
@@ -214,15 +239,18 @@ export async function generateLetter(segment, extractionData, clientData) {
   const businessName = client.business_name || extraction.business_name || extraction.insured_name || "";
 
   if (!promptBuilder) {
-    return buildFallbackLetter(seg, extraction, client);
+    return finalizeLetterBody(
+      rewriteSalutation(buildFallbackLetter(seg, extraction, client, letterContext), businessName),
+      extraction,
+    );
   }
 
-  const { systemPrompt, userPrompt } = promptBuilder(extraction, client);
+  const { systemPrompt, userPrompt } = promptBuilder(extraction, client, letterContext);
 
   // Primary: Claude
   try {
     const t = await callClaude(systemPrompt, userPrompt);
-    return applyCoverageGuardrails(
+    return finalizeLetterBody(
       rewriteSalutation(normalizeLetterText(t), businessName),
       extraction,
     );
@@ -230,20 +258,30 @@ export async function generateLetter(segment, extractionData, clientData) {
     console.warn("[aiLetterService] Claude failed; falling back:", err?.message || err);
   }
 
-  // Secondary: Gemini
+  // Secondary: Gemini (optional; 429 = quota/billing — do not slow the request retrying)
   try {
     const t = await callGeminiFallback(systemPrompt, userPrompt);
-    return applyCoverageGuardrails(
+    return finalizeLetterBody(
       rewriteSalutation(normalizeLetterText(t), businessName),
       extraction,
     );
   } catch (err) {
-    console.warn("[aiLetterService] Gemini failed; using last-resort template:", err?.message || err);
+    const isQuota =
+      err?.status === 429 ||
+      /429|quota|RESOURCE_EXHAUSTED/i.test(String(err?.message || err));
+    console.warn(
+      "[aiLetterService] Gemini failed; using last-resort template:",
+      err?.message || err,
+      isQuota ? "(check Gemini billing / rate limits for GEMINI_API_KEY)" : "",
+    );
   }
 
-  // Last resort: template-based letter.
-  return applyCoverageGuardrails(
-    rewriteSalutation(buildFallbackLetter(seg, extraction, client), businessName),
+  // Last resort: template-based letter (still produces page 1 in the packet PDF).
+  console.warn(
+    "[aiLetterService] letter_source=template_fallback (Claude and Gemini did not return body text)",
+  );
+  return finalizeLetterBody(
+    rewriteSalutation(buildFallbackLetter(seg, extraction, client, letterContext), businessName),
     extraction,
   );
 }

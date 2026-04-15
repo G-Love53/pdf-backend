@@ -1,5 +1,5 @@
 import { buildSalesLetterPrompts } from "./sharedSalesLetter.js";
 
-export function build(extraction = {}, client = {}) {
-  return buildSalesLetterPrompts("roofer", extraction, client);
+export function build(extraction = {}, client = {}, letterContext = {}) {
+  return buildSalesLetterPrompts("roofer", extraction, client, letterContext);
 }

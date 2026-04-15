@@ -116,8 +116,9 @@ router.post("/api/quotes/:quoteId/packet/preview", async (req, res) => {
 
     const base64 = combinedPdf.toString("base64");
 
-    await pool.query(
-      `
+    try {
+      await pool.query(
+        `
         INSERT INTO timeline_events (
           submission_id,
           quote_id,
@@ -128,15 +129,24 @@ router.post("/api/quotes/:quoteId/packet/preview", async (req, res) => {
         )
         VALUES ($1, $2, $3, $4, $5, $6)
       `,
-      [
-        submission.submission_id,
-        quote.quote_id,
-        "packet.previewed",
-        "Packet preview generated",
-        { quote_id: quote.quote_id, extraction_id: extraction.quote_extraction_id },
-        "agent",
-      ],
-    );
+        [
+          submission.submission_id,
+          quote.quote_id,
+          "packet.previewed",
+          "Packet preview generated",
+          {
+            quote_id: quote.quote_id,
+            extraction_id: extraction.quote_extraction_id,
+          },
+          "agent",
+        ],
+      );
+    } catch (te) {
+      console.error(
+        "[packetBuilder] preview timeline insert failed (preview still returned):",
+        te?.message || te,
+      );
+    }
 
     res.json({
       preview_base64: base64,
@@ -158,7 +168,13 @@ router.post("/api/quotes/:quoteId/packet/preview", async (req, res) => {
     if (err.message === "No approved extraction. Complete S4 review first.") {
       return res.status(400).json({ error: "no_approved_extraction" });
     }
-    res.status(500).json({ error: "internal_error" });
+    if (err.message === "packet_source_not_found") {
+      return res.status(404).json({ error: "packet_source_not_found" });
+    }
+    res.status(500).json({
+      error: "internal_error",
+      message: err.message || String(err),
+    });
   }
 });
 

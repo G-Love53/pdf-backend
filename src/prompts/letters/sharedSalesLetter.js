@@ -34,6 +34,49 @@ function safeStr(v) {
   return v != null && v !== "" ? String(v) : "";
 }
 
+function parseDateish(v) {
+  if (v == null || v === "") return null;
+  const d = v instanceof Date ? v : new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Quote validity for the letter: 14 days from issue by default.
+ * Never use policy expiration_date / effective_date as "quote valid until" — those are policy-term fields.
+ */
+export function computeQuoteValidityDisplay(extraction, letterContext = {}) {
+  const e = extraction || {};
+  const explicit = safeStr(e.quote_expiration || e.quote_valid_until || e.quote_expiration_date);
+  if (explicit) {
+    return {
+      display: explicit,
+      issueLabel: null,
+    };
+  }
+
+  const issued =
+    parseDateish(e.quote_issued_date || e.quote_issued_at) ||
+    parseDateish(letterContext.quoteCreatedAt) ||
+    parseDateish(letterContext.packetGeneratedAt) ||
+    new Date();
+
+  const until = new Date(issued);
+  until.setDate(until.getDate() + 14);
+
+  return {
+    display: until.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }),
+    issueLabel: issued.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }),
+  };
+}
+
 function buildCoverageSummary(extraction) {
   const e = extraction || {};
   const parts = [];
@@ -72,8 +115,9 @@ function buildKeyCoverages(extraction) {
  * @param {string} segment — bar | plumber | roofer | hvac
  * @param {Record<string, unknown>} extraction — reviewed_json from quote extraction
  * @param {{ business_name?: string, contact_name?: string, email?: string }} client
+ * @param {{ quoteCreatedAt?: string | Date, packetGeneratedAt?: string | Date }} letterContext
  */
-export function buildSalesLetterPrompts(segment, extraction, client) {
+export function buildSalesLetterPrompts(segment, extraction, client, letterContext = {}) {
   const seg = segmentKey(segment);
   const e = extraction || {};
   const c = client || {};
@@ -90,10 +134,8 @@ export function buildSalesLetterPrompts(segment, extraction, client) {
   const annualPremium = e.annual_premium != null && e.annual_premium !== "" ? String(e.annual_premium) : "";
   const coverageSummary = buildCoverageSummary(e);
   const keyCoverages = buildKeyCoverages(e);
-  const quoteExpiration =
-    safeStr(e.quote_expiration || e.quote_valid_until || e.quote_expiration_date) ||
-    safeStr(e.expiration_date) ||
-    "";
+  const { display: quoteValidThrough, issueLabel: quoteIssueDateLabel } =
+    computeQuoteValidityDisplay(e, letterContext);
 
   const segmentProps = SEGMENT_VALUE_PROPS[seg];
 
@@ -105,6 +147,10 @@ VOICE AND TONE:
 - Direct. These are busy people. Get to the point fast.
 - No jargon unless you explain it in the same sentence.
 - Never condescending. These people run businesses. Respect their time and intelligence.
+
+FORMATTING:
+- Use blank lines between paragraphs (double newlines in your output). Short paragraphs (2-4 sentences) read better than walls of text.
+- After the main body, add a blank line, then a one-line thank-you ("Thank you for choosing Commercial Insurance Direct" or similar), then a blank line, then the sign-off ("Commercial Insurance Direct").
 
 STRUCTURE (follow this every time):
 1. HOOK (2-3 sentences max) — Acknowledge them by name, reference their business, and connect to why they reached out. If we know the trigger (renewal, requirement, price), lean into it. If not, use the universal: "You asked us to shop your insurance. We did. Here's what we found."
@@ -122,7 +168,7 @@ STRUCTURE (follow this every time):
 
 5. WHAT HAPPENS NEXT (clear action) — Tell them exactly what to do. E.g. reply to bind; they'll get COI within 24 hours AND their CID Connect login so they never have to chase down a certificate again. Remove every possible obstacle. Make saying yes the easiest thing they do today.
 
-6. URGENCY (one line, honest) — Not fake scarcity. Real urgency: quote validity, current policy expiration, or carrier rate timing.
+6. URGENCY (one line, honest) — State that **this quote is valid for 14 calendar days from the quote issue date** unless the "Quote valid through" date below shows a carrier-specific deadline. Do **not** confuse this with policy effective dates, policy expiration dates, or the policy term — those belong in the attached PDF, not as the quote deadline in this letter.
 
 WHAT YOU DON'T DO:
 - Don't open with "Dear Valued Customer" or "Thank you for your interest." Open with their name and their business.
@@ -132,6 +178,7 @@ WHAT YOU DON'T DO:
 - Don't end with "Please don't hesitate to reach out." End with a clear ask.
 - Don't include disclaimers in the letter. Those are in the quote document.
 - Use ONLY the data provided below. Do not invent carriers, premiums, or limits.
+- Never use the policy's effective date or policy expiration date as the "quote valid until" deadline — use the quote-valid line below (14-day rule).
 
 Sign the letter as Commercial Insurance Direct (no fictional agent names unless provided in data).`;
 
@@ -157,7 +204,8 @@ Annual Premium: $${annualPremium || "—"}
 Coverage Summary: ${coverageSummary}
 Key Coverages:
 ${keyCoverages}
-Quote Valid Until: ${quoteExpiration || "—"}
+Quote issue date (reference): ${quoteIssueDateLabel || "—"}
+Quote valid through (14 days from issue unless carrier specifies otherwise in data above): ${quoteValidThrough}
 
 SEGMENT-SPECIFIC VALUE PROPS:
 ${segmentProps}

@@ -14,6 +14,24 @@ export async function combinePDFs(pdfBuffers) {
   return Buffer.from(out);
 }
 
+/** StandardFonts.Helvetica uses WinAnsi; stray Unicode from the model can throw and fail preview. */
+function pdfSafeLine(text) {
+  const s = String(text ?? "")
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+    .replace(/[\u2013\u2014\u2015]/g, "-")
+    .replace(/\u2026/g, "...")
+    .replace(/\u00A0/g, " ");
+  let out = "";
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c >= 32 && c <= 126) out += s[i];
+    else if (c >= 160 && c <= 255) out += s[i];
+    else out += " ";
+  }
+  return out;
+}
+
 function parsePngDataUri(dataUri) {
   const s = String(dataUri || "");
   const m = s.match(/^data:image\/png;base64,(.+)$/i);
@@ -50,16 +68,24 @@ export async function createSimplePagePdf(lines = [], options = {}) {
     }
   }
 
+  const lineGap = Number(options.lineGap ?? 5);
+  const blankLineGap = Number(options.blankLineGap ?? 8);
+
   let y = Number(options.textStartY || height - 72);
   lines.forEach((line) => {
-    page.drawText(String(line ?? ""), {
+    const s = String(line ?? "");
+    if (s === "") {
+      y -= blankLineGap;
+      return;
+    }
+    page.drawText(pdfSafeLine(s), {
       x: 72,
       y,
       size: fontSize,
       font,
       color: undefined,
     });
-    y -= fontSize + 4;
+    y -= fontSize + lineGap;
   });
 
   const out = await doc.save();

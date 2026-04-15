@@ -18,6 +18,7 @@ export async function loadPacketData(quoteId) {
     `
       SELECT
         q.quote_id,
+        q.created_at AS quote_created_at,
         q.submission_id,
         q.carrier_name,
         q.segment,
@@ -106,6 +107,7 @@ export async function loadPacketData(quoteId) {
   return {
     quote: {
       quote_id: row.quote_id,
+      quote_created_at: row.quote_created_at || null,
       submission_id: row.submission_id,
       carrier_name: row.carrier_name,
       segment: row.segment,
@@ -146,6 +148,7 @@ export function buildPacketData({ quote, extraction, submission, client }) {
   const name = businessName;
 
   return {
+    ...reviewed,
     business_name: businessName || null,
     quote_id: quote.quote_id,
     client_name: name || null,
@@ -165,7 +168,6 @@ export function buildPacketData({ quote, extraction, submission, client }) {
     deductible: reviewed.deductible || null,
     additional_coverages: reviewed.additional_coverages || [],
     exclusions_noted: reviewed.exclusions_noted || [],
-    ...reviewed,
     agent_name: "Commercial Insurance Direct",
     agent_phone: "(303) 932-1700",
     agent_email: `quotes@${submission.segment}insurancedirect.com`,
@@ -221,7 +223,8 @@ export async function buildPacket(quoteId) {
   }
 
   function letterTextToPdfLines(letterText) {
-    const paragraphs = String(letterText || "")
+    const raw = String(letterText || "").trim();
+    const paragraphs = raw
       .split(/\n\s*\n/g)
       .map((p) => p.trim())
       .filter(Boolean);
@@ -229,28 +232,39 @@ export async function buildPacket(quoteId) {
     const lines = [];
     paragraphs.forEach((p, idx) => {
       if (idx > 0) {
-        // Add stronger visual separation between paragraphs for readability.
-        lines.push("", "");
+        lines.push("", "", "");
       }
-      lines.push(...wrapToLines(p, 90));
+      lines.push(...wrapToLines(p, 88));
     });
     return lines;
   }
 
-  const letterText = await generateLetter(submission.segment, extraction.reviewed_json || {}, {
-    business_name: data.business_name || data.client_name || null,
-    contact_name: data.contact_name || null,
-    email: data.client_email || null,
-  });
+  const packetGeneratedAt = new Date().toISOString();
+  const letterText = await generateLetter(
+    submission.segment,
+    extraction.reviewed_json || {},
+    {
+      business_name: data.business_name || data.client_name || null,
+      contact_name: data.contact_name || null,
+      email: data.client_email || null,
+    },
+    {
+      quoteCreatedAt: quote.quote_created_at || null,
+      packetGeneratedAt,
+    },
+  );
 
   const salesLetterLines = letterTextToPdfLines(letterText);
   const assets = getSegmentAssets(submission.segment);
 
   const salesLetterPdf = await createSimplePagePdf(salesLetterLines, {
     logoDataUri: assets.logo || null,
-    logoMaxWidth: 210,
-    logoTop: 54,
-    textStartY: assets.logo ? 680 : undefined,
+    logoMaxWidth: 300,
+    logoMaxHeight: 100,
+    logoTop: 48,
+    textStartY: assets.logo ? 628 : undefined,
+    lineGap: 6,
+    blankLineGap: 5,
   });
 
   let carrierPdf = null;

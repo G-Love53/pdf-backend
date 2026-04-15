@@ -194,7 +194,17 @@
           "/api/quotes/" + quoteId + "/packet/preview",
           { method: "POST" }
         );
-        if (!res.ok) return;
+        if (!res.ok) {
+          let msg = "Packet preview failed (" + res.status + ").";
+          try {
+            const err = await res.json();
+            if (err && (err.error || err.message)) {
+              msg += " " + (err.message || err.error);
+            }
+          } catch (_) {}
+          alert(msg);
+          return;
+        }
         const data = await res.json();
         lastPreview = data.preview_base64;
         lastMetadata = data.metadata;
