@@ -16,8 +16,10 @@
         padding: 12px 20px;
         border-bottom: 1px solid #1f2937;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
       }
       header h1 {
         font-size: 16px;
@@ -146,9 +148,10 @@
   </head>
   <body>
     <header>
-      <div>
+      <div style="flex: 1; min-width: 0">
         <h1>Extraction Review</h1>
         <span id="header-subtitle"></span>
+        <%- include('../partials/operator-nav', { segmentQuery: typeof segmentQuery !== 'undefined' ? segmentQuery : '', segment: typeof segment !== 'undefined' ? segment : 'all' }) %>
       </div>
       <div>
         <span style="font-size: 11px; color: #9ca3af;"

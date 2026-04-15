@@ -10,6 +10,7 @@ import {
   notifyBarUwQuestionPdf,
 } from "../services/agentNotificationService.js";
 import { DocumentRole, DocumentType, StorageProvider } from "../constants/postgresEnums.js";
+import { GMAIL_POLLER_SEGMENTS } from "../config/segmentAgentInbox.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,21 +28,7 @@ const storage = new S3Client({
 
 const BUCKET = process.env.R2_BUCKET_NAME;
 
-const SEGMENTS = [
-  // Bar inbox uses singular "quote@..." (no trailing "s") per Gmail filter setup.
-  { segment: "bar", email: "quote@barinsurancedirect.com", label: "carrier-quotes" },
-  {
-    segment: "roofer",
-    email: "quotes@roofingcontractorinsurancedirect.com",
-    label: "carrier-quotes",
-  },
-  {
-    segment: "plumber",
-    email: "quotes@plumbinginsurancedirect.com",
-    label: "carrier-quotes",
-  },
-  { segment: "hvac", email: "quotes@hvacinsurancedirect.com", label: "carrier-quotes" },
-];
+const SEGMENTS = GMAIL_POLLER_SEGMENTS;
 
 const CONFIDENCE = {
   AUTO_MATCH: 0.95,

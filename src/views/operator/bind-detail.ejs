@@ -4,7 +4,9 @@
     <meta charset="utf-8" />
     <title>CID — Bind Detail</title>
     <style>
-      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; padding: 16px; display: flex; gap: 16px; }
+      body { font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; background: #f9fafb; }
+      .operator-topbar { background: #020617; color: #e5e7eb; padding: 12px 20px; border-bottom: 1px solid #1f2937; }
+      .bind-body { padding: 16px; display: flex; gap: 16px; }
       .col { flex: 1; }
       h1 { font-size: 20px; margin-bottom: 8px; }
       label { display: block; margin-top: 8px; font-size: 13px; }
@@ -14,6 +16,10 @@
     </style>
   </head>
   <body>
+    <div class="operator-topbar">
+      <%- include('../partials/operator-nav', { segmentQuery: typeof segmentQuery !== 'undefined' ? segmentQuery : '', segment: typeof segment !== 'undefined' ? segment : 'all' }) %>
+    </div>
+    <div class="bind-body">
     <div class="col">
       <h1>Bind Detail</h1>
       <div id="summary"></div>
@@ -53,6 +59,7 @@
         <h3 style="font-size: 14px; margin: 0 0 8px 0;">Signed Document</h3>
         <a id="signed-doc-link" href="#" target="_blank" rel="noopener noreferrer">Open signed PDF</a>
       </div>
+    </div>
     </div>
 
     <script>

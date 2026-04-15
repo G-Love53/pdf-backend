@@ -80,24 +80,10 @@
   </head>
   <body>
     <header>
-      <div>
+      <div style="flex: 1; min-width: 0">
         <h1>Bind Queue</h1>
         <span>S6 &mdash; quotes with packets sent, ready to bind</span>
-        <div style="margin-top: 8px; font-size: 12px">
-          <a id="nav-operator-home" href="/operator" style="color: #38bdf8">&larr; Operator Home</a>
-        </div>
-      </div>
-      <div class="toolbar">
-        <div class="filter-group">
-          <label for="segment-filter">Segment:</label>
-          <select id="segment-filter">
-            <option value="">All</option>
-            <option value="bar">Bar</option>
-            <option value="roofer">Roofer</option>
-            <option value="plumber">Plumber</option>
-            <option value="hvac">HVAC</option>
-          </select>
-        </div>
+        <%- include('../partials/operator-nav', { segmentQuery: typeof segmentQuery !== 'undefined' ? segmentQuery : '', segment: typeof segment !== 'undefined' ? segment : 'all' }) %>
       </div>
     </header>
     <main>
@@ -119,34 +105,19 @@
     </main>
 
     <script>
-      function pushSegmentToUrl(segment) {
-        const u = new URL(window.location.href);
-        if (segment) u.searchParams.set("segment", segment);
-        else u.searchParams.delete("segment");
-        history.replaceState({}, "", u);
-        syncOperatorHomeLink();
+      function navSegmentForApi() {
+        const sel = document.getElementById("operator-nav-segment");
+        if (!sel || sel.value === "all") return "";
+        return sel.value;
       }
 
-      function syncOperatorHomeLink() {
-        const s = document.getElementById("segment-filter").value;
-        const a = document.getElementById("nav-operator-home");
-        if (a)
-          a.href = s
-            ? "/operator?segment=" + encodeURIComponent(s)
-            : "/operator";
+      function segmentQuerySuffix() {
+        const s = navSegmentForApi();
+        return s ? "?segment=" + encodeURIComponent(s) : "";
       }
-
-      (function initSegmentFromUrl() {
-        const p = new URLSearchParams(window.location.search);
-        const seg = (p.get("segment") || "").toLowerCase();
-        const allowed = ["", "bar", "roofer", "plumber", "hvac"];
-        const el = document.getElementById("segment-filter");
-        if (el && allowed.includes(seg)) el.value = seg;
-      })();
-      syncOperatorHomeLink();
 
       async function loadBindQueue() {
-        const segment = document.getElementById("segment-filter").value;
+        const segment = navSegmentForApi();
         const params = new URLSearchParams();
         if (segment) params.set("segment", segment);
         const res = await fetch(
@@ -166,18 +137,11 @@
             <td>$${(item.annual_premium || 0).toFixed(2)}</td>
             <td>${item.packet_sent_at || ""}</td>
             <td>${item.days_since_sent ?? ""}</td>
-            <td><a href="/operator/bind/${item.quote_id}">Bind</a></td>
+            <td><a href="/operator/bind/${item.quote_id}${segmentQuerySuffix()}">Bind</a></td>
           `;
           tbody.appendChild(tr);
         });
       }
-
-      document
-        .getElementById("segment-filter")
-        .addEventListener("change", function () {
-          pushSegmentToUrl(this.value);
-          loadBindQueue();
-        });
 
       loadBindQueue();
       setInterval(loadBindQueue, 30000);

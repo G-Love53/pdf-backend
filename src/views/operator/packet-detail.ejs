@@ -16,8 +16,10 @@
         padding: 12px 20px;
         border-bottom: 1px solid #1f2937;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
       }
       header h1 {
         font-size: 16px;
@@ -121,15 +123,40 @@
       .btn-amber:hover {
         background: #78350f;
       }
+      .packet-status-pill {
+        display: inline-block;
+        margin-left: 8px;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        vertical-align: middle;
+      }
+      .packet-status-pill.sent {
+        background: #064e3b;
+        color: #bbf7d0;
+      }
+      .packet-status-pill.draft {
+        background: #1e3a5f;
+        color: #93c5fd;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body>
     <header>
-      <div>
-        <h1>Packet Detail</h1>
-        <span id="header-subtitle"></span>
+      <div style="flex: 1; min-width: 0">
+        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px">
+          <h1 style="display: inline">Packet Detail</h1>
+          <span id="packet-status-badge" class="packet-status-pill" style="display: none"></span>
+        </div>
+        <span id="header-subtitle" style="display: block; margin-top: 4px"></span>
+        <%- include('../partials/operator-nav', { segmentQuery: typeof segmentQuery !== 'undefined' ? segmentQuery : '', segment: typeof segment !== 'undefined' ? segment : 'all' }) %>
       </div>
-      <div>
+      <div style="flex-shrink: 0; text-align: right">
         <span style="font-size: 11px; color: #9ca3af;"
           >Ctrl+Enter = Send Packet</span
         >
@@ -175,6 +202,7 @@
 
     <script>
       const quoteId = "<%= quoteId %>";
+      const segmentSuffix = <%- JSON.stringify(typeof segmentQuery !== "undefined" ? segmentQuery : "") %>;
 
       let lastPreview = null;
       let lastMetadata = null;
@@ -259,7 +287,44 @@
         }
       }
 
+      async function loadPacketMeta() {
+        try {
+          const r = await fetch("/api/quotes/" + quoteId + "/packet-meta");
+          if (!r.ok) return;
+          const data = await r.json();
+          const badge = document.getElementById("packet-status-badge");
+          const sendBtn = document.getElementById("send-btn");
+          if (!badge) return;
+          if (data.status === "sent") {
+            badge.textContent = "SENT";
+            badge.className = "packet-status-pill sent";
+            badge.style.display = "inline-block";
+            if (sendBtn) {
+              sendBtn.disabled = true;
+              sendBtn.title =
+                "Packet already sent. Reopen in S4 if you need to send again.";
+            }
+          } else if (data.status) {
+            badge.textContent = String(data.status).replace(/_/g, " ").toUpperCase();
+            badge.className = "packet-status-pill draft";
+            badge.style.display = "inline-block";
+            if (sendBtn) {
+              sendBtn.disabled = false;
+              sendBtn.title = "";
+            }
+          } else {
+            badge.style.display = "none";
+            if (sendBtn) {
+              sendBtn.disabled = false;
+              sendBtn.title = "";
+            }
+          }
+        } catch (_) {}
+      }
+
       async function sendPacket() {
+        const sendBtn = document.getElementById("send-btn");
+        if (sendBtn && sendBtn.disabled) return;
         const to = document.getElementById("to-input").value.trim();
         const ccRaw = document.getElementById("cc-input").value.trim();
         const subject = document.getElementById("subject-input").value.trim();
@@ -287,7 +352,7 @@
           alert("Failed to send packet.");
           return;
         }
-        window.location.href = "/operator/packet-builder";
+        window.location.href = "/operator/packet-builder" + segmentSuffix;
       }
 
       async function reopenInS4() {
@@ -317,7 +382,7 @@
           );
           return;
         }
-        window.location.href = "/operator/packet-builder";
+        window.location.href = "/operator/packet-builder" + segmentSuffix;
       }
 
       document
@@ -335,6 +400,7 @@
         }
       });
 
+      loadPacketMeta();
       loadInitial();
     </script>
   </body>

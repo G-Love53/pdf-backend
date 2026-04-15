@@ -1,0 +1,58 @@
+<% var navSeg = typeof segment !== "undefined" && segment ? segment : "all"; %>
+<% var navSq = typeof segmentQuery !== "undefined" ? segmentQuery : ""; %>
+<style>
+  .operator-nav-links {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 10px;
+  }
+  .operator-nav-links select {
+    background: #020617;
+    color: #e5e7eb;
+    border-radius: 8px;
+    border: 1px solid #1f2937;
+    padding: 4px 10px;
+    font-size: 13px;
+  }
+  .operator-nav-links a {
+    color: #38bdf8;
+    text-decoration: none;
+  }
+  .operator-nav-links a:hover {
+    text-decoration: underline;
+  }
+</style>
+<div class="operator-nav-links">
+  <a id="nav-home" href="/operator<%= navSq %>">&larr; Operator Home</a>
+  <span>|</span>
+  <label for="operator-nav-segment" style="margin: 0">Segment</label>
+  <select id="operator-nav-segment" aria-label="Filter by segment">
+    <option value="all" <%= navSeg === "all" ? "selected" : "" %>>All</option>
+    <option value="bar" <%= navSeg === "bar" ? "selected" : "" %>>Bar</option>
+    <option value="roofer" <%= navSeg === "roofer" ? "selected" : "" %>>Roofer</option>
+    <option value="plumber" <%= navSeg === "plumber" ? "selected" : "" %>>Plumber</option>
+    <option value="hvac" <%= navSeg === "hvac" ? "selected" : "" %>>HVAC</option>
+  </select>
+  <span>|</span>
+  <a id="nav-s4" href="/operator/extraction-review<%= navSq %>">S4 queue</a>
+  <span>·</span>
+  <a id="nav-s5" href="/operator/packet-builder<%= navSq %>">S5 packets</a>
+  <span>·</span>
+  <a id="nav-s6" href="/operator/bind<%= navSq %>">S6 binds</a>
+</div>
+<script>
+  (function () {
+    var sel = document.getElementById("operator-nav-segment");
+    if (!sel) return;
+    sel.addEventListener("change", function () {
+      var v = sel.value;
+      var qs =
+        !v || v === "all" ? "" : "?segment=" + encodeURIComponent(v);
+      window.location.href = window.location.pathname + qs;
+    });
+  })();
+</script>

@@ -18,6 +18,14 @@ import { dedupeCarrierMessagesForGmail } from "../jobs/gmailPoller.js";
 const router = express.Router();
 const pool = getPool();
 
+/** Segment filter for shared operator nav (?segment=all|bar|…). */
+function operatorNavLocals(req) {
+  const segment = parseOperatorSegmentQuery(req.query.segment);
+  const segmentQuery =
+    segment === "all" ? "" : `?segment=${encodeURIComponent(segment)}`;
+  return { segment, segmentQuery };
+}
+
 router.use(extractionReviewApi);
 router.use(packetBuilderApi);
 router.use(bindFlowApi);
@@ -317,12 +325,24 @@ router.get("/operator/today/:metric", async (req, res) => {
           q.quote_id,
           qe.reviewed_at,
           q.carrier_name,
-          COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name
+          COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name,
+          CASE
+            WHEN pkt.st IS NULL THEN '—'
+            WHEN pkt.st::text = 'sent' THEN 'SENT'
+            ELSE UPPER(pkt.st::text)
+          END AS packet_status
         FROM quote_extractions qe
         JOIN quotes q ON q.quote_id = qe.quote_id
         JOIN submissions s ON s.submission_id = q.submission_id
         LEFT JOIN businesses b ON b.business_id = s.business_id
         LEFT JOIN clients c ON c.client_id = s.client_id
+        LEFT JOIN LATERAL (
+          SELECT qp.status AS st
+          FROM quote_packets qp
+          WHERE qp.quote_id = q.quote_id
+          ORDER BY qp.created_at DESC
+          LIMIT 1
+        ) pkt ON TRUE
         WHERE qe.review_status = 'approved'
           AND qe.reviewed_at >= CURRENT_DATE
           ${segSql}
@@ -332,6 +352,7 @@ router.get("/operator/today/:metric", async (req, res) => {
       columns: [
         { key: "submission_public_id", label: "Submission" },
         { key: "quote_id", label: "Quote", link: "quote_packet" },
+        { key: "packet_status", label: "Packet" },
         { key: "reviewed_at", label: "Approved (UTC)" },
         { key: "carrier_name", label: "Carrier" },
         { key: "client_name", label: "Client" },
@@ -450,6 +471,7 @@ router.get("/operator/today/:metric", async (req, res) => {
       rows,
       segmentLabel,
       segmentQuery,
+      segment: segment === "all" ? "all" : segment,
     });
   } catch (err) {
     console.error("[operator/today] error:", err.message || err);
@@ -457,33 +479,36 @@ router.get("/operator/today/:metric", async (req, res) => {
   }
 });
 
-router.get("/operator/extraction-review", async (_req, res) => {
-  res.render("operator/extraction-queue", {});
+router.get("/operator/extraction-review", async (req, res) => {
+  res.render("operator/extraction-queue", operatorNavLocals(req));
 });
 
 router.get("/operator/extraction-review/:workQueueItemId", async (req, res) => {
   res.render("operator/extraction-review", {
     workQueueItemId: req.params.workQueueItemId,
+    ...operatorNavLocals(req),
   });
 });
 
-router.get("/operator/packet-builder", async (_req, res) => {
-  res.render("operator/packet-queue", {});
+router.get("/operator/packet-builder", async (req, res) => {
+  res.render("operator/packet-queue", operatorNavLocals(req));
 });
 
 router.get("/operator/packet-builder/:quoteId", async (req, res) => {
   res.render("operator/packet-detail", {
     quoteId: req.params.quoteId,
+    ...operatorNavLocals(req),
   });
 });
 
-router.get("/operator/bind", async (_req, res) => {
-  res.render("operator/bind-queue", {});
+router.get("/operator/bind", async (req, res) => {
+  res.render("operator/bind-queue", operatorNavLocals(req));
 });
 
 router.get("/operator/bind/:quoteId", async (req, res) => {
   res.render("operator/bind-detail", {
     quoteId: req.params.quoteId,
+    ...operatorNavLocals(req),
   });
 });
 

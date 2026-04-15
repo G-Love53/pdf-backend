@@ -103,6 +103,34 @@ router.get("/api/quotes/ready-for-packet", async (req, res) => {
   }
 });
 
+/** Latest packet row for operator UI (SENT badge, etc.) */
+router.get("/api/quotes/:quoteId/packet-meta", async (req, res) => {
+  if (!pool) {
+    return res.status(503).json({ error: "database_not_configured" });
+  }
+  const { quoteId } = req.params;
+  try {
+    const r = await pool.query(
+      `
+        SELECT status::text AS status, sent_at
+        FROM quote_packets
+        WHERE quote_id = $1
+        ORDER BY created_at DESC
+        LIMIT 1
+      `,
+      [quoteId],
+    );
+    const row = r.rows[0];
+    res.json({
+      status: row?.status || null,
+      sent_at: row?.sent_at ? new Date(row.sent_at).toISOString() : null,
+    });
+  } catch (err) {
+    console.error("[packetBuilder] packet-meta error:", err.message || err);
+    res.status(500).json({ error: "internal_error" });
+  }
+});
+
 router.post("/api/quotes/:quoteId/packet/preview", async (req, res) => {
   if (!pool) {
     return res.status(503).json({ error: "database_not_configured" });

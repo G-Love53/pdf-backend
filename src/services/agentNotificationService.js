@@ -1,5 +1,6 @@
 import { getPool } from "../db.js";
 import { sendWithGmail } from "../email.js";
+import { getSegmentAgentInboxEmail } from "../config/segmentAgentInbox.js";
 
 const BAR_AGENT_EMAIL = "quote@barinsurancedirect.com";
 
@@ -113,7 +114,8 @@ export async function notifyBarPacketSent({ packetId }) {
 
   if (!rows.length) return;
   const row = rows[0];
-  if (!isBarSegment(row.segment)) return;
+  const toEmail = getSegmentAgentInboxEmail(row.segment);
+  if (!toEmail) return;
 
   const subject = buildSubject(
     "[CID][Client][Packet]",
@@ -129,7 +131,7 @@ export async function notifyBarPacketSent({ packetId }) {
   ].filter(Boolean);
 
   await sendWithGmail({
-    to: [BAR_AGENT_EMAIL],
+    to: [toEmail],
     subject,
     text: lines.join("\n"),
   });

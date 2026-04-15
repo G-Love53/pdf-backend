@@ -122,12 +122,10 @@
   </head>
   <body>
     <header>
-      <div>
+      <div style="flex: 1; min-width: 0">
         <h1>Extraction Review Queue</h1>
         <span>S4 &mdash; Agent Gate 2</span>
-        <div style="margin-top: 8px; font-size: 12px">
-          <a id="nav-operator-home" href="/operator" style="color: #38bdf8">&larr; Operator Home</a>
-        </div>
+        <%- include('../partials/operator-nav', { segmentQuery: typeof segmentQuery !== 'undefined' ? segmentQuery : '', segment: typeof segment !== 'undefined' ? segment : 'all' }) %>
       </div>
       <div class="pending-count">
         Pending: <span id="pending-count">0</span>
@@ -135,16 +133,6 @@
     </header>
     <main>
       <div class="toolbar">
-        <div class="filter-group">
-          <label for="segment-filter">Segment:</label>
-          <select id="segment-filter">
-            <option value="">All</option>
-            <option value="bar">Bar</option>
-            <option value="roofer">Roofer</option>
-            <option value="plumber">Plumber</option>
-            <option value="hvac">HVAC</option>
-          </select>
-        </div>
         <div>
           <select id="sort-order">
             <option value="oldest_first">Oldest first</option>
@@ -170,8 +158,19 @@
     </main>
 
     <script>
+      function navSegmentForApi() {
+        const sel = document.getElementById("operator-nav-segment");
+        if (!sel || sel.value === "all") return "";
+        return sel.value;
+      }
+
+      function segmentQuerySuffix() {
+        const s = navSegmentForApi();
+        return s ? "?segment=" + encodeURIComponent(s) : "";
+      }
+
       async function fetchQueue() {
-        const segment = document.getElementById("segment-filter").value;
+        const segment = navSegmentForApi();
         const sort = document.getElementById("sort-order").value;
         const params = new URLSearchParams();
         if (segment) params.set("segment", segment);
@@ -192,7 +191,9 @@
           const tr = document.createElement("tr");
           tr.onclick = () => {
             window.location.href =
-              "/operator/extraction-review/" + item.work_queue_item_id;
+              "/operator/extraction-review/" +
+              item.work_queue_item_id +
+              segmentQuerySuffix();
           };
 
           const matchClass =
@@ -265,38 +266,6 @@
         });
       }
 
-      function pushSegmentToUrl(segment) {
-        const u = new URL(window.location.href);
-        if (segment) u.searchParams.set("segment", segment);
-        else u.searchParams.delete("segment");
-        history.replaceState({}, "", u);
-        syncOperatorHomeLink();
-      }
-
-      function syncOperatorHomeLink() {
-        const s = document.getElementById("segment-filter").value;
-        const a = document.getElementById("nav-operator-home");
-        if (a)
-          a.href = s
-            ? "/operator?segment=" + encodeURIComponent(s)
-            : "/operator";
-      }
-
-      (function initSegmentFromUrl() {
-        const p = new URLSearchParams(window.location.search);
-        const seg = (p.get("segment") || "").toLowerCase();
-        const allowed = ["", "bar", "roofer", "plumber", "hvac"];
-        const el = document.getElementById("segment-filter");
-        if (el && allowed.includes(seg)) el.value = seg;
-      })();
-      syncOperatorHomeLink();
-
-      document
-        .getElementById("segment-filter")
-        .addEventListener("change", function () {
-          pushSegmentToUrl(this.value);
-          fetchQueue();
-        });
       document
         .getElementById("sort-order")
         .addEventListener("change", fetchQueue);

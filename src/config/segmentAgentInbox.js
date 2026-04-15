@@ -1,0 +1,37 @@
+/**
+ * Segment Gmail inboxes for operator/carrier traffic.
+ * Keep in sync with CID migrations and Gmail poller expectations.
+ * Bar uses singular quote@ (historical mailbox naming).
+ */
+export const GMAIL_POLLER_SEGMENTS = [
+  {
+    segment: "bar",
+    email: "quote@barinsurancedirect.com",
+    label: "carrier-quotes",
+  },
+  {
+    segment: "roofer",
+    email: "quotes@roofingcontractorinsurancedirect.com",
+    label: "carrier-quotes",
+  },
+  {
+    segment: "plumber",
+    email: "quotes@plumbinginsurancedirect.com",
+    label: "carrier-quotes",
+  },
+  {
+    segment: "hvac",
+    email: "quotes@hvacinsurancedirect.com",
+    label: "carrier-quotes",
+  },
+];
+
+/**
+ * @param {string} [segment] - submissions.segment / segment_type
+ * @returns {string|null}
+ */
+export function getSegmentAgentInboxEmail(segment) {
+  const s = String(segment || "").toLowerCase().trim();
+  const row = GMAIL_POLLER_SEGMENTS.find((x) => x.segment === s);
+  return row?.email ?? null;
+}
