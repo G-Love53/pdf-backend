@@ -178,11 +178,24 @@
 
       let lastPreview = null;
       let lastMetadata = null;
+      /** Chrome often will not paint large PDFs via data: URLs in an iframe; blob URLs work. */
+      let lastPdfObjectUrl = null;
 
       function setPdfFromBase64(base64) {
         if (!base64) return;
-        const src = "data:application/pdf;base64," + base64;
-        document.getElementById("pdf-frame").src = src;
+        const frame = document.getElementById("pdf-frame");
+        if (lastPdfObjectUrl) {
+          URL.revokeObjectURL(lastPdfObjectUrl);
+          lastPdfObjectUrl = null;
+        }
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: "application/pdf" });
+        lastPdfObjectUrl = URL.createObjectURL(blob);
+        frame.src = lastPdfObjectUrl;
       }
 
       async function loadInitial() {
