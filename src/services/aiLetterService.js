@@ -36,10 +36,7 @@ Aggregate Limit: ${agg}
 
 Your full quote packet is attached. If you'd like to move forward, simply reply to this email.
 
-Thank you for choosing Commercial Insurance Direct.
-
-— CID Team
-Commercial Insurance Direct`;
+Thank you for choosing Commercial Insurance Direct.`;
 }
 
 function normalizeLetterText(text) {
@@ -48,11 +45,33 @@ function normalizeLetterText(text) {
   return t.replace(/^```(?:text|markdown)?/i, "").replace(/```$/i, "").trim();
 }
 
-function ensureClosingThankYou(text) {
-  const t = String(text || "").trim();
+/**
+ * One thank-you + one sign-off. Fixes duplicate "Commercial Insurance Direct" and
+ * double thank-yous (e.g. considering + our append).
+ */
+function normalizeLetterClosing(text) {
+  let t = String(text || "").trim();
   if (!t) return t;
-  if (/thank you for choosing commercial insurance direct/i.test(t)) return t;
-  return `${t}\n\nThank you for choosing Commercial Insurance Direct.`;
+
+  while (/Commercial Insurance Direct\.\s*Commercial Insurance Direct\.?/i.test(t)) {
+    t = t.replace(/Commercial Insurance Direct\.\s*Commercial Insurance Direct\.?/gi, "Commercial Insurance Direct.");
+  }
+  t = t.replace(/\bCommercial Insurance Direct\s+Commercial Insurance Direct\b/gi, "Commercial Insurance Direct");
+
+  t = t.replace(
+    /\bThank you for considering Commercial Insurance Direct\.\s*Commercial Insurance Direct\.?/gi,
+    "Thank you for considering Commercial Insurance Direct.",
+  );
+
+  const hasThank =
+    /thank you for choosing commercial insurance direct/i.test(t) ||
+    /thank you for considering commercial insurance direct/i.test(t);
+
+  if (!hasThank) {
+    return `${t}\n\nThank you for choosing Commercial Insurance Direct.`;
+  }
+
+  return t;
 }
 
 function rewriteSalutation(letterText, businessName) {
@@ -111,14 +130,19 @@ function applyCoverageGuardrails(letterText, extraction) {
   const text = String(letterText || "");
   if (!text) return text;
 
-  const cleaned = text
-    .replace(/\beverything covered\b/gi, "coverage tailored to your quote details")
-    .replace(/\beverything you need in one policy\b/gi, "a policy package aligned to the quote details");
+  const paras = text.split(/\n\s*\n/g);
+  const outParas = paras.map((para) => {
+    const cleaned = para
+      .trim()
+      .replace(/\beverything covered\b/gi, "coverage tailored to your quote details")
+      .replace(/\beverything you need in one policy\b/gi, "a policy package aligned to the quote details");
+    const sentences = cleaned.split(/(?<=[.!?])\s+/);
+    const filtered = sentences.filter((s) => stringHasCoverage(s, extraction));
+    return filtered.join(" ").trim();
+  });
 
-  const sentences = cleaned.split(/(?<=[.!?])\s+/);
-  const filtered = sentences.filter((s) => stringHasCoverage(s, extraction));
-  const out = filtered.join(" ").trim();
-  return out || cleaned;
+  const out = outParas.filter(Boolean).join("\n\n").trim();
+  return out || text;
 }
 
 async function withTimeout(promiseFactory, timeoutMs) {
@@ -220,7 +244,7 @@ async function callGeminiFallback(systemPrompt, userPrompt) {
 }
 
 function finalizeLetterBody(text, extraction) {
-  return ensureClosingThankYou(applyCoverageGuardrails(text, extraction));
+  return normalizeLetterClosing(applyCoverageGuardrails(text, extraction));
 }
 
 export async function generateLetter(segment, extractionData, clientData, letterContext = {}) {

@@ -222,8 +222,27 @@ export async function buildPacket(quoteId) {
     return out;
   }
 
+  /** When the model returns one wall of text, split ~3 sentences per paragraph for PDF readability. */
+  function expandParagraphsIfNeeded(raw) {
+    const t = String(raw || "").trim();
+    if (!t) return t;
+    if (/\n\s*\n/.test(t)) return t;
+    const sentences = t
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (sentences.length <= 4) return t;
+    const per = 3;
+    const chunks = [];
+    for (let i = 0; i < sentences.length; i += per) {
+      chunks.push(sentences.slice(i, i + per).join(" "));
+    }
+    return chunks.join("\n\n");
+  }
+
   function letterTextToPdfLines(letterText) {
-    const paragraphs = String(letterText || "")
+    const expanded = expandParagraphsIfNeeded(letterText);
+    const paragraphs = String(expanded || "")
       .split(/\n\s*\n/g)
       .map((p) => p.trim())
       .filter(Boolean);
@@ -258,10 +277,11 @@ export async function buildPacket(quoteId) {
 
   const salesLetterPdf = await createSimplePagePdf(salesLetterLines, {
     logoDataUri: assets.logo || null,
-    logoMaxWidth: 280,
-    logoMaxHeight: 96,
-    logoTop: 46,
-    textStartY: assets.logo ? 652 : undefined,
+    logoMaxWidth: 400,
+    logoMaxHeight: 120,
+    logoMaxScale: 4,
+    logoTop: 40,
+    textStartY: assets.logo ? 620 : undefined,
     textLineStep: 16,
     blankLineStep: 12,
   });

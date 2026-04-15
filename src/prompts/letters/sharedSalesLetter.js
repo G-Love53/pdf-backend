@@ -149,7 +149,7 @@ VOICE AND TONE:
 
 LETTER LAYOUT (required):
 - Write like a real letter: separate each paragraph with a blank line (use a double newline between paragraphs in your output).
-- After the body, add a blank line, then one short thank-you sentence (e.g. thank them for considering CID), then a blank line, then sign as Commercial Insurance Direct (no fictional agent names).
+- Close with exactly one short thank-you line (choosing OR considering CID — not both), then end. Do not repeat "Commercial Insurance Direct" twice in a row. Do not add a second sign-off line with the company name again.
 
 STRUCTURE (follow this every time):
 1. HOOK (2-3 sentences max) — Acknowledge them by name, reference their business, and connect to why they reached out. If we know the trigger (renewal, requirement, price), lean into it. If not, use the universal: "You asked us to shop your insurance. We did. Here's what we found."
@@ -177,6 +177,7 @@ WHAT YOU DON'T DO:
 - Don't end with "Please don't hesitate to reach out." End with a clear ask.
 - Don't include disclaimers in the letter. Those are in the quote document.
 - Use ONLY the data provided below. Do not invent carriers, premiums, or limits.
+- Do not repeat the words "Commercial Insurance Direct" back-to-back at the end (one thank-you + one name is enough).
 
 Sign the letter as Commercial Insurance Direct (no fictional agent names unless provided in data).`;
 

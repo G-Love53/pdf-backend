@@ -56,7 +56,9 @@ export async function createSimplePagePdf(lines = [], options = {}) {
       const img = await doc.embedPng(logoPng);
       const maxWidth = Number(options.logoMaxWidth || 210);
       const maxHeight = Number(options.logoMaxHeight || 70);
-      const ratio = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
+      // Allow upscaling small PNGs (previously `, 1` capped at 100% intrinsic size — logos stayed tiny).
+      const maxScale = Number(options.logoMaxScale ?? 4);
+      const ratio = Math.min(maxWidth / img.width, maxHeight / img.height, maxScale);
       const drawW = img.width * ratio;
       const drawH = img.height * ratio;
       const x = (width - drawW) / 2;
