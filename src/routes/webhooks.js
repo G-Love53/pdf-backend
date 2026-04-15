@@ -14,6 +14,7 @@ import {
   processBoldSignDocumentCompleted,
   tryFinalizeBoldSignFromDocumentId,
 } from "../services/boldsignBindCompletion.js";
+import { getDocumentProperties } from "../services/boldsignService.js";
 import {
   DocumentRole,
   DocumentType,
@@ -101,6 +102,119 @@ function parseBoldSignPayload(req) {
 
   // Fallback if some other middleware parsed it
   return body && typeof body === "object" ? body : null;
+}
+
+function walkUnknown(value, fn) {
+  if (value == null) return;
+  if (Array.isArray(value)) {
+    for (const item of value) walkUnknown(item, fn);
+    return;
+  }
+  if (typeof value === "object") {
+    for (const [k, v] of Object.entries(value)) {
+      fn(k, v);
+      walkUnknown(v, fn);
+    }
+  }
+}
+
+function normalizeTriaDecision(raw) {
+  const t = String(raw || "").trim().toLowerCase();
+  if (!t) return null;
+  if (/declin|reject|opt[\s_-]?out|no/.test(t)) return "decline";
+  if (/elect|accept|opt[\s_-]?in|yes/.test(t)) return "accept";
+  return null;
+}
+
+function extractTriaDecision(payload, properties) {
+  let picked = null;
+  const pick = (k, v) => {
+    const key = String(k || "").toLowerCase();
+    if (!/(tria|terror)/.test(key)) return;
+    if (typeof v === "boolean") {
+      if (v) {
+        if (/declin|reject|opt[\s_-]?out|no/.test(key)) picked = "decline";
+        else if (/elect|accept|opt[\s_-]?in|yes/.test(key)) picked = "accept";
+      }
+      return;
+    }
+    const d = normalizeTriaDecision(v);
+    if (d) picked = d;
+  };
+
+  walkUnknown(payload, pick);
+  if (picked) return picked;
+  walkUnknown(properties, pick);
+  return picked;
+}
+
+async function persistBoldSignTriaDecision(pool, docId, meta = {}) {
+  const { eventId = null, payload = null, environment = null } = meta;
+  let props = null;
+  try {
+    props = await getDocumentProperties(docId);
+  } catch (err) {
+    console.warn("[boldsign webhook] TRIA properties lookup failed:", err?.message || err);
+  }
+
+  const decision = extractTriaDecision(payload, props);
+  if (!decision) return;
+
+  await pool.query(
+    `
+      INSERT INTO timeline_events (
+        submission_id,
+        quote_id,
+        event_type,
+        event_label,
+        event_payload_json,
+        created_by
+      )
+      SELECT
+        s.submission_id,
+        q.quote_id,
+        'bind.tria_selection',
+        'TRIA selection captured',
+        $2::jsonb,
+        'system'
+      FROM bind_requests br
+      JOIN quotes q ON q.quote_id = br.quote_id
+      JOIN submissions s ON s.submission_id = q.submission_id
+      WHERE br.hellosign_request_id = $1
+        AND NOT EXISTS (
+          SELECT 1
+          FROM timeline_events te
+          WHERE te.quote_id = q.quote_id
+            AND te.event_type = 'bind.tria_selection'
+            AND te.event_payload_json->>'document_id' = $3
+        )
+      LIMIT 1
+    `,
+    [
+      docId,
+      JSON.stringify({
+        document_id: docId,
+        tria_decision: decision,
+        event_id: eventId,
+        environment,
+      }),
+      String(docId),
+    ],
+  );
+
+  await pool.query(
+    `
+      UPDATE bind_requests
+      SET agent_notes = CASE
+        WHEN COALESCE(agent_notes, '') ILIKE '%' || $2 || '%' THEN agent_notes
+        WHEN COALESCE(agent_notes, '') = '' THEN $2
+        ELSE agent_notes || E'\n' || $2
+      END,
+      updated_at = NOW()
+      WHERE hellosign_request_id = $1
+    `,
+    [docId, `TRIA selection: ${decision}`],
+  );
 }
 
 router.post("/api/webhooks/hellosign", async (req, res) => {
@@ -579,6 +693,11 @@ router.post("/api/webhooks/boldsign", async (req, res) => {
     // Completed: trust BoldSign — finalize immediately (properties API can lag vs webhook).
     if (eventType === "Completed") {
       try {
+        await persistBoldSignTriaDecision(pool, docId, {
+          eventId,
+          payload,
+          environment,
+        });
         const result = await processBoldSignDocumentCompleted(docId, {
           eventId,
           payload,
@@ -603,6 +722,11 @@ router.post("/api/webhooks/boldsign", async (req, res) => {
     // Signed: per-signer; use properties + idempotent finalize (safe if Completed also fires).
     if (eventType === "Signed") {
       try {
+        await persistBoldSignTriaDecision(pool, docId, {
+          eventId,
+          payload,
+          environment,
+        });
         const result = await tryFinalizeBoldSignFromDocumentId(docId, {
           eventId,
           payload,

@@ -39,6 +39,10 @@ function buildTemplateMergeFields(quoteDetail, paymentMethod) {
     payment_method: paymentMethod || "annual",
     gl_per_occurrence: q.gl_per_occurrence != null ? String(q.gl_per_occurrence) : "",
     gl_aggregate: q.gl_aggregate != null ? String(q.gl_aggregate) : "",
+    tria_accept_label: "I elect terrorism coverage (+$125)",
+    tria_decline_label: "I decline terrorism coverage",
+    tria_premium_amount: "125",
+    tria_selection: "",
   };
 }
 

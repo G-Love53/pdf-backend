@@ -46,6 +46,47 @@ function normalizeLetterText(text) {
   return t.replace(/^```(?:text|markdown)?/i, "").replace(/```$/i, "").trim();
 }
 
+function stringHasCoverage(claimText, extraction) {
+  const blob = JSON.stringify(extraction || {}).toLowerCase();
+  const t = String(claimText || "").toLowerCase();
+  if (/workers?\s*comp/.test(t)) {
+    return (
+      extraction?.wc_included === true ||
+      extraction?.workers_comp_included === true ||
+      extraction?.workers_comp === true ||
+      /\bworkers?\s*comp(ensation)?\b/.test(blob)
+    );
+  }
+  if (/liquor/.test(t)) {
+    return (
+      extraction?.liquor_liability_included === true ||
+      extraction?.liquor_liability_limit != null ||
+      /\bliquor\b/.test(blob)
+    );
+  }
+  if (/cyber/.test(t)) {
+    return extraction?.cyber_included === true || /\bcyber\b/.test(blob);
+  }
+  if (/umbrella/.test(t)) {
+    return extraction?.umbrella_included === true || /\bumbrella\b/.test(blob);
+  }
+  return true;
+}
+
+function applyCoverageGuardrails(letterText, extraction) {
+  const text = String(letterText || "");
+  if (!text) return text;
+
+  const cleaned = text
+    .replace(/\beverything covered\b/gi, "coverage tailored to your quote details")
+    .replace(/\beverything you need in one policy\b/gi, "a policy package aligned to the quote details");
+
+  const sentences = cleaned.split(/(?<=[.!?])\s+/);
+  const filtered = sentences.filter((s) => stringHasCoverage(s, extraction));
+  const out = filtered.join(" ").trim();
+  return out || cleaned;
+}
+
 async function withTimeout(promiseFactory, timeoutMs) {
   const timeout = Number(timeoutMs || 0);
   if (!Number.isFinite(timeout) || timeout <= 0) {
@@ -155,7 +196,7 @@ export async function generateLetter(segment, extractionData, clientData) {
   // Primary: Claude
   try {
     const t = await callClaude(systemPrompt, userPrompt);
-    return normalizeLetterText(t);
+    return applyCoverageGuardrails(normalizeLetterText(t), extraction);
   } catch (err) {
     console.warn("[aiLetterService] Claude failed; falling back:", err?.message || err);
   }
@@ -163,12 +204,12 @@ export async function generateLetter(segment, extractionData, clientData) {
   // Secondary: Gemini
   try {
     const t = await callGeminiFallback(systemPrompt, userPrompt);
-    return normalizeLetterText(t);
+    return applyCoverageGuardrails(normalizeLetterText(t), extraction);
   } catch (err) {
     console.warn("[aiLetterService] Gemini failed; using last-resort template:", err?.message || err);
   }
 
   // Last resort: template-based letter.
-  return buildFallbackLetter(seg, extraction, client);
+  return applyCoverageGuardrails(buildFallbackLetter(seg, extraction, client), extraction);
 }
 

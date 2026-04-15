@@ -100,8 +100,8 @@ export async function sendPacketEmail({
   <div style="margin: 16px 0 8px 0;">
     ${
       bindNowUrl
-        ? `<a href="${escapeHtml(bindNowUrl)}" style="display:inline-block; background:#111827; color:#ffffff; text-decoration:none; padding:12px 18px; border-radius:8px; font-weight:700;">Bind Now</a>`
-        : `<span style="display:inline-block; background:#9ca3af; color:#ffffff; padding:12px 18px; border-radius:8px; font-weight:700;">Bind Now unavailable</span>`
+        ? `<a href="${escapeHtml(bindNowUrl)}" style="display:inline-block; background:#111827; color:#ffffff; text-decoration:none; padding:12px 18px; border-radius:8px; font-weight:700;">Issue Policy</a>`
+        : `<span style="display:inline-block; background:#9ca3af; color:#ffffff; padding:12px 18px; border-radius:8px; font-weight:700;">Issue Policy unavailable</span>`
     }
   </div>
   <div style="margin: 10px 0;">
