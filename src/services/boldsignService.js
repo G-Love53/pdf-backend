@@ -360,6 +360,30 @@ export async function createEmbeddedSignatureRequestFromTemplate({
     "https://cid-pdf-api.onrender.com/operator";
 
   const roleName = process.env.BOLDSIGN_TEMPLATE_ROLE_NAME || "Signer";
+  // TRIA decision must be explicitly captured before signing is complete.
+  // Use one radio group with two options (mutually exclusive) and required=true.
+  const triaRadioGroupName = "tria_selection";
+  const triaFields = [
+    {
+      FieldType: "RadioButton",
+      Id: "tria_accept",
+      GroupName: triaRadioGroupName,
+      Label: "I elect terrorism coverage (+$125)",
+      Value: "accept",
+      IsRequired: true,
+      RoleName: roleName,
+    },
+    {
+      FieldType: "RadioButton",
+      Id: "tria_decline",
+      GroupName: triaRadioGroupName,
+      Label: "I decline terrorism coverage",
+      Value: "decline",
+      IsRequired: true,
+      RoleName: roleName,
+    },
+  ];
+
   const sendBody = {
     TemplateId: String(templateId || "").trim(),
     Title: subject || "Bind Confirmation",
@@ -374,6 +398,7 @@ export async function createEmbeddedSignatureRequestFromTemplate({
         SignerEmail: signerEmail,
       },
     ],
+    FormFields: triaFields,
     MergeFields: Object.entries(mergeFields || {}).map(([Name, Value]) => ({
       Name,
       Value: Value == null ? "" : String(Value),
