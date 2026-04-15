@@ -223,8 +223,7 @@ export async function buildPacket(quoteId) {
   }
 
   function letterTextToPdfLines(letterText) {
-    const raw = String(letterText || "").trim();
-    const paragraphs = raw
+    const paragraphs = String(letterText || "")
       .split(/\n\s*\n/g)
       .map((p) => p.trim())
       .filter(Boolean);
@@ -234,7 +233,7 @@ export async function buildPacket(quoteId) {
       if (idx > 0) {
         lines.push("", "", "");
       }
-      lines.push(...wrapToLines(p, 88));
+      lines.push(...wrapToLines(p, 90));
     });
     return lines;
   }
@@ -259,12 +258,12 @@ export async function buildPacket(quoteId) {
 
   const salesLetterPdf = await createSimplePagePdf(salesLetterLines, {
     logoDataUri: assets.logo || null,
-    logoMaxWidth: 300,
-    logoMaxHeight: 100,
-    logoTop: 48,
-    textStartY: assets.logo ? 628 : undefined,
-    lineGap: 6,
-    blankLineGap: 5,
+    logoMaxWidth: 280,
+    logoMaxHeight: 96,
+    logoTop: 46,
+    textStartY: assets.logo ? 652 : undefined,
+    textLineStep: 16,
+    blankLineStep: 12,
   });
 
   let carrierPdf = null;

@@ -2,8 +2,6 @@ import { build as buildBarPrompt } from "../prompts/letters/bar.js";
 import { build as buildPlumberPrompt } from "../prompts/letters/plumber.js";
 import { build as buildRooferPrompt } from "../prompts/letters/roofer.js";
 import { build as buildHvacPrompt } from "../prompts/letters/hvac.js";
-import { computeQuoteValidityDisplay } from "../prompts/letters/sharedSalesLetter.js";
-
 const LETTER_PROMPTS = {
   bar: buildBarPrompt,
   roofer: buildRooferPrompt,
@@ -15,7 +13,7 @@ function segmentKey(segment) {
   return String(segment || "bar").trim().toLowerCase();
 }
 
-function buildFallbackLetter(segment, extractionData, clientData, letterContext = {}) {
+function buildFallbackLetter(_segment, extractionData, clientData, _letterContext = {}) {
   const policyType = extractionData?.policy_type || "insurance";
   const carrierName = extractionData?.carrier_name || "a carrier";
   const annualPremium = extractionData?.annual_premium ?? "";
@@ -25,10 +23,6 @@ function buildFallbackLetter(segment, extractionData, clientData, letterContext 
 
   const dearName =
     clientData?.business_name || clientData?.contact_name || "Business Owner";
-  const { display: validThrough } = computeQuoteValidityDisplay(
-    extractionData || {},
-    letterContext,
-  );
 
   return `Dear ${dearName},
 
@@ -39,8 +33,6 @@ We have a ${policyType} quote ready for you from ${carrierName}:
 Annual Premium: $${annualPremium}
 Per Occurrence Limit: ${perOcc}
 Aggregate Limit: ${agg}
-
-This quote is valid through ${validThrough} (14 days from the quote issue date unless your carrier states otherwise).
 
 Your full quote packet is attached. If you'd like to move forward, simply reply to this email.
 

@@ -68,14 +68,14 @@ export async function createSimplePagePdf(lines = [], options = {}) {
     }
   }
 
-  const lineGap = Number(options.lineGap ?? 5);
-  const blankLineGap = Number(options.blankLineGap ?? 8);
+  const textLineStep = Number(options.textLineStep ?? 16);
+  const blankLineStep = Number(options.blankLineStep ?? 11);
 
   let y = Number(options.textStartY || height - 72);
   lines.forEach((line) => {
     const s = String(line ?? "");
     if (s === "") {
-      y -= blankLineGap;
+      y -= blankLineStep;
       return;
     }
     page.drawText(pdfSafeLine(s), {
@@ -85,7 +85,7 @@ export async function createSimplePagePdf(lines = [], options = {}) {
       font,
       color: undefined,
     });
-    y -= fontSize + lineGap;
+    y -= textLineStep;
   });
 
   const out = await doc.save();

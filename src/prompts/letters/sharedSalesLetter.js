@@ -134,8 +134,7 @@ export function buildSalesLetterPrompts(segment, extraction, client, letterConte
   const annualPremium = e.annual_premium != null && e.annual_premium !== "" ? String(e.annual_premium) : "";
   const coverageSummary = buildCoverageSummary(e);
   const keyCoverages = buildKeyCoverages(e);
-  const { display: quoteValidThrough, issueLabel: quoteIssueDateLabel } =
-    computeQuoteValidityDisplay(e, letterContext);
+  const { display: quoteValidThrough } = computeQuoteValidityDisplay(e, letterContext);
 
   const segmentProps = SEGMENT_VALUE_PROPS[seg];
 
@@ -148,9 +147,9 @@ VOICE AND TONE:
 - No jargon unless you explain it in the same sentence.
 - Never condescending. These people run businesses. Respect their time and intelligence.
 
-FORMATTING:
-- Use blank lines between paragraphs (double newlines in your output). Short paragraphs (2-4 sentences) read better than walls of text.
-- After the main body, add a blank line, then a one-line thank-you ("Thank you for choosing Commercial Insurance Direct" or similar), then a blank line, then the sign-off ("Commercial Insurance Direct").
+LETTER LAYOUT (required):
+- Write like a real letter: separate each paragraph with a blank line (use a double newline between paragraphs in your output).
+- After the body, add a blank line, then one short thank-you sentence (e.g. thank them for considering CID), then a blank line, then sign as Commercial Insurance Direct (no fictional agent names).
 
 STRUCTURE (follow this every time):
 1. HOOK (2-3 sentences max) — Acknowledge them by name, reference their business, and connect to why they reached out. If we know the trigger (renewal, requirement, price), lean into it. If not, use the universal: "You asked us to shop your insurance. We did. Here's what we found."
@@ -168,7 +167,7 @@ STRUCTURE (follow this every time):
 
 5. WHAT HAPPENS NEXT (clear action) — Tell them exactly what to do. E.g. reply to bind; they'll get COI within 24 hours AND their CID Connect login so they never have to chase down a certificate again. Remove every possible obstacle. Make saying yes the easiest thing they do today.
 
-6. URGENCY (one line, honest) — State that **this quote is valid for 14 calendar days from the quote issue date** unless the "Quote valid through" date below shows a carrier-specific deadline. Do **not** confuse this with policy effective dates, policy expiration dates, or the policy term — those belong in the attached PDF, not as the quote deadline in this letter.
+6. URGENCY (one line, honest) — Not fake scarcity. Real urgency: quote validity, current policy expiration, or carrier rate timing.
 
 WHAT YOU DON'T DO:
 - Don't open with "Dear Valued Customer" or "Thank you for your interest." Open with their name and their business.
@@ -178,7 +177,6 @@ WHAT YOU DON'T DO:
 - Don't end with "Please don't hesitate to reach out." End with a clear ask.
 - Don't include disclaimers in the letter. Those are in the quote document.
 - Use ONLY the data provided below. Do not invent carriers, premiums, or limits.
-- Never use the policy's effective date or policy expiration date as the "quote valid until" deadline — use the quote-valid line below (14-day rule).
 
 Sign the letter as Commercial Insurance Direct (no fictional agent names unless provided in data).`;
 
@@ -204,8 +202,7 @@ Annual Premium: $${annualPremium || "—"}
 Coverage Summary: ${coverageSummary}
 Key Coverages:
 ${keyCoverages}
-Quote issue date (reference): ${quoteIssueDateLabel || "—"}
-Quote valid through (14 days from issue unless carrier specifies otherwise in data above): ${quoteValidThrough}
+Quote Valid Until: ${quoteValidThrough || "—"}
 
 SEGMENT-SPECIFIC VALUE PROPS:
 ${segmentProps}
