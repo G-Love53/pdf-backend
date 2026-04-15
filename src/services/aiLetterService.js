@@ -46,6 +46,31 @@ function normalizeLetterText(text) {
   return t.replace(/^```(?:text|markdown)?/i, "").replace(/```$/i, "").trim();
 }
 
+function rewriteSalutation(letterText, businessName) {
+  const bn = String(businessName || "").trim();
+  const target = bn ? `${bn},` : "Dear Business Owner,";
+  const lines = String(letterText || "").split(/\r?\n/);
+  let replaced = false;
+  for (let i = 0; i < Math.min(lines.length, 5); i += 1) {
+    const t = lines[i].trim();
+    if (!t) continue;
+    if (
+      /^client,?$/i.test(t) ||
+      /^dear\b.*,/i.test(t) ||
+      /^hi\b.*,/i.test(t) ||
+      /^hello\b.*,/i.test(t)
+    ) {
+      lines[i] = target;
+      replaced = true;
+      break;
+    }
+  }
+  if (!replaced) {
+    return `${target}\n\n${String(letterText || "").trim()}`;
+  }
+  return lines.join("\n");
+}
+
 function stringHasCoverage(claimText, extraction) {
   const blob = JSON.stringify(extraction || {}).toLowerCase();
   const t = String(claimText || "").toLowerCase();
@@ -186,6 +211,7 @@ export async function generateLetter(segment, extractionData, clientData) {
   const promptBuilder = LETTER_PROMPTS[seg];
   const extraction = extractionData || {};
   const client = clientData || {};
+  const businessName = client.business_name || extraction.business_name || extraction.insured_name || "";
 
   if (!promptBuilder) {
     return buildFallbackLetter(seg, extraction, client);
@@ -196,7 +222,10 @@ export async function generateLetter(segment, extractionData, clientData) {
   // Primary: Claude
   try {
     const t = await callClaude(systemPrompt, userPrompt);
-    return applyCoverageGuardrails(normalizeLetterText(t), extraction);
+    return applyCoverageGuardrails(
+      rewriteSalutation(normalizeLetterText(t), businessName),
+      extraction,
+    );
   } catch (err) {
     console.warn("[aiLetterService] Claude failed; falling back:", err?.message || err);
   }
@@ -204,12 +233,18 @@ export async function generateLetter(segment, extractionData, clientData) {
   // Secondary: Gemini
   try {
     const t = await callGeminiFallback(systemPrompt, userPrompt);
-    return applyCoverageGuardrails(normalizeLetterText(t), extraction);
+    return applyCoverageGuardrails(
+      rewriteSalutation(normalizeLetterText(t), businessName),
+      extraction,
+    );
   } catch (err) {
     console.warn("[aiLetterService] Gemini failed; using last-resort template:", err?.message || err);
   }
 
   // Last resort: template-based letter.
-  return applyCoverageGuardrails(buildFallbackLetter(seg, extraction, client), extraction);
+  return applyCoverageGuardrails(
+    rewriteSalutation(buildFallbackLetter(seg, extraction, client), businessName),
+    extraction,
+  );
 }
 

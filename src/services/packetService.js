@@ -3,6 +3,7 @@ import { getPool } from "../db.js";
 import { getObjectStream, uploadBuffer } from "./r2Service.js";
 import { combinePDFs, createSimplePagePdf } from "./pdfCombineService.js";
 import { generateLetter } from "./aiLetterService.js";
+import { getSegmentAssets } from "../utils/assets.js";
 import { DocumentRole, DocumentType, StorageProvider } from "../constants/postgresEnums.js";
 import { orderByPrimaryCarrierPdf } from "../utils/carrierPdfPrimaryOrder.js";
 
@@ -26,6 +27,7 @@ export async function loadPacketData(quoteId) {
         s.submission_public_id,
         s.segment AS submission_segment,
         s.submitted_at,
+        b.business_name,
         c.client_id,
         c.first_name,
         c.last_name,
@@ -42,6 +44,8 @@ export async function loadPacketData(quoteId) {
        AND qe.review_status = 'approved'
       JOIN submissions s
         ON q.submission_id = s.submission_id
+      LEFT JOIN businesses b
+        ON b.business_id = s.business_id
       JOIN clients c
         ON s.client_id = c.client_id
       LEFT JOIN documents d
@@ -114,6 +118,7 @@ export async function loadPacketData(quoteId) {
       submission_public_id: row.submission_public_id,
       segment: row.submission_segment,
       submitted_at: row.submitted_at,
+      business_name: row.business_name || null,
     },
     client: {
       client_id: row.client_id,
@@ -133,12 +138,15 @@ export async function loadPacketData(quoteId) {
 
 export function buildPacketData({ quote, extraction, submission, client }) {
   const reviewed = extraction.reviewed_json || {};
-  const name =
+  const businessName =
+    submission.business_name ||
     reviewed.insured_name ||
     reviewed.business_name ||
     `${client.first_name || ""} ${client.last_name || ""}`.trim();
+  const name = businessName;
 
   return {
+    business_name: businessName || null,
     quote_id: quote.quote_id,
     client_name: name || null,
     contact_name: name || null,
@@ -220,21 +228,30 @@ export async function buildPacket(quoteId) {
 
     const lines = [];
     paragraphs.forEach((p, idx) => {
-      if (idx > 0) lines.push(""); // blank line between paragraphs
+      if (idx > 0) {
+        // Add stronger visual separation between paragraphs for readability.
+        lines.push("", "");
+      }
       lines.push(...wrapToLines(p, 90));
     });
     return lines;
   }
 
   const letterText = await generateLetter(submission.segment, extraction.reviewed_json || {}, {
-    business_name: data.client_name || null,
+    business_name: data.business_name || data.client_name || null,
     contact_name: data.contact_name || null,
     email: data.client_email || null,
   });
 
   const salesLetterLines = letterTextToPdfLines(letterText);
+  const assets = getSegmentAssets(submission.segment);
 
-  const salesLetterPdf = await createSimplePagePdf(salesLetterLines);
+  const salesLetterPdf = await createSimplePagePdf(salesLetterLines, {
+    logoDataUri: assets.logo || null,
+    logoMaxWidth: 210,
+    logoTop: 54,
+    textStartY: assets.logo ? 680 : undefined,
+  });
 
   let carrierPdf = null;
   if (carrierPdfPath) {

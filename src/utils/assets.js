@@ -22,12 +22,35 @@ const loadAssetBase64 = (fullPath) => {
 
 export function getSegmentAssets(segment) {
   const targetSegment = segment ? segment.toLowerCase().trim() : "default";
-  const assetsRoot = path.join(process.cwd(), "CID_HomeBase", "templates", "_SHARED", "assets", "segments");
+  const logosRoot = path.join(
+    process.cwd(),
+    "CID_HomeBase",
+    "templates",
+    "LOGOS",
+    "segments",
+  );
+  const legacySharedRoot = path.join(
+    process.cwd(),
+    "CID_HomeBase",
+    "templates",
+    "_shared",
+    "assets",
+    "segments",
+  );
 
   const resolveAsset = (filename) => {
-    const specificPath = path.join(assetsRoot, targetSegment, filename);
-    const defaultPath = path.join(assetsRoot, "default", filename);
-    return loadAssetBase64(specificPath) || loadAssetBase64(defaultPath);
+    const candidates = [
+      path.join(logosRoot, targetSegment, filename),
+      path.join(logosRoot, "default", filename),
+      // Backward compatibility for prior location/casing.
+      path.join(legacySharedRoot, targetSegment, filename),
+      path.join(legacySharedRoot, "default", filename),
+    ];
+    for (const c of candidates) {
+      const loaded = loadAssetBase64(c);
+      if (loaded) return loaded;
+    }
+    return null;
   };
 
   return {
