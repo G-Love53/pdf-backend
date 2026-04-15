@@ -144,6 +144,30 @@
         opacity: 0.45;
         cursor: not-allowed;
       }
+      .email-preview-wrap {
+        margin-top: 4px;
+      }
+      .email-preview-wrap .hint {
+        font-size: 11px;
+        color: #6b7280;
+        margin: 6px 0 8px;
+      }
+      #email-preview-frame {
+        width: 100%;
+        min-height: 260px;
+        max-height: 380px;
+        border: 1px solid #1f2937;
+        border-radius: 8px;
+        background: #ffffff;
+        color-scheme: light;
+      }
+      .email-preview-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+        flex-wrap: wrap;
+      }
     </style>
   </head>
   <body>
@@ -191,6 +215,23 @@
             <label>Body (optional override)</label>
             <textarea id="body-input" rows="6"></textarea>
           </div>
+          <div class="field-group email-preview-wrap">
+            <label>Client email preview</label>
+            <p class="hint" id="email-subject-hint"></p>
+            <div class="email-preview-actions">
+              <button class="btn-secondary" id="email-preview-btn" type="button">
+                Refresh email preview
+              </button>
+              <span style="font-size: 11px; color: #6b7280"
+                >Same HTML as Gmail (Issue Policy, I Have Questions, etc.). PDF is separate.</span
+              >
+            </div>
+            <iframe
+              id="email-preview-frame"
+              title="Client email HTML preview"
+              sandbox="allow-popups allow-same-origin"
+            ></iframe>
+          </div>
         </div>
         <div class="actions">
           <button class="btn-secondary" id="preview-btn" type="button">Preview</button>
@@ -224,6 +265,37 @@
         const blob = new Blob([bytes], { type: "application/pdf" });
         lastPdfObjectUrl = URL.createObjectURL(blob);
         frame.src = lastPdfObjectUrl;
+      }
+
+      async function loadEmailPreview() {
+        const bodyEl = document.getElementById("body-input");
+        const raw = bodyEl ? bodyEl.value.trim() : "";
+        const res = await fetch(
+          "/api/quotes/" + quoteId + "/packet/email-preview",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              body_override: raw ? raw : null,
+            }),
+          }
+        );
+        if (!res.ok) {
+          const frame = document.getElementById("email-preview-frame");
+          const hint = document.getElementById("email-subject-hint");
+          if (frame) frame.srcdoc = "";
+          if (hint) hint.textContent = "";
+          return;
+        }
+        const ep = await res.json();
+        const frame = document.getElementById("email-preview-frame");
+        const hint = document.getElementById("email-subject-hint");
+        if (frame) frame.srcdoc = ep.html || "";
+        if (hint) {
+          hint.textContent = ep.subject_default
+            ? "Default subject: " + ep.subject_default
+            : "";
+        }
       }
 
       async function loadInitial() {
@@ -285,6 +357,8 @@
             " Insurance Quote — " +
             (data.metadata.carrier_name || "");
         }
+
+        await loadEmailPreview();
       }
 
       async function loadPacketMeta() {
@@ -388,6 +462,9 @@
       document
         .getElementById("preview-btn")
         .addEventListener("click", preview);
+      document
+        .getElementById("email-preview-btn")
+        .addEventListener("click", loadEmailPreview);
       document
         .getElementById("reopen-s4-btn")
         .addEventListener("click", reopenInS4);

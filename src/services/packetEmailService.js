@@ -38,16 +38,19 @@ function formatDate(v) {
   return d.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
 }
 
-export async function sendPacketEmail({
-  segment,
-  to,
-  cc = [],
-  subject,
-  bodyOverride,
-  packetData,
-  attachmentBuffer,
-  attachmentFilename,
-}) {
+/**
+ * Same HTML used when sending the client packet email (unless bodyOverride replaces it).
+ * @param {object} opts
+ * @param {string} [opts.segment]
+ * @param {object} opts.packetData - from buildPacketData / buildPacket
+ * @param {string|null|undefined} [opts.bodyOverride] - full HTML replacement from operator
+ * @returns {{ html: string }}
+ */
+export function buildPacketEmailHtml({ segment, packetData, bodyOverride }) {
+  if (bodyOverride && String(bodyOverride).trim()) {
+    return { html: String(bodyOverride) };
+  }
+
   const seg = String(segment || "bar").toLowerCase();
   const display = SEGMENT_DISPLAY[seg] || "Commercial Insurance";
   const line = SEGMENT_LINE[seg] || "";
@@ -79,9 +82,7 @@ export async function sendPacketEmail({
   const questionBody = "My question about my quote: ";
   const questionMailto = `mailto:${encodeURIComponent(questionsTo)}?subject=${encodeURIComponent(questionSubject)}&body=${encodeURIComponent(questionBody)}`;
 
-  const html =
-    bodyOverride ||
-    `
+  const html = `
 <div style="font-family: Arial, sans-serif; color:#111827; line-height:1.45;">
   <p>Hi ${escapeHtml(packetData.contact_name || packetData.client_name || "there")},</p>
   <p>Your quote packet is ready. Your AI sales letter and full carrier quote are attached.</p>
@@ -119,6 +120,30 @@ export async function sendPacketEmail({
   <p style="font-size:13px; color:#6b7280;">${escapeHtml(display)} Insurance Direct</p>
 </div>
   `;
+
+  return { html };
+}
+
+/** Default subject line when operator does not override (matches finalize). */
+export function defaultPacketEmailSubject(packetData) {
+  return `Your ${packetData.policy_type || ""} Insurance Quote — ${packetData.carrier_name || ""}`;
+}
+
+export async function sendPacketEmail({
+  segment,
+  to,
+  cc = [],
+  subject,
+  bodyOverride,
+  packetData,
+  attachmentBuffer,
+  attachmentFilename,
+}) {
+  const { html } = buildPacketEmailHtml({
+    segment,
+    packetData,
+    bodyOverride,
+  });
 
   await sendWithGmail({
     to: [to, ...cc].filter(Boolean),

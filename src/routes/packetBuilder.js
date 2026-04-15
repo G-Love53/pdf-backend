@@ -1,7 +1,16 @@
 import express from "express";
 import { getPool } from "../db.js";
-import { buildPacket, persistPacket } from "../services/packetService.js";
-import { sendPacketEmail } from "../services/packetEmailService.js";
+import {
+  buildPacket,
+  buildPacketData,
+  loadPacketData,
+  persistPacket,
+} from "../services/packetService.js";
+import {
+  buildPacketEmailHtml,
+  defaultPacketEmailSubject,
+  sendPacketEmail,
+} from "../services/packetEmailService.js";
 import { getObjectStream } from "../services/r2Service.js";
 import { notifyBarPacketSent } from "../services/agentNotificationService.js";
 
@@ -206,6 +215,41 @@ router.post("/api/quotes/:quoteId/packet/preview", async (req, res) => {
   }
 });
 
+/** HTML body (and default subject) for the client email — same template as send, without PDF work. */
+router.post("/api/quotes/:quoteId/packet/email-preview", async (req, res) => {
+  if (!pool) {
+    return res.status(503).json({ error: "database_not_configured" });
+  }
+
+  const { quoteId } = req.params;
+  const body_override = req.body?.body_override ?? null;
+
+  try {
+    const { quote, extraction, submission, client } =
+      await loadPacketData(quoteId);
+    if (!extraction || extraction.review_status !== "approved") {
+      return res.status(400).json({ error: "no_approved_extraction" });
+    }
+    const data = buildPacketData({ quote, extraction, submission, client });
+    const { html } = buildPacketEmailHtml({
+      segment: submission.segment,
+      packetData: data,
+      bodyOverride: body_override,
+    });
+    const subject_default = defaultPacketEmailSubject(data);
+    res.json({ html, subject_default });
+  } catch (err) {
+    console.error("[packetBuilder] email-preview error:", err.message || err);
+    if (err.message === "packet_source_not_found") {
+      return res.status(404).json({ error: "packet_source_not_found" });
+    }
+    res.status(500).json({
+      error: "internal_error",
+      message: err.message || String(err),
+    });
+  }
+});
+
 router.post("/api/quotes/:quoteId/packet/finalize", async (req, res) => {
   if (!pool) {
     return res.status(503).json({ error: "database_not_configured" });
@@ -248,8 +292,7 @@ router.post("/api/quotes/:quoteId/packet/finalize", async (req, res) => {
     });
 
     const subject =
-      email_subject ||
-      `Your ${data.policy_type || ""} Insurance Quote — ${data.carrier_name || ""}`;
+      email_subject || defaultPacketEmailSubject(data);
 
     await sendPacketEmail({
       segment: submission.segment,
