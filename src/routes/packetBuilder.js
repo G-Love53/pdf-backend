@@ -471,15 +471,14 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
           q.quote_id,
           'packet.resent',
           'Packet resent to client',
-          $3,
-          $4
+          $2,
+          $3
         FROM quotes q
         JOIN submissions s ON q.submission_id = s.submission_id
         WHERE q.quote_id = $1
       `,
       [
         quoteId,
-        null,
         {
           packet_id: resendPacketId,
           supersedes_packet_id: row.packet_id,
