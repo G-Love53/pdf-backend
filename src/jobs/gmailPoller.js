@@ -114,6 +114,7 @@ function buildGmailClient(inboxEmail) {
     .split("@")[1]
     .split(".")[0]
     .replace("roofingcontractorinsurancedirect", "roofer")
+    .replace("plumberinsurancedirect", "plumber")
     .replace("plumbinginsurancedirect", "plumber")
     .replace("hvacinsurancedirect", "hvac")
     .replace("barinsurancedirect", "bar")

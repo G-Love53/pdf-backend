@@ -6,6 +6,7 @@ import { generateLetter } from "./aiLetterService.js";
 import { getSegmentAssets } from "../utils/assets.js";
 import { DocumentRole, DocumentType, StorageProvider } from "../constants/postgresEnums.js";
 import { orderByPrimaryCarrierPdf } from "../utils/carrierPdfPrimaryOrder.js";
+import { getSegmentAgentInboxEmail } from "../config/segmentAgentInbox.js";
 
 const pool = getPool();
 
@@ -170,7 +171,9 @@ export function buildPacketData({ quote, extraction, submission, client }) {
     exclusions_noted: reviewed.exclusions_noted || [],
     agent_name: "Commercial Insurance Direct",
     agent_phone: "(303) 932-1700",
-    agent_email: `quotes@${submission.segment}insurancedirect.com`,
+    agent_email:
+      getSegmentAgentInboxEmail(submission.segment) ||
+      `quotes@${submission.segment}insurancedirect.com`,
     cid_app_url: "https://app.commercialinsurancedirect.com",
     generated_at: new Date().toISOString(),
     packet_id: null,

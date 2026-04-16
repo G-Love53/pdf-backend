@@ -1,18 +1,12 @@
 import { sendWithGmail } from "../email.js";
 import { createSignedBindLinkParams } from "../utils/bindLinkToken.js";
+import { getSegmentAgentInboxEmail } from "../config/segmentAgentInbox.js";
 
 const SEGMENT_DISPLAY = {
   bar: "Bar & Restaurant",
   roofer: "Roofing Contractor",
   plumber: "Plumber",
   hvac: "HVAC Contractor",
-};
-
-const SEGMENT_QUOTES_INBOX = {
-  bar: "quotes@barinsurancedirect.com",
-  roofer: "quotes@rooferinsurancedirect.com",
-  plumber: "quotes@plumberinsurancedirect.com",
-  hvac: "quotes@hvacinsurancedirect.com",
 };
 
 const SEGMENT_LINE = {
@@ -85,7 +79,7 @@ export function buildPacketEmailHtml({ segment, packetData, bodyOverride }) {
         })()
       : null;
   const questionsTo =
-    SEGMENT_QUOTES_INBOX[seg] || `quotes@${seg}insurancedirect.com`;
+    getSegmentAgentInboxEmail(seg) || `quotes@${seg}insurancedirect.com`;
   const questionSubject = `Question re: Quote ${submissionId}`;
   const questionBody = "My question about my quote: ";
   const questionMailto = `mailto:${encodeURIComponent(questionsTo)}?subject=${encodeURIComponent(questionSubject)}&body=${encodeURIComponent(questionBody)}`;

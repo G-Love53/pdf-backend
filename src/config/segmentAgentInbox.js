@@ -16,7 +16,7 @@ export const GMAIL_POLLER_SEGMENTS = [
   },
   {
     segment: "plumber",
-    email: "quotes@plumbinginsurancedirect.com",
+    email: "quotes@plumberinsurancedirect.com",
     label: "carrier-quotes",
   },
   {
