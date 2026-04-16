@@ -69,6 +69,9 @@ router.post("/api/quotes/:quoteId/bind/initiate", async (req, res) => {
       bind_request_id: result.bindRequest.id,
       boldsign_document_id: result.boldsign?.documentId || null,
       boldsign_send_url: result.boldsign?.sendUrl || null,
+      signature_request_sent_via_email: true,
+      message:
+        "BoldSign will email the signer a link to review and sign the bind confirmation.",
       status: result.bindRequest.status,
     });
   } catch (err) {
@@ -77,8 +80,8 @@ router.post("/api/quotes/:quoteId/bind/initiate", async (req, res) => {
   }
 });
 
-// Customer-facing one-click bind from quote packet email.
-// Initiates bind and redirects directly to the BoldSign embedded sign URL.
+// Customer-facing one-click from quote packet email (GET works in mail clients).
+// BoldSign emails the signer; we show a short confirmation page (no iframe redirect).
 router.get("/api/quotes/:quoteId/bind/initiate", async (req, res) => {
   try {
     const quoteId = quoteIdOr400(req, res);
@@ -115,7 +118,7 @@ router.get("/api/quotes/:quoteId/bind/initiate", async (req, res) => {
       }
     }
 
-    const result = await initiateBind({
+    await initiateBind({
       quoteId,
       agentId: null,
       paymentMethod: "annual",
@@ -125,19 +128,52 @@ router.get("/api/quotes/:quoteId/bind/initiate", async (req, res) => {
       signerEmail,
     });
 
-    const signUrl = result.boldsign?.sendUrl || null;
-    if (!signUrl) {
+    const safeEmail = String(signerEmail || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    return res
+      .status(200)
+      .type("html")
+      .send(`<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Signature request sent</title>
+<style>body{font-family:system-ui,-apple-system,sans-serif;max-width:36rem;margin:3rem auto;padding:0 1.2rem;line-height:1.5;color:#111827;}
+h1{font-size:1.25rem;} p{color:#374151;} .muted{font-size:14px;color:#6b7280;margin-top:1.5rem;}</style></head>
+<body>
+<h1>Check your email</h1>
+<p>We sent a signature request to <strong>${safeEmail}</strong> via our e-sign provider. Use that message to open and sign your bind confirmation.</p>
+<p class="muted">If you don&rsquo;t see it in a few minutes, check spam or contact the address shown in your quote email.</p>
+</body></html>`);
+  } catch (err) {
+    console.error("bind initiate redirect error:", err?.message || err);
+    const msg = String(err?.message || err || "error");
+    if (/does not have a sent packet/i.test(msg)) {
+      return res
+        .status(400)
+        .send(
+          "A packet must be sent to the client before binding. If you already received your quote packet, open Issue Policy from that email or contact us.",
+        );
+    }
+    if (/not configured|BOLD_SIGN_API_KEY|BOLDSIGN_API_KEY|CID_BOLDSIGN_API_KEY/i.test(msg)) {
       return res
         .status(503)
-        .send("Unable to start signature right now. Please reply to your quote email for help.");
+        .send(
+          "Signing is not available right now (service configuration). Please reply to your quote email for help.",
+        );
     }
-
-    return res.redirect(signUrl);
-  } catch (err) {
-    console.error("bind initiate redirect error:", err);
+    if (/BoldSign|document\/send|template\/send/i.test(msg)) {
+      return res
+        .status(503)
+        .send(
+          "The signature provider could not send the request. Please try again in a minute or reply to your quote email for help.",
+        );
+    }
     return res
       .status(500)
-      .send("Unable to start signature right now. Please reply to your quote email for help.");
+      .send(
+        "Unable to start signature right now. Please reply to your quote email for help.",
+      );
   }
 });
 
