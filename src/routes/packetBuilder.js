@@ -373,12 +373,30 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
 
     const row = packetRes.rows[0];
 
-    const stream = await getObjectStream(row.storage_path);
-    const chunks = [];
-    for await (const chunk of stream) {
-      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    let pdfBuffer;
+    let packetDataForEmail = {
+      client_name: "",
+      policy_type: "",
+      carrier_name: "",
+    };
+    try {
+      const stream = await getObjectStream(row.storage_path);
+      const chunks = [];
+      for await (const chunk of stream) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
+      pdfBuffer = Buffer.concat(chunks);
+    } catch (streamErr) {
+      // Fallback path: rebuild packet when stored blob cannot be read.
+      // This keeps resend operational for older/migrated packet rows.
+      console.warn(
+        "[packetBuilder] resend stream fetch failed, rebuilding packet:",
+        streamErr?.message || streamErr,
+      );
+      const { combinedPdf, data } = await buildPacket(quoteId);
+      pdfBuffer = combinedPdf;
+      packetDataForEmail = data || packetDataForEmail;
     }
-    const pdfBuffer = Buffer.concat(chunks);
 
     await sendPacketEmail({
       segment: row.segment,
@@ -386,11 +404,7 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
       cc: cc_emails,
       subject: "Your insurance quote packet (resend)",
       bodyOverride: null,
-      packetData: {
-        client_name: "",
-        policy_type: "",
-        carrier_name: "",
-      },
+      packetData: packetDataForEmail,
       attachmentBuffer: pdfBuffer,
       attachmentFilename: `${row.submission_public_id || "packet"}.pdf`,
     });
