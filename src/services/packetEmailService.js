@@ -73,8 +73,8 @@ export function buildPacketEmailHtml({ segment, packetData, bodyOverride }) {
             quoteId: String(packetData.quote_id),
             submissionPublicId: String(packetData.submission_public_id || ""),
           });
-          if (!signed) return `${base}?redirect=1&source=email`;
-          return `${base}?redirect=1&source=email&t=${encodeURIComponent(signed.t)}&exp=${encodeURIComponent(signed.exp)}`;
+          if (!signed) return `${base}?source=email`;
+          return `${base}?source=email&t=${encodeURIComponent(signed.t)}&exp=${encodeURIComponent(signed.exp)}`;
         })()
       : null;
   const questionsTo = `quotes@${seg}insurancedirect.com`;
@@ -85,7 +85,7 @@ export function buildPacketEmailHtml({ segment, packetData, bodyOverride }) {
   const html = `
 <div style="font-family: Arial, sans-serif; color:#111827; line-height:1.45;">
   <p>Hi ${escapeHtml(packetData.contact_name || packetData.client_name || "there")},</p>
-  <p>Your quote packet is ready. Your AI sales letter and full carrier quote are attached.</p>
+  <p>Thank you for the opportunity to earn your business. The full carrier quote is attached for your review.</p>
   <p style="margin:0 0 8px 0;">${escapeHtml(line)}</p>
 
   <table cellpadding="8" cellspacing="0" border="1" style="border-collapse:collapse; width:100%; max-width:720px; border-color:#e5e7eb; font-size:14px; margin: 12px 0 20px 0;">
@@ -105,6 +105,9 @@ export function buildPacketEmailHtml({ segment, packetData, bodyOverride }) {
         : `<span style="display:inline-block; background:#9ca3af; color:#ffffff; padding:12px 18px; border-radius:8px; font-weight:700;">Issue Policy unavailable</span>`
     }
   </div>
+  <p style="font-size:12px;color:#6b7280;margin-top:10px;max-width:36rem;">
+    After you click, you&rsquo;ll see a short confirmation and you&rsquo;ll get an email from our e-sign partner with a link to sign the bind confirmation (separate from this message).
+  </p>
   <div style="margin: 10px 0;">
     <a href="${escapeHtml(questionMailto)}" style="display:inline-block; background:#ffffff; color:#111827; text-decoration:none; padding:10px 14px; border-radius:8px; border:1px solid #d1d5db; font-weight:600;">I Have Questions</a>
   </div>
