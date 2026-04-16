@@ -13,6 +13,7 @@ import {
 } from "../services/packetEmailService.js";
 import { getObjectStream } from "../services/r2Service.js";
 import { notifyBarPacketSent } from "../services/agentNotificationService.js";
+import { PacketStatus } from "../constants/postgresEnums.js";
 
 const router = express.Router();
 const pool = getPool();
@@ -68,8 +69,13 @@ router.get("/api/quotes/ready-for-packet", async (req, res) => {
           ON q.submission_id = s.submission_id
         JOIN clients c
           ON s.client_id = c.client_id
-        LEFT JOIN quote_packets qp
-          ON qp.quote_id = q.quote_id
+        LEFT JOIN LATERAL (
+          SELECT packet_id, status, sent_at
+          FROM quote_packets qp
+          WHERE qp.quote_id = q.quote_id
+          ORDER BY qp.created_at DESC
+          LIMIT 1
+        ) qp ON TRUE
         WHERE ${where}
         ORDER BY s.submission_public_id,
           (
@@ -346,11 +352,18 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
     return res.status(400).json({ error: "missing_required_fields" });
   }
 
+  const client = await pool.connect();
   try {
-    const packetRes = await pool.query(
+    await client.query("BEGIN");
+
+    const packetRes = await client.query(
       `
         SELECT qp.packet_id,
+               qp.extraction_id,
+               qp.packet_document_id,
                d.storage_path,
+               q.quote_id,
+               s.submission_id,
                s.submission_public_id,
                s.segment
         FROM quote_packets qp
@@ -368,6 +381,7 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
     );
 
     if (packetRes.rows.length === 0) {
+      await client.query("ROLLBACK");
       return res.status(404).json({ error: "packet_not_found" });
     }
 
@@ -409,7 +423,40 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
       attachmentFilename: `${row.submission_public_id || "packet"}.pdf`,
     });
 
-    await pool.query(
+    const resendPacketRes = await client.query(
+      `
+        INSERT INTO quote_packets (
+          quote_id,
+          extraction_id,
+          packet_document_id,
+          status,
+          created_by,
+          sent_at,
+          created_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, NOW(), NOW()
+        )
+        RETURNING packet_id
+      `,
+      [row.quote_id, row.extraction_id, row.packet_document_id, PacketStatus.SENT, agent_id],
+    );
+    const resendPacketId = resendPacketRes.rows[0]?.packet_id || row.packet_id;
+
+    // Authoritative resend: any other "sent" packet for the same submission becomes superseded.
+    await client.query(
+      `
+        UPDATE quote_packets
+        SET status = $1
+        WHERE status = $2
+          AND packet_id <> $3
+          AND quote_id IN (
+            SELECT quote_id FROM quotes WHERE submission_id = $4
+          )
+      `,
+      [PacketStatus.SUPERSEDED, PacketStatus.SENT, resendPacketId, row.submission_id],
+    );
+
+    await client.query(
       `
         INSERT INTO timeline_events (
           submission_id,
@@ -433,19 +480,35 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
       [
         quoteId,
         null,
-        { packet_id: row.packet_id, recipients: [recipient_email, ...cc_emails] },
+        {
+          packet_id: resendPacketId,
+          supersedes_packet_id: row.packet_id,
+          recipients: [recipient_email, ...cc_emails],
+          tracking_id: row.submission_public_id,
+        },
         agent_id,
       ],
     );
 
+    await client.query("COMMIT");
+
     res.json({
       success: true,
-      packet_id: row.packet_id,
+      packet_id: resendPacketId,
+      superseded_packet_id: row.packet_id,
+      tracking_id: row.submission_public_id,
       message: `Packet resent to ${recipient_email}`,
     });
   } catch (err) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // ignore
+    }
     console.error("[packetBuilder] resend error:", err.message || err);
     res.status(500).json({ error: "internal_error" });
+  } finally {
+    client.release();
   }
 });
 

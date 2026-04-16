@@ -123,6 +123,14 @@
       .btn-amber:hover {
         background: #78350f;
       }
+      .btn-blue {
+        background: #1e3a8a;
+        color: #dbeafe;
+        border-color: #1d4ed8;
+      }
+      .btn-blue:hover {
+        background: #1d4ed8;
+      }
       .packet-status-pill {
         display: inline-block;
         margin-left: 8px;
@@ -236,6 +244,7 @@
         <div class="actions">
           <button class="btn-secondary" id="preview-btn" type="button">Preview</button>
           <button class="btn-amber" id="reopen-s4-btn" type="button">Reopen in S4</button>
+          <button class="btn-blue" id="resend-btn" type="button" style="display:none;">Resend Packet</button>
           <button class="btn-primary" id="send-btn" type="button">Send Packet</button>
         </div>
       </section>
@@ -368,6 +377,7 @@
           const data = await r.json();
           const badge = document.getElementById("packet-status-badge");
           const sendBtn = document.getElementById("send-btn");
+          const resendBtn = document.getElementById("resend-btn");
           if (!badge) return;
           if (data.status === "sent") {
             badge.textContent = "SENT";
@@ -378,6 +388,11 @@
               sendBtn.title =
                 "Packet already sent. Reopen in S4 if you need to send again.";
             }
+            if (resendBtn) {
+              resendBtn.style.display = "inline-block";
+              resendBtn.disabled = false;
+              resendBtn.title = "";
+            }
           } else if (data.status) {
             badge.textContent = String(data.status).replace(/_/g, " ").toUpperCase();
             badge.className = "packet-status-pill draft";
@@ -386,11 +401,19 @@
               sendBtn.disabled = false;
               sendBtn.title = "";
             }
+            if (resendBtn) {
+              resendBtn.style.display = "none";
+              resendBtn.disabled = true;
+            }
           } else {
             badge.style.display = "none";
             if (sendBtn) {
               sendBtn.disabled = false;
               sendBtn.title = "";
+            }
+            if (resendBtn) {
+              resendBtn.style.display = "none";
+              resendBtn.disabled = true;
             }
           }
         } catch (_) {}
@@ -427,6 +450,44 @@
           return;
         }
         window.location.href = "/operator/packet-builder" + segmentSuffix;
+      }
+
+      async function resendPacket() {
+        const resendBtn = document.getElementById("resend-btn");
+        if (!resendBtn || resendBtn.disabled) return;
+
+        const to = document.getElementById("to-input").value.trim();
+        const ccRaw = document.getElementById("cc-input").value.trim();
+        const cc = ccRaw
+          ? ccRaw.split(",").map((s) => s.trim()).filter(Boolean)
+          : [];
+
+        resendBtn.disabled = true;
+        try {
+          const res = await fetch(
+            "/api/quotes/" + quoteId + "/packet/resend",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                agent_id: "operator",
+                recipient_email: to,
+                cc_emails: cc,
+              }),
+            }
+          );
+          const out = await res.json().catch(() => ({}));
+          if (!res.ok || !out.success) {
+            alert((out && (out.error || out.message)) || "Failed to resend packet.");
+            return;
+          }
+          alert(
+            `Resent packet to ${to}. Tracking ID ${out.tracking_id || "unknown"} now points to packet ${out.packet_id}.`
+          );
+          window.location.href = "/operator/packet-builder/" + quoteId + segmentSuffix;
+        } finally {
+          resendBtn.disabled = false;
+        }
       }
 
       async function reopenInS4() {
@@ -468,6 +529,9 @@
       document
         .getElementById("reopen-s4-btn")
         .addEventListener("click", reopenInS4);
+      document
+        .getElementById("resend-btn")
+        .addEventListener("click", resendPacket);
       document.getElementById("send-btn").addEventListener("click", sendPacket);
 
       document.addEventListener("keydown", (e) => {
