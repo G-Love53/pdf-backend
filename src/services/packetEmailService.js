@@ -8,6 +8,13 @@ const SEGMENT_DISPLAY = {
   hvac: "HVAC Contractor",
 };
 
+const SEGMENT_QUOTES_INBOX = {
+  bar: "quotes@barinsurancedirect.com",
+  roofer: "quotes@rooferinsurancedirect.com",
+  plumber: "quotes@plumberinsurancedirect.com",
+  hvac: "quotes@hvacinsurancedirect.com",
+};
+
 const SEGMENT_LINE = {
   bar: "This quote includes coverage tailored for bar and restaurant operations, including liquor liability where indicated.",
   roofer: "This quote addresses the specific liability and workers' comp needs of roofing contractors.",
@@ -77,7 +84,8 @@ export function buildPacketEmailHtml({ segment, packetData, bodyOverride }) {
           return `${base}?source=email&t=${encodeURIComponent(signed.t)}&exp=${encodeURIComponent(signed.exp)}`;
         })()
       : null;
-  const questionsTo = `quotes@${seg}insurancedirect.com`;
+  const questionsTo =
+    SEGMENT_QUOTES_INBOX[seg] || `quotes@${seg}insurancedirect.com`;
   const questionSubject = `Question re: Quote ${submissionId}`;
   const questionBody = "My question about my quote: ";
   const questionMailto = `mailto:${encodeURIComponent(questionsTo)}?subject=${encodeURIComponent(questionSubject)}&body=${encodeURIComponent(questionBody)}`;
