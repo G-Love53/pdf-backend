@@ -10,6 +10,25 @@ import { getSegmentAgentInboxEmail } from "../config/segmentAgentInbox.js";
 
 const pool = getPool();
 
+function nz(v) {
+  const s = v == null ? "" : String(v).trim();
+  return s || "";
+}
+
+/** Person name for greeting — clients + raw intake (e.g. HVAC applicant_name) + extraction. */
+function deriveContactPersonName(client, raw, reviewed) {
+  const r = raw && typeof raw === "object" ? raw : {};
+  const fn = nz(client?.first_name);
+  const ln = nz(client?.last_name);
+  const combined = [fn, ln].filter(Boolean).join(" ").trim();
+  if (combined) return combined;
+  if (nz(r.applicant_name)) return nz(r.applicant_name);
+  if (nz(r.contact_name)) return nz(r.contact_name);
+  if (nz(reviewed?.applicant_name)) return nz(reviewed.applicant_name);
+  if (nz(reviewed?.contact_name)) return nz(reviewed.contact_name);
+  return "";
+}
+
 export async function loadPacketData(quoteId) {
   if (!pool) {
     throw new Error("database_not_configured");
@@ -29,6 +48,7 @@ export async function loadPacketData(quoteId) {
         s.submission_public_id,
         s.segment AS submission_segment,
         s.submitted_at,
+        s.raw_submission_json,
         b.business_name,
         c.client_id,
         c.first_name,
@@ -122,6 +142,7 @@ export async function loadPacketData(quoteId) {
       segment: row.submission_segment,
       submitted_at: row.submitted_at,
       business_name: row.business_name || null,
+      raw_submission_json: row.raw_submission_json || null,
     },
     client: {
       client_id: row.client_id,
@@ -141,19 +162,36 @@ export async function loadPacketData(quoteId) {
 
 export function buildPacketData({ quote, extraction, submission, client }) {
   const reviewed = extraction.reviewed_json || {};
+  let raw = {};
+  const rawSub = submission.raw_submission_json;
+  if (rawSub && typeof rawSub === "object") raw = rawSub;
+  else if (typeof rawSub === "string" && rawSub.trim()) {
+    try {
+      const p = JSON.parse(rawSub);
+      if (p && typeof p === "object") raw = p;
+    } catch {
+      // ignore invalid json
+    }
+  }
+
   const businessName =
     submission.business_name ||
     reviewed.insured_name ||
     reviewed.business_name ||
-    `${client.first_name || ""} ${client.last_name || ""}`.trim();
-  const name = businessName;
+    nz(raw.insured_name) ||
+    nz(raw.business_name) ||
+    nz(raw.premises_name) ||
+    deriveContactPersonName(client, raw, reviewed);
+
+  const personName = deriveContactPersonName(client, raw, reviewed);
+  const greetingName = personName || businessName || null;
 
   return {
     ...reviewed,
     business_name: businessName || null,
     quote_id: quote.quote_id,
-    client_name: name || null,
-    contact_name: name || null,
+    client_name: businessName || greetingName || null,
+    contact_name: greetingName,
     client_email: client.primary_email,
     client_phone: client.primary_phone,
     submission_public_id: submission.submission_public_id,
@@ -265,7 +303,7 @@ export async function buildPacket(quoteId) {
     submission.segment,
     extraction.reviewed_json || {},
     {
-      business_name: data.business_name || data.client_name || null,
+      business_name: data.business_name || null,
       contact_name: data.contact_name || null,
       email: data.client_email || null,
     },

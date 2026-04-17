@@ -107,6 +107,7 @@ Use **Secret Files** in Render for private keys if you prefer file-based config.
 | R2 (`R2_*` / project-specific) | Object storage for PDFs; see `src/services/r2Service.js`. |
 | BoldSign | `BOLD_SIGN_API_KEY` or aliases noted in `src/services/boldsignService.js`; webhook URL registered to `https://<api>/api/webhooks/boldsign`. |
 | `CARRIER_EMAIL` / `UW_EMAIL_BAR` | Routing for intake and notifications. |
+| `CID_APP_URL` | Public **CID Connect** origin for welcome/bind emails (e.g. `https://cid-connect.netlify.app`). **Render only** — read by `bindEmailService.js` and bind flows; not a Netlify `VITE_*` var. |
 | Optional | `ENABLE_FOLLOWUP_SCHEDULER`, `CID_BRAND_NAME`, etc. — see segment backend `src/constants/README.md`. |
 
 ### Post-deploy checks (Bar)

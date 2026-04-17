@@ -22,7 +22,7 @@ function buildFallbackLetter(_segment, extractionData, clientData, _letterContex
   const agg = extractionData?.gl_aggregate || "N/A";
 
   const dearName =
-    clientData?.business_name || clientData?.contact_name || "Business Owner";
+    clientData?.contact_name || clientData?.business_name || "Business Owner";
 
   return `Dear ${dearName},
 
@@ -253,10 +253,17 @@ export async function generateLetter(segment, extractionData, clientData, letter
   const extraction = extractionData || {};
   const client = clientData || {};
   const businessName = client.business_name || extraction.business_name || extraction.insured_name || "";
+  const salutationName = (
+    client.contact_name ||
+    client.business_name ||
+    extraction.business_name ||
+    extraction.insured_name ||
+    ""
+  ).trim();
 
   if (!promptBuilder) {
     return finalizeLetterBody(
-      rewriteSalutation(buildFallbackLetter(seg, extraction, client, letterContext), businessName),
+      rewriteSalutation(buildFallbackLetter(seg, extraction, client, letterContext), salutationName),
       extraction,
     );
   }
@@ -267,7 +274,7 @@ export async function generateLetter(segment, extractionData, clientData, letter
   try {
     const t = await callClaude(systemPrompt, userPrompt);
     return finalizeLetterBody(
-      rewriteSalutation(normalizeLetterText(t), businessName),
+      rewriteSalutation(normalizeLetterText(t), salutationName),
       extraction,
     );
   } catch (err) {
@@ -278,7 +285,7 @@ export async function generateLetter(segment, extractionData, clientData, letter
   try {
     const t = await callGeminiFallback(systemPrompt, userPrompt);
     return finalizeLetterBody(
-      rewriteSalutation(normalizeLetterText(t), businessName),
+      rewriteSalutation(normalizeLetterText(t), salutationName),
       extraction,
     );
   } catch (err) {
@@ -297,7 +304,7 @@ export async function generateLetter(segment, extractionData, clientData, letter
     "[aiLetterService] letter_source=template_fallback (Claude and Gemini did not return body text)",
   );
   return finalizeLetterBody(
-    rewriteSalutation(buildFallbackLetter(seg, extraction, client, letterContext), businessName),
+    rewriteSalutation(buildFallbackLetter(seg, extraction, client, letterContext), salutationName),
     extraction,
   );
 }

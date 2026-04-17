@@ -412,6 +412,25 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
       packetDataForEmail = data || packetDataForEmail;
     }
 
+    // When the PDF came from R2, we still need full packet metadata for the email body
+    // (submission_public_id, premium, Issue Policy /bind/initiate link → quote_id).
+    if (packetDataForEmail && !packetDataForEmail.quote_id) {
+      try {
+        const loaded = await loadPacketData(quoteId);
+        packetDataForEmail = buildPacketData({
+          quote: loaded.quote,
+          extraction: loaded.extraction,
+          submission: loaded.submission,
+          client: loaded.client,
+        });
+      } catch (metaErr) {
+        console.warn(
+          "[packetBuilder] resend: could not load packet metadata for email:",
+          metaErr?.message || metaErr,
+        );
+      }
+    }
+
     await sendPacketEmail({
       segment: row.segment,
       to: recipient_email,
