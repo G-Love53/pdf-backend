@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 
 // Generate formatted HTML email summary (shared across segments)
-function generateEmailSummary(formData = {}, attachments = []) {
+function generateEmailSummary(formData = {}, attachments = [], senderEmail = "quote@barinsurancedirect.com") {
   const safe = (v) => (v == null || v === "" ? "N/A" : String(v));
 
   const attachmentNames = (attachments || [])
@@ -81,11 +81,42 @@ function generateEmailSummary(formData = {}, attachments = []) {
       <div class="footer">
         <strong>Commercial Insurance Direct LLC</strong><br/>
         Phone: (303) 932-1700<br/>
-        Email: <a href="mailto:quote@barinsurancedirect.com">quote@barinsurancedirect.com</a>
+        Email: <a href="mailto:${senderEmail}">${senderEmail}</a>
       </div>
     </body>
     </html>
   `;
+}
+
+function normalizeSegment(segment) {
+  return String(segment || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function resolveSegmentSender(segment) {
+  const seg = normalizeSegment(segment);
+  const suffix = seg ? seg.toUpperCase() : "";
+
+  const segUser =
+    (suffix && process.env[`GMAIL_USER_${suffix}`]) || null;
+  const segPass =
+    (suffix && process.env[`GMAIL_APP_PASSWORD_${suffix}`]) || null;
+
+  const user = segUser || process.env.GMAIL_USER;
+  const pass = segPass || process.env.GMAIL_APP_PASSWORD;
+
+  if (!user || !pass) {
+    throw new Error(
+      `Missing Gmail credentials for segment=${seg || "default"} (expected GMAIL_USER/GMAIL_APP_PASSWORD or segment-specific vars)`,
+    );
+  }
+
+  const replyTo =
+    (suffix && process.env[`GMAIL_REPLY_TO_${suffix}`]) || user;
+
+  return { user, pass, replyTo };
 }
 
 export async function sendWithGmail({
@@ -95,21 +126,26 @@ export async function sendWithGmail({
   text,
   formData,
   attachments = [],
+  segment = null,
+  fromOverride = null,
+  replyToOverride = null,
   /** Optional RFC822 headers (e.g. X-CID-Origin for poller to ignore client submission mail). */
   headers = {},
 }) {
+  const sender = resolveSegmentSender(segment);
   const transporter = nodemailer.createTransport({
     service: "gmail",
-    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
+    auth: { user: sender.user, pass: sender.pass },
   });
 
   const emailHtml =
     formData && !html && !text
-      ? generateEmailSummary(formData, attachments)
+      ? generateEmailSummary(formData, attachments, sender.user)
       : html;
 
   const mail = {
-    from: process.env.GMAIL_USER,
+    from: fromOverride || sender.user,
+    replyTo: replyToOverride || sender.replyTo,
     to,
     subject,
     html: emailHtml,

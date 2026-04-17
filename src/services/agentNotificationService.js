@@ -38,6 +38,7 @@ export async function notifyBarSubmissionReceived({
     to: [BAR_AGENT_EMAIL],
     subject,
     text: lines.join("\n"),
+    segment: "bar",
   });
 }
 
@@ -85,6 +86,7 @@ export async function notifyBarCarrierQuoteReceived({ quoteId }) {
     to: [BAR_AGENT_EMAIL],
     subject,
     text: lines.join("\n"),
+    segment: "bar",
   });
 }
 
@@ -134,6 +136,7 @@ export async function notifyBarPacketSent({ packetId }) {
     to: [toEmail],
     subject,
     text: lines.join("\n"),
+    segment: row.segment || "bar",
   });
 }
 
@@ -197,6 +200,7 @@ export async function notifyBarBindSigned({
     subject,
     text: lines.join("\n"),
     attachments,
+    segment: "bar",
   });
 }
 
@@ -238,6 +242,7 @@ export async function notifyBarUwQuestionPdf({
     to: [BAR_AGENT_EMAIL],
     subject,
     text: lines.join("\n"),
+    segment: "bar",
   });
 }
 

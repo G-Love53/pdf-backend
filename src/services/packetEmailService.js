@@ -154,6 +154,7 @@ export async function sendPacketEmail({
     to: [to, ...cc].filter(Boolean),
     subject,
     html,
+    segment,
     formData: null,
     attachments: attachmentBuffer
       ? [

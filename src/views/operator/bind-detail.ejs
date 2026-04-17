@@ -65,6 +65,13 @@
     <script>
       const quoteId = "<%= quoteId %>";
 
+      function localPartFromEmail(email) {
+        const e = String(email || "").trim();
+        if (!e) return "";
+        const local = e.split("@")[0] || "";
+        return local.replace(/[._-]+/g, " ").trim();
+      }
+
       async function loadDetails() {
         const res = await fetch(`/api/quotes/${quoteId}/bind-details`);
         if (!res.ok) {
@@ -80,7 +87,11 @@
           Premium: $${(d.quote.annual_premium || 0).toFixed(2)}<br/>
           Effective: ${d.quote.effective_date || ""}<br/>
         `;
-        document.getElementById("signer-name").value = d.client.contact_name || "";
+        document.getElementById("signer-name").value =
+          d.client.contact_name ||
+          d.client.business_name ||
+          localPartFromEmail(d.client.email) ||
+          "";
         document.getElementById("signer-email").value = d.client.email || "";
 
         // If already signed, show signed doc link and avoid embedding.
@@ -111,13 +122,22 @@
       }
 
       document.getElementById("send-btn").addEventListener("click", async () => {
+        const emailRaw = document.getElementById("signer-email").value;
+        if (!String(emailRaw || "").trim()) {
+          document.getElementById("status").textContent = JSON.stringify(
+            { success: false, error: "Signer email is required." },
+            null,
+            2,
+          );
+          return;
+        }
         const body = {
           agent_id: null,
           payment_method: document.getElementById("payment-method").value,
           effective_date_override: null,
           agent_notes: document.getElementById("agent-notes").value || null,
           signer_name: document.getElementById("signer-name").value,
-          signer_email: document.getElementById("signer-email").value,
+          signer_email: emailRaw,
         };
         const res = await fetch(`/api/quotes/${quoteId}/bind/initiate`, {
           method: "POST",

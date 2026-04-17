@@ -551,6 +551,11 @@ try {
       subject: email.subject || "Submission Packet",
       formData: email.formData,
       html: email.bodyHtml,
+      segment:
+        email.segment ||
+        rawData.segment ||
+        process.env.SEGMENT ||
+        "bar",
       attachments,
       headers: email.headers || {},
     });

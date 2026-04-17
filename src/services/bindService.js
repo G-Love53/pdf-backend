@@ -23,6 +23,32 @@ function getSignedRedirectUrl(submissionPublicId) {
   return `${String(base).replace(/\/$/, "")}/signed?sid=${encodeURIComponent(String(submissionPublicId || ""))}`;
 }
 
+/** BoldSign requires a non-empty signer name for single-signer flows. */
+function humanizeEmailLocalPart(email) {
+  const e = String(email || "").trim();
+  if (!e) return "";
+  const local = e.split("@")[0] || "";
+  return local.replace(/[._-]+/g, " ").trim();
+}
+
+function resolveSignerName({ signerName, signerEmail }, client) {
+  let name = String(signerName || "").trim();
+  if (name) return name;
+  name = String(client?.contact_name || "").trim();
+  if (name) return name;
+  name = String(client?.business_name || "").trim();
+  if (name) return name;
+  name = humanizeEmailLocalPart(signerEmail || client?.email);
+  if (name) return name;
+  return "Insured";
+}
+
+function resolveSignerEmail({ signerEmail }, client) {
+  const e = String(signerEmail || "").trim();
+  if (e) return e;
+  return String(client?.email || "").trim();
+}
+
 function buildTemplateMergeFields(quoteDetail, paymentMethod) {
   const q = quoteDetail?.quote || {};
   const c = quoteDetail?.client || {};
@@ -271,6 +297,15 @@ export async function initiateBind({
       throw new Error("Quote does not have a sent packet");
     }
 
+    const resolvedSignerName = resolveSignerName(
+      { signerName, signerEmail },
+      quoteDetail.client,
+    );
+    const resolvedSignerEmail = resolveSignerEmail({ signerEmail }, quoteDetail.client);
+    if (!resolvedSignerEmail) {
+      throw new Error("Signer email is required for e-signature.");
+    }
+
     const seg = normalizeSegment(quoteDetail.segment);
     const pdfBuffer = await buildBindConfirmationPdf({
       segment: seg,
@@ -310,8 +345,8 @@ export async function initiateBind({
       try {
         boldsignReq = await createEmbeddedSignatureRequestFromTemplate({
           templateId,
-          signerName,
-          signerEmail,
+          signerName: resolvedSignerName,
+          signerEmail: resolvedSignerEmail,
           redirectUrl,
           metadata,
           subject,
@@ -327,8 +362,8 @@ export async function initiateBind({
     if (!boldsignReq) {
       boldsignReq = await createEmbeddedSignatureRequest({
         pdfBuffer,
-        signerName,
-        signerEmail,
+        signerName: resolvedSignerName,
+        signerEmail: resolvedSignerEmail,
         redirectUrl,
         metadata,
         subject,
@@ -355,8 +390,8 @@ export async function initiateBind({
         quoteDetail.packet.id,
         null, // bind doc is attached after signature webhook completes
         boldsignReq.documentId,
-        signerName,
-        signerEmail,
+        resolvedSignerName,
+        resolvedSignerEmail,
         paymentMethod || "annual",
         agentUuid,
         agentNotes || null,

@@ -8,6 +8,7 @@ import {
 } from "../services/bindService.js";
 import { parseOptionalUuid } from "../utils/uuid.js";
 import { verifySignedBindLinkParams } from "../utils/bindLinkToken.js";
+import { getSegmentBranding } from "../config/segmentBranding.js";
 
 const router = express.Router();
 
@@ -81,7 +82,7 @@ router.post("/api/quotes/:quoteId/bind/initiate", async (req, res) => {
 });
 
 // Customer-facing one-click from quote packet email (GET works in mail clients).
-// BoldSign emails the signer; we show a short confirmation page (no iframe redirect).
+// After HMAC validation, we initiate bind and embed BoldSign in-page (same pattern as operator bind-detail).
 router.get("/api/quotes/:quoteId/bind/initiate", async (req, res) => {
   try {
     const quoteId = quoteIdOr400(req, res);
@@ -118,7 +119,7 @@ router.get("/api/quotes/:quoteId/bind/initiate", async (req, res) => {
       }
     }
 
-    await initiateBind({
+    const result = await initiateBind({
       quoteId,
       agentId: null,
       paymentMethod: "annual",
@@ -128,23 +129,23 @@ router.get("/api/quotes/:quoteId/bind/initiate", async (req, res) => {
       signerEmail,
     });
 
-    const safeEmail = String(signerEmail || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-    return res
-      .status(200)
-      .type("html")
-      .send(`<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Signature request sent</title>
-<style>body{font-family:system-ui,-apple-system,sans-serif;max-width:36rem;margin:3rem auto;padding:0 1.2rem;line-height:1.5;color:#111827;}
-h1{font-size:1.25rem;} p{color:#374151;} .muted{font-size:14px;color:#6b7280;margin-top:1.5rem;}</style></head>
-<body>
-<h1>Check your email</h1>
-<p>We sent a signature request to <strong>${safeEmail}</strong> via our e-sign provider. Use that message to open and sign your bind confirmation.</p>
-<p class="muted">If you don&rsquo;t see it in a few minutes, check spam or contact the address shown in your quote email.</p>
-</body></html>`);
+    const sendUrl = result?.boldsign?.sendUrl || null;
+    if (!sendUrl) {
+      return res
+        .status(503)
+        .send(
+          "Signing could not start (no embed link from the signature provider). Please try again in a minute or reply to your quote email for help.",
+        );
+    }
+
+    const branding = getSegmentBranding(details.segment);
+    return res.status(200).render("customer/bind-sign", {
+      boldsignSendUrl: sendUrl,
+      submissionPublicId: details.submission_public_id || "",
+      segmentBrandName: branding.segmentBrandName,
+      segmentColor: branding.segmentColor,
+      segmentIcon: branding.segmentIcon,
+    });
   } catch (err) {
     console.error("bind initiate redirect error:", err?.message || err);
     const msg = String(err?.message || err || "error");
