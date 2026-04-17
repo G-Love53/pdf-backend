@@ -1,19 +1,17 @@
-# CID documentation (canonical location)
+# CID documentation
 
-**Segment-agnostic docs do not live in this repo.** They apply to **all segments** (Bar, Roofer, Plumber, future RSS / shared intake).
+**Deploy / Render / Netlify — canonical in this repo (RSS):** [`docs/Deploy_Guide.md`](./docs/Deploy_Guide.md) — **versioned with `pdf-backend`**; **no GitHub remote required** for a separate docs folder.
 
-**Canonical folder:** [`../CID-docs/`](../CID-docs/) (sibling to `pdf-backend` under `GitHub/`)
+**Optional local folder:** `~/GitHub/CID-docs/` may hold copies for convenience; **edit [`docs/Deploy_Guide.md`](./docs/Deploy_Guide.md) in `pdf-backend`** when procedures change, then refresh any local copy if you use one.
 
 | Document | Description |
 |----------|-------------|
-| [CID-docs/README.md](../CID-docs/README.md) | Index |
-| [CID-docs/Deploy_Guide.md](../CID-docs/Deploy_Guide.md) | Render, Netlify, env, post-deploy checks |
-| [CID-docs/AUDIT_READINESS.md](../CID-docs/AUDIT_READINESS.md) | Audit / S1–S6 |
-| [CID-docs/CID_ARCHITECTURE.md](../CID-docs/CID_ARCHITECTURE.md) | Architecture |
-| [CID-docs/DEPLOY_SEGMENTS.md](../CID-docs/DEPLOY_SEGMENTS.md) | New segment checklist |
-| [CID-docs/CID_CONNECT.md](../CID-docs/CID_CONNECT.md) | **CID Connect** (LEG 3 app): Famous vs API, Cloudflare, RSS |
-
-Clone or copy `CID-docs` into its **own git repo** (or a monorepo root) if the team needs it versioned independently of `pdf-backend`.
+| **[docs/Deploy_Guide.md](./docs/Deploy_Guide.md)** | **Canonical** — Render, Netlify, env, post-deploy checks, intake JSON contract |
+| [CID-docs/README.md](../CID-docs/README.md) | Optional local index (if present) |
+| [CID-docs/AUDIT_READINESS.md](../CID-docs/AUDIT_READINESS.md) | Optional local copy — audit / S1–S6 |
+| [CID-docs/CID_ARCHITECTURE.md](../CID-docs/CID_ARCHITECTURE.md) | Optional local copy — architecture |
+| [CID-docs/DEPLOY_SEGMENTS.md](../CID-docs/DEPLOY_SEGMENTS.md) | Optional — new segment checklist |
+| [CID-docs/CID_CONNECT.md](../CID-docs/CID_CONNECT.md) | Optional — CID Connect (Famous vs API) |
 
 ---
 
