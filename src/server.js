@@ -502,6 +502,22 @@ async function captureClientSubmissionPdf({
   }
 }
 
+/**
+ * Infer segment for Gmail credentials when explicit segment is missing on the email block.
+ * Maps SUPP_* template ids — avoids mis-labeling non-Bar bundles as "bar".
+ */
+function inferSegmentFromTemplateList(templates) {
+  if (!Array.isArray(templates)) return "";
+  for (const t of templates) {
+    const name = String(t?.name || "").toUpperCase();
+    if (name.includes("SUPP_HVAC")) return "hvac";
+    if (name.includes("SUPP_PLUMBER")) return "plumber";
+    if (name.includes("SUPP_ROOFER")) return "roofer";
+    if (name.includes("SUPP_BAR")) return "bar";
+  }
+  return "";
+}
+
 // Helper: Render Bundle
 async function renderBundleAndRespond({ templates, email, extraAttachments = [] }, res) {
   if (!Array.isArray(templates) || templates.length === 0) {
@@ -545,13 +561,19 @@ try {
 
   const attachments = [...baseAttachments, ...(extraAttachments || [])];
 
-  // `rawData` only exists inside the render loop; segment for Gmail must come from email payload or templates.
-  const segmentForEmail =
-    email.segment ||
+  // Prefer explicit segment on email / formData; then template row (submit-quote merges segment into t.data);
+  // then SUPP_* inference; then SEGMENT env; "bar" = last-resort default for older /render-bundle callers only.
+  const inferredSeg = inferSegmentFromTemplateList(templates);
+  let segmentForEmail =
+    String(email.segment || "").trim() ||
     String(email.formData?.segment || "").trim() ||
     String(templates[0]?.data?.segment || "").trim() ||
-    process.env.SEGMENT ||
+    inferredSeg ||
+    String(process.env.SEGMENT || "").trim() ||
     "bar";
+  segmentForEmail = String(segmentForEmail).trim().toLowerCase();
+  if (segmentForEmail === "roofing") segmentForEmail = "roofer";
+  if (!segmentForEmail) segmentForEmail = "bar";
 
   if (email?.to?.length) {
     await sendWithGmail({
@@ -623,7 +645,22 @@ APP.post("/submit-quote", async (req, res) => {
       {};
     const bundle_id = body.bundle_id;
     const segments = Array.isArray(body.segments) ? body.segments : [];
-    const segment = String(body.segment || process.env.SEGMENT || "").trim().toLowerCase();
+    const BUNDLE_DEFAULT_SEGMENT = {
+      ROOFER_INTAKE: "roofer",
+      HVAC_INTAKE: "hvac",
+      PLUMBER_INTAKE: "plumber",
+      BAR_INTAKE: "bar",
+    };
+    let segment = String(
+      body.segment ||
+        formData.segment ||
+        (bundle_id ? BUNDLE_DEFAULT_SEGMENT[bundle_id] : "") ||
+        process.env.SEGMENT ||
+        "",
+    )
+      .trim()
+      .toLowerCase();
+    if (segment === "roofing") segment = "roofer";
     const forceResubmit = body.force_resubmit === true;
     const submissionIntent =
       body.submission_intent === "corrected" || body.submission_intent === "new"
