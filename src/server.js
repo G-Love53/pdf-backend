@@ -545,17 +545,21 @@ try {
 
   const attachments = [...baseAttachments, ...(extraAttachments || [])];
 
+  // `rawData` only exists inside the render loop; segment for Gmail must come from email payload or templates.
+  const segmentForEmail =
+    email.segment ||
+    String(email.formData?.segment || "").trim() ||
+    String(templates[0]?.data?.segment || "").trim() ||
+    process.env.SEGMENT ||
+    "bar";
+
   if (email?.to?.length) {
     await sendWithGmail({
       to: email.to,
       subject: email.subject || "Submission Packet",
       formData: email.formData,
       html: email.bodyHtml,
-      segment:
-        email.segment ||
-        rawData.segment ||
-        process.env.SEGMENT ||
-        "bar",
+      segment: segmentForEmail,
       attachments,
       headers: email.headers || {},
     });
