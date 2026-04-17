@@ -193,6 +193,12 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
       // createPolicy falls back to bind_requests.initiated_by or NULL.
     });
 
+    // Document row is inserted before policy exists; link signed PDF so Connect GET /policies/:id/documents works.
+    await client.query(
+      `UPDATE documents SET policy_id = $1::uuid WHERE document_id = $2::uuid`,
+      [policy.id, signedDocumentId],
+    );
+
     await client.query(
       `
         UPDATE quote_packets
