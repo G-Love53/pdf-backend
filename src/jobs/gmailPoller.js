@@ -619,7 +619,7 @@ export async function dedupeCarrierMessagesForGmail({ gmailMessageId, segment })
         WHERE q.carrier_message_id IN (SELECT carrier_message_id FROM dupe_carriers)
       ),
       dupe_policies AS (
-        SELECT p.policy_id
+        SELECT p.id AS policy_id
         FROM policies p
         WHERE p.quote_id IN (SELECT quote_id FROM dupe_quotes)
       )
@@ -688,7 +688,7 @@ export async function dedupeCarrierMessagesForGmail({ gmailMessageId, segment })
         WHERE q.carrier_message_id IN (SELECT carrier_message_id FROM dupe_carriers)
       ),
       dupe_policies AS (
-        SELECT p.policy_id
+        SELECT p.id AS policy_id
         FROM policies p
         WHERE p.quote_id IN (SELECT quote_id FROM dupe_quotes)
       )
