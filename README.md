@@ -14,7 +14,7 @@ Deploy: Docker (Render). Build clones CID_HomeBase when submodules are not avail
 ## CID-PDF-API — data store and Gmail poller (read once)
 
 - **Postgres (`DATABASE_URL` on Render):** Canonical DB for **submissions, quotes, `carrier_messages`, operator queue, bind**, etc. — **not** the Famous/Supabase project used for Connect **auth** (unless you replicate). Debug SQL for **`carrier_messages`** belongs on this host.
-- **Gmail poller:** Runs on a schedule (default cron **every 3 minutes** when **`ENABLE_GMAIL_POLLING=true`**). Ingestion requires **CID token + PDF**; other mail may be skipped and marked read. **Dedupe** logic lives in **`src/jobs/gmailPoller.js`** (`dedupeCarrierMessagesForGmail`). Optional **one-off** cleanup: **`npm run dedupe:carrier-messages`** and/or browser **`POST /operator/maintenance/dedupe-carrier-messages`** (requires **`CID_MAINTENANCE_SECRET`**) — ops-only, destructive to duplicate-linked rows.
+- **Gmail poller:** Runs on a schedule (default cron **`*/15 * * * *`** ≈ **every 15 minutes** when **`ENABLE_GMAIL_POLLING=true`**; override with **`GMAIL_POLL_CRON`**). Ingestion requires **CID token + PDF**; other mail may be skipped and marked read. **Dedupe** logic lives in **`src/jobs/gmailPoller.js`** (`dedupeCarrierMessagesForGmail`). Optional **one-off** cleanup: **`npm run dedupe:carrier-messages`** and/or browser **`POST /operator/maintenance/dedupe-carrier-messages`** (requires **`CID_MAINTENANCE_SECRET`**) — ops-only, destructive to duplicate-linked rows.
 - **March 2026:** Duplicate rows were traced to **historical bursts**; **recent-window** duplicate checks were clean at verification — see **`cid-connect/docs/WORKFLOW_HANDOFF.md`**.
 
 ## CID Connect API (`/api/connect`)

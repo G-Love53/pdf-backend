@@ -1,7 +1,9 @@
 /**
- * Server-side context for /api/connect/chat: authoritative carrier name + carrier_knowledge FTS.
+ * Server-side context for /api/connect/chat: authoritative carrier name + carrier_knowledge FTS
+ * + Famous `carrier_resources` (Train AI uploads) when Supabase is configured on CID-PDF-API.
  */
 import { searchCarrierKnowledgeRows } from "../lib/carrierKnowledgeSearch.js";
+import { fetchCarrierResourcesPromptBlock } from "./connectCarrierResourcesPrompt.js";
 
 async function resolveCarrierSlug(pool, carrierName) {
   if (!carrierName) return null;
@@ -123,6 +125,27 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
     }
   }
 
+  let trainAiBlock = "";
+  try {
+    trainAiBlock = await fetchCarrierResourcesPromptBlock(
+      carrierDisplayName,
+      segment,
+      message,
+    );
+  } catch (e) {
+    console.warn(
+      "[connectChatEnrichment] carrier_resources prompt block failed:",
+      e?.message || e,
+    );
+  }
+
+  const kbParts = [formatKnowledgeBlock(knowledgeRows), trainAiBlock].filter(
+    (s) => String(s || "").trim(),
+  );
+  const knowledgeBlock = kbParts.join(
+    "\n\n--- CARRIER RESOURCES (Train AI metadata) ---\n\n",
+  );
+
   return {
     policyContext: mergedPolicy,
     chatHistory: Array.isArray(body?.chatHistory) ? body.chatHistory : [],
@@ -130,6 +153,6 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
     carrierDisplayName,
     carrierSlug,
     knowledgeRows,
-    knowledgeBlock: formatKnowledgeBlock(knowledgeRows),
+    knowledgeBlock,
   };
 }

@@ -197,6 +197,58 @@ These apply to **`pdf-backend`** on Render (`cid-pdf-api`, etc.), not the segmen
 
 - Logs like **`Skipping message … (cid=none pdf=no)`** mean the message **did not** look like a CID-tracked carrier reply (no extractable CID id / PDF). Often **marketing or non-quote** mail — not automatically a misconfiguration.
 
+#### Gmail poller vs SMTP (do not confuse)
+
+- **Outbound send** (`sendWithGmail` / Nodemailer) uses **`GMAIL_USER_*`** + **`GMAIL_APP_PASSWORD_*`** (16‑character Google **App passwords**). See **Email infrastructure** below.
+- **Inbound poller** (`src/jobs/gmailPoller.js`) uses **OAuth 2.0**, not app passwords. On **CID-PDF-API Render** it needs:
+  - **`GMAIL_CLIENT_ID`**, **`GMAIL_CLIENT_SECRET`**, **`GMAIL_REDIRECT_URI`**
+  - **`GMAIL_REFRESH_TOKEN_BAR`**, **`GMAIL_REFRESH_TOKEN_ROOFER`**, **`GMAIL_REFRESH_TOKEN_PLUMBER`**, **`GMAIL_REFRESH_TOKEN_HVAC`**  
+  Segment key comes from the inbox domain (e.g. `quotes@hvacinsurancedirect.com` → **`GMAIL_REFRESH_TOKEN_HVAC`**).
+
+#### When logs show `invalid_grant` (one segment, e.g. `[hvac]`)
+
+Google rejected the **refresh token** for that segment’s mailbox (revoked, rotated, wrong OAuth client, or password/security event). **Renew only that segment’s refresh token** on Render — other segments can keep working.
+
+#### Renew a segment refresh token (OAuth 2.0 Playground) — line by line
+
+**A. Google Cloud Console (OAuth client)**
+
+1. Open **https://console.cloud.google.com/apis/credentials** (project must be the one that owns **`GMAIL_CLIENT_ID`** on Render, e.g. **CID-Backend**).
+2. Under **OAuth 2.0 Client IDs**, open your **Web** client (e.g. **`cid-gmail-poller`**).
+3. Under **Authorized redirect URIs**, ensure this URI exists (add if missing, then **Save**):  
+   **`https://developers.google.com/oauthplayground`**
+
+**B. Render (copy values you will paste into Playground)**
+
+4. Open **Render** → **CID-PDF-API** → **Environment**.
+5. Reveal and copy **`GMAIL_CLIENT_ID`** and **`GMAIL_CLIENT_SECRET`** (same client as in Cloud Console).
+
+**C. OAuth 2.0 Playground**
+
+6. Open **https://developers.google.com/oauthplayground**.
+7. Click the **gear** (⚙️) → **OAuth 2.0 configuration**.
+8. Check **Use your own OAuth credentials**.
+9. Paste **OAuth Client ID** = Render **`GMAIL_CLIENT_ID`**, **OAuth Client secret** = Render **`GMAIL_CLIENT_SECRET`**.
+10. Leave **OAuth flow** = Server-side, **OAuth endpoints** = Google, **Access type** = **Offline**, **Force prompt** = **Consent Screen** (so a refresh token is returned).
+11. Close the gear panel.
+12. In the **left** list (**Step 1**), expand **Gmail API v1** and check **only**:  
+    **`https://www.googleapis.com/auth/gmail.modify`**
+13. Click **Authorize APIs**.
+14. Sign in with the **same Gmail address the poller reads for that segment** (e.g. **`quotes@hvacinsurancedirect.com`** for HVAC — not a different admin mailbox unless that mailbox *is* the inbox).
+15. Complete consent.
+16. Open **Step 2: Exchange authorization code for tokens**.
+17. Click **Exchange authorization code for tokens**.
+18. Copy the **Refresh token** value (starts with `1//…` — copy all of it). Ignore **Access token** for Render storage.
+
+**D. Render (install token + reload)**
+
+19. Set the matching env var on **CID-PDF-API** (example for HVAC): **`GMAIL_REFRESH_TOKEN_HVAC`** = pasted refresh token.
+20. Confirm **`GMAIL_REDIRECT_URI`** on Render matches an **Authorized redirect URI** on the same OAuth client. If you used Playground, it must be **`https://developers.google.com/oauthplayground`** (exact string).
+21. **Save** env → **Restart** or **redeploy** the service so the new token is loaded.
+22. Watch the next poller run: **`[hvac]`** (or whichever segment) should no longer log **`invalid_grant`**.
+
+**Workspace admin (`admin.google.com`)** is only needed if consent or API access is **blocked by policy** for the quotes mailbox; it does not mint refresh tokens by itself.
+
 ---
 
 ## Frontend & DNS (Netlify + GoDaddy)
@@ -345,3 +397,4 @@ Details and division of labor (Famous vs `pdf-backend`): [CID_CONNECT.md](./CID_
 | 2026-03-30 | Added Cloudflare notes for CID Connect; pointer to `CID_CONNECT.md`. |
 | 2026-04-17 | Netlify intake: duplicate `const form` gotcha, Yes/No select defaults, Additional Insured alignment; CID-PDF-API: customer bind iframe, `policy_id` on signed doc for Connect, per-segment Gmail env on central API, poller skip note. |
 | 2026-04-17 | `submit-quote` segment resolution (`bundle_id` + `formData.segment`); Gmail segment inference from `SUPP_*`; canonical `POST` body for Plumber/HVAC/Roofer; Roofer Netlify migrated to `ROOFER_INTAKE`. |
+| 2026-04-17 | Gmail poller: OAuth vs app password; **`invalid_grant`**; step‑by‑step OAuth Playground renewal for **`GMAIL_REFRESH_TOKEN_*`** (Cloud Console → Playground → Render). |
