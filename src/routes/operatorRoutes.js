@@ -109,7 +109,15 @@ router.get("/api/operator/dashboard", async (req, res) => {
   const segParams = [segment];
 
   try {
-    const [countsResult, submissionsQueueResult, s4QueueResult, bindsAwaitingResult, renewalsResult] =
+    const [
+      countsResult,
+      submissionsQueueResult,
+      s4QueueResult,
+      bindsAwaitingResult,
+      renewalsResult,
+      connectBindQueueResult,
+      connectPolicyDocsQueueResult,
+    ] =
       await Promise.all([
         pool.query(
           `
@@ -154,7 +162,27 @@ router.get("/api/operator/dashboard", async (req, res) => {
                 JOIN submissions s ON s.submission_id = p.submission_id
                 WHERE p.created_at >= CURRENT_DATE
                   ${segSql}
-              ) AS policies_bound_today
+              ) AS policies_bound_today,
+              (
+                SELECT COUNT(*)::int
+                FROM documents d
+                JOIN policies p ON p.id = d.policy_id
+                JOIN submissions s ON s.submission_id = p.submission_id
+                WHERE d.document_role = 'signed_bind_docs'
+                  AND d.policy_id IS NOT NULL
+                  AND d.created_at >= CURRENT_DATE
+                  ${segSql}
+              ) AS connect_bind_pdf_stored_today,
+              (
+                SELECT COUNT(*)::int
+                FROM documents d
+                JOIN policies p ON p.id = d.policy_id
+                JOIN submissions s ON s.submission_id = p.submission_id
+                WHERE d.document_role IN ('policy_original', 'declarations_original')
+                  AND d.policy_id IS NOT NULL
+                  AND d.created_at >= CURRENT_DATE
+                  ${segSql}
+              ) AS connect_policy_docs_stored_today
           `,
           segParams,
         ),
@@ -162,9 +190,17 @@ router.get("/api/operator/dashboard", async (req, res) => {
           `
             SELECT
               s.submission_public_id,
-              NULL::timestamp AS created_at,
+              s.submitted_at AS created_at,
               c.primary_email AS client_email,
-              COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name
+              COALESCE(
+                NULLIF(TRIM(b.business_name), ''),
+                NULLIF(TRIM(CONCAT_WS(' ', c.first_name, c.last_name)), ''),
+                NULLIF(TRIM(s.raw_submission_json->>'insured_name'), ''),
+                NULLIF(TRIM(s.raw_submission_json->>'premises_name'), ''),
+                NULLIF(TRIM(s.raw_submission_json->>'business_name'), ''),
+                NULLIF(TRIM(s.raw_submission_json->>'applicant_name'), ''),
+                c.primary_email
+              ) AS client_name
             FROM submissions s
             JOIN clients c ON c.client_id = s.client_id
             LEFT JOIN businesses b ON b.business_id = s.business_id
@@ -172,8 +208,8 @@ router.get("/api/operator/dashboard", async (req, res) => {
             WHERE s.status = 'received'
               AND q.submission_id IS NULL
               ${segSql}
-            ORDER BY s.submission_public_id ASC
-            LIMIT 20
+            ORDER BY s.submitted_at ASC
+            LIMIT 50
           `,
           segParams,
         ),
@@ -239,7 +275,15 @@ router.get("/api/operator/dashboard", async (req, res) => {
               p.effective_date,
               p.expiration_date,
               s.submission_public_id,
-              COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name,
+              COALESCE(
+                NULLIF(TRIM(b.business_name), ''),
+                NULLIF(TRIM(CONCAT_WS(' ', c.first_name, c.last_name)), ''),
+                NULLIF(TRIM(s.raw_submission_json->>'insured_name'), ''),
+                NULLIF(TRIM(s.raw_submission_json->>'premises_name'), ''),
+                NULLIF(TRIM(s.raw_submission_json->>'business_name'), ''),
+                NULLIF(TRIM(s.raw_submission_json->>'applicant_name'), ''),
+                c.primary_email
+              ) AS client_name,
               p.carrier_name
             FROM policies p
             JOIN submissions s ON s.submission_id = p.submission_id
@@ -249,6 +293,60 @@ router.get("/api/operator/dashboard", async (req, res) => {
               ${segSql}
             ORDER BY p.effective_date DESC
             LIMIT 20
+          `,
+          segParams,
+        ),
+        // Bind confirmation PDF on file in cid-postgres (same rows Connect serves via GET /api/connect/policies/:id/documents)
+        pool.query(
+          `
+            SELECT
+              d.document_id,
+              d.created_at AS stored_at,
+              p.policy_number,
+              q.quote_id,
+              s.submission_public_id,
+              COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name,
+              p.carrier_name
+            FROM documents d
+            JOIN policies p ON p.id = d.policy_id
+            JOIN quotes q ON q.quote_id = p.quote_id
+            JOIN submissions s ON s.submission_id = p.submission_id
+            LEFT JOIN businesses b ON b.business_id = s.business_id
+            LEFT JOIN clients c ON c.client_id = s.client_id
+            WHERE d.document_role = 'signed_bind_docs'
+              AND d.policy_id IS NOT NULL
+              ${segSql}
+            ORDER BY d.created_at DESC
+            LIMIT 15
+          `,
+          segParams,
+        ),
+        // Policy / declarations PDFs on file (endorsements: use policy_original or declarations_original; add more roles in enum + migration if needed)
+        pool.query(
+          `
+            SELECT *
+            FROM (
+              SELECT DISTINCT ON (p.id)
+                p.id AS policy_id,
+                p.policy_number,
+                p.quote_id,
+                d.created_at AS stored_at,
+                s.submission_public_id,
+                COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name,
+                p.carrier_name,
+                d.document_role::text AS last_document_role
+              FROM documents d
+              JOIN policies p ON p.id = d.policy_id
+              JOIN submissions s ON s.submission_id = p.submission_id
+              LEFT JOIN businesses b ON b.business_id = s.business_id
+              LEFT JOIN clients c ON c.client_id = s.client_id
+              WHERE d.document_role IN ('policy_original', 'declarations_original')
+                AND d.policy_id IS NOT NULL
+                ${segSql}
+              ORDER BY p.id, d.created_at DESC
+            ) t
+            ORDER BY t.stored_at DESC
+            LIMIT 15
           `,
           segParams,
         ),
@@ -264,12 +362,18 @@ router.get("/api/operator/dashboard", async (req, res) => {
         packets_sent_today: countsRow.packets_sent_today ?? 0,
         binds_initiated_today: countsRow.binds_initiated_today ?? 0,
         policies_bound_today: countsRow.policies_bound_today ?? 0,
+        connect_bind_pdf_stored_today:
+          countsRow.connect_bind_pdf_stored_today ?? 0,
+        connect_policy_docs_stored_today:
+          countsRow.connect_policy_docs_stored_today ?? 0,
       },
       queues: {
         submissions_waiting_outreach: submissionsQueueResult.rows,
         quotes_pending_s4: s4QueueResult.rows,
         binds_awaiting_signature: bindsAwaitingResult.rows,
         upcoming_policy_renewals: renewalsResult.rows,
+        connect_bind_confirmation_stored: connectBindQueueResult.rows,
+        connect_policy_documents_stored: connectPolicyDocsQueueResult.rows,
       },
     });
   } catch (err) {
@@ -441,6 +545,75 @@ router.get("/operator/today/:metric", async (req, res) => {
         { key: "client_name", label: "Client" },
       ],
     },
+    "connect-bind-stored": {
+      title: "Bind confirmation PDF stored (Connect, today)",
+      sql: `
+        SELECT
+          d.document_id,
+          d.created_at AS stored_at,
+          p.policy_number,
+          q.quote_id,
+          s.submission_public_id,
+          p.carrier_name,
+          COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name
+        FROM documents d
+        JOIN policies p ON p.id = d.policy_id
+        JOIN quotes q ON q.quote_id = p.quote_id
+        JOIN submissions s ON s.submission_id = p.submission_id
+        LEFT JOIN businesses b ON b.business_id = s.business_id
+        LEFT JOIN clients c ON c.client_id = s.client_id
+        WHERE d.document_role = 'signed_bind_docs'
+          AND d.policy_id IS NOT NULL
+          AND d.created_at >= CURRENT_DATE
+          ${segSql}
+        ORDER BY d.created_at DESC
+        LIMIT 200
+      `,
+      columns: [
+        { key: "submission_public_id", label: "Submission" },
+        { key: "policy_number", label: "Policy #" },
+        { key: "quote_id", label: "Quote", link: "quote_bind" },
+        { key: "stored_at", label: "Stored (UTC)" },
+        { key: "carrier_name", label: "Carrier" },
+        { key: "client_name", label: "Client" },
+        { key: "document_id", label: "Document id" },
+      ],
+    },
+    "connect-policy-docs-stored": {
+      title: "Policy / declarations stored (Connect, today)",
+      sql: `
+        SELECT
+          d.document_id,
+          d.created_at AS stored_at,
+          d.document_role::text AS document_role,
+          p.policy_number,
+          q.quote_id,
+          s.submission_public_id,
+          p.carrier_name,
+          COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name
+        FROM documents d
+        JOIN policies p ON p.id = d.policy_id
+        JOIN quotes q ON q.quote_id = p.quote_id
+        JOIN submissions s ON s.submission_id = p.submission_id
+        LEFT JOIN businesses b ON b.business_id = s.business_id
+        LEFT JOIN clients c ON c.client_id = s.client_id
+        WHERE d.document_role IN ('policy_original', 'declarations_original')
+          AND d.policy_id IS NOT NULL
+          AND d.created_at >= CURRENT_DATE
+          ${segSql}
+        ORDER BY d.created_at DESC
+        LIMIT 200
+      `,
+      columns: [
+        { key: "submission_public_id", label: "Submission" },
+        { key: "policy_number", label: "Policy #" },
+        { key: "document_role", label: "Role" },
+        { key: "quote_id", label: "Quote", link: "quote_bind" },
+        { key: "stored_at", label: "Stored (UTC)" },
+        { key: "carrier_name", label: "Carrier" },
+        { key: "client_name", label: "Client" },
+      ],
+    },
   };
 
   const cfg = configs[metric];
@@ -456,6 +629,7 @@ router.get("/operator/today/:metric", async (req, res) => {
       if (out.reviewed_at) out.reviewed_at = new Date(out.reviewed_at).toISOString();
       if (out.sent_at) out.sent_at = new Date(out.sent_at).toISOString();
       if (out.created_at) out.created_at = new Date(out.created_at).toISOString();
+      if (out.stored_at) out.stored_at = new Date(out.stored_at).toISOString();
       return out;
     });
     const segmentLabel =

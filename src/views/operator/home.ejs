@@ -204,6 +204,20 @@
             <div class="card-metric-cta">Open list →</div>
           </div>
         </a>
+        <a class="card-metric-link" href="/operator/today/connect-bind-stored" title="Bind confirmation PDF rows stored today (cid-postgres / Connect documents API)" aria-label="Connect bind PDF stored today: open full list">
+          <div class="card">
+            <h2>Connect: bind PDF stored (today)</h2>
+            <div class="metric" id="metric-connect-bind-pdf-today">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/today/connect-policy-docs-stored" title="Policy or declarations PDF rows stored today (Connect)" aria-label="Connect policy docs stored today: open full list">
+          <div class="card">
+            <h2>Connect: policy / dec PDFs (today)</h2>
+            <div class="metric" id="metric-connect-policy-docs-today">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
       </div>
 
       <div class="layout">
@@ -211,6 +225,9 @@
           <div class="section-title">
             Submissions waiting for carrier outreach
           </div>
+          <p style="font-size: 12px; color: #6b7280; margin: 0 0 10px; line-height: 1.4">
+            Only submissions with no quote row yet (nothing matched from carrier). If a quote exists, the submission is not listed here. The 6-digit suffix is one global sequence for all segments, not per inbox. Oldest-waiting first.
+          </p>
           <div class="card">
             <table>
               <thead>
@@ -269,6 +286,49 @@
           </div>
         </div>
       </div>
+
+      <div class="section-title" style="margin-top: 8px">
+        Definitions — what “stored in Connect” means here
+      </div>
+      <p style="font-size: 13px; color: #9ca3af; margin: 0 0 12px; max-width: 56rem; line-height: 1.45">
+        CID Connect reads the same <code style="color:#cbd5e1">documents</code> + <code style="color:#cbd5e1">policies</code> in cid-postgres as this API (see <code style="color:#cbd5e1">GET /api/connect/policies/:policyId/documents</code>).
+        <strong style="color:#d1d5db">Bind confirmation</strong> = a row with <code style="color:#cbd5e1">document_role = signed_bind_docs</code> linked to the policy (typically after BoldSign completes).
+        <strong style="color:#d1d5db">Policy / endorsements</strong> = uploaded carrier policy materials stored as <code style="color:#cbd5e1">policy_original</code> or <code style="color:#cbd5e1">declarations_original</code> (add more roles in the DB enum when you split endorsements).
+      </p>
+      <div class="layout">
+        <div>
+          <div class="section-title">Recent bind confirmations on file (Connect)</div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Submission</th>
+                  <th>Policy #</th>
+                  <th>Carrier</th>
+                  <th>Stored</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-connect-bind-docs"></tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div class="section-title">Recent policy / dec pages on file (Connect)</div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Submission</th>
+                  <th>Policy #</th>
+                  <th>Role</th>
+                  <th>Stored</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-connect-policy-docs"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </main>
 
     <script>
@@ -277,6 +337,16 @@
         const d = new Date(iso);
         if (Number.isNaN(d.getTime())) return "";
         return d.toLocaleDateString();
+      }
+
+      function fmtDateTime(iso) {
+        if (!iso) return "";
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return "";
+        return d.toLocaleString(undefined, {
+          dateStyle: "short",
+          timeStyle: "short",
+        });
       }
 
       function currentSegmentQS() {
@@ -337,6 +407,12 @@
           document.getElementById(
             "metric-policies-bound-today",
           ).textContent = counts.policies_bound_today ?? "0";
+          document.getElementById(
+            "metric-connect-bind-pdf-today",
+          ).textContent = counts.connect_bind_pdf_stored_today ?? "0";
+          document.getElementById(
+            "metric-connect-policy-docs-today",
+          ).textContent = counts.connect_policy_docs_stored_today ?? "0";
 
           const queues = data.queues || {};
 
@@ -391,6 +467,44 @@
             `;
             renTbody.appendChild(tr);
           });
+
+          const bindConn = document.getElementById("tbody-connect-bind-docs");
+          if (bindConn) {
+            bindConn.innerHTML = "";
+            (queues.connect_bind_confirmation_stored || []).forEach(
+              (item) => {
+                const tr = document.createElement("tr");
+                const quoteCell = item.quote_id
+                  ? `<a href="/operator/bind/${encodeURIComponent(String(item.quote_id))}${currentSegmentQS()}">${item.submission_public_id || "—"}</a>`
+                  : (item.submission_public_id || "—");
+                tr.innerHTML = `
+                  <td>${quoteCell}</td>
+                  <td>${item.policy_number || "—"}</td>
+                  <td>${item.carrier_name || ""}</td>
+                  <td>${fmtDateTime(item.stored_at)}</td>
+                `;
+                bindConn.appendChild(tr);
+              },
+            );
+          }
+
+          const polConn = document.getElementById("tbody-connect-policy-docs");
+          if (polConn) {
+            polConn.innerHTML = "";
+            (queues.connect_policy_documents_stored || []).forEach((item) => {
+              const tr = document.createElement("tr");
+              const quoteCell = item.quote_id
+                ? `<a href="/operator/bind/${encodeURIComponent(String(item.quote_id))}${currentSegmentQS()}">${item.submission_public_id || "—"}</a>`
+                : (item.submission_public_id || "—");
+              tr.innerHTML = `
+                <td>${quoteCell}</td>
+                <td>${item.policy_number || "—"}</td>
+                <td>${item.last_document_role || "—"}</td>
+                <td>${fmtDateTime(item.stored_at)}</td>
+              `;
+              polConn.appendChild(tr);
+            });
+          }
         } catch (err) {
           // swallow for operator UI; console is enough
           console.error("dashboard load error", err);
