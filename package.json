@@ -6,7 +6,9 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dedupe:carrier-messages": "node scripts/dedupe-carrier-messages.mjs"
+    "dedupe:carrier-messages": "node scripts/dedupe-carrier-messages.mjs",
+    "indexer:policy-docs": "node src/workers/policyIndexer.js",
+    "indexer:policy-docs:backfill": "node src/workers/policyIndexer.js --backfill"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.708.0",

@@ -382,6 +382,67 @@ router.get("/api/operator/dashboard", async (req, res) => {
   }
 });
 
+// Admin: policy indexing status for Connect "Am I Covered?" retrieval.
+// Requires CID_MAINTENANCE_SECRET in env + matching `x-admin-secret` header (or ?secret=...).
+router.get("/api/admin/index-status/:policyId", async (req, res) => {
+  if (!pool) {
+    return res.status(503).json({ error: "database_not_configured" });
+  }
+  const expected = process.env.CID_MAINTENANCE_SECRET?.trim();
+  if (!expected) {
+    return res.status(503).json({ error: "maintenance_secret_not_configured" });
+  }
+  const supplied =
+    String(req.headers["x-admin-secret"] || "").trim() ||
+    String(req.query.secret || "").trim();
+  if (!supplied || supplied !== expected) {
+    return res.status(401).json({ error: "unauthorized" });
+  }
+
+  const { policyId } = req.params;
+  try {
+    const docsSql = `
+      SELECT
+        COUNT(*)::int AS total_docs,
+        COUNT(*) FILTER (
+          WHERE d.document_role::text IN ('policy_original', 'declarations_original')
+        )::int AS indexable_docs
+      FROM documents d
+      WHERE d.policy_id = $1::uuid
+    `;
+    const chunksSql = `
+      SELECT
+        COUNT(*)::int AS chunk_count,
+        COUNT(DISTINCT document_id) FILTER (WHERE index_status = 'indexed')::int AS indexed_docs,
+        COUNT(DISTINCT document_id) FILTER (
+          WHERE index_status IN ('download_failed', 'parse_failed', 'needs_ocr', 'empty_text')
+        )::int AS failed_docs,
+        MAX(updated_at) AS last_indexed_at
+      FROM policy_document_chunks
+      WHERE policy_id = $1::uuid
+    `;
+    const [docsRes, chunkRes] = await Promise.all([
+      pool.query(docsSql, [policyId]),
+      pool.query(chunksSql, [policyId]),
+    ]);
+    const docs = docsRes.rows[0] || {};
+    const chunks = chunkRes.rows[0] || {};
+    return res.json({
+      ok: true,
+      policy_id: policyId,
+      total_docs: docs.total_docs ?? 0,
+      indexable_docs: docs.indexable_docs ?? 0,
+      indexed_docs: chunks.indexed_docs ?? 0,
+      failed_docs: chunks.failed_docs ?? 0,
+      chunk_count: chunks.chunk_count ?? 0,
+      last_indexed_at: chunks.last_indexed_at || null,
+    });
+  } catch (err) {
+    console.error("[admin/index-status] error:", err?.message || err);
+    return res.status(500).json({ error: "internal_error" });
+  }
+});
+
 /** Drill-down for dashboard “today” tiles — same segment + UTC-day filters as /api/operator/dashboard. */
 router.get("/operator/today/:metric", async (req, res) => {
   if (!pool) {
@@ -402,7 +463,15 @@ router.get("/operator/today/:metric", async (req, res) => {
           s.submitted_at,
           s.status::text AS status,
           c.primary_email AS client_email,
-          COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name
+          COALESCE(
+            NULLIF(TRIM(b.business_name), ''),
+            NULLIF(TRIM(CONCAT_WS(' ', c.first_name, c.last_name)), ''),
+            NULLIF(TRIM(s.raw_submission_json->>'insured_name'), ''),
+            NULLIF(TRIM(s.raw_submission_json->>'premises_name'), ''),
+            NULLIF(TRIM(s.raw_submission_json->>'business_name'), ''),
+            NULLIF(TRIM(s.raw_submission_json->>'applicant_name'), ''),
+            c.primary_email
+          ) AS client_name
         FROM submissions s
         JOIN clients c ON c.client_id = s.client_id
         LEFT JOIN businesses b ON b.business_id = s.business_id

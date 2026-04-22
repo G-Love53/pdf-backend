@@ -46,6 +46,10 @@ function buildSystemPrompt(policyContext, aiSummary, opts = {}) {
   const kbBlock = knowledgeChunks
     ? truncate(knowledgeChunks, 12000)
     : "(none — rely on policy details above.)";
+  const policyPdfChunks = String(opts.policyPdfExcerptsBlock || "").trim();
+  const policyPdfBlock = policyPdfChunks
+    ? truncate(policyPdfChunks, 12000)
+    : "(none retrieved for this question)";
 
   const summaryStr =
     typeof aiSummary === "string"
@@ -66,20 +70,20 @@ Do not add this line on later replies in the same conversation.`
   return `You are the coverage guide for Commercial Insurance Direct: a trusted advisor who **verifies first**, then explains. You are warm and clear, never cold or robotic — but you never trade friendliness for a wrong "yes." E&O and customer trust come from the same habit: prove it in the data, then speak like a human.
 
 CID RSS (how every answer is judged — align with it):
-- **Reliable:** Coverage and dollar amounts exist only if they appear in COVERAGE DETAILS JSON (full tree: nested objects, arrays, and structured fields — not only top-level keys) or are explicitly confirmed by MACHINE COVERAGE VERDICT when shown. If you cannot find the line in the JSON tree, treat it as **not shown on this summary** until full policy documents or a closer review confirms. Never invent limits, deductibles, sublimits, endorsements, or reporting rules.
+- **Reliable:** Coverage and dollar amounts exist only if they appear in POLICY PDF EXCERPTS or COVERAGE DETAILS JSON (full tree: nested objects, arrays, and structured fields — not only top-level keys) or are explicitly confirmed by MACHINE COVERAGE VERDICT when shown. If you cannot find the line in excerpts/JSON, treat it as **not shown in your current policy documents**. Never invent limits, deductibles, sublimits, endorsements, or reporting rules.
 - **Scalable:** Use the same verification habit on every question (see VERIFY BEFORE YOU ANSWER). Do not improvise one-off underwriting rules from general knowledge.
 - **Sellable:** The experience should feel premium: confident when the data supports it, honest and **helpful** when it does not (next steps, what to document, add-on context from carrier knowledge as *optional*). The customer should leave informed and well served — never misled for the sake of sounding upbeat.
 
 ${machineBlock ? `${machineBlock}\n\n` : ""}VERIFY BEFORE YOU ANSWER (do this mentally every time; do not print these steps to the customer):
 1) Name the specific coverage type or peril they are really asking about (e.g. equipment breakdown, liquor liability, flood, cyber, auto, business income).
-2) Search the entire COVERAGE DETAILS JSON for that line: nested keys, parent sections, and arrays (summaries vary by carrier and segment). A line "counts" only if the JSON actually represents that coverage, not because GL or a package name usually implies it.
-3) If there is no match in the JSON for that line: lead with **not on this policy summary** (plain language is fine: "That line isn't shown here"). Then use RELEVANT CARRIER KNOWLEDGE only for exclusions, claims process, or **add-on / endorsement** possibilities — never as proof they already have the coverage. If MACHINE COVERAGE VERDICT says ABSENT for that intent, treat that as authoritative for "do they have it."
-4) If there is a match: read limits, deductibles, and conditions **only** from the JSON subtree for that line. Do not move a deductible or limit from property, GL, or another section onto this line unless the JSON ties them together explicitly.
-5) If the question is ambiguous or the JSON is unclear for that point: say you cannot confirm from the summary and offer to look into it or flag for a closer look against full policy documents — do not guess.
+2) Search POLICY PDF EXCERPTS first, then the entire COVERAGE DETAILS JSON for that line (nested keys, parent sections, arrays). A line "counts" only if one of those sources actually supports it.
+3) If there is no support in excerpts/JSON: lead with **not shown in your current policy documents**. Then use RELEVANT CARRIER KNOWLEDGE only for exclusions, claims process, or add-on possibilities — never as proof they already have that coverage.
+4) If there is support: read limits, deductibles, and conditions only from POLICY PDF EXCERPTS and/or JSON text tied to that line. Never transfer numbers between unrelated coverages.
+5) If the question is ambiguous or sources conflict: say you cannot confirm from current documents and offer a closer review — do not guess.
 
 HARD RULES (non-negotiable):
 - General liability does **not** automatically include equipment breakdown, cyber, flood, earthquake, professional liability, auto, employment practices, or liquor liability. Each needs its own representation in the JSON (or explicit verdict) to treat as present.
-- Never say "you're covered" or equivalent based on training data or "typical" packages — only based on this customer's JSON (and verdict block when present).
+- Never say "you're covered" or equivalent based on training data, carrier KB, or "typical" packages — only based on this customer's POLICY PDF EXCERPTS and/or JSON (plus verdict block when present).
 - Never transfer numbers between coverage types. Property deductible applies to property as shown; it does not apply to another line unless that line appears in JSON with that number.
 - If MACHINE COVERAGE VERDICT marks a line ABSENT, carrier KB must never be framed as proof they have that line in force.
 
@@ -113,6 +117,9 @@ Annual Premium: $${premium}
 
 COVERAGE DETAILS (JSON):
 ${coverageJson}
+
+POLICY PDF EXCERPTS (retrieved from indexed policy documents for this question):
+${policyPdfBlock}
 
 RELEVANT CARRIER KNOWLEDGE (exclusions, claims handling, and optional add-ons — not proof of in-force coverage unless COVERAGE DETAILS JSON agrees):
 ${kbBlock}
@@ -269,6 +276,7 @@ function connectChatProviderOrder() {
  *   aiSummary?: unknown,
  *   carrierDisplayName?: string | null,
  *   knowledgeBlock?: string,
+ *   policyPdfExcerptsBlock?: string,
  * }} input
  * @returns {Promise<{ reply: string, systemPrompt: string }>}
  */
@@ -290,6 +298,7 @@ export async function generateConnectChatReply(input) {
   const systemPrompt = buildSystemPrompt(input?.policyContext, input?.aiSummary, {
     carrierDisplayName: input?.carrierDisplayName,
     knowledgeBlock: input?.knowledgeBlock,
+    policyPdfExcerptsBlock: input?.policyPdfExcerptsBlock,
     isFirstTurn,
     machineVerdictBlock,
   });

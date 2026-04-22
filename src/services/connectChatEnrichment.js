@@ -5,6 +5,46 @@
 import { searchCarrierKnowledgeRows } from "../lib/carrierKnowledgeSearch.js";
 import { fetchCarrierResourcesPromptBlock } from "./connectCarrierResourcesPrompt.js";
 
+async function searchPolicyDocumentChunks(pool, policyId, searchText, limit = 5) {
+  if (!policyId || !searchText) return [];
+  try {
+    const { rows } = await pool.query(
+      `
+        SELECT
+          content,
+          document_id,
+          document_role,
+          chunk_index,
+          ts_rank(content_tsv, q) AS rank
+        FROM policy_document_chunks, plainto_tsquery('english', $1) q
+        WHERE policy_id = $2::uuid
+          AND index_status = 'indexed'
+          AND content_tsv @@ q
+        ORDER BY rank DESC, chunk_index ASC
+        LIMIT $3
+      `,
+      [searchText, policyId, Math.min(Math.max(Number(limit) || 5, 1), 12)],
+    );
+    return rows;
+  } catch (e) {
+    console.error("[connectChatEnrichment] policy_document_chunks search failed:", e?.message || e);
+    return [];
+  }
+}
+
+function formatPolicyExcerptBlock(rows) {
+  if (!rows || rows.length === 0) return "";
+  return rows
+    .map((r, i) => {
+      const role = r.document_role ? `role=${r.document_role}` : "role=unknown";
+      const idx = Number.isFinite(Number(r.chunk_index))
+        ? ` chunk=${Number(r.chunk_index)}`
+        : "";
+      return `### Policy Excerpt ${i + 1} (${role}${idx})\n${String(r.content || "").trim()}`;
+    })
+    .join("\n\n");
+}
+
 async function resolveCarrierSlug(pool, carrierName) {
   if (!carrierName) return null;
   const raw = String(carrierName).trim();
@@ -75,9 +115,11 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
   let carrierSlug = null;
   let segment = null;
   let mergedPolicy = { ...clientPolicy };
+  let activePolicyId = null;
 
   if (pol.rows.length) {
     const row = pol.rows[0];
+    activePolicyId = row.id || null;
     segment = row.segment;
 
     if (row.carrier_slug) {
@@ -146,6 +188,17 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
     "\n\n--- CARRIER RESOURCES (Train AI metadata) ---\n\n",
   );
 
+  const policyExcerptRows = await searchPolicyDocumentChunks(
+    pool,
+    activePolicyId,
+    message,
+    5,
+  );
+  const policyPdfExcerptsBlock = formatPolicyExcerptBlock(policyExcerptRows);
+  if (process.env.CONNECT_CHAT_PROMPT_DEBUG === "true") {
+    console.log("[connectChatEnrichment] policy excerpt rows:", policyExcerptRows.length);
+  }
+
   return {
     policyContext: mergedPolicy,
     chatHistory: Array.isArray(body?.chatHistory) ? body.chatHistory : [],
@@ -154,5 +207,7 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
     carrierSlug,
     knowledgeRows,
     knowledgeBlock,
+    policyPdfExcerptsBlock,
+    policyExcerptRows,
   };
 }

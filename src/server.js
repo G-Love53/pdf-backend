@@ -10,6 +10,7 @@ import { recordSubmission, getPool } from "./db.js";
 import { DocumentRole, DocumentType, StorageProvider } from "./constants/postgresEnums.js";
 import { startGmailPoller } from "./jobs/gmailPoller.js";
 import { runFollowupScheduler } from "./jobs/followupScheduler.js";
+import { startPolicyIndexer } from "./workers/policyIndexer.js";
 import documentRoutes from "./routes/documentRoutes.js";
 import operatorRoutes from "./routes/operatorRoutes.js";
 import webhooksRouter from "./routes/webhooks.js";
@@ -954,6 +955,7 @@ APP.use(
 );
 
 startGmailPoller();
+startPolicyIndexer();
 
 // Simple interval-based scheduler for follow-ups and expirations
 if (process.env.ENABLE_FOLLOWUP_SCHEDULER === "true") {
