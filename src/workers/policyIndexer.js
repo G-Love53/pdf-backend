@@ -3,11 +3,17 @@ import pdfParse from "pdf-parse";
 import { getPool } from "../db.js";
 import { getObjectStream } from "../services/r2Service.js";
 
-const INDEXABLE_ROLES = ["policy_original", "declarations_original"];
+const INDEXABLE_ROLES = ["policy_original", "declarations_original", "endorsement"];
 const MIN_EXTRACTED_TEXT_CHARS = Number(
   process.env.POLICY_INDEXER_MIN_TEXT_CHARS || 180,
 );
 const DEFAULT_LIMIT = Number(process.env.POLICY_INDEXER_BATCH_SIZE || 25);
+
+function documentPriorityForRole(role) {
+  const v = String(role || "").toLowerCase().trim();
+  if (v === "endorsement") return 1;
+  return 2;
+}
 
 function chunkTextByWords(text, options = {}) {
   const perChunk = Math.max(100, Number(options.perChunk) || 500);
@@ -63,9 +69,10 @@ async function upsertStatusPlaceholder(client, row, status, reasonText = "") {
         content,
         source_storage_path,
         source_sha256,
+        document_priority,
         index_status
       )
-      VALUES ($1::uuid, $2::uuid, $3, 0, $4, $5, $6, $7)
+      VALUES ($1::uuid, $2::uuid, $3, 0, $4, $5, $6, $7, $8)
       ON CONFLICT (document_id, chunk_index)
       DO UPDATE SET
         policy_id = EXCLUDED.policy_id,
@@ -73,6 +80,7 @@ async function upsertStatusPlaceholder(client, row, status, reasonText = "") {
         content = EXCLUDED.content,
         source_storage_path = EXCLUDED.source_storage_path,
         source_sha256 = EXCLUDED.source_sha256,
+        document_priority = EXCLUDED.document_priority,
         index_status = EXCLUDED.index_status,
         updated_at = NOW()
     `,
@@ -83,6 +91,7 @@ async function upsertStatusPlaceholder(client, row, status, reasonText = "") {
       reasonText ? reasonText.slice(0, 500) : "",
       row.storage_path || null,
       row.sha256_hash || null,
+      documentPriorityForRole(row.document_role),
       status,
     ],
   );
@@ -109,9 +118,10 @@ async function upsertChunks(client, row, chunks) {
           content,
           source_storage_path,
           source_sha256,
+          document_priority,
           index_status
         )
-        VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, 'indexed')
+        VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6, $7, $8, 'indexed')
         ON CONFLICT (document_id, chunk_index)
         DO UPDATE SET
           policy_id = EXCLUDED.policy_id,
@@ -119,6 +129,7 @@ async function upsertChunks(client, row, chunks) {
           content = EXCLUDED.content,
           source_storage_path = EXCLUDED.source_storage_path,
           source_sha256 = EXCLUDED.source_sha256,
+          document_priority = EXCLUDED.document_priority,
           index_status = EXCLUDED.index_status,
           updated_at = NOW()
       `,
@@ -130,6 +141,7 @@ async function upsertChunks(client, row, chunks) {
         content,
         row.storage_path || null,
         row.sha256_hash || null,
+        documentPriorityForRole(row.document_role),
       ],
     );
   }

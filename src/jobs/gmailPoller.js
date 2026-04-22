@@ -11,6 +11,7 @@ import {
 } from "../services/agentNotificationService.js";
 import { DocumentRole, DocumentType, StorageProvider } from "../constants/postgresEnums.js";
 import { GMAIL_POLLER_SEGMENTS } from "../config/segmentAgentInbox.js";
+import { runPolicyIndexer } from "../workers/policyIndexer.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,6 +50,20 @@ const QUOTE_SIGNALS = [
   "pricing",
 ];
 
+const POLICY_PACKAGE_SIGNALS = [
+  "declarations",
+  "declaration page",
+  "dec page",
+  "policy packet",
+  "policy issued",
+  "issued policy",
+  "policy documents",
+  "endorsement",
+  "endorsements",
+  "forms schedule",
+  "schedule of forms",
+];
+
 function hasQuoteSignal(subject = "", body = "") {
   const text = `${subject} ${body}`.toLowerCase();
   return QUOTE_SIGNALS.some((signal) => {
@@ -56,6 +71,30 @@ function hasQuoteSignal(subject = "", body = "") {
     const escaped = signal.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     return new RegExp(`\\b${escaped}\\b`, "i").test(text);
   });
+}
+
+function looksLikePolicyPackage(subject = "", body = "", attachments = []) {
+  const text = `${subject} ${body}`.toLowerCase();
+  const filenameBlob = (attachments || [])
+    .map((a) => String(a?.filename || "").toLowerCase())
+    .join(" ");
+  const policyHit = POLICY_PACKAGE_SIGNALS.some((signal) => text.includes(signal));
+  const filenameHit =
+    /\b(dec|declarations|policy|endorsement|forms)\b/i.test(filenameBlob);
+
+  // A policy-package email should not also look like a quote packet.
+  return (policyHit || filenameHit) && !hasQuoteSignal(subject, body);
+}
+
+function inferPolicyPackageRole(subject = "", body = "", attachments = []) {
+  const text = `${subject} ${body}`.toLowerCase();
+  const filenameBlob = (attachments || [])
+    .map((a) => String(a?.filename || "").toLowerCase())
+    .join(" ");
+  const looksEndorsement =
+    /\b(endorsement|endorsements|schedule of forms|forms schedule)\b/i.test(text) ||
+    /\b(endorsement|endorsements)\b/i.test(filenameBlob);
+  return looksEndorsement ? DocumentRole.ENDORSEMENT : DocumentRole.POLICY_ORIGINAL;
 }
 
 function extractEmail(str) {
@@ -363,6 +402,72 @@ async function processMessage(gmail, messageId, seg) {
   }
 
   const matchResult = await matchToSubmission(subject, bodyText, threadId, seg.segment);
+  const looksPolicyPackage = looksLikePolicyPackage(subject, bodyText, attachments);
+  const policyPackageRole = inferPolicyPackageRole(subject, bodyText, attachments);
+  const matchedPolicy =
+    matchResult.submissionId && looksPolicyPackage
+      ? await findLatestPolicyForSubmission(matchResult.submissionId)
+      : null;
+
+  // Post-bind policy package path:
+  // if a policy already exists and this looks like declarations/endorsement docs,
+  // attach ingested PDFs directly to that policy instead of creating a new quote + S4 item.
+  if (matchedPolicy && documentIds.length > 0) {
+    if (matchResult.submissionId) {
+      await pool.query(
+        `
+          UPDATE carrier_messages
+          SET submission_id = $1
+          WHERE gmail_message_id = $2
+            AND segment = $3::segment_type
+        `,
+        [matchResult.submissionId, gmailMsgId, seg.segment],
+      );
+    }
+
+    const linkedCount = await relinkDocsToPolicyRole({
+      documentIds,
+      policy: matchedPolicy,
+      submissionId: matchResult.submissionId,
+      quoteId: matchedPolicy.quote_id,
+      documentRole: policyPackageRole,
+    });
+
+    await createTimelineEvent({
+      client_id: matchedPolicy.client_id || matchResult.clientId || null,
+      submission_id: matchResult.submissionId || null,
+      quote_id: matchedPolicy.quote_id || null,
+      policy_id: matchedPolicy.policy_id,
+      event_type: "policy.documents.received",
+      event_label: "Carrier policy package received",
+      event_payload_json: {
+        carrier_message_id: carrierMessageId,
+        from_email: fromEmail,
+        subject,
+        attachment_count: attachments.length,
+        document_ids: documentIds,
+        linked_as_role: policyPackageRole,
+        linked_count: linkedCount,
+        policy_id: matchedPolicy.policy_id,
+        policy_number: matchedPolicy.policy_number,
+      },
+      created_by: "system",
+    });
+
+    try {
+      await runPolicyIndexer({ limit: 50 });
+    } catch (err) {
+      console.error(
+        `[${seg.segment}] policy indexer trigger failed for message ${messageId}:`,
+        err?.message || err,
+      );
+    }
+
+    console.log(
+      `[${seg.segment}] Policy package linked to policy ${matchedPolicy.policy_id} as ${policyPackageRole} (${linkedCount} docs). Skipping quote/S4 path.`,
+    );
+    return true;
+  }
 
   // UW fork: PDF + CID but no quote-keyword signal (questions, clarifications) — do not create quote / S4.
   // Set GMAIL_POLLER_QUOTE_SIGNAL_FORK=false to always use the legacy S4 path when PDF+CID match.
@@ -1111,6 +1216,60 @@ async function createTimelineEvent(data) {
       data.created_by || "system",
     ],
   );
+}
+
+async function findLatestPolicyForSubmission(submissionId) {
+  if (!submissionId) return null;
+  const { rows } = await pool.query(
+    `
+      SELECT
+        p.id AS policy_id,
+        p.client_id,
+        p.submission_id,
+        p.quote_id,
+        p.policy_number,
+        p.created_at
+      FROM policies p
+      WHERE p.submission_id = $1
+      ORDER BY p.created_at DESC
+      LIMIT 1
+    `,
+    [submissionId],
+  );
+  return rows[0] || null;
+}
+
+async function relinkDocsToPolicyRole({
+  documentIds,
+  policy,
+  submissionId,
+  quoteId,
+  documentRole,
+}) {
+  if (!Array.isArray(documentIds) || documentIds.length === 0 || !policy?.policy_id) {
+    return 0;
+  }
+  const { rowCount } = await pool.query(
+    `
+      UPDATE documents
+      SET
+        client_id = COALESCE(client_id, $2::uuid),
+        submission_id = COALESCE(submission_id, $3::uuid),
+        quote_id = COALESCE(quote_id, $4::uuid),
+        policy_id = $1::uuid,
+        document_role = $5::document_role
+      WHERE document_id = ANY($6::uuid[])
+    `,
+    [
+      policy.policy_id,
+      policy.client_id,
+      submissionId,
+      quoteId || policy.quote_id || null,
+      documentRole || DocumentRole.POLICY_ORIGINAL,
+      documentIds,
+    ],
+  );
+  return rowCount || 0;
 }
 
 async function resolveLabelId(gmail, labelName) {

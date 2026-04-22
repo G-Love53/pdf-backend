@@ -29,6 +29,7 @@ export const DocumentRole = Object.freeze({
   BIND_REQUEST_SENT: "bind_request_sent",
   POLICY_ORIGINAL: "policy_original",
   DECLARATIONS_ORIGINAL: "declarations_original",
+  ENDORSEMENT: "endorsement",
   /** Signed bind PDF (e.g. BoldSign / HelloSign completion) */
   SIGNED_BIND_DOCS: "signed_bind_docs",
   COI_GENERATED: "coi_generated",

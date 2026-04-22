@@ -14,13 +14,17 @@ async function searchPolicyDocumentChunks(pool, policyId, searchText, limit = 5)
           content,
           document_id,
           document_role,
+          document_priority,
           chunk_index,
           ts_rank(content_tsv, q) AS rank
         FROM policy_document_chunks, plainto_tsquery('english', $1) q
         WHERE policy_id = $2::uuid
           AND index_status = 'indexed'
           AND content_tsv @@ q
-        ORDER BY rank DESC, chunk_index ASC
+        ORDER BY
+          COALESCE(document_priority, 9) ASC,
+          rank DESC,
+          chunk_index ASC
         LIMIT $3
       `,
       [searchText, policyId, Math.min(Math.max(Number(limit) || 5, 1), 12)],
@@ -37,10 +41,13 @@ function formatPolicyExcerptBlock(rows) {
   return rows
     .map((r, i) => {
       const role = r.document_role ? `role=${r.document_role}` : "role=unknown";
+      const pri = Number.isFinite(Number(r.document_priority))
+        ? ` p=${Number(r.document_priority)}`
+        : "";
       const idx = Number.isFinite(Number(r.chunk_index))
         ? ` chunk=${Number(r.chunk_index)}`
         : "";
-      return `### Policy Excerpt ${i + 1} (${role}${idx})\n${String(r.content || "").trim()}`;
+      return `### Policy Excerpt ${i + 1} (${role}${pri}${idx})\n${String(r.content || "").trim()}`;
     })
     .join("\n\n");
 }
