@@ -18,6 +18,10 @@ import { PacketStatus } from "../constants/postgresEnums.js";
 const router = express.Router();
 const pool = getPool();
 
+function isLikelyEmail(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || "").trim());
+}
+
 router.get("/api/quotes/ready-for-packet", async (req, res) => {
   if (!pool) {
     return res.status(503).json({ error: "database_not_configured" });
@@ -346,10 +350,18 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
   }
 
   const { quoteId } = req.params;
-  const { agent_id, recipient_email, cc_emails = [] } = req.body || {};
+  const {
+    agent_id,
+    recipient_email,
+    cc_emails = [],
+    persist_email_as_truth = true,
+  } = req.body || {};
 
   if (!agent_id || !recipient_email) {
     return res.status(400).json({ error: "missing_required_fields" });
+  }
+  if (!isLikelyEmail(recipient_email)) {
+    return res.status(400).json({ error: "invalid_recipient_email" });
   }
 
   const client = await pool.connect();
@@ -365,7 +377,9 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
                q.quote_id,
                s.submission_id,
                s.submission_public_id,
-               s.segment
+               s.segment,
+               s.client_id,
+               c.primary_email AS existing_client_email
         FROM quote_packets qp
         JOIN documents d
           ON d.document_id = qp.packet_document_id
@@ -373,6 +387,8 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
           ON q.quote_id = qp.quote_id
         JOIN submissions s
           ON q.submission_id = s.submission_id
+        JOIN clients c
+          ON c.client_id = s.client_id
         WHERE qp.quote_id = $1
         ORDER BY qp.created_at DESC
         LIMIT 1
@@ -461,6 +477,58 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
     );
     const resendPacketId = resendPacketRes.rows[0]?.packet_id || row.packet_id;
 
+    const shouldPersistTruth = persist_email_as_truth !== false;
+    let emailTruthUpdated = false;
+    if (shouldPersistTruth) {
+      await client.query(
+        `
+          UPDATE clients
+          SET primary_email = $2,
+              updated_at = NOW()
+          WHERE client_id = $1
+            AND lower(primary_email) <> lower($2)
+        `,
+        [row.client_id, recipient_email],
+      );
+
+      await client.query(
+        `
+          UPDATE submissions
+          SET raw_submission_json = jsonb_set(
+            jsonb_set(
+              COALESCE(raw_submission_json, '{}'::jsonb),
+              '{contact_email}',
+              to_jsonb($2::text),
+              true
+            ),
+            '{email}',
+            to_jsonb($2::text),
+            true
+          )
+          WHERE submission_id = $1
+        `,
+        [row.submission_id, recipient_email],
+      );
+
+      await client.query(
+        `
+          UPDATE bind_requests
+          SET signer_email = $2,
+              updated_at = NOW()
+          WHERE quote_id IN (
+            SELECT quote_id FROM quotes WHERE submission_id = $1
+          )
+            AND status = 'awaiting_signature'
+            AND lower(signer_email) <> lower($2)
+        `,
+        [row.submission_id, recipient_email],
+      );
+
+      emailTruthUpdated =
+        String(row.existing_client_email || "").toLowerCase() !==
+        String(recipient_email).toLowerCase();
+    }
+
     // Authoritative resend: any other "sent" packet for the same submission becomes superseded.
     await client.query(
       `
@@ -503,6 +571,10 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
           supersedes_packet_id: row.packet_id,
           recipients: [recipient_email, ...cc_emails],
           tracking_id: row.submission_public_id,
+          persist_email_as_truth: shouldPersistTruth,
+          email_truth_updated: emailTruthUpdated,
+          previous_client_email: row.existing_client_email || null,
+          updated_client_email: shouldPersistTruth ? recipient_email : null,
         },
         agent_id,
       ],
@@ -515,6 +587,8 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
       packet_id: resendPacketId,
       superseded_packet_id: row.packet_id,
       tracking_id: row.submission_public_id,
+      persist_email_as_truth: shouldPersistTruth,
+      email_truth_updated: emailTruthUpdated,
       message: `Packet resent to ${recipient_email}`,
     });
   } catch (err) {

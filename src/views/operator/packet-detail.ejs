@@ -216,6 +216,12 @@
             <input id="cc-input" type="text" placeholder="comma-separated" />
           </div>
           <div class="field-group">
+            <label style="display:flex; align-items:center; gap:8px; color:#cbd5e1;">
+              <input id="persist-email-truth-input" type="checkbox" checked style="width:auto;" />
+              Save this recipient as application truth (future bind/client emails use it)
+            </label>
+          </div>
+          <div class="field-group">
             <label>Subject</label>
             <input id="subject-input" type="text" />
           </div>
@@ -461,6 +467,8 @@
         const cc = ccRaw
           ? ccRaw.split(",").map((s) => s.trim()).filter(Boolean)
           : [];
+        const persistTruth =
+          document.getElementById("persist-email-truth-input")?.checked !== false;
 
         resendBtn.disabled = true;
         try {
@@ -473,6 +481,7 @@
                 agent_id: "operator",
                 recipient_email: to,
                 cc_emails: cc,
+                persist_email_as_truth: persistTruth,
               }),
             }
           );
@@ -481,8 +490,13 @@
             alert((out && (out.error || out.message)) || "Failed to resend packet.");
             return;
           }
+          const truthNote = out.persist_email_as_truth
+            ? (out.email_truth_updated
+              ? " Client email truth was updated for this application."
+              : " Client email truth already matched this address.")
+            : " Truth email was not changed.";
           alert(
-            `Resent packet to ${to}. Tracking ID ${out.tracking_id || "unknown"} now points to packet ${out.packet_id}.`
+            `Resent packet to ${to}. Tracking ID ${out.tracking_id || "unknown"} now points to packet ${out.packet_id}.${truthNote}`
           );
           window.location.href = "/operator/packet-builder/" + quoteId + segmentSuffix;
         } finally {
