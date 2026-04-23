@@ -25,3 +25,20 @@ Deploy: Docker (Render). Build clones CID_HomeBase when submodules are not avail
 - **Chat env (Render):** `ANTHROPIC_API_KEY` (required for Claude), optional `ANTHROPIC_CONNECT_CHAT_MODEL`, `CONNECT_CHAT_TIMEOUT_MS`, `GEMINI_API_KEY` + `GEMINI_CONNECT_CHAT_MODEL` for fallback.
 - **Packet / sales letter (S5 preview & email):** set **`CLAUDE_LETTER_TIMEOUT_MS=28000`** on Render (explicit override; code default matches). Short values caused Sonnet letter calls to abort (`This operation was aborted`) before the response returned. Optional: `GEMINI_API_KEY` + `GEMINI_LETTER_MODEL` for Gemini fallback when Claude fails; fix quota/billing if you see 429. **`OPENAI_API_KEY`** is not referenced in this repo’s letter or chat code yet — possible future fallback if wired in.
 - **Smoke test (bash):** after deploy, run **`scripts/smoke-connect-api.sh`** with `CID_API_URL` and `TEST_EMAIL` set (see script header).
+
+## Policy document indexing + S6 Docs Reconcile (2026-04)
+
+- **Tables/migrations:** `policy_document_chunks` via `migrations/009_policy_document_chunks.sql`; endorsement + priority support via `migrations/010_policy_index_priority_and_endorsement_role.sql`.
+- **Indexer worker:** `src/workers/policyIndexer.js`
+  - scheduled when `ENABLE_POLICY_INDEXER=true` (default cron `*/5 * * * *` via `POLICY_INDEXER_CRON`)
+  - scripts:
+    - `npm run indexer:policy-docs`
+    - `npm run indexer:policy-docs:backfill`
+- **Retrieval behavior:** `connectChatEnrichment.js` retrieves policy chunks by priority then rank:
+  - `endorsement` priority 1
+  - `policy_original` / `declarations_original` priority 2
+- **S6 operator UX:** `src/views/operator/bind-queue.ejs`
+  - tabbed workspace: **Bind Workflow** + **Docs Reconcile**
+  - clickable CID in Bind Workflow auto-fills Docs Reconcile lookup
+  - Docs Reconcile supports manual upload + role link (`signed_bind_docs`, `policy_original`, `declarations_original`, `endorsement`) and triggers indexer for policy roles
+  - queue badges: `Ready to Send`, `Awaiting Signature`, `Signed`, `Policy Package Received`

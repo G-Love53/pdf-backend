@@ -108,6 +108,9 @@ Use **Secret Files** in Render for private keys if you prefer file-based config.
 | BoldSign | `BOLD_SIGN_API_KEY` or aliases noted in `src/services/boldsignService.js`; webhook URL registered to `https://<api>/api/webhooks/boldsign`. |
 | `CARRIER_EMAIL` / `UW_EMAIL_BAR` | Routing for intake and notifications. |
 | `CID_APP_URL` | Public **CID Connect** origin for welcome/bind emails (e.g. `https://cid-connect.netlify.app`). **Render only** — read by `bindEmailService.js` and bind flows; not a Netlify `VITE_*` var. |
+| `ENABLE_POLICY_INDEXER` | Enable policy chunk index cron (`true`/`false`) |
+| `POLICY_INDEXER_CRON` | Cron for policy indexer (default `*/5 * * * *`) |
+| `POLICY_INDEXER_BATCH_SIZE` | Docs scanned per index run (optional) |
 | Optional | `ENABLE_FOLLOWUP_SCHEDULER`, `CID_BRAND_NAME`, etc. — see segment backend `src/constants/README.md`. |
 
 ### Post-deploy checks (Bar)
@@ -120,6 +123,9 @@ Use **Secret Files** in Render for private keys if you prefer file-based config.
 - [ ] S5 sales letter renders through fallback chain (Claude -> Gemini -> deterministic template if needed).
 - [ ] S6 signing document is the segment-branded bind-confirmation page.
 - [ ] Signature box appears in the locked page-1 location.
+- [ ] S6 queue shows status badges (`Ready to Send`, `Awaiting Signature`, `Signed`, `Policy Package Received`).
+- [ ] S6 **Docs Reconcile** lookup/upload works for a known CID and writes `policy.document.manual_linked` timeline event.
+- [ ] Operator Home "Connect: policy / dec PDFs (today)" increments after policy upload/link.
 
 ### Post-deploy checks (all intake segments: Bar/Roofer/Plumber/HVAC)
 
@@ -187,6 +193,22 @@ These apply to **`pdf-backend`** on Render (`cid-pdf-api`, etc.), not the segmen
 ### Policy row + Connect documents
 
 - On bind finalize, **`createPolicy`** inserts **`policies`**; the signed bind PDF must have **`documents.policy_id`** set to that policy id so **`GET /api/connect/policies/:policyId/documents`** returns the signed PDF for **CID Connect** (insured document list).
+- Carrier post-bind policy package auto-link path (poller):
+  - policy docs can be linked as `policy_original` or `endorsement`
+  - indexer is triggered immediately after auto-link
+  - if email cannot auto-match (commonly no CID token), operator uses **S6 -> Docs Reconcile** manual intake.
+
+### Policy indexing + retrieval
+
+- Apply both migrations on prod DB:
+  - `migrations/009_policy_document_chunks.sql`
+  - `migrations/010_policy_index_priority_and_endorsement_role.sql`
+- Backfill once after deploy:
+  - `npm run indexer:policy-docs:backfill`
+- Verify:
+  - `policy_document_chunks` has rows with `index_status='indexed'`
+  - `endorsement` rows carry `document_priority=1`
+  - Connect chat retrieves policy excerpts for coverage prompts.
 
 ### Outbound email identity (operator + intake mail from central API)
 
@@ -398,3 +420,4 @@ Details and division of labor (Famous vs `pdf-backend`): [CID_CONNECT.md](./CID_
 | 2026-04-17 | Netlify intake: duplicate `const form` gotcha, Yes/No select defaults, Additional Insured alignment; CID-PDF-API: customer bind iframe, `policy_id` on signed doc for Connect, per-segment Gmail env on central API, poller skip note. |
 | 2026-04-17 | `submit-quote` segment resolution (`bundle_id` + `formData.segment`); Gmail segment inference from `SUPP_*`; canonical `POST` body for Plumber/HVAC/Roofer; Roofer Netlify migrated to `ROOFER_INTAKE`. |
 | 2026-04-17 | Gmail poller: OAuth vs app password; **`invalid_grant`**; step‑by‑step OAuth Playground renewal for **`GMAIL_REFRESH_TOKEN_*`** (Cloud Console → Playground → Render). |
+| 2026-04-22 | Added S6 state badges + Docs Reconcile manual intake workflow; Connect-first policy delivery copy; policy indexing migrations (`009`, `010`) and endorsement priority behavior. |
