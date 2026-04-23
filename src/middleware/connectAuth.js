@@ -9,6 +9,11 @@
 import { getPool } from "../db.js";
 
 export async function connectAuthMiddleware(req, res, next) {
+  // Allow CORS preflight to pass through without identity headers.
+  if (req.method === "OPTIONS") {
+    return next();
+  }
+
   const pool = getPool();
   if (!pool) {
     return res.status(503).json({
