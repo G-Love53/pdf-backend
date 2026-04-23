@@ -40,12 +40,15 @@ export async function fetchCarrierResourcesPromptBlock(
     return Array.isArray(data) ? data : [];
   }
   try {
+    // Prefer current schema (`title`), then fall back for older projects.
     rows = await loadRows(
-      "document_title, title, resource_type, keywords, file_name, carrier_name, segment, is_active, display_order",
+      "title, resource_type, keywords, file_name, carrier_name, segment, is_active, display_order",
     );
   } catch (e1) {
     try {
-      rows = await loadRows("document_title, resource_type, keywords, file_name, carrier_name, segment");
+      rows = await loadRows(
+        "document_title, resource_type, keywords, file_name, carrier_name, segment, is_active, display_order",
+      );
     } catch (e2) {
       console.warn(
         "[connectCarrierResourcesPrompt] carrier_resources select failed:",
