@@ -13,6 +13,44 @@ const pool = new Pool({
 
 const BAR_AGENT_EMAIL = "quote@barinsurancedirect.com";
 
+function normalizeSegment(raw) {
+  const v = String(raw || "")
+    .trim()
+    .toLowerCase();
+  if (!v) return "bar";
+  if (v === "roofing") return "roofer";
+  return v;
+}
+
+function parseEmailList(value) {
+  return String(value || "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+}
+
+function unique(list) {
+  return Array.from(new Set(list));
+}
+
+function resolveCarrierFollowupRecipients(segment) {
+  const seg = normalizeSegment(segment);
+  const upper = seg.toUpperCase();
+  const env = process.env;
+
+  const recipients = unique([
+    ...parseEmailList(env[`UW_EMAIL_${upper}`]),
+    ...parseEmailList(env[`CARRIER_EMAIL_${upper}`]),
+    ...parseEmailList(env[`GMAIL_USER_${upper}`]),
+    ...parseEmailList(env.CARRIER_EMAIL),
+  ]);
+
+  if (recipients.length) return recipients;
+
+  // Safety fallback keeps behavior alive if segment env is missing.
+  return [BAR_AGENT_EMAIL];
+}
+
 async function carrierFollowups() {
   // 48h carrier follow-up: find outreach with no reply and no previous follow-up
   const { rows } = await pool.query(
@@ -54,10 +92,10 @@ async function carrierFollowups() {
     ];
 
     await sendWithGmail({
-      to: [BAR_AGENT_EMAIL],
+      to: resolveCarrierFollowupRecipients(row.segment),
       subject,
       text: textLines.join("\n"),
-      segment: row.segment || "bar",
+      segment: normalizeSegment(row.segment),
     });
 
     await pool.query(

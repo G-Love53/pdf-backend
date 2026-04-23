@@ -87,3 +87,17 @@ Notes:
 - Policy package PDFs are not primary email-delivery artifacts.
 - Standard message: docs are available in CID Connect for viewing/downloading/sharing.
 - Use email attachment only when a client explicitly requests a copy.
+
+## 8) Final prelaunch operator checks (all segments)
+
+Run for `bar`, `roofer`, `plumber`, `hvac` test submissions:
+
+1. Operator Home:
+   - Connect policy/doc metrics increment when docs are linked.
+2. Connect API checks:
+   - `GET /api/connect/policies` returns active policy for the test user email.
+   - `GET /api/connect/policies/:policyId/documents` returns expected policy/bind roles.
+3. Connect UI:
+   - policy card visible
+   - documents open/download work
+   - Am I Covered responses are policy-grounded and use "not shown" for missing coverage.

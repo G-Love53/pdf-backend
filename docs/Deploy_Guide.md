@@ -210,6 +210,28 @@ These apply to **`pdf-backend`** on Render (`cid-pdf-api`, etc.), not the segmen
   - `endorsement` rows carry `document_priority=1`
   - Connect chat retrieves policy excerpts for coverage prompts.
 
+### Connect identity + CORS checks
+
+- CORS preflight must be handled before `/api/connect` auth routing so browser `OPTIONS` requests succeed and real `GET/POST` follow.
+- Connect identity headers:
+  - required: `X-User-Email`
+  - optional: `X-User-Id` (Supabase UUID)
+- If `X-User-Id` is present and mismatched with `clients.famous_user_id`, API returns identity conflict by design.
+- Do not use synthetic UUID values in policy/docs smoke tests unless you intentionally test conflict handling.
+
+### Connect launch smoke (all segments)
+
+Run these per segment test account:
+
+1. `GET /api/connect/policies` with real user email returns expected policy.
+2. `GET /api/connect/policies/:policyId/documents` returns expected roles:
+   - `signed_bind_docs`
+   - `policy_original` (and optionally `endorsement` / `declarations_original`)
+3. Connect UI:
+   - policy card renders
+   - documents view opens and download route works
+   - Am I Covered answers policy-backed coverage correctly and uses "not shown" when absent.
+
 ### Outbound email identity (operator + intake mail from central API)
 
 - Prefer **per-segment Gmail** on the central service where implemented: **`GMAIL_USER_BAR`**, **`GMAIL_USER_ROOFER`**, **`GMAIL_USER_PLUMBER`**, **`GMAIL_USER_HVAC`** and matching **`GMAIL_APP_PASSWORD_*`**, with fallback to global **`GMAIL_USER`** / **`GMAIL_APP_PASSWORD`**.
@@ -421,3 +443,4 @@ Details and division of labor (Famous vs `pdf-backend`): [CID_CONNECT.md](./CID_
 | 2026-04-17 | `submit-quote` segment resolution (`bundle_id` + `formData.segment`); Gmail segment inference from `SUPP_*`; canonical `POST` body for Plumber/HVAC/Roofer; Roofer Netlify migrated to `ROOFER_INTAKE`. |
 | 2026-04-17 | Gmail poller: OAuth vs app password; **`invalid_grant`**; step‑by‑step OAuth Playground renewal for **`GMAIL_REFRESH_TOKEN_*`** (Cloud Console → Playground → Render). |
 | 2026-04-22 | Added S6 state badges + Docs Reconcile manual intake workflow; Connect-first policy delivery copy; policy indexing migrations (`009`, `010`) and endorsement priority behavior. |
+| 2026-04-23 | Added Connect launch checks: CORS preflight ordering, identity mapping behavior (`X-User-Id` vs `famous_user_id`), and all-segment policy/docs + chat validation checklist. |

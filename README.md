@@ -21,10 +21,28 @@ Deploy: Docker (Render). Build clones CID_HomeBase when submodules are not avail
 
 - **Routes:** `src/routes/connectApi.js` — profile, policies, quotes, documents, COI, claims, carrier knowledge search, **`POST /api/connect/chat`** (Claude primary, Gemini fallback — `src/services/connectChatService.js`).
 - **Auth (Phase 1):** `src/middleware/connectAuth.js` — requires **`X-User-Email`**; optional **`X-User-Id`** (Supabase user UUID) for `clients.famous_user_id` mapping.
+- **Identity rule:** If `X-User-Id` is provided and does not match `clients.famous_user_id`, Connect APIs return identity conflict by design. Browser sessions should send the real Supabase user id; do not test with synthetic UUIDs.
 - **Migration:** Run **`migrations/007_connect_api.sql`** on Render `DATABASE_URL` (adds `famous_user_id`, KB tables, `coi_requests`, `claims` if missing).
 - **Chat env (Render):** `ANTHROPIC_API_KEY` (required for Claude), optional `ANTHROPIC_CONNECT_CHAT_MODEL`, `CONNECT_CHAT_TIMEOUT_MS`, `GEMINI_API_KEY` + `GEMINI_CONNECT_CHAT_MODEL` for fallback.
 - **Packet / sales letter (S5 preview & email):** set **`CLAUDE_LETTER_TIMEOUT_MS=28000`** on Render (explicit override; code default matches). Short values caused Sonnet letter calls to abort (`This operation was aborted`) before the response returned. Optional: `GEMINI_API_KEY` + `GEMINI_LETTER_MODEL` for Gemini fallback when Claude fails; fix quota/billing if you see 429. **`OPENAI_API_KEY`** is not referenced in this repo’s letter or chat code yet — possible future fallback if wired in.
 - **Smoke test (bash):** after deploy, run **`scripts/smoke-connect-api.sh`** with `CID_API_URL` and `TEST_EMAIL` set (see script header).
+
+### Connect data source split (important)
+
+- **Supabase is still used for Connect auth/session** (browser login + session state).
+- **Insurance policy/doc/claims/COI data is served from cid-postgres via `/api/connect`** when `VITE_CID_API_URL` is set in Connect frontend build.
+- Result: seeing policy/docs in Connect depends on both:
+  - valid Supabase auth session for the user
+  - correct client mapping in cid-postgres (`clients.primary_email` and `clients.famous_user_id` when present)
+
+### Launch verification (Connect policy/docs)
+
+- `GET /api/connect/policies` should return at least one active policy for the test user email.
+- `GET /api/connect/policies/:policyId/documents` should return `policy_original` + `signed_bind_docs` (and optional endorsements).
+- In Connect UI:
+  - Policy card visible
+  - Documents view opens and can open/download files
+  - "Am I Covered?" answers grounded in policy data/excerpts.
 
 ## Policy document indexing + S6 Docs Reconcile (2026-04)
 
