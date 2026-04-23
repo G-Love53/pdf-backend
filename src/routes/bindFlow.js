@@ -210,7 +210,7 @@ router.post("/api/s6/docs-reconcile/upload", async (req, res) => {
         ) VALUES (
           $1::uuid, $2::uuid, $3::uuid, $4::uuid,
           $5, $6::document_role, $7, $8,
-          'application/pdf', $9, TRUE, 'operator'
+          'application/pdf', $9, TRUE, 'agent'
         )
         RETURNING document_id
       `,
@@ -238,7 +238,7 @@ router.post("/api/s6/docs-reconcile/upload", async (req, res) => {
           'policy.document.manual_linked',
           'S6 Docs Reconcile upload linked',
           $4::jsonb,
-          'operator'
+          'agent'
         )
       `,
       [
