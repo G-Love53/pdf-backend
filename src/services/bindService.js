@@ -83,7 +83,7 @@ export async function listReadyToBind({ segment }) {
     "qe.review_status = 'approved'",
     `(qp.status = 'sent' OR (qp.status = 'approved' AND EXISTS (
       SELECT 1 FROM bind_requests br2
-      WHERE br2.quote_id = q.quote_id AND br2.status = 'awaiting_signature'
+      WHERE br2.quote_id = q.quote_id AND br2.status IN ('awaiting_signature', 'signed')
     )))`,
   ];
   if (segment) {
@@ -110,16 +110,29 @@ export async function listReadyToBind({ segment }) {
       qp.sent_at AS packet_sent_at,
       qp.packet_id AS packet_id,
       EXTRACT(DAY FROM (NOW() - qp.sent_at))::int AS days_since_sent,
-      br.id AS bind_request_id
+      br.id AS bind_request_id,
+      br.status AS bind_request_status,
+      COALESCE(policy_docs.policy_doc_count, 0)::int AS policy_doc_count
     FROM quote_packets qp
     JOIN quotes q ON q.quote_id = qp.quote_id
     JOIN quote_extractions qe ON qe.quote_extraction_id = qp.extraction_id
     JOIN submissions s ON s.submission_id = q.submission_id
     JOIN clients c ON c.client_id = s.client_id
     LEFT JOIN businesses b ON b.business_id = s.business_id
-    LEFT JOIN bind_requests br
-      ON br.quote_id = q.quote_id
-     AND br.status = 'awaiting_signature'
+    LEFT JOIN LATERAL (
+      SELECT br.*
+      FROM bind_requests br
+      WHERE br.quote_id = q.quote_id
+      ORDER BY br.initiated_at DESC NULLS LAST, br.created_at DESC
+      LIMIT 1
+    ) br ON TRUE
+    LEFT JOIN LATERAL (
+      SELECT COUNT(*)::int AS policy_doc_count
+      FROM policies p2
+      JOIN documents d2 ON d2.policy_id = p2.id
+      WHERE p2.quote_id = q.quote_id
+        AND d2.document_role IN ('policy_original', 'declarations_original', 'endorsement')
+    ) policy_docs ON TRUE
     WHERE ${where.join(" AND ")}
     ORDER BY qp.sent_at DESC
   `;
@@ -141,6 +154,16 @@ export async function listReadyToBind({ segment }) {
       packet_id: r.packet_id,
       days_since_sent: r.days_since_sent,
       bind_request_id: r.bind_request_id,
+      bind_request_status: r.bind_request_status || null,
+      policy_doc_count: Number(r.policy_doc_count || 0),
+      s6_state:
+        Number(r.policy_doc_count || 0) > 0
+          ? "policy_package_received"
+          : r.bind_request_status === "signed"
+            ? "signed"
+            : r.bind_request_status === "awaiting_signature"
+              ? "awaiting_signature"
+              : "ready_to_send",
     })),
     count: rows.length,
   };

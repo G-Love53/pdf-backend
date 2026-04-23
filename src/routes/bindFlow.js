@@ -1,4 +1,6 @@
 import express from "express";
+import crypto from "crypto";
+import { getPool } from "../db.js";
 import {
   listReadyToBind,
   getBindDetails,
@@ -6,11 +8,30 @@ import {
   resendBind,
   cancelBind,
 } from "../services/bindService.js";
+import { uploadBuffer } from "../services/r2Service.js";
+import { runPolicyIndexer } from "../workers/policyIndexer.js";
+import { DocumentRole, DocumentType, StorageProvider } from "../constants/postgresEnums.js";
 import { parseOptionalUuid } from "../utils/uuid.js";
 import { verifySignedBindLinkParams } from "../utils/bindLinkToken.js";
 import { getSegmentBranding } from "../config/segmentBranding.js";
 
 const router = express.Router();
+const pool = getPool();
+
+const DOCS_RECONCILE_ROLES = new Set([
+  DocumentRole.SIGNED_BIND_DOCS,
+  DocumentRole.POLICY_ORIGINAL,
+  DocumentRole.DECLARATIONS_ORIGINAL,
+  DocumentRole.ENDORSEMENT,
+]);
+
+function safeFilename(name) {
+  return String(name || "document.pdf")
+    .replace(/[/\\?%*:|"<>]/g, "-")
+    .replace(/\s+/g, "-")
+    .trim()
+    .slice(0, 120) || "document.pdf";
+}
 
 function quoteIdOr400(req, res) {
   const id = parseOptionalUuid(req.params.quoteId);
@@ -29,6 +50,240 @@ router.get("/api/quotes/ready-to-bind", async (req, res) => {
   } catch (err) {
     console.error("ready-to-bind error:", err);
     res.status(500).json({ success: false, error: err.message || "error" });
+  }
+});
+
+// S6 Docs Reconcile: lookup by CID submission id.
+router.get("/api/s6/docs-reconcile/:submissionPublicId", async (req, res) => {
+  if (!pool) return res.status(503).json({ success: false, error: "database_not_configured" });
+  const submissionPublicId = String(req.params.submissionPublicId || "").trim().toUpperCase();
+  if (!submissionPublicId) {
+    return res.status(400).json({ success: false, error: "missing_submission_public_id" });
+  }
+  try {
+    const subRes = await pool.query(
+      `
+        SELECT
+          s.submission_id,
+          s.submission_public_id,
+          s.segment::text AS segment,
+          s.client_id,
+          COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name,
+          c.primary_email AS client_email
+        FROM submissions s
+        JOIN clients c ON c.client_id = s.client_id
+        LEFT JOIN businesses b ON b.business_id = s.business_id
+        WHERE s.submission_public_id = $1
+        LIMIT 1
+      `,
+      [submissionPublicId],
+    );
+    if (!subRes.rows.length) {
+      return res.status(404).json({ success: false, error: "submission_not_found" });
+    }
+    const sub = subRes.rows[0];
+
+    const policyRes = await pool.query(
+      `
+        SELECT id AS policy_id, quote_id, policy_number, carrier_name, created_at
+        FROM policies
+        WHERE submission_id = $1
+        ORDER BY created_at DESC
+        LIMIT 1
+      `,
+      [sub.submission_id],
+    );
+    const docsRes = await pool.query(
+      `
+        SELECT
+          document_role::text AS role,
+          COUNT(*)::int AS count
+        FROM documents
+        WHERE submission_id = $1
+          OR policy_id IN (SELECT id FROM policies WHERE submission_id = $1)
+        GROUP BY 1
+        ORDER BY count DESC
+      `,
+      [sub.submission_id],
+    );
+
+    return res.json({
+      success: true,
+      submission: sub,
+      policy: policyRes.rows[0] || null,
+      document_counts: docsRes.rows,
+    });
+  } catch (err) {
+    console.error("docs-reconcile lookup error:", err);
+    return res.status(500).json({ success: false, error: "internal_error" });
+  }
+});
+
+// S6 Docs Reconcile: manual upload + link by CID ID.
+router.post("/api/s6/docs-reconcile/upload", async (req, res) => {
+  if (!pool) return res.status(503).json({ success: false, error: "database_not_configured" });
+  const {
+    submission_public_id,
+    document_role,
+    filename,
+    file_base64,
+    note,
+  } = req.body || {};
+  const sid = String(submission_public_id || "").trim().toUpperCase();
+  const role = String(document_role || "").trim();
+  if (!sid || !role || !file_base64) {
+    return res.status(400).json({ success: false, error: "missing_required_fields" });
+  }
+  if (!DOCS_RECONCILE_ROLES.has(role)) {
+    return res.status(400).json({ success: false, error: "invalid_document_role" });
+  }
+
+  const m = String(file_base64).match(/^data:application\/pdf;base64,(.+)$/i);
+  const b64 = m ? m[1] : String(file_base64).trim();
+  let pdfBuffer;
+  try {
+    pdfBuffer = Buffer.from(b64, "base64");
+  } catch {
+    return res.status(400).json({ success: false, error: "invalid_file_base64" });
+  }
+  if (!pdfBuffer || pdfBuffer.length < 32) {
+    return res.status(400).json({ success: false, error: "empty_or_invalid_pdf" });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const subRes = await client.query(
+      `
+        SELECT submission_id, client_id, segment::text AS segment
+        FROM submissions
+        WHERE submission_public_id = $1
+        LIMIT 1
+      `,
+      [sid],
+    );
+    if (!subRes.rows.length) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ success: false, error: "submission_not_found" });
+    }
+    const sub = subRes.rows[0];
+
+    const policyRes = await client.query(
+      `
+        SELECT id AS policy_id, quote_id
+        FROM policies
+        WHERE submission_id = $1
+        ORDER BY created_at DESC
+        LIMIT 1
+      `,
+      [sub.submission_id],
+    );
+    const policy = policyRes.rows[0] || null;
+    if (
+      (role === DocumentRole.POLICY_ORIGINAL ||
+        role === DocumentRole.DECLARATIONS_ORIGINAL ||
+        role === DocumentRole.ENDORSEMENT) &&
+      !policy
+    ) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({
+        success: false,
+        error: "policy_not_found_for_submission",
+      });
+    }
+
+    const safeName = safeFilename(filename || `${sid}-${role}.pdf`);
+    const storagePath = `manual/${sub.segment}/${sid}/${Date.now()}-${safeName}`;
+    await uploadBuffer(storagePath, pdfBuffer, "application/pdf", {
+      segment: sub.segment,
+      type: role,
+      source: "s6_docs_reconcile",
+    });
+
+    const sha = crypto.createHash("sha256").update(pdfBuffer).digest("hex");
+    const docRes = await client.query(
+      `
+        INSERT INTO documents (
+          client_id, submission_id, quote_id, policy_id,
+          document_type, document_role, storage_provider, storage_path,
+          mime_type, sha256_hash, is_original, created_by
+        ) VALUES (
+          $1::uuid, $2::uuid, $3::uuid, $4::uuid,
+          $5, $6::document_role, $7, $8,
+          'application/pdf', $9, TRUE, 'operator'
+        )
+        RETURNING document_id
+      `,
+      [
+        sub.client_id,
+        sub.submission_id,
+        policy?.quote_id || null,
+        policy?.policy_id || null,
+        DocumentType.PDF,
+        role,
+        StorageProvider.R2,
+        storagePath,
+        sha,
+      ],
+    );
+    const documentId = docRes.rows[0].document_id;
+
+    await client.query(
+      `
+        INSERT INTO timeline_events (
+          submission_id, quote_id, policy_id,
+          event_type, event_label, event_payload_json, created_by
+        ) VALUES (
+          $1::uuid, $2::uuid, $3::uuid,
+          'policy.document.manual_linked',
+          'S6 Docs Reconcile upload linked',
+          $4::jsonb,
+          'operator'
+        )
+      `,
+      [
+        sub.submission_id,
+        policy?.quote_id || null,
+        policy?.policy_id || null,
+        JSON.stringify({
+          document_id: documentId,
+          role,
+          filename: safeName,
+          note: note ? String(note).slice(0, 500) : null,
+          source: "s6_docs_reconcile",
+        }),
+      ],
+    );
+
+    await client.query("COMMIT");
+
+    if (
+      role === DocumentRole.POLICY_ORIGINAL ||
+      role === DocumentRole.DECLARATIONS_ORIGINAL ||
+      role === DocumentRole.ENDORSEMENT
+    ) {
+      runPolicyIndexer({ limit: 50 }).catch((err) =>
+        console.error("docs-reconcile index trigger error:", err?.message || err),
+      );
+    }
+
+    return res.json({
+      success: true,
+      document_id: documentId,
+      storage_path: storagePath,
+      linked_policy_id: policy?.policy_id || null,
+      message: "Document uploaded and linked.",
+    });
+  } catch (err) {
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // ignore
+    }
+    console.error("docs-reconcile upload error:", err);
+    return res.status(500).json({ success: false, error: "internal_error" });
+  } finally {
+    client.release();
   }
 });
 

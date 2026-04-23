@@ -76,6 +76,98 @@
       a:hover {
         text-decoration: underline;
       }
+      .state-pill {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .state-ready {
+        background: #1e3a8a;
+        color: #dbeafe;
+      }
+      .state-awaiting {
+        background: #854d0e;
+        color: #fde68a;
+      }
+      .state-signed {
+        background: #065f46;
+        color: #a7f3d0;
+      }
+      .state-policy {
+        background: #4c1d95;
+        color: #e9d5ff;
+      }
+      .mode-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .mode-tab {
+        border-radius: 999px;
+        border: 1px solid #334155;
+        background: #020617;
+        color: #cbd5e1;
+        font-size: 12px;
+        padding: 6px 12px;
+        cursor: pointer;
+      }
+      .mode-tab.active {
+        border-color: #0ea5e9;
+        color: #7dd3fc;
+      }
+      .panel {
+        border: 1px solid #1f2937;
+        border-radius: 10px;
+        padding: 12px;
+        background: #020617;
+      }
+      .field {
+        margin: 8px 0;
+      }
+      .field label {
+        display: block;
+        font-size: 12px;
+        color: #9ca3af;
+        margin-bottom: 4px;
+      }
+      .field input, .field select, .field textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 8px;
+        border: 1px solid #1f2937;
+        background: #0b1220;
+        color: #e5e7eb;
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .btn {
+        border-radius: 999px;
+        border: 1px solid #334155;
+        background: #0b1220;
+        color: #e2e8f0;
+        font-size: 12px;
+        padding: 6px 12px;
+        cursor: pointer;
+      }
+      .btn-primary {
+        border-color: #1d4ed8;
+        background: #1e3a8a;
+        color: #dbeafe;
+      }
+      .muted {
+        color: #94a3b8;
+        font-size: 12px;
+      }
+      .hidden {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -87,21 +179,66 @@
       </div>
     </header>
     <main>
-      <table id="bind-table">
-        <thead>
-          <tr>
-            <th>Submission</th>
-            <th>Client</th>
-            <th>Carrier</th>
-            <th>Policy</th>
-            <th>Premium</th>
-            <th>Sent</th>
-            <th>Days</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="mode-tabs">
+        <button id="tab-bind-workflow" class="mode-tab active" type="button">Bind Workflow</button>
+        <button id="tab-docs-reconcile" class="mode-tab" type="button">Docs Reconcile</button>
+      </div>
+
+      <section id="panel-bind-workflow">
+        <table id="bind-table">
+          <thead>
+            <tr>
+              <th>Submission</th>
+              <th>Client</th>
+              <th>Carrier</th>
+              <th>Policy</th>
+              <th>Premium</th>
+              <th>Sent</th>
+              <th>Days</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section id="panel-docs-reconcile" class="hidden">
+        <div class="panel">
+          <p class="muted" style="margin-top:0;">
+            Catch-all intake for missing carrier docs. Use CID ID, choose role, upload PDF, and link to policy/submission.
+          </p>
+          <div class="field">
+            <label>CID Submission ID</label>
+            <input id="reconcile-cid" placeholder="CID-HVC-20260420-000035" />
+          </div>
+          <div class="actions">
+            <button id="reconcile-lookup-btn" class="btn" type="button">Lookup</button>
+          </div>
+          <pre id="reconcile-lookup-out" class="muted"></pre>
+          <div class="field">
+            <label>Document Role</label>
+            <select id="reconcile-role">
+              <option value="policy_original">policy_original</option>
+              <option value="endorsement">endorsement</option>
+              <option value="declarations_original">declarations_original</option>
+              <option value="signed_bind_docs">signed_bind_docs</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>PDF File</label>
+            <input id="reconcile-file" type="file" accept="application/pdf,.pdf" />
+          </div>
+          <div class="field">
+            <label>Note (optional)</label>
+            <textarea id="reconcile-note" rows="3" placeholder="Why manual intake was needed"></textarea>
+          </div>
+          <div class="actions">
+            <button id="reconcile-upload-btn" class="btn btn-primary" type="button">Upload + Link</button>
+          </div>
+          <pre id="reconcile-upload-out" class="muted"></pre>
+        </div>
+      </section>
     </main>
 
     <script>
@@ -114,6 +251,94 @@
       function segmentQuerySuffix() {
         const s = navSegmentForApi();
         return s ? "?segment=" + encodeURIComponent(s) : "";
+      }
+
+      function renderS6State(state, policyDocCount) {
+        const s = String(state || "").toLowerCase();
+        if (s === "policy_package_received") {
+          return `<span class="state-pill state-policy">Policy Package Received${policyDocCount ? ` (${policyDocCount})` : ""}</span>`;
+        }
+        if (s === "signed") {
+          return `<span class="state-pill state-signed">Signed</span>`;
+        }
+        if (s === "awaiting_signature") {
+          return `<span class="state-pill state-awaiting">Awaiting Signature</span>`;
+        }
+        return `<span class="state-pill state-ready">Ready to Send</span>`;
+      }
+
+      function activateTab(mode) {
+        const bindTab = document.getElementById("tab-bind-workflow");
+        const docsTab = document.getElementById("tab-docs-reconcile");
+        const bindPanel = document.getElementById("panel-bind-workflow");
+        const docsPanel = document.getElementById("panel-docs-reconcile");
+        const docs = mode === "docs";
+        bindTab.classList.toggle("active", !docs);
+        docsTab.classList.toggle("active", docs);
+        bindPanel.classList.toggle("hidden", docs);
+        docsPanel.classList.toggle("hidden", !docs);
+      }
+
+      async function lookupDocsReconcile() {
+        const cid = String(document.getElementById("reconcile-cid").value || "").trim().toUpperCase();
+        const out = document.getElementById("reconcile-lookup-out");
+        if (!cid) {
+          out.textContent = "Enter CID submission ID.";
+          return;
+        }
+        const res = await fetch("/api/s6/docs-reconcile/" + encodeURIComponent(cid));
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          out.textContent = "Lookup failed: " + (data.error || res.status);
+          return;
+        }
+        out.textContent = JSON.stringify(data, null, 2);
+      }
+
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.onerror = () => reject(new Error("Failed to read file"));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function uploadDocsReconcile() {
+        const cid = String(document.getElementById("reconcile-cid").value || "").trim().toUpperCase();
+        const role = String(document.getElementById("reconcile-role").value || "").trim();
+        const fileEl = document.getElementById("reconcile-file");
+        const file = fileEl && fileEl.files && fileEl.files[0];
+        const note = String(document.getElementById("reconcile-note").value || "").trim();
+        const out = document.getElementById("reconcile-upload-out");
+        if (!cid || !role || !file) {
+          out.textContent = "CID, role, and PDF file are required.";
+          return;
+        }
+        if (!/\.pdf$/i.test(file.name || "")) {
+          out.textContent = "Only PDF is supported.";
+          return;
+        }
+        out.textContent = "Uploading...";
+        const fileBase64 = await fileToBase64(file);
+        const res = await fetch("/api/s6/docs-reconcile/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            submission_public_id: cid,
+            document_role: role,
+            filename: file.name,
+            file_base64: fileBase64,
+            note: note || null,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          out.textContent = "Upload failed: " + (data.error || res.status);
+          return;
+        }
+        out.textContent = JSON.stringify(data, null, 2);
+        await lookupDocsReconcile();
       }
 
       async function loadBindQueue() {
@@ -137,6 +362,7 @@
             <td>$${(item.annual_premium || 0).toFixed(2)}</td>
             <td>${item.packet_sent_at || ""}</td>
             <td>${item.days_since_sent ?? ""}</td>
+            <td>${renderS6State(item.s6_state, item.policy_doc_count)}</td>
             <td><a href="/operator/bind/${item.quote_id}${segmentQuerySuffix()}">Bind</a></td>
           `;
           tbody.appendChild(tr);
@@ -145,6 +371,10 @@
 
       loadBindQueue();
       setInterval(loadBindQueue, 30000);
+      document.getElementById("tab-bind-workflow").addEventListener("click", () => activateTab("bind"));
+      document.getElementById("tab-docs-reconcile").addEventListener("click", () => activateTab("docs"));
+      document.getElementById("reconcile-lookup-btn").addEventListener("click", lookupDocsReconcile);
+      document.getElementById("reconcile-upload-btn").addEventListener("click", uploadDocsReconcile);
     </script>
   </body>
 </html>

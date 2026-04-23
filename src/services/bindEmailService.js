@@ -35,6 +35,7 @@ export async function sendBindConfirmationEmail({
   const attachmentNote = attachments.length
     ? "Your signed carrier quote is attached for your records."
     : "Your signed carrier quote is on file; reply to this email if you need a copy.";
+  const connectUrl = process.env.CID_APP_URL || "https://app.cid.famous.ai";
 
   const text = [
     `Hi ${client.contact_name || client.first_name || "there"},`,
@@ -50,7 +51,8 @@ export async function sendBindConfirmationEmail({
     "",
     attachmentNote,
     "",
-    "We'll have your full policy documents and certificate of insurance available within 24-48 hours.",
+    `Your policy documents and COI access are available in CID Connect: ${connectUrl}`,
+    "Log in anytime to view, download, or share your coverage documents.",
     "",
     "Questions about your coverage? Reply to this email or call us anytime.",
     "",
@@ -87,6 +89,7 @@ export async function sendWelcomeEmail({ client, policy, cidAppUrl, segment }) {
     "• Download certificates of insurance (COIs) instantly",
     "• Add additional insureds for job sites",
     "• Ask coverage questions and get answers from your actual policy documents",
+    "• View and download your policy documents anytime",
     "• View your policy details and payment schedule",
     "",
     "Access your account:",
