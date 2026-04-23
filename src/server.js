@@ -88,13 +88,7 @@ APP.use(
 // All other routes use normal JSON parsing
 APP.use(express.json({ limit: "20mb" }));
 
-// CID Connect API bridge (Phase 1: X-User-Email + optional X-User-Id)
-APP.use("/api/connect", connectAuthMiddleware, connectApiRouter);
-
-APP.set("view engine", "ejs");
-APP.set("views", path.join(__dirname, "views"));
-
-// CORS (includes CID Connect /api/connect: GET + custom identity headers)
+// CORS (must run before /api/connect so preflight gets CORS headers)
 APP.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -108,6 +102,12 @@ APP.use((req, res, next) => {
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
+
+// CID Connect API bridge (Phase 1: X-User-Email + optional X-User-Id)
+APP.use("/api/connect", connectAuthMiddleware, connectApiRouter);
+
+APP.set("view engine", "ejs");
+APP.set("views", path.join(__dirname, "views"));
 
 // RSS ROOT: always /app in Render Docker (and correct locally too)
 const PROJECT_ROOT = process.cwd();

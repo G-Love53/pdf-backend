@@ -145,7 +145,7 @@ router.get(
       FROM policies p
       LEFT JOIN submissions s ON s.submission_id = p.submission_id
       LEFT JOIN businesses b ON b.business_id = s.business_id
-      WHERE p.client_id = $1
+      WHERE COALESCE(p.client_id, s.client_id) = $1::uuid
     `;
     const params = [client_id];
     if (status) {
@@ -175,7 +175,7 @@ router.get(
        FROM policies p
        LEFT JOIN submissions s ON s.submission_id = p.submission_id
        LEFT JOIN businesses b ON b.business_id = s.business_id
-       WHERE p.id = $1::uuid AND p.client_id = $2::uuid`,
+       WHERE p.id = $1::uuid AND COALESCE(p.client_id, s.client_id) = $2::uuid`,
       [policyId, client_id],
     );
 
@@ -199,7 +199,11 @@ router.get(
     const { policyId } = req.params;
 
     const check = await pool.query(
-      `SELECT id FROM policies WHERE id = $1::uuid AND client_id = $2::uuid`,
+      `SELECT p.id
+       FROM policies p
+       LEFT JOIN submissions s ON s.submission_id = p.submission_id
+       WHERE p.id = $1::uuid
+         AND COALESCE(p.client_id, s.client_id) = $2::uuid`,
       [policyId, client_id],
     );
     if (!check.rows.length) {
@@ -210,7 +214,8 @@ router.get(
       `SELECT document_id, document_type, document_role, storage_path, mime_type,
               created_at, policy_id, client_id
        FROM documents
-       WHERE policy_id = $1::uuid AND client_id = $2::uuid
+       WHERE policy_id = $1::uuid
+         AND (client_id = $2::uuid OR client_id IS NULL)
        ORDER BY created_at DESC`,
       [policyId, client_id],
     );
