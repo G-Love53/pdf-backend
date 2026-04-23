@@ -64,18 +64,41 @@ export async function connectAuthMiddleware(req, res, next) {
       const byEmail = await pool.query(
         `SELECT client_id, primary_email, first_name, last_name, primary_phone, famous_user_id
          FROM clients
-         WHERE primary_email = $1`,
+         WHERE lower(trim(primary_email)) = lower(trim($1))
+         LIMIT 1`,
         [email],
       );
 
       if (!byEmail.rows.length) {
-        return res.status(404).json({
-          ok: false,
-          error: "No client record found for this email",
-        });
-      }
+        // Fallback: sometimes client primary_email lags behind intake truth.
+        // Try matching by submission raw email fields to recover client mapping.
+        const bySubmissionEmail = await pool.query(
+          `SELECT c.client_id, c.primary_email, c.first_name, c.last_name, c.primary_phone, c.famous_user_id
+           FROM clients c
+           JOIN submissions s ON s.client_id = c.client_id
+           WHERE lower(trim(
+             COALESCE(
+               NULLIF(s.raw_submission_json->>'contact_email', ''),
+               NULLIF(s.raw_submission_json->>'email', ''),
+               ''
+             )
+           )) = lower(trim($1))
+           ORDER BY s.created_at DESC
+           LIMIT 1`,
+          [email],
+        );
 
-      client = byEmail.rows[0];
+        if (!bySubmissionEmail.rows.length) {
+          return res.status(404).json({
+            ok: false,
+            error: "No client record found for this email",
+          });
+        }
+
+        client = bySubmissionEmail.rows[0];
+      } else {
+        client = byEmail.rows[0];
+      }
 
       if (
         supabaseUserId &&
