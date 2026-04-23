@@ -302,6 +302,7 @@ router.get("/api/operator/dashboard", async (req, res) => {
             SELECT
               d.document_id,
               d.created_at AS stored_at,
+              p.id AS policy_id,
               p.policy_number,
               q.quote_id,
               s.submission_public_id,
@@ -340,7 +341,7 @@ router.get("/api/operator/dashboard", async (req, res) => {
               JOIN submissions s ON s.submission_id = p.submission_id
               LEFT JOIN businesses b ON b.business_id = s.business_id
               LEFT JOIN clients c ON c.client_id = s.client_id
-              WHERE d.document_role IN ('policy_original', 'declarations_original')
+              WHERE d.document_role IN ('policy_original', 'declarations_original', 'endorsement')
                 AND d.policy_id IS NOT NULL
                 ${segSql}
               ORDER BY p.id, d.created_at DESC
@@ -620,6 +621,7 @@ router.get("/operator/today/:metric", async (req, res) => {
         SELECT
           d.document_id,
           d.created_at AS stored_at,
+          p.id AS policy_id,
           p.policy_number,
           q.quote_id,
           s.submission_public_id,
@@ -666,7 +668,7 @@ router.get("/operator/today/:metric", async (req, res) => {
         JOIN submissions s ON s.submission_id = p.submission_id
         LEFT JOIN businesses b ON b.business_id = s.business_id
         LEFT JOIN clients c ON c.client_id = s.client_id
-        WHERE d.document_role IN ('policy_original', 'declarations_original')
+        WHERE d.document_role IN ('policy_original', 'declarations_original', 'endorsement')
           AND d.policy_id IS NOT NULL
           AND d.created_at >= CURRENT_DATE
           ${segSql}
@@ -675,9 +677,9 @@ router.get("/operator/today/:metric", async (req, res) => {
       `,
       columns: [
         { key: "submission_public_id", label: "Submission" },
-        { key: "policy_number", label: "Policy #" },
+        { key: "policy_number", label: "Policy #", link: "policy_docs" },
         { key: "document_role", label: "Role" },
-        { key: "quote_id", label: "Quote", link: "quote_bind" },
+        { key: "quote_id", label: "Quote" },
         { key: "stored_at", label: "Stored (UTC)" },
         { key: "carrier_name", label: "Carrier" },
         { key: "client_name", label: "Client" },
@@ -753,6 +755,62 @@ router.get("/operator/bind/:quoteId", async (req, res) => {
     quoteId: req.params.quoteId,
     ...operatorNavLocals(req),
   });
+});
+
+router.get("/operator/policies/:policyId/documents", async (req, res) => {
+  if (!pool) {
+    return res.status(503).send("Database unavailable");
+  }
+
+  const { policyId } = req.params;
+  try {
+    const summaryResult = await pool.query(
+      `
+        SELECT
+          p.id AS policy_id,
+          p.policy_number,
+          p.carrier_name,
+          s.submission_public_id,
+          q.quote_id,
+          COALESCE(b.business_name, CONCAT_WS(' ', c.first_name, c.last_name)) AS client_name
+        FROM policies p
+        JOIN submissions s ON s.submission_id = p.submission_id
+        LEFT JOIN quotes q ON q.quote_id = p.quote_id
+        LEFT JOIN businesses b ON b.business_id = s.business_id
+        LEFT JOIN clients c ON c.client_id = s.client_id
+        WHERE p.id = $1::uuid
+        LIMIT 1
+      `,
+      [policyId],
+    );
+    if (!summaryResult.rows.length) {
+      return res.status(404).send("Policy not found");
+    }
+
+    const docsResult = await pool.query(
+      `
+        SELECT
+          d.document_id,
+          d.document_role::text AS document_role,
+          d.document_type,
+          d.created_at,
+          d.storage_path
+        FROM documents d
+        WHERE d.policy_id = $1::uuid
+        ORDER BY d.created_at DESC
+      `,
+      [policyId],
+    );
+
+    res.render("operator/policy-documents", {
+      policy: summaryResult.rows[0],
+      documents: docsResult.rows,
+      ...operatorNavLocals(req),
+    });
+  } catch (err) {
+    console.error("[operator/policy-documents] error:", err.message || err);
+    res.status(500).send("internal_error");
+  }
 });
 
 /** HTML escape for maintenance response bodies */

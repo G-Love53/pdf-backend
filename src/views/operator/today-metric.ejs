@@ -89,6 +89,8 @@
               <a href="/operator/packet-builder/<%= row.quote_id %><%= typeof segmentQuery !== 'undefined' && segmentQuery ? segmentQuery : '' %>"><%= v != null ? v : "—" %></a>
               <% } else if (col.link === "quote_bind" && row.quote_id) { %>
               <a href="/operator/bind/<%= row.quote_id %><%= typeof segmentQuery !== 'undefined' && segmentQuery ? segmentQuery : '' %>"><%= v != null ? v : "—" %></a>
+              <% } else if (col.link === "policy_docs" && row.policy_id) { %>
+              <a href="/operator/policies/<%= row.policy_id %>/documents<%= typeof segmentQuery !== 'undefined' && segmentQuery ? segmentQuery : '' %>"><%= v != null ? v : "—" %></a>
               <% } else if (col.key === "packet_status" && v === "SENT") { %>
               <span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;background:#064e3b;color:#bbf7d0;font-weight:600">SENT</span>
               <% } else { %>

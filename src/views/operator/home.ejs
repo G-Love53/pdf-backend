@@ -474,12 +474,13 @@
             (queues.connect_bind_confirmation_stored || []).forEach(
               (item) => {
                 const tr = document.createElement("tr");
-                const quoteCell = item.quote_id
-                  ? `<a href="/operator/bind/${encodeURIComponent(String(item.quote_id))}${currentSegmentQS()}">${item.submission_public_id || "—"}</a>`
-                  : (item.submission_public_id || "—");
+                const submissionCell = item.submission_public_id || "—";
+                const policyCell = item.policy_id
+                  ? `<a href="/operator/policies/${encodeURIComponent(String(item.policy_id))}/documents${currentSegmentQS()}">${item.policy_number || "—"}</a>`
+                  : (item.policy_number || "—");
                 tr.innerHTML = `
-                  <td>${quoteCell}</td>
-                  <td>${item.policy_number || "—"}</td>
+                  <td>${submissionCell}</td>
+                  <td>${policyCell}</td>
                   <td>${item.carrier_name || ""}</td>
                   <td>${fmtDateTime(item.stored_at)}</td>
                 `;
@@ -493,12 +494,13 @@
             polConn.innerHTML = "";
             (queues.connect_policy_documents_stored || []).forEach((item) => {
               const tr = document.createElement("tr");
-              const quoteCell = item.quote_id
-                ? `<a href="/operator/bind/${encodeURIComponent(String(item.quote_id))}${currentSegmentQS()}">${item.submission_public_id || "—"}</a>`
-                : (item.submission_public_id || "—");
+              const submissionCell = item.submission_public_id || "—";
+              const policyCell = item.policy_id
+                ? `<a href="/operator/policies/${encodeURIComponent(String(item.policy_id))}/documents${currentSegmentQS()}">${item.policy_number || "—"}</a>`
+                : (item.policy_number || "—");
               tr.innerHTML = `
-                <td>${quoteCell}</td>
-                <td>${item.policy_number || "—"}</td>
+                <td>${submissionCell}</td>
+                <td>${policyCell}</td>
                 <td>${item.last_document_role || "—"}</td>
                 <td>${fmtDateTime(item.stored_at)}</td>
               `;

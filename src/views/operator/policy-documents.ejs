@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Policy Documents — CID Operator</title>
+    <style>
+      body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: #020617; color: #e5e7eb; }
+      header { padding: 16px 24px; border-bottom: 1px solid #1f2937; }
+      main { padding: 16px 24px 32px; }
+      .meta { color: #9ca3af; font-size: 13px; margin-top: 6px; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+      th, td { padding: 8px 10px; border-bottom: 1px solid #111827; text-align: left; }
+      th { color: #9ca3af; font-weight: 500; }
+      a { color: #38bdf8; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .empty { color: #6b7280; font-size: 14px; padding: 24px 0; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Policy Documents</h1>
+      <div class="meta">
+        <strong>Policy:</strong> <%= policy.policy_number || "—" %> ·
+        <strong>Submission:</strong> <%= policy.submission_public_id || "—" %> ·
+        <strong>Carrier:</strong> <%= policy.carrier_name || "—" %> ·
+        <strong>Client:</strong> <%= policy.client_name || "—" %>
+      </div>
+      <%- include('../partials/operator-nav', { segmentQuery: '', segment: 'all' }) %>
+    </header>
+    <main>
+      <% if (!documents || documents.length === 0) { %>
+      <p class="empty">No documents are linked to this policy yet.</p>
+      <% } else { %>
+      <table>
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>Type</th>
+            <th>Stored (UTC)</th>
+            <th>Document</th>
+            <th>Download</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% documents.forEach(function (d) { %>
+          <tr>
+            <td><%= d.document_role || "—" %></td>
+            <td><%= d.document_type || "—" %></td>
+            <td><%= d.created_at || "—" %></td>
+            <td><%= d.document_id || "—" %></td>
+            <td>
+              <% if (d.document_id) { %>
+              <a href="/api/documents/<%= d.document_id %>/download" target="_blank" rel="noopener">Open PDF</a>
+              <% } else { %>—<% } %>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <% } %>
+    </main>
+  </body>
+</html>
