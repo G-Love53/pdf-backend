@@ -168,6 +168,11 @@
       .hidden {
         display: none;
       }
+      .cid-link {
+        color: #7dd3fc;
+        text-decoration: underline;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -282,6 +287,8 @@
       async function lookupDocsReconcile() {
         const cid = String(document.getElementById("reconcile-cid").value || "").trim().toUpperCase();
         const out = document.getElementById("reconcile-lookup-out");
+        const uploadBtn = document.getElementById("reconcile-upload-btn");
+        if (uploadBtn) uploadBtn.disabled = true;
         if (!cid) {
           out.textContent = "Enter CID submission ID.";
           return;
@@ -293,6 +300,7 @@
           return;
         }
         out.textContent = JSON.stringify(data, null, 2);
+        if (uploadBtn) uploadBtn.disabled = false;
       }
 
       function fileToBase64(file) {
@@ -355,7 +363,7 @@
         (data.items || []).forEach((item) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td>${item.submission_public_id}</td>
+            <td><a href="#" class="cid-link" data-cid="${item.submission_public_id}">${item.submission_public_id}</a></td>
             <td>${item.client_name || ""}</td>
             <td>${item.carrier_name || ""}</td>
             <td>${item.policy_type || ""}</td>
@@ -367,6 +375,16 @@
           `;
           tbody.appendChild(tr);
         });
+        tbody.querySelectorAll("a.cid-link").forEach((el) => {
+          el.addEventListener("click", async (e) => {
+            e.preventDefault();
+            const cid = String(el.getAttribute("data-cid") || "").trim();
+            if (!cid) return;
+            document.getElementById("reconcile-cid").value = cid;
+            activateTab("docs");
+            await lookupDocsReconcile();
+          });
+        });
       }
 
       loadBindQueue();
@@ -375,6 +393,16 @@
       document.getElementById("tab-docs-reconcile").addEventListener("click", () => activateTab("docs"));
       document.getElementById("reconcile-lookup-btn").addEventListener("click", lookupDocsReconcile);
       document.getElementById("reconcile-upload-btn").addEventListener("click", uploadDocsReconcile);
+      document.getElementById("reconcile-upload-btn").disabled = true;
+      document.getElementById("reconcile-cid").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          lookupDocsReconcile();
+        }
+      });
+      document.getElementById("reconcile-cid").addEventListener("blur", (e) => {
+        e.target.value = String(e.target.value || "").trim().toUpperCase();
+      });
     </script>
   </body>
 </html>
