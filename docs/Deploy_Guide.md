@@ -121,6 +121,7 @@ Use **Secret Files** in Render for private keys if you prefer file-based config.
 - [ ] Render logs: no errors on `/submit-quote` or template resolution (`CID_HomeBase` present in Docker image).
 - [ ] Bind: BoldSign webhook or redirect finalize creates **`policies`** row; logs may show `[policyService] policy row ready`.
 - [ ] S5 sales letter renders through fallback chain (Claude -> Gemini -> deterministic template if needed).
+- [ ] S5 **client packet email**: Claude sales letter appears **in the HTML body** (summary + Issue Policy / question CTAs below); **plain-text MIME part** included for HTML-stripping clients; default **subject** is segment-facing and **does not include carrier name** (operator may override); letter **sign-off** uses **“{Segment} Insurance Direct”** (e.g. HVAC Insurance Direct) for brand consistency with vertical outreach.
 - [ ] S6 signing document is the segment-branded bind-confirmation page.
 - [ ] Signature box appears in the locked page-1 location.
 - [ ] S6 queue shows status badges (`Ready to Send`, `Awaiting Signature`, `Signed`, `Policy Package Received`).
@@ -350,6 +351,24 @@ Goal: `quotes@<segment>insurancedirect.com` stays working while DNS moves and is
   - Create a Mail **App Password**.
 - This 16‑character value is used by the backend to authenticate to Gmail.
 
+### 5. Google Postmaster Tools (outbound campaigns — RSS)
+
+**Reliable:** see spam rate, authentication failures, and reputation signals for **Gmail recipients** before small issues become inbox placement problems. **Scalable:** same checklist for every segment sending domain. **Sellable:** third‑party audit trail that DNS + authentication are monitored, not guessed.
+
+- Add each **campaign sending domain** (and any subdomain you mail from) in [Google Postmaster Tools](https://postmaster.google.com/) and complete verification (TXT/DNS per Google’s wizard).
+- Align Postmaster domains with **SPF**, **DKIM**, and **DMARC** already documented above — mismatched “From” vs authenticated domain is a common cause of spam-folder placement.
+- **Instantly** (or any ESP) must use the same authenticated identities you monitor in Postmaster; do not mix unauthenticated “friendly From” with a different signing domain without explicit alignment.
+- Postmaster does **not** replace per-message testing — still send seed tests to Gmail/Outlook after DNS or template changes.
+
+---
+
+## GitHub Actions — Leg 2 Robot Heartbeat (RSS)
+
+**Reliable:** scheduled wake checks must hit a **real liveness route** on the service you deploy. **CID-PDF-API** (`pdf-backend` on Render, e.g. `cid-pdf-api`) exposes **`GET /healthz`** — use that in `.github/workflows/heartbeat.yml`.
+
+- **Do not** point the unified API heartbeat at **`POST /check-quotes`** — that route exists on some **legacy segment-only** Render services, not on CID-PDF-API (returns **404**, fails `curl --fail`, spams failure email).
+- **Hardening:** concurrency group, job timeout, and `curl` retries/backoff reduce noise during GitHub Actions incidents; transient platform outages still require checking [GitHub Status](https://www.githubstatus.com/).
+
 ---
 
 ## Backend configuration (Render, per segment)
@@ -444,3 +463,4 @@ Details and division of labor (Famous vs `pdf-backend`): [CID_CONNECT.md](./CID_
 | 2026-04-17 | Gmail poller: OAuth vs app password; **`invalid_grant`**; step‑by‑step OAuth Playground renewal for **`GMAIL_REFRESH_TOKEN_*`** (Cloud Console → Playground → Render). |
 | 2026-04-22 | Added S6 state badges + Docs Reconcile manual intake workflow; Connect-first policy delivery copy; policy indexing migrations (`009`, `010`) and endorsement priority behavior. |
 | 2026-04-23 | Added Connect launch checks: CORS preflight ordering, identity mapping behavior (`X-User-Id` vs `famous_user_id`), and all-segment policy/docs + chat validation checklist. |
+| 2026-05-06 | Postmaster Tools checklist for campaign sending domains; GitHub Actions heartbeat notes (`GET /healthz` on CID-PDF-API vs legacy `/check-quotes`); S5 client email post-deploy checks (body letter, plaintext, subject, segment sign-off). |

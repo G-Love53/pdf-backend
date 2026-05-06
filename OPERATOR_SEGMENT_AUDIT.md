@@ -1,6 +1,6 @@
 # Operator segment filter + S1–S6 audit (pdf-backend)
 
-**Date:** 2026-03-19  
+**Date:** 2026-03-19 (segment filter baseline) · **Update:** 2026-05-06 (S5 client email + deliverability docs)  
 **Intent:** One shared backend; routes/services use `segment` from DB — avoid Bar-only SQL in operator UI.
 
 ## Implemented (this change)
@@ -25,6 +25,14 @@
 
 - **S4 detail UI** — `extraction-review.ejs` segment-specific field blocks: verify in UI with real Plumber/Roofer/HVAC quotes after Bar fixes.
 - **S5 packet templates** — No `PACKET_TEMPLATES` map in repo; packet build uses shared `createSimplePagePdf` + `reviewed_json`. Add segment-specific HTML/EJS under `CID_HomeBase` or `src/templates/packets/<segment>/` only if product needs different layouts.
+
+## S5 client packet email (2026-05-06 — shared `pdf-backend` path, all segments)
+
+- **HTML body:** Claude-generated sales letter is rendered **in the email body** first; quote summary table and **Issue Policy** / **I Have a Question** actions follow. Combined quote PDF remains **attached** as backup.
+- **Plain text:** A **text/plain** MIME part is sent with the same narrative + summary + URLs so clients that strip HTML stay readable.
+- **Default subject:** Prospect-facing, **no carrier name** in subject (e.g. `Your HVAC Insurance Quote is Ready`). Operator can still override in S5.
+- **Sign-off:** Letter closing uses vertical brand **“{Segment} Insurance Direct”** (Bar / Roofing / Plumber / HVAC), aligned with segment outreach copy.
+- **Operator UX:** Use **Preview** then **Refresh email preview** on packet detail after deploy to pull the latest template behavior.
 - **S6 bind PDF** — `bindService` builds bind confirmation via `createSimplePagePdf` + `brandLineForBindPdf` / `normalizeSegment`, not per-segment `templates/binds/<segment>/`. Add segment EJS only if legal/copy requires distinct documents.
 - **Carrier routing** — Poller maps inbox → segment via `SEGMENTS`; confirm env `GMAIL_REFRESH_TOKEN_*` exists for each inbox on Render.
 

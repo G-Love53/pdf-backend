@@ -58,7 +58,15 @@ This is the daily operating flow for CID-PDF-API operator queues.
 
 Fallback if S6 is unavailable: DB manual link + indexer backfill.
 
-## 5) Email correction in S5 (truth behavior)
+## 5) S5 — client packet email (preview & send)
+
+- On **Packet detail**, use **Preview** then **Refresh email preview** after a deploy so the iframe shows the latest server template.
+- **Insured-visible email (HTML):** Claude sales letter is **in the body** first; quote summary and **Issue Policy** / **I Have a Question** appear below. The **combined quote PDF** stays attached for clients who want a file copy.
+- **Plain text:** A **text/plain** part is included for mail clients that hide or strip HTML — operators should spot-check one send in a plaintext-only view when changing copy.
+- **Default subject** is prospect-facing and omits the **carrier name** (segment line like “Your HVAC Insurance Quote is Ready”). Override in the subject field when product/legal requires a different line.
+- **Brand:** Letter sign-off uses **“{Segment} Insurance Direct”** (vertical brand), consistent with segment outreach.
+
+## 6) Email correction in S5 (truth behavior)
 
 - Resend packet in S5 can persist corrected recipient as truth.
 - With "Save as application truth" enabled:
@@ -68,7 +76,7 @@ Fallback if S6 is unavailable: DB manual link + indexer backfill.
 
 This should be used whenever intake email was wrong and you corrected it during resend.
 
-## 6) S6 operating model (current)
+## 7) S6 operating model (current)
 
 - **Bind Workflow tab** = launch/resend signer flow.
 - **Docs Reconcile tab** = catch-all document intake/linking.
@@ -82,13 +90,13 @@ Notes:
 - Client self-serve "Issue Policy" can initiate bind automatically (operator may not need to send manually).
 - Policy package emails without CID token cannot be auto-matched; use Docs Reconcile.
 
-## 7) Connect-first policy delivery
+## 8) Connect-first policy delivery
 
 - Policy package PDFs are not primary email-delivery artifacts.
 - Standard message: docs are available in CID Connect for viewing/downloading/sharing.
 - Use email attachment only when a client explicitly requests a copy.
 
-## 8) Final prelaunch operator checks (all segments)
+## 9) Final prelaunch operator checks (all segments)
 
 Run for `bar`, `roofer`, `plumber`, `hvac` test submissions:
 
