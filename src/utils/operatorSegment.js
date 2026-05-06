@@ -3,7 +3,7 @@
  * Routes/services already use `submissions.segment` / `quotes.segment` — this only unifies the dashboard.
  */
 
-export const OPERATOR_SEGMENT_VALUES = ["bar", "roofer", "plumber", "hvac"];
+export const OPERATOR_SEGMENT_VALUES = ["bar", "roofer", "plumber", "hvac", "fitness"];
 
 /**
  * @param {unknown} value - query param `segment` or undefined

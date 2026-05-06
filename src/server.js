@@ -511,6 +511,7 @@ function inferSegmentFromTemplateList(templates) {
   if (!Array.isArray(templates)) return "";
   for (const t of templates) {
     const name = String(t?.name || "").toUpperCase();
+    if (name.includes("SUPP_FITNESS")) return "fitness";
     if (name.includes("SUPP_HVAC")) return "hvac";
     if (name.includes("SUPP_PLUMBER")) return "plumber";
     if (name.includes("SUPP_ROOFER")) return "roofer";
@@ -649,6 +650,7 @@ APP.post("/submit-quote", async (req, res) => {
     const BUNDLE_DEFAULT_SEGMENT = {
       ROOFER_INTAKE: "roofer",
       HVAC_INTAKE: "hvac",
+      FITNESS_INTAKE: "fitness",
       PLUMBER_INTAKE: "plumber",
       BAR_INTAKE: "bar",
     };

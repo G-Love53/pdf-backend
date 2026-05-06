@@ -7,6 +7,7 @@ const LETTER_PROMPTS = {
   roofer: buildRooferPrompt,
   plumber: buildPlumberPrompt,
   hvac: buildHvacPrompt,
+  fitness: buildHvacPrompt,
 };
 
 const SEGMENT_BRAND = {
@@ -14,6 +15,7 @@ const SEGMENT_BRAND = {
   roofer: "Roofing Insurance Direct",
   plumber: "Plumber Insurance Direct",
   hvac: "HVAC Insurance Direct",
+  fitness: "Fitness Insurance Direct",
 };
 
 function segmentKey(segment) {

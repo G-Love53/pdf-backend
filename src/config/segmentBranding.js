@@ -31,6 +31,14 @@ const SEGMENT_BRANDING = {
     segmentDisplayName: "HVAC Contractor",
     logoPath: null,
   },
+  fitness: {
+    segmentColor: "#16a34a",
+    segmentIcon: "F",
+    segmentBrandName: "Fitness Insurance Direct",
+    segmentDomain: "fitnessinsurancedirect.com",
+    segmentDisplayName: "Fitness Facility",
+    logoPath: null,
+  },
 };
 
 export function getSegmentBranding(segment) {

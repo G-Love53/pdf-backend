@@ -27,6 +27,13 @@
     "ACORD130",
     "ACORD140"
   ],
+  "FITNESS_INTAKE": [
+    "SUPP_FITNESS",
+    "ACORD125",
+    "ACORD126",
+    "ACORD130",
+    "ACORD140"
+  ],
   "COI_STANDARD": [
     "ACORD25"
   ],

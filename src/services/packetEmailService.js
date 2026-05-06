@@ -7,6 +7,7 @@ const SEGMENT_DISPLAY = {
   roofer: "Roofing Contractor",
   plumber: "Plumber",
   hvac: "HVAC Contractor",
+  fitness: "Fitness Facility",
 };
 
 const SEGMENT_SUBJECT_DISPLAY = {
@@ -14,6 +15,7 @@ const SEGMENT_SUBJECT_DISPLAY = {
   roofer: "Roofing",
   plumber: "Plumbing",
   hvac: "HVAC",
+  fitness: "Fitness Facility",
 };
 
 const SEGMENT_LINE = {
@@ -21,6 +23,7 @@ const SEGMENT_LINE = {
   roofer: "This quote addresses the specific liability and workers' comp needs of roofing contractors.",
   plumber: "This quote covers the professional liability and equipment risks specific to plumbing operations.",
   hvac: "This quote includes pollution liability and refrigerant coverage designed for HVAC contractors.",
+  fitness: "This quote is structured for fitness facilities and studios — verify participant and professional coverages against the carrier terms attached.",
 };
 
 function escapeHtml(v) {

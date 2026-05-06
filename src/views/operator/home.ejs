@@ -156,6 +156,7 @@
           <option value="roofer">Roofer</option>
           <option value="plumber">Plumber</option>
           <option value="hvac">HVAC</option>
+          <option value="fitness">Fitness</option>
         </select>
         <span>|</span>
         <a id="link-s4" href="/operator/extraction-review">S4 queue</a> ·
@@ -366,6 +367,7 @@
             roofer: "Today at a glance — Roofer segment only (UTC day, server time)",
             plumber: "Today at a glance — Plumber segment only (UTC day, server time)",
             hvac: "Today at a glance — HVAC segment only (UTC day, server time)",
+            fitness: "Today at a glance — Fitness segment only (UTC day, server time)",
           };
           sub.textContent = labels[v] || labels.all;
         }
@@ -516,7 +518,7 @@
       (function initSegmentFromUrl() {
         const p = new URLSearchParams(window.location.search);
         const raw = (p.get("segment") || "all").toLowerCase();
-        const allowed = ["all", "bar", "roofer", "plumber", "hvac"];
+        const allowed = ["all", "bar", "roofer", "plumber", "hvac", "fitness"];
         const seg = allowed.includes(raw) ? raw : "all";
         const sel = document.getElementById("operator-segment");
         if (sel) sel.value = seg;

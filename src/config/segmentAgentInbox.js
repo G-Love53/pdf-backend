@@ -24,6 +24,11 @@ export const GMAIL_POLLER_SEGMENTS = [
     email: "quotes@hvacinsurancedirect.com",
     label: "carrier-quotes",
   },
+  {
+    segment: "fitness",
+    email: "quotes@fitnessinsurancedirect.com",
+    label: "carrier-quotes",
+  },
 ];
 
 /**

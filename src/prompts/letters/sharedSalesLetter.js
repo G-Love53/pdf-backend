@@ -23,6 +23,11 @@ const SEGMENT_VALUE_PROPS = {
 - Protection after the job is finished — completed operations built in
 - Designed for roofing crews, not desk jobs — carriers that understand your trade
 - Your mod rate matters — we find carriers that won't penalize you for being a roofer`,
+
+  fitness: `- GL tailored for gyms, studios, and fitness facilities — slips, trips, and crowded floor exposure
+- Equipment breakdown and tenant improvements when carriers include them — not a one-size BOP assumption
+- Professional and participant-injury nuances vary by carrier — we stay conservative in what we promise in the letter
+- Peak-hour traffic and seasonal membership swings — limits that match how you actually operate`,
 };
 
 function segmentKey(segment) {

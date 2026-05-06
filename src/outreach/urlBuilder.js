@@ -6,6 +6,7 @@ export const SEGMENT_DOMAINS = {
   roofer: 'https://roofingcontractorinsurancedirect.com',
   plumber: 'https://plumberinsurancedirect.com',
   hvac: 'https://hvacinsurancedirect.com',
+  fitness: 'https://fitnessinsurancedirect.com',
   electrician: 'https://electricianinsurancedirect.com',
   general_contractor: 'https://generalcontractorinsurancedirect.com',
   landscaper: 'https://landscaperinsurancedirect.com',

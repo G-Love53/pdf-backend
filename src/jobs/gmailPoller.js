@@ -156,6 +156,7 @@ function buildGmailClient(inboxEmail) {
     .replace("plumberinsurancedirect", "plumber")
     .replace("plumbinginsurancedirect", "plumber")
     .replace("hvacinsurancedirect", "hvac")
+    .replace("fitnessinsurancedirect", "fitness")
     .replace("barinsurancedirect", "bar")
     .toUpperCase();
 

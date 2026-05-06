@@ -59,6 +59,11 @@
     "engine": "svg",
     "templatePath": "CID_HomeBase/templates/SUPP_HVAC"
   },
+  "SUPP_FITNESS": {
+    "enabled": true,
+    "engine": "svg",
+    "templatePath": "CID_HomeBase/templates/SUPP_FITNESS"
+  },
   "CLIENT_SUBMISSION": {
     "enabled": true,
     "engine": "html",

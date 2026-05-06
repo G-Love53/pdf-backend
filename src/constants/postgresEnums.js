@@ -49,6 +49,7 @@ export const SegmentType = Object.freeze({
   ROOFER: "roofer",
   PLUMBER: "plumber",
   HVAC: "hvac",
+  FITNESS: "fitness",
 });
 
 /** @see CREATE TYPE packet_status */

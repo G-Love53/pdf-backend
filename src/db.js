@@ -78,7 +78,11 @@ export async function recordSubmission({
 
     const seg = (segment || "bar").toLowerCase();
     const segEnum =
-      seg === "bar" || seg === "roofer" || seg === "plumber" || seg === "hvac"
+      seg === "bar" ||
+        seg === "roofer" ||
+        seg === "plumber" ||
+        seg === "hvac" ||
+        seg === "fitness"
         ? seg
         : "bar";
 

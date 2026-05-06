@@ -27,6 +27,7 @@ function resolvePromptBuilder(segment) {
   if (seg === "roofer") return buildRooferExtractionPrompt;
   if (seg === "plumber") return buildPlumberExtractionPrompt;
   if (seg === "hvac") return buildHvacExtractionPrompt;
+  if (seg === "fitness") return buildHvacExtractionPrompt;
   return buildBarExtractionPrompt;
 }
 
