@@ -11,6 +11,7 @@ import {
   defaultPacketEmailSubject,
   sendPacketEmail,
 } from "../services/packetEmailService.js";
+import { generateLetter } from "../services/aiLetterService.js";
 import { getObjectStream } from "../services/r2Service.js";
 import { notifyBarPacketSent } from "../services/agentNotificationService.js";
 import { PacketStatus } from "../constants/postgresEnums.js";
@@ -241,6 +242,27 @@ router.post("/api/quotes/:quoteId/packet/email-preview", async (req, res) => {
       return res.status(400).json({ error: "no_approved_extraction" });
     }
     const data = buildPacketData({ quote, extraction, submission, client });
+    try {
+      data.sales_letter_text = await generateLetter(
+        submission.segment,
+        extraction.reviewed_json || {},
+        {
+          business_name: data.business_name || null,
+          contact_name: data.contact_name || null,
+          email: data.client_email || null,
+        },
+        {
+          quoteCreatedAt: quote.quote_created_at || null,
+          packetGeneratedAt: new Date().toISOString(),
+        },
+      );
+    } catch (letterErr) {
+      // Keep preview functional even if letter generation fails.
+      console.warn(
+        "[packetBuilder] email-preview letter generation fallback:",
+        letterErr?.message || letterErr,
+      );
+    }
     const { html } = buildPacketEmailHtml({
       segment: submission.segment,
       packetData: data,
@@ -439,6 +461,26 @@ router.post("/api/quotes/:quoteId/packet/resend", async (req, res) => {
           submission: loaded.submission,
           client: loaded.client,
         });
+        try {
+          packetDataForEmail.sales_letter_text = await generateLetter(
+            loaded.submission.segment,
+            loaded.extraction?.reviewed_json || {},
+            {
+              business_name: packetDataForEmail.business_name || null,
+              contact_name: packetDataForEmail.contact_name || null,
+              email: packetDataForEmail.client_email || null,
+            },
+            {
+              quoteCreatedAt: loaded.quote?.quote_created_at || null,
+              packetGeneratedAt: new Date().toISOString(),
+            },
+          );
+        } catch (letterErr) {
+          console.warn(
+            "[packetBuilder] resend letter generation fallback:",
+            letterErr?.message || letterErr,
+          );
+        }
       } catch (metaErr) {
         console.warn(
           "[packetBuilder] resend: could not load packet metadata for email:",

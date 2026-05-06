@@ -312,6 +312,7 @@ export async function buildPacket(quoteId) {
       packetGeneratedAt,
     },
   );
+  data.sales_letter_text = letterText;
 
   const salesLetterLines = letterTextToPdfLines(letterText);
   const assets = getSegmentAssets(submission.segment);

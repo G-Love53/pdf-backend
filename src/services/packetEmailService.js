@@ -39,6 +39,48 @@ function formatDate(v) {
   return d.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
 }
 
+function htmlToText(html) {
+  return String(html || "")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<\/(p|div|tr|h[1-6]|li)>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function formatLetterHtml(letterText) {
+  const text = String(letterText || "").trim();
+  if (!text) return "";
+  return text
+    .split(/\n\s*\n/g)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map(
+      (p) =>
+        `<p style="margin:0 0 14px 0; font-size:15px; line-height:1.65; color:#111827;">${escapeHtml(
+          p,
+        )}</p>`,
+    )
+    .join("");
+}
+
+function formatLetterText(letterText) {
+  return String(letterText || "")
+    .split(/\n\s*\n/g)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .join("\n\n");
+}
+
 /**
  * Same HTML used when sending the client packet email (unless bodyOverride replaces it).
  * @param {object} opts
@@ -83,14 +125,20 @@ export function buildPacketEmailHtml({ segment, packetData, bodyOverride }) {
   const questionSubject = `Question re: Quote ${submissionId}`;
   const questionBody = "My question about my quote: ";
   const questionMailto = `mailto:${encodeURIComponent(questionsTo)}?subject=${encodeURIComponent(questionSubject)}&body=${encodeURIComponent(questionBody)}`;
+  const letterHtml = formatLetterHtml(packetData.sales_letter_text);
 
   const html = `
-<div style="font-family: Arial, sans-serif; color:#111827; line-height:1.45;">
-  <p>Hi ${escapeHtml(packetData.contact_name || packetData.client_name || "there")},</p>
-  <p>Thank you for the opportunity to earn your business. The full carrier quote is attached for your review.</p>
-  <p style="margin:0 0 8px 0;">${escapeHtml(line)}</p>
+<div style="font-family: Arial, Helvetica, sans-serif; color:#111827; line-height:1.5; max-width:760px;">
+  <p style="margin:0 0 12px 0; font-size:15px;">Hi ${escapeHtml(packetData.contact_name || packetData.client_name || "there")},</p>
+  ${
+    letterHtml ||
+    `<p style="margin:0 0 14px 0; font-size:15px; line-height:1.65; color:#111827;">
+      Thank you for the opportunity to earn your business. Please review your quote details below and attached packet.
+    </p>`
+  }
+  <p style="margin:0 0 8px 0; font-size:14px; color:#374151;">${escapeHtml(line)}</p>
 
-  <table cellpadding="8" cellspacing="0" border="1" style="border-collapse:collapse; width:100%; max-width:720px; border-color:#e5e7eb; font-size:14px; margin: 12px 0 20px 0;">
+  <table cellpadding="10" cellspacing="0" border="1" style="border-collapse:collapse; width:100%; max-width:720px; border-color:#e5e7eb; font-size:14px; margin: 18px 0 20px 0;">
     <tr style="background:#f9fafb;"><th align="left">Business Name</th><td>${escapeHtml(packetData.client_name || "—")}</td></tr>
     <tr><th align="left">Coverage Type</th><td>${escapeHtml(packetData.policy_type || "—")}</td></tr>
     <tr style="background:#f9fafb;"><th align="left">Carrier Name</th><td>${escapeHtml(packetData.carrier_name || "—")}</td></tr>
@@ -100,7 +148,7 @@ export function buildPacketEmailHtml({ segment, packetData, bodyOverride }) {
     <tr style="background:#f9fafb;"><th align="left">Submission ID</th><td>${escapeHtml(submissionId)}</td></tr>
   </table>
 
-  <div style="margin: 16px 0 8px 0;">
+  <div style="margin: 18px 0 8px 0;">
     ${
       bindNowUrl
         ? `<a href="${escapeHtml(bindNowUrl)}" style="display:inline-block; background:#111827; color:#ffffff; text-decoration:none; padding:12px 18px; border-radius:8px; font-weight:700;">Issue Policy</a>`
@@ -111,10 +159,7 @@ export function buildPacketEmailHtml({ segment, packetData, bodyOverride }) {
     After you click, you&rsquo;ll see a short confirmation and you&rsquo;ll get an email from our e-sign partner with a link to sign the bind confirmation (separate from this message).
   </p>
   <div style="margin: 10px 0;">
-    <a href="${escapeHtml(questionMailto)}" style="display:inline-block; background:#ffffff; color:#111827; text-decoration:none; padding:10px 14px; border-radius:8px; border:1px solid #d1d5db; font-weight:600;">I Have Questions</a>
-  </div>
-  <div style="margin: 8px 0 16px 0;">
-    <a href="#" style="font-size:13px; color:#6b7280; text-decoration:underline;">Not Right Now</a>
+    <a href="${escapeHtml(questionMailto)}" style="display:inline-block; background:#ffffff; color:#111827; text-decoration:none; padding:10px 14px; border-radius:8px; border:1px solid #d1d5db; font-weight:600;">I Have a Question</a>
   </div>
 
   <p style="font-size:13px; color:#374151;">
@@ -127,6 +172,69 @@ export function buildPacketEmailHtml({ segment, packetData, bodyOverride }) {
   `;
 
   return { html };
+}
+
+export function buildPacketEmailText({ segment, packetData, bodyOverride }) {
+  if (bodyOverride && String(bodyOverride).trim()) {
+    return { text: htmlToText(String(bodyOverride)) };
+  }
+
+  const seg = String(segment || "bar").toLowerCase();
+  const line = SEGMENT_LINE[seg] || "";
+  const premium = packetData.annual_premium ?? packetData.premium ?? null;
+  const glSummary =
+    packetData.gl_per_occurrence || packetData.gl_aggregate
+      ? `${packetData.gl_per_occurrence ? `$${Number(packetData.gl_per_occurrence).toLocaleString()} per occurrence` : "—"}${packetData.gl_per_occurrence && packetData.gl_aggregate ? " / " : ""}${packetData.gl_aggregate ? `$${Number(packetData.gl_aggregate).toLocaleString()} aggregate` : ""}`
+      : "—";
+  const submissionId = packetData.submission_public_id || "—";
+  const apiBase =
+    process.env.PUBLIC_API_BASE_URL ||
+    process.env.CID_API_BASE_URL ||
+    "https://cid-pdf-api.onrender.com";
+  const bindNowUrl =
+    packetData.quote_id
+      ? (() => {
+          const base = `${apiBase.replace(/\/$/, "")}/api/quotes/${encodeURIComponent(String(packetData.quote_id))}/bind/initiate`;
+          const signed = createSignedBindLinkParams({
+            quoteId: String(packetData.quote_id),
+            submissionPublicId: String(packetData.submission_public_id || ""),
+          });
+          if (!signed) return `${base}?source=email`;
+          return `${base}?source=email&t=${encodeURIComponent(signed.t)}&exp=${encodeURIComponent(signed.exp)}`;
+        })()
+      : null;
+  const questionsTo =
+    getSegmentAgentInboxEmail(seg) || `quotes@${seg}insurancedirect.com`;
+  const questionSubject = `Question re: Quote ${submissionId}`;
+  const questionBody = "My question about my quote: ";
+  const questionMailto = `mailto:${encodeURIComponent(questionsTo)}?subject=${encodeURIComponent(questionSubject)}&body=${encodeURIComponent(questionBody)}`;
+  const letterText = formatLetterText(packetData.sales_letter_text);
+
+  const lines = [
+    `Hi ${packetData.contact_name || packetData.client_name || "there"},`,
+    "",
+    letterText ||
+      "Thank you for the opportunity to earn your business. Please review your quote details below and attached packet.",
+    "",
+    line,
+    "",
+    "Quote Summary",
+    `- Business Name: ${packetData.client_name || "—"}`,
+    `- Coverage Type: ${packetData.policy_type || "—"}`,
+    `- Carrier Name: ${packetData.carrier_name || "—"}`,
+    `- General Liability Limits: ${glSummary}`,
+    `- Annual Premium: ${formatMoney(premium)}`,
+    `- Effective Date: ${formatDate(packetData.effective_date)}`,
+    `- Submission ID: ${submissionId}`,
+    "",
+    `Issue Policy: ${bindNowUrl || "Unavailable"}`,
+    `I Have a Question: ${questionMailto}`,
+    "",
+    "Premium is billed directly by your carrier per the payment schedule included with your policy documents.",
+    "No payment is collected by Commercial Insurance Direct.",
+  ];
+
+  return { text: lines.join("\n").replace(/\n{3,}/g, "\n\n").trim() };
 }
 
 /** Default subject line when operator does not override (matches finalize). */
@@ -149,11 +257,17 @@ export async function sendPacketEmail({
     packetData,
     bodyOverride,
   });
+  const { text } = buildPacketEmailText({
+    segment,
+    packetData,
+    bodyOverride,
+  });
 
   await sendWithGmail({
     to: [to, ...cc].filter(Boolean),
     subject,
     html,
+    text,
     segment,
     formData: null,
     attachments: attachmentBuffer
