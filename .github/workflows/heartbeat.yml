@@ -17,7 +17,8 @@ jobs:
     steps:
       - name: Poke the Robot
         env:
-          HEARTBEAT_URL: https://cid-pdf-api.onrender.com/check-quotes
+          # CID-PDF-API has no /check-quotes; /healthz is the liveness probe (see src/server.js).
+          HEARTBEAT_URL: https://cid-pdf-api.onrender.com/healthz
         run: |
           set -euo pipefail
 
@@ -26,7 +27,7 @@ jobs:
           # - fail on HTTP 4xx/5xx
           # - cap total request time
           # - retry with backoff before failing the workflow
-          curl --request POST "${HEARTBEAT_URL}" \
+          curl --request GET "${HEARTBEAT_URL}" \
             --fail \
             --silent \
             --show-error \
