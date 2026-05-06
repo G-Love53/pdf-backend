@@ -17,6 +17,36 @@
 
 ---
 
+## Pipeline database (`cid-postgres`) — where **`DATABASE_URL`** points
+
+**Do not guess between Postgres instances.** One rule:
+
+- **Submissions, quotes, `segment_type`, policies, bind, operator queues, Connect bridge tables on the API** — all live in the database whose URL is **`DATABASE_URL`** on the **CID-PDF-API** Render service (commonly a **Render Postgres** instance such as `cid_postgres`). This is **`cid-postgres`** in internal language.
+
+**CID Connect / Famous Supabase** is a **different** product surface: browser auth, `app_settings`, and other SPA concerns. **`migrations/*.sql` in this repo apply to `DATABASE_URL` (cid-postgres), not to Connect’s Supabase project**, unless you have intentionally pointed `DATABASE_URL` at that same Supabase Postgres (unusual — verify in Render env before running anything).
+
+### Where to run `psql` / SQL migrations (RSS)
+
+1. **Confirm target:** Render → **CID-PDF-API** → **Environment** → copy **`DATABASE_URL`**. Note host and database name — that is the only DB for pipeline migrations.
+2. **Run SQL** using any of:
+   - **Render** → **Postgres** (the instance backing that URL) → **Connect** / **psql** / web SQL if your plan includes it; or
+   - **Local:** `psql "$DATABASE_URL" -f migrations/NNN_….sql` (install `psql` via Homebrew `libpq`, Postgres.app, etc.); or
+   - **GUI:** TablePlus / Postico / DBeaver using the **same** URL Render shows as **External Database URL** (include `sslmode=require` when required).
+3. **Never** run pipeline migrations in the **Famous** or **Connect-only** Supabase SQL editor unless that project’s URL **is** your `DATABASE_URL` (verify first).
+
+### New segment example
+
+Adding a segment (e.g. `fitness`) requires an **`ALTER TYPE segment_type`** (and related function updates) **on cid-postgres** — see `migrations/011_segment_fitness.sql`. After deploy, confirm with:
+
+```sql
+SELECT enumlabel FROM pg_enum e
+JOIN pg_type t ON t.oid = e.enumtypid
+WHERE t.typname = 'segment_type'
+ORDER BY enumsortorder;
+```
+
+---
+
 ## Segment backend (Bar, Roofer, Plumber, HVAC, …)
 
 ### Build and run
@@ -464,3 +494,4 @@ Details and division of labor (Famous vs `pdf-backend`): [CID_CONNECT.md](./CID_
 | 2026-04-22 | Added S6 state badges + Docs Reconcile manual intake workflow; Connect-first policy delivery copy; policy indexing migrations (`009`, `010`) and endorsement priority behavior. |
 | 2026-04-23 | Added Connect launch checks: CORS preflight ordering, identity mapping behavior (`X-User-Id` vs `famous_user_id`), and all-segment policy/docs + chat validation checklist. |
 | 2026-05-06 | Postmaster Tools checklist for campaign sending domains; GitHub Actions heartbeat notes (`GET /healthz` on CID-PDF-API vs legacy `/check-quotes`); S5 client email post-deploy checks (body letter, plaintext, subject, segment sign-off). |
+| 2026-05-07 | Pipeline DB vs Connect/Famous Supabase: canonical **`DATABASE_URL`** (cid-postgres), where to run **`psql`** / migrations, segment enum verification query. |
