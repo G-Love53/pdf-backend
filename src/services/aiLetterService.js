@@ -9,14 +9,26 @@ const LETTER_PROMPTS = {
   hvac: buildHvacPrompt,
 };
 
+const SEGMENT_BRAND = {
+  bar: "Bar Insurance Direct",
+  roofer: "Roofing Insurance Direct",
+  plumber: "Plumber Insurance Direct",
+  hvac: "HVAC Insurance Direct",
+};
+
 function segmentKey(segment) {
   return String(segment || "bar").trim().toLowerCase();
 }
 
-function buildFallbackLetter(_segment, extractionData, clientData, _letterContext = {}) {
+function brandForSegment(segment) {
+  return SEGMENT_BRAND[segmentKey(segment)] || "Commercial Insurance Direct";
+}
+
+function buildFallbackLetter(segment, extractionData, clientData, _letterContext = {}) {
   const policyType = extractionData?.policy_type || "insurance";
   const carrierName = extractionData?.carrier_name || "a carrier";
   const annualPremium = extractionData?.annual_premium ?? "";
+  const brand = brandForSegment(segment);
 
   const perOcc = extractionData?.gl_per_occurrence || "N/A";
   const agg = extractionData?.gl_aggregate || "N/A";
@@ -26,7 +38,7 @@ function buildFallbackLetter(_segment, extractionData, clientData, _letterContex
 
   return `Dear ${dearName},
 
-Thank you for requesting a commercial insurance quote through Commercial Insurance Direct.
+Thank you for requesting a commercial insurance quote through ${brand}.
 
 We have a ${policyType} quote ready for you from ${carrierName}:
 
@@ -36,7 +48,7 @@ Aggregate Limit: ${agg}
 
 Your full quote packet is attached. If you'd like to move forward, simply reply to this email.
 
-Thank you for choosing Commercial Insurance Direct.`;
+Thank you for choosing ${brand}.`;
 }
 
 function normalizeLetterText(text) {
@@ -49,9 +61,10 @@ function normalizeLetterText(text) {
  * One thank-you + one sign-off. Fixes duplicate "Commercial Insurance Direct" and
  * double thank-yous (e.g. considering + our append).
  */
-function normalizeLetterClosing(text) {
+function normalizeLetterClosing(text, segment) {
   let t = String(text || "").trim();
   if (!t) return t;
+  const brand = brandForSegment(segment);
 
   while (/Commercial Insurance Direct\.\s*Commercial Insurance Direct\.?/i.test(t)) {
     t = t.replace(/Commercial Insurance Direct\.\s*Commercial Insurance Direct\.?/gi, "Commercial Insurance Direct.");
@@ -63,12 +76,19 @@ function normalizeLetterClosing(text) {
     "Thank you for considering Commercial Insurance Direct.",
   );
 
-  const hasThank =
-    /thank you for choosing commercial insurance direct/i.test(t) ||
-    /thank you for considering commercial insurance direct/i.test(t);
+  t = t.replace(
+    /\bThank you for choosing Commercial Insurance Direct\./gi,
+    `Thank you for choosing ${brand}.`,
+  );
+  t = t.replace(
+    /\bThank you for considering Commercial Insurance Direct\./gi,
+    `Thank you for considering ${brand}.`,
+  );
+
+  const hasThank = /\bThank you for (choosing|considering)\b/i.test(t);
 
   if (!hasThank) {
-    return `${t}\n\nThank you for choosing Commercial Insurance Direct.`;
+    return `${t}\n\nThank you for choosing ${brand}.`;
   }
 
   return t;
@@ -94,9 +114,31 @@ function rewriteSalutation(letterText, businessName) {
     }
   }
   if (!replaced) {
-    return `${target}\n\n${String(letterText || "").trim()}`;
+    const body = String(letterText || "").trim();
+    return `${target}\n\n${body}`;
   }
-  return lines.join("\n");
+  // Remove an immediate duplicate name line after salutation (e.g. "Dear X,\n\nX,")
+  const out = [];
+  let salutationSeen = false;
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!salutationSeen && /^dear\b.*,/i.test(trimmed)) {
+      salutationSeen = true;
+      out.push(line);
+      continue;
+    }
+    if (
+      salutationSeen &&
+      (trimmed === bn || trimmed === `${bn},`) &&
+      out.length > 0 &&
+      out[out.length - 1].trim() === ""
+    ) {
+      continue;
+    }
+    out.push(line);
+  }
+  return out.join("\n");
 }
 
 function stringHasCoverage(claimText, extraction) {
@@ -243,8 +285,8 @@ async function callGeminiFallback(systemPrompt, userPrompt) {
   return fallbackText;
 }
 
-function finalizeLetterBody(text, extraction) {
-  return normalizeLetterClosing(applyCoverageGuardrails(text, extraction));
+function finalizeLetterBody(text, extraction, segment) {
+  return normalizeLetterClosing(applyCoverageGuardrails(text, extraction), segment);
 }
 
 export async function generateLetter(segment, extractionData, clientData, letterContext = {}) {
@@ -265,6 +307,7 @@ export async function generateLetter(segment, extractionData, clientData, letter
     return finalizeLetterBody(
       rewriteSalutation(buildFallbackLetter(seg, extraction, client, letterContext), salutationName),
       extraction,
+      seg,
     );
   }
 
@@ -276,6 +319,7 @@ export async function generateLetter(segment, extractionData, clientData, letter
     return finalizeLetterBody(
       rewriteSalutation(normalizeLetterText(t), salutationName),
       extraction,
+      seg,
     );
   } catch (err) {
     console.warn("[aiLetterService] Claude failed; falling back:", err?.message || err);
@@ -287,6 +331,7 @@ export async function generateLetter(segment, extractionData, clientData, letter
     return finalizeLetterBody(
       rewriteSalutation(normalizeLetterText(t), salutationName),
       extraction,
+      seg,
     );
   } catch (err) {
     const isQuota =
@@ -306,6 +351,7 @@ export async function generateLetter(segment, extractionData, clientData, letter
   return finalizeLetterBody(
     rewriteSalutation(buildFallbackLetter(seg, extraction, client, letterContext), salutationName),
     extraction,
+    seg,
   );
 }
 

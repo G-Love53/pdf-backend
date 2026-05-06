@@ -9,6 +9,13 @@ const SEGMENT_DISPLAY = {
   hvac: "HVAC Contractor",
 };
 
+const SEGMENT_SUBJECT_DISPLAY = {
+  bar: "Bar & Restaurant",
+  roofer: "Roofing",
+  plumber: "Plumbing",
+  hvac: "HVAC",
+};
+
 const SEGMENT_LINE = {
   bar: "This quote includes coverage tailored for bar and restaurant operations, including liquor liability where indicated.",
   roofer: "This quote addresses the specific liability and workers' comp needs of roofing contractors.",
@@ -239,7 +246,9 @@ export function buildPacketEmailText({ segment, packetData, bodyOverride }) {
 
 /** Default subject line when operator does not override (matches finalize). */
 export function defaultPacketEmailSubject(packetData) {
-  return `Your ${packetData.policy_type || ""} Insurance Quote — ${packetData.carrier_name || ""}`;
+  const seg = String(packetData?.segment || "").toLowerCase();
+  const label = SEGMENT_SUBJECT_DISPLAY[seg] || "Commercial";
+  return `Your ${label} Insurance Quote is Ready`;
 }
 
 export async function sendPacketEmail({
