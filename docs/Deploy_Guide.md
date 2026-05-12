@@ -201,14 +201,14 @@ Use **Secret Files** in Render for private keys if you prefer file-based config.
 
 ### Canonical JSON body (cid-pdf-api `POST /submit-quote`)
 
-Intake sites that target **CID-PDF-API** (not the legacy Bar-only host) should send:
+Intake sites should send:
 
 - **`bundle_id`** — e.g. `HVAC_INTAKE`, `PLUMBER_INTAKE`, `ROOFER_INTAKE` (see `pdf-backend` `config/bundles.json`).
 - **`segment`** — lowercase enum aligned with Postgres / poller: `hvac`, `plumber`, `roofer`, `bar` (also set as hidden `segment` on the form for snapshots).
 - **`formData`** — flat object from the form (include hidden `traffic_source`, `segment`, etc.).
 - **`email.to`** — segment quotes inbox, e.g. `quotes@hvacinsurancedirect.com`.
 
-Avoid relying on legacy **`segments: ["RoofingForm", …]`** without **`bundle_id`** — use **`ROOFER_INTAKE`** so **`SUPP_ROOFER`** + ACORDs always render. **Bar** Netlify may still post to the **segment** Render host (`bar-pdf-backend`); Plumber/HVAC/Roofer use **`cid-pdf-api`**.
+Avoid relying on legacy **`segments: ["RoofingForm", …]`** without **`bundle_id`** — use **`ROOFER_INTAKE`** so **`SUPP_ROOFER`** + ACORDs always render. **Bar** Netlify (and Plumber/HVAC/Roofer/Fitness) posts to **`cid-pdf-api`** **`POST /submit-quote`** with **`bundle_id`** + **`segment`**.
 
 ---
 
