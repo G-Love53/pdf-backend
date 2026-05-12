@@ -3,13 +3,66 @@
  * Requires connectAuthMiddleware (X-User-Email, optional X-User-Id).
  */
 import express from "express";
+import multer from "multer";
 import { getPool } from "../db.js";
 import { fulfillConnectCoiRequest } from "../services/connectCoiFulfillmentService.js";
+import { uploadBuffer, deleteObject } from "../services/r2Service.js";
 import { generateConnectChatReply } from "../services/connectChatService.js";
 import { buildEnrichedChatInput } from "../services/connectChatEnrichment.js";
 import { searchCarrierKnowledgeRows } from "../lib/carrierKnowledgeSearch.js";
+import { mintRenewalIntakeToken, segmentIntakeBaseUrl } from "../lib/renewalIntakeToken.js";
 
 const router = express.Router();
+
+const COI_REQUIREMENTS_MAX_BYTES = 10 * 1024 * 1024;
+
+const coiRequirementsUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: COI_REQUIREMENTS_MAX_BYTES },
+});
+
+/** JSON stays on express.json(); multipart fields + optional file land here. */
+function coiRequestBodyParser(req, res, next) {
+  const ct = String(req.headers["content-type"] || "");
+  if (!ct.includes("multipart/form-data")) {
+    return next();
+  }
+  return coiRequirementsUpload.single("requirements")(req, res, (err) => {
+    if (err) {
+      if (err.code === "LIMIT_FILE_SIZE") {
+        return res.status(413).json({ ok: false, error: "Requirements file too large (max 10MB)" });
+      }
+      return res.status(400).json({ ok: false, error: err.message || "Upload parse error" });
+    }
+    next();
+  });
+}
+
+function sanitizeCoiRequirementsFilename(name) {
+  const base = String(name || "requirements").split(/[/\\]/).pop() || "requirements";
+  const cleaned = base.replace(/[^\w.\-()+ ]/g, "_").slice(0, 200);
+  return cleaned || "requirements";
+}
+
+function sniffRequirementsMime(buffer) {
+  if (!buffer || buffer.length < 4) return null;
+  if (buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46) {
+    return "application/pdf";
+  }
+  if (
+    buffer.length >= 8 &&
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47
+  ) {
+    return "image/png";
+  }
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return "image/jpeg";
+  }
+  return null;
+}
 
 function asyncHandler(fn) {
   return (req, res, next) => {
@@ -38,6 +91,7 @@ function mapPolicy(row, supabaseUserId) {
   return {
     id: row.id,
     user_id: supabaseUserId || null,
+    quote_id: row.quote_id != null ? String(row.quote_id) : null,
     policy_number: row.policy_number,
     segment: row.segment,
     business_name: row.business_name || null,
@@ -313,6 +367,7 @@ function generateClaimNumber() {
 
 router.post(
   "/coi/request",
+  coiRequestBodyParser,
   asyncHandler(async (req, res) => {
     const pool = requirePool(res);
     if (!pool) return;
@@ -333,6 +388,34 @@ router.post(
     );
     if (!pol.rows.length) {
       return res.status(404).json({ ok: false, error: "Active policy not found" });
+    }
+
+    const file = req.file;
+    let requirementsMime = null;
+    if (file) {
+      if (!file.buffer?.length) {
+        return res.status(400).json({
+          ok: false,
+          error: "Requirements file is empty",
+        });
+      }
+      const sniffed = sniffRequirementsMime(file.buffer);
+      if (!sniffed) {
+        return res.status(400).json({
+          ok: false,
+          error: "Requirements file must be PDF, PNG, or JPEG",
+        });
+      }
+      const declared = String(file.mimetype || "").toLowerCase();
+      const normDeclared = declared === "image/jpg" ? "image/jpeg" : declared;
+      const allowedDeclared = new Set(["application/pdf", "image/png", "image/jpeg"]);
+      if (allowedDeclared.has(normDeclared) && normDeclared !== sniffed) {
+        return res.status(400).json({
+          ok: false,
+          error: "File content does not match declared type",
+        });
+      }
+      requirementsMime = sniffed;
     }
 
     const requestNumber = generateCoiNumber();
@@ -365,14 +448,85 @@ router.post(
       ],
     );
 
-    const created = ins.rows[0];
+    let created = ins.rows[0];
+    const segment = String(pol.rows[0].segment || "bar").toLowerCase();
+    const safeSeg = segment.replace(/[^a-z0-9_-]/gi, "_");
+
+    if (requirementsMime && file?.buffer) {
+      const mime = requirementsMime;
+      const displayName = sanitizeCoiRequirementsFilename(file.originalname || file.filename || "requirements");
+      const ext =
+        mime === "application/pdf"
+          ? ".pdf"
+          : mime === "image/png"
+            ? ".png"
+            : ".jpg";
+      const stamp = Date.now().toString(36);
+      const r2Key = `coi/${safeSeg}/${requestNumber}/requirements-${stamp}${ext}`;
+
+      try {
+        await uploadBuffer(r2Key, file.buffer, mime, {
+          segment: safeSeg,
+          type: "coi_requirements",
+          request_number: requestNumber,
+        });
+      } catch (e) {
+        console.error("[ConnectAPI] COI requirements R2 upload failed:", e?.message || e);
+        await pool.query(
+          `UPDATE coi_requests SET status = 'failed', updated_at = NOW(),
+            backend_response = COALESCE(backend_response, '{}'::jsonb) || $2::jsonb
+           WHERE id = $1::uuid`,
+          [
+            created.id,
+            JSON.stringify({
+              error: "requirements_upload_failed",
+              detail: e.message || String(e),
+            }),
+          ],
+        );
+        return res.status(502).json({
+          ok: false,
+          error: "Could not store requirements file. Please try again.",
+        });
+      }
+
+      try {
+        const upd = await pool.query(
+          `UPDATE coi_requests
+           SET uploaded_file_path = $2, uploaded_file_name = $3, updated_at = NOW()
+           WHERE id = $1::uuid
+           RETURNING *`,
+          [created.id, r2Key, displayName],
+        );
+        created = upd.rows[0];
+      } catch (e) {
+        console.error("[ConnectAPI] COI requirements DB update failed:", e?.message || e);
+        await deleteObject(r2Key);
+        await pool.query(
+          `UPDATE coi_requests SET status = 'failed', updated_at = NOW(),
+            backend_response = COALESCE(backend_response, '{}'::jsonb) || $2::jsonb
+           WHERE id = $1::uuid`,
+          [
+            created.id,
+            JSON.stringify({
+              error: "requirements_db_update_failed",
+              detail: e.message || String(e),
+            }),
+          ],
+        );
+        return res.status(500).json({
+          ok: false,
+          error: "Could not finalize COI request. Please try again.",
+        });
+      }
+    }
+
+    res.status(201).json({ ok: true, data: created });
     setImmediate(() => {
       fulfillConnectCoiRequest(pool, created.id).catch((err) => {
         console.error("[ConnectAPI] COI auto-fulfill error:", err?.message || err);
       });
     });
-
-    res.status(201).json({ ok: true, data: created });
   }),
 );
 
@@ -628,6 +782,68 @@ router.post(
         error: "Coverage assistant is temporarily unavailable.",
       });
     }
+  }),
+);
+
+router.post(
+  "/renewal-intake-token",
+  asyncHandler(async (req, res) => {
+    const pool = requirePool(res);
+    if (!pool) return;
+    const { client_id } = req.connectClient;
+    const policyId = req.body?.policyId;
+    if (!policyId) {
+      return res.status(400).json({ ok: false, error: "policyId is required" });
+    }
+
+    let row;
+    try {
+      const q = await pool.query(
+        `SELECT p.id, p.segment::text AS segment
+         FROM policies p
+         LEFT JOIN submissions s ON s.submission_id = p.submission_id
+         WHERE p.id = $1::uuid AND COALESCE(p.client_id, s.client_id) = $2::uuid`,
+        [policyId, client_id],
+      );
+      if (!q.rows.length) {
+        return res.status(404).json({ ok: false, error: "Policy not found" });
+      }
+      row = q.rows[0];
+    } catch (e) {
+      console.error("[ConnectAPI] renewal-intake-token lookup", e?.message || e);
+      return res.status(500).json({ ok: false, error: "lookup_failed" });
+    }
+
+    let token;
+    let expiresInSec;
+    try {
+      const minted = mintRenewalIntakeToken({
+        policyId: row.id,
+        clientId: client_id,
+        segment: row.segment,
+      });
+      token = minted.token;
+      expiresInSec = minted.expiresInSec;
+    } catch (e) {
+      console.error("[ConnectAPI] renewal-intake-token mint", e?.message || e);
+      return res.status(503).json({
+        ok: false,
+        error: "renewal_intake_not_configured",
+        detail: String(e.message || e),
+      });
+    }
+
+    const base = segmentIntakeBaseUrl(row.segment);
+    const u = new URL(base.endsWith("/") ? base : `${base}/`);
+    u.searchParams.set("renewal_token", token);
+
+    res.json({
+      ok: true,
+      data: {
+        redirectUrl: u.toString(),
+        expiresInSec,
+      },
+    });
   }),
 );
 

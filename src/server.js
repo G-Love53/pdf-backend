@@ -16,6 +16,7 @@ import operatorRoutes from "./routes/operatorRoutes.js";
 import webhooksRouter from "./routes/webhooks.js";
 import { connectAuthMiddleware } from "./middleware/connectAuth.js";
 import connectApiRouter from "./routes/connectApi.js";
+import { renewalPrefillHandler } from "./routes/renewalIntakePublic.js";
 // Note: Ensure your enricher import matches the file name in your 'src' folder
 // import enrichFormData from '../mapping/data-enricher.js'; 
 
@@ -102,6 +103,9 @@ APP.use((req, res, next) => {
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
+
+// Public intake helpers (HMAC token in query; no Connect session)
+APP.get("/api/intake/renewal-prefill", renewalPrefillHandler);
 
 // CID Connect API bridge (Phase 1: X-User-Email + optional X-User-Id)
 APP.use("/api/connect", connectAuthMiddleware, connectApiRouter);
