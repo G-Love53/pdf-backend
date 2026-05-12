@@ -107,6 +107,11 @@ APP.use((req, res, next) => {
 // Public intake helpers (HMAC token in query; no Connect session)
 APP.get("/api/intake/renewal-prefill", renewalPrefillHandler);
 
+APP.use(
+  "/static",
+  express.static(path.join(process.cwd(), "public"), { maxAge: 3600, etag: true }),
+);
+
 // CID Connect API bridge (Phase 1: X-User-Email + optional X-User-Id)
 APP.use("/api/connect", connectAuthMiddleware, connectApiRouter);
 
