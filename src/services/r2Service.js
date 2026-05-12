@@ -1,5 +1,5 @@
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 const BUCKET = process.env.R2_BUCKET_NAME;
 const ENDPOINT = process.env.R2_ENDPOINT;
@@ -97,6 +97,23 @@ export async function uploadBuffer(storagePath, buffer, contentType = "applicati
   });
   await s3.send(cmd);
   return storagePath;
+}
+
+/** Best-effort remove object (e.g. rollback after failed DB update). */
+export async function deleteObject(storagePath) {
+  if (!BUCKET || !ENDPOINT || !storagePath) return;
+  const s3 = getClient();
+  const key = String(storagePath).replace(/^\/+/, "");
+  try {
+    await s3.send(
+      new DeleteObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+      }),
+    );
+  } catch (e) {
+    console.warn("[r2Service] deleteObject failed:", key, e?.message || e);
+  }
 }
 
 
