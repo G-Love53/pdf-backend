@@ -9,7 +9,11 @@ export function getRenewalIntakeTokenTtlSec() {
 }
 
 export function getRenewalIntakeTokenSecret() {
-  return String(process.env.RENEWAL_INTAKE_TOKEN_SECRET || process.env.CONNECT_RENEWAL_TOKEN_SECRET || "").trim();
+  const raw = String(process.env.RENEWAL_INTAKE_TOKEN_SECRET || process.env.CONNECT_RENEWAL_TOKEN_SECRET || "")
+    .trim()
+    .replace(/^\uFEFF/, "")
+    .replace(/^["']|["']$/g, "");
+  return raw;
 }
 
 /** Public segment intake roots (Netlify); renewal_token query is appended by mint. */
@@ -18,7 +22,7 @@ export function segmentIntakeBaseUrl(segment) {
     bar: "https://www.barinsurancedirect.com/",
     plumber: "https://www.plumberinsurancedirect.com/",
     roofer: "https://roofingcontractorinsurancedirect.com/",
-    hvac: "https://www.hvacinsurancedirect.com/",
+    hvac: "https://hvacinsurancedirect.com/",
     fitness: "https://www.fitnessinsurancedirect.com/",
   };
   const k = String(segment || "bar").toLowerCase();
