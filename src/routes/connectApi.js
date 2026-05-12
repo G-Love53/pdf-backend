@@ -4,6 +4,7 @@
  */
 import express from "express";
 import { getPool } from "../db.js";
+import { fulfillConnectCoiRequest } from "../services/connectCoiFulfillmentService.js";
 import { generateConnectChatReply } from "../services/connectChatService.js";
 import { buildEnrichedChatInput } from "../services/connectChatEnrichment.js";
 import { searchCarrierKnowledgeRows } from "../lib/carrierKnowledgeSearch.js";
@@ -364,7 +365,14 @@ router.post(
       ],
     );
 
-    res.status(201).json({ ok: true, data: ins.rows[0] });
+    const created = ins.rows[0];
+    setImmediate(() => {
+      fulfillConnectCoiRequest(pool, created.id).catch((err) => {
+        console.error("[ConnectAPI] COI auto-fulfill error:", err?.message || err);
+      });
+    });
+
+    res.status(201).json({ ok: true, data: created });
   }),
 );
 
