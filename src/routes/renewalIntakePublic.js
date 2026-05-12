@@ -3,15 +3,23 @@
  * after verifying HMAC renewal_token. No Connect session required.
  */
 import { getPool } from "../db.js";
-import { verifyRenewalIntakeToken } from "../lib/renewalIntakeToken.js";
+import { verifyRenewalIntakeTokenResult, normalizeRenewalToken } from "../lib/renewalIntakeToken.js";
 
 export async function renewalPrefillHandler(req, res) {
   res.setHeader("Cache-Control", "no-store");
-  const token = String(req.query.renewal_token || req.query.token || "").trim();
-  const claims = verifyRenewalIntakeToken(token);
-  if (!claims) {
-    return res.status(401).json({ ok: false, error: "invalid_or_expired_token" });
+  const raw = req.query.renewal_token ?? req.query.token;
+  const token = normalizeRenewalToken(raw);
+  const v = verifyRenewalIntakeTokenResult(token);
+  if (!v.ok) {
+    if (v.reason === "missing_secret") {
+      return res.status(503).json({ ok: false, error: "renewal_intake_not_configured" });
+    }
+    if (v.reason === "expired") {
+      return res.status(401).json({ ok: false, error: "renewal_token_expired" });
+    }
+    return res.status(401).json({ ok: false, error: "invalid_or_expired_token", reason: v.reason });
   }
+  const claims = v.claims;
 
   const pool = getPool();
   if (!pool) {

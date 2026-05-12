@@ -58,7 +58,8 @@
 
   function run() {
     var params = new URLSearchParams(window.location.search);
-    var token = params.get("renewal_token");
+    var raw = params.get("renewal_token");
+    var token = raw ? String(raw).trim().replace(/\s+/g, "") : "";
     if (!token) return Promise.resolve();
 
     var url =
@@ -74,7 +75,7 @@
       })
       .then(function (body) {
         if (!body.ok || !body.data) {
-          console.warn("[CID renewal prefill]", body.error || "bad response");
+          console.warn("[CID renewal prefill]", body.error || "bad response", body.reason || "");
           return;
         }
 
