@@ -31,6 +31,33 @@ const BUCKET = process.env.R2_BUCKET_NAME;
 
 const SEGMENTS = GMAIL_POLLER_SEGMENTS;
 
+/** Render env key for this inbox (must match `buildGmailClient`). */
+function gmailRefreshTokenEnvKey(inboxEmail) {
+  const segKey = inboxEmail
+    .split("@")[1]
+    .split(".")[0]
+    .replace("roofingcontractorinsurancedirect", "roofer")
+    .replace("plumberinsurancedirect", "plumber")
+    .replace("plumbinginsurancedirect", "plumber")
+    .replace("hvacinsurancedirect", "hvac")
+    .replace("fitnessinsurancedirect", "fitness")
+    .replace("barinsurancedirect", "bar")
+    .toUpperCase();
+  return `GMAIL_REFRESH_TOKEN_${segKey}`;
+}
+
+/** OAuth/config failures for one inbox must not fail other segments or spam extraction queues. */
+function isGmailOAuthConfigError(err) {
+  const msg = String(err?.message || "").toLowerCase();
+  const dataErr = String(err?.response?.data?.error || "").toLowerCase();
+  if (dataErr === "invalid_grant" || dataErr === "invalid_client") return true;
+  if (msg.includes("invalid_grant")) return true;
+  if (msg.includes("invalid_client")) return true;
+  if (msg.includes("unauthorized_client")) return true;
+  if (msg.includes("token has been expired") || msg.includes("revoked")) return true;
+  return false;
+}
+
 const CONFIDENCE = {
   AUTO_MATCH: 0.95,
   REVIEW_LOWER: 0.7,
@@ -149,18 +176,7 @@ function buildGmailClient(inboxEmail) {
     process.env.GMAIL_REDIRECT_URI,
   );
 
-  const segKey = inboxEmail
-    .split("@")[1]
-    .split(".")[0]
-    .replace("roofingcontractorinsurancedirect", "roofer")
-    .replace("plumberinsurancedirect", "plumber")
-    .replace("plumbinginsurancedirect", "plumber")
-    .replace("hvacinsurancedirect", "hvac")
-    .replace("fitnessinsurancedirect", "fitness")
-    .replace("barinsurancedirect", "bar")
-    .toUpperCase();
-
-  const tokenEnvKey = `GMAIL_REFRESH_TOKEN_${segKey}`;
+  const tokenEnvKey = gmailRefreshTokenEnvKey(inboxEmail);
   const refreshToken = process.env[tokenEnvKey];
 
   if (!refreshToken) {
@@ -199,66 +215,84 @@ export async function runPoller() {
 }
 
 async function pollSegmentInbox(seg) {
-  const gmail = buildGmailClient(seg.email);
-
-  // Optional: carrier-quotes label is just for organizing the Gmail mailbox.
-  // The poller should still ingest quotes even if the carrier hasn't auto-labeled them.
-  const carrierQuotesLabelId = await resolveLabelId(gmail, seg.label);
-  if (!carrierQuotesLabelId) {
+  const tokenEnvKey = gmailRefreshTokenEnvKey(seg.email);
+  if (!String(process.env[tokenEnvKey] || "").trim()) {
     console.warn(
-      `[${seg.segment}] Label "${seg.label}" not found — will ingest without auto-labeling`,
+      `[${seg.segment}] Skipping Gmail poll: ${tokenEnvKey} not set (other segments continue).`,
     );
-  }
-
-  const pollQuery = buildSegmentPollQuery(seg);
-
-  const res = await gmail.users.messages.list({
-    userId: "me",
-    // Use search query (not labelIds) so we can exclude our own outbound client packets (-from:me / -from:sender).
-    // We still require CID token + PDF attachment in `processMessage()` as the "quote signal".
-    q: pollQuery,
-    maxResults: 20,
-  });
-
-  const messages = res.data.messages || [];
-  if (messages.length === 0) {
-    console.log(`[${seg.segment}] No new messages`);
     return;
   }
 
-  console.log(`[${seg.segment}] Found ${messages.length} new message(s) (q=${pollQuery})`);
+  const gmail = buildGmailClient(seg.email);
 
-  for (const msg of messages) {
-    try {
-      const processed = await processMessage(gmail, msg.id, seg);
-
-      // Do not mark read or label — ops still triage / forward to carriers from inbox.
-      if (processed === "leave_unread") {
-        continue;
-      }
-
-      const addLabelIds =
-        processed && carrierQuotesLabelId ? [carrierQuotesLabelId] : [];
-
-      await gmail.users.messages.modify({
-        userId: "me",
-        id: msg.id,
-        resource: {
-          removeLabelIds: ["UNREAD"],
-          ...(addLabelIds.length ? { addLabelIds } : {}),
-        },
-      });
-    } catch (err) {
-      console.error(`[${seg.segment}] Failed to process message ${msg.id}:`, err.message);
-      await safeCreateWorkQueueItem({
-        queue_type: "extraction_failed",
-        related_entity_type: "carrier_message",
-        related_entity_id: "00000000-0000-0000-0000-000000000000",
-        priority: 1,
-        reason_code: "message_processing_error",
-        reason_detail: `Message ${msg.id} in ${seg.segment}: ${err.message}`,
-      });
+  try {
+    // Optional: carrier-quotes label is just for organizing the Gmail mailbox.
+    // The poller should still ingest quotes even if the carrier hasn't auto-labeled them.
+    const carrierQuotesLabelId = await resolveLabelId(gmail, seg.label);
+    if (!carrierQuotesLabelId) {
+      console.warn(
+        `[${seg.segment}] Label "${seg.label}" not found — will ingest without auto-labeling`,
+      );
     }
+
+    const pollQuery = buildSegmentPollQuery(seg);
+
+    const res = await gmail.users.messages.list({
+      userId: "me",
+      // Use search query (not labelIds) so we can exclude our own outbound client packets (-from:me / -from:sender).
+      // We still require CID token + PDF attachment in `processMessage()` as the "quote signal".
+      q: pollQuery,
+      maxResults: 20,
+    });
+
+    const messages = res.data.messages || [];
+    if (messages.length === 0) {
+      console.log(`[${seg.segment}] No new messages`);
+      return;
+    }
+
+    console.log(`[${seg.segment}] Found ${messages.length} new message(s) (q=${pollQuery})`);
+
+    for (const msg of messages) {
+      try {
+        const processed = await processMessage(gmail, msg.id, seg);
+
+        // Do not mark read or label — ops still triage / forward to carriers from inbox.
+        if (processed === "leave_unread") {
+          continue;
+        }
+
+        const addLabelIds =
+          processed && carrierQuotesLabelId ? [carrierQuotesLabelId] : [];
+
+        await gmail.users.messages.modify({
+          userId: "me",
+          id: msg.id,
+          resource: {
+            removeLabelIds: ["UNREAD"],
+            ...(addLabelIds.length ? { addLabelIds } : {}),
+          },
+        });
+      } catch (err) {
+        console.error(`[${seg.segment}] Failed to process message ${msg.id}:`, err.message);
+        await safeCreateWorkQueueItem({
+          queue_type: "extraction_failed",
+          related_entity_type: "carrier_message",
+          related_entity_id: "00000000-0000-0000-0000-000000000000",
+          priority: 1,
+          reason_code: "message_processing_error",
+          reason_detail: `Message ${msg.id} in ${seg.segment}: ${err.message}`,
+        });
+      }
+    }
+  } catch (err) {
+    if (isGmailOAuthConfigError(err)) {
+      console.warn(
+        `[${seg.segment}] Skipping Gmail poll (OAuth/config): ${err.message}. Fix ${tokenEnvKey} on Render when this inbox is active.`,
+      );
+      return;
+    }
+    throw err;
   }
 }
 

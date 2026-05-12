@@ -2,6 +2,9 @@
  * Segment Gmail inboxes for operator/carrier traffic.
  * Keep in sync with CID migrations and Gmail poller expectations.
  * Bar uses singular quote@ (historical mailbox naming).
+ *
+ * The poller skips a segment when its `GMAIL_REFRESH_TOKEN_*` is missing or rejected
+ * (OAuth); other segments still run — see `gmailPoller.js`.
  */
 export const GMAIL_POLLER_SEGMENTS = [
   {
