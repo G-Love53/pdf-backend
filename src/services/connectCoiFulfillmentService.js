@@ -33,9 +33,9 @@ function fmtUsDate(d) {
   }
   const t = new Date(s);
   if (Number.isNaN(t.getTime())) return s;
-  const mm = String(t.getUTCMonth() + 1).padStart(2, "0");
-  const dd = String(t.getUTCDate()).padStart(2, "0");
-  return `${mm}/${dd}/${t.getUTCFullYear()}`;
+  const mm = String(t.getMonth() + 1).padStart(2, "0");
+  const dd = String(t.getDate()).padStart(2, "0");
+  return `${mm}/${dd}/${t.getFullYear()}`;
 }
 
 function pickGlEachOccurrence(coverageData) {
@@ -104,11 +104,23 @@ export async function fulfillConnectCoiRequest(pool, coiRequestId) {
             p.policy_number, p.carrier_name, p.effective_date, p.expiration_date,
             p.segment, p.submission_id, p.quote_id, p.client_id AS policy_client_id,
             p.coverage_data,
-            b.business_name
+            b.business_name AS submission_business_name,
+            COALESCE(
+              NULLIF(TRIM(b.business_name), ''),
+              (
+                SELECT NULLIF(TRIM(b2.business_name), '')
+                FROM businesses b2
+                WHERE b2.client_id = cr.client_id
+                ORDER BY b2.updated_at DESC NULLS LAST
+                LIMIT 1
+              ),
+              NULLIF(TRIM(CONCAT_WS(' ', c.first_name, c.last_name)), '')
+            ) AS insured_display_name
      FROM coi_requests cr
      JOIN policies p ON p.id = cr.policy_id
      JOIN submissions s ON s.submission_id = p.submission_id
      LEFT JOIN businesses b ON b.business_id = s.business_id
+     LEFT JOIN clients c ON c.client_id = cr.client_id
      WHERE cr.id = $1::uuid`,
     [coiRequestId],
   );
@@ -138,7 +150,7 @@ export async function fulfillConnectCoiRequest(pool, coiRequestId) {
   const producer = defaultProducerLines(segment);
 
   const holderLine2 = buildHolderCityStateZip(row);
-  const insuredName = row.business_name || "Named Insured";
+  const insuredName = String(row.insured_display_name || "").trim() || "Named Insured";
   const glLimit = pickGlEachOccurrence(row.coverage_data);
 
   const requestRow = {
