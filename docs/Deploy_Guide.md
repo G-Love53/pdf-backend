@@ -97,11 +97,8 @@ Use **Secret Files** in Render for private keys if you prefer file-based config.
   - Subject includes `submission_public_id` when DB insert succeeds.
 - **Phase 2 (operator + notifications)**
   - Operator home dashboard route: `/operator`.
-  - Bar notifications to `quote@barinsurancedirect.com` with standardized prefixes:
-    - `[CID][Submission]`
-    - `[CID][Carrier][Quote]`
-    - `[CID][Client][Packet]`
-    - `[CID][Bind]`
+  - **Submission received (all segments):** after `recordSubmission` commits, **`notifySubmissionReceived`** sends a short plain-text email to that segment’s agent/quotes inbox (same addresses as **`src/config/segmentAgentInbox.js`** / Gmail poller), subject prefix **`[CID][Submission]`**, so ops see a ping separate from the long **carrier packet** email from `/submit-quote`.
+  - **Bar-only agent alerts** (still Bar-scoped in code): **`[CID][Carrier][Quote]`**, **`[CID][Bind]`**, **`[CID][Carrier][UW]`** — see `src/services/agentNotificationService.js`. **`[CID][Client][Packet]`** uses **`getSegmentAgentInboxEmail`** for every segment (same inbox list as submission ping when configured).
 - **Phase 3 (polish + intake controls)**
   - S4 viewer has fallback “Open in new tab / Download” link.
   - Netlify form has light validation (email/phone/ZIP).
@@ -122,7 +119,7 @@ Use **Secret Files** in Render for private keys if you prefer file-based config.
 ### Flow (canonical)
 
 1. **Netlify (static site)** — Publish directory typically `Netlify/` (see repo `Netlify/index.html`, `thankyou.html`). The form uses `fetch()` to **`POST /submit-quote`** on the Render API (e.g. `https://cid-pdf-api.onrender.com/submit-quote`), **not** a Netlify Function. After success, browser navigates to `thankyou.html`.
-2. **Render API (`src/server.js`)** — `POST /submit-quote`: optional duplicate detection → `recordSubmission()` (Postgres via `DATABASE_URL`) → renders PDF bundle from **`CID_HomeBase/templates`** per `config/bundles.json` (`BAR_INTAKE`) and `config/forms.json` → emails carrier packet (Gmail) with `[CID-BAR-YYYYMMDD-XXXXXX]` in subject when DB write succeeds → optional **client submission snapshot** PDF to R2 + `documents.application_original`.
+2. **Render API (`src/server.js`)** — `POST /submit-quote`: optional duplicate detection → `recordSubmission()` (Postgres via `DATABASE_URL`) → **optional short `[CID][Submission]` email** to the segment’s agent inbox (`notifySubmissionReceived`) → renders PDF bundle from **`CID_HomeBase/templates`** per `config/bundles.json` and `config/forms.json` → emails **carrier packet** (Gmail) using `email.to` from the request, with `[CID-SEG-YYYYMMDD-XXXXXX]` in subject when DB write succeeds → optional **client submission snapshot** PDF to R2 + `documents.application_original`.
 3. **Gmail poller (`src/jobs/gmailPoller.js`)** — Ingests carrier replies; attaches quote PDFs to R2; creates `quotes` + `work_queue_items` (S4).
 4. **S4 / S5 / S6** — Operator UI under **`/operator`** (see `src/routes/operatorRoutes.js`). Extraction review, packet builder, bind initiation use APIs in `extractionReview.js`, `packetBuilder.js`, `bindFlow.js`.
 5. **Bind & e-sign (Bar)** — **BoldSign** is the active provider for new binds (`src/services/boldsignService.js`). `bind_requests.hellosign_request_id` stores the **BoldSign document id** (column name is legacy). Completion: **BoldSign webhooks** `POST /api/webhooks/boldsign` and/or **redirect finalize** on `/operator` (`processBoldSignDocumentCompleted` / `tryFinalizeBoldSignFromDocumentId`). **HelloSign/Dropbox Sign** webhook `POST /api/webhooks/hellosign` remains for legacy requests that still use that id in `hellosign_request_id`.
@@ -158,10 +155,11 @@ Use **Secret Files** in Render for private keys if you prefer file-based config.
 - [ ] S6 **Docs Reconcile** lookup/upload works for a known CID and writes `policy.document.manual_linked` timeline event.
 - [ ] Operator Home "Connect: policy / dec PDFs (today)" increments after policy upload/link.
 
-### Post-deploy checks (all intake segments: Bar/Roofer/Plumber/HVAC)
+### Post-deploy checks (all intake segments: Bar/Roofer/Plumber/HVAC/Fitness)
 
 - [ ] Outbound carrier outreach subject includes a bracketed **`submission_public_id`** token (`[CID-SEG-YYYYMMDD-######]`) so Gmail poller can auto-match replies in S4.
 - [ ] Outbound intake email includes **`Client-Submission.pdf`** ("questions answered" snapshot) plus the expected ACORD/SUPP attachments.
+- [ ] **Short ops email:** after a successful DB insert from `/submit-quote`, the segment’s quotes inbox (per **`segmentAgentInbox.js`**) receives **`[CID][Submission]`** with submission id + client name (plain text). Requires **`GMAIL_USER_*` / `GMAIL_APP_PASSWORD_*`** (or default **`GMAIL_USER`**) for that segment on Render — same credential family as outbound packet mail.
 - [ ] If subject is missing CID tag, treat as release blocker for that segment intake deploy (carrier replies will degrade to review/no-match routing).
 - [ ] Same email + different business name creates a new submission (not duplicate-suppressed).
 
@@ -173,7 +171,7 @@ Use **Secret Files** in Render for private keys if you prefer file-based config.
 
 ---
 
-## Netlify segment intake JS (Plumber, HVAC, Roofer wrappers)
+## Netlify segment intake JS (Bar, Plumber, HVAC, Roofer, Fitness)
 
 **Publish directory:** repo `Netlify/` (usually `index.html` + `thankyou.html`). Same pattern for every segment vertical.
 
@@ -204,7 +202,7 @@ Use **Secret Files** in Render for private keys if you prefer file-based config.
 Intake sites should send:
 
 - **`bundle_id`** — e.g. `HVAC_INTAKE`, `PLUMBER_INTAKE`, `ROOFER_INTAKE` (see `pdf-backend` `config/bundles.json`).
-- **`segment`** — lowercase enum aligned with Postgres / poller: `hvac`, `plumber`, `roofer`, `bar` (also set as hidden `segment` on the form for snapshots).
+- **`segment`** — lowercase enum aligned with Postgres / poller: `hvac`, `plumber`, `roofer`, `bar`, `fitness` (also set as hidden `segment` on the form for snapshots).
 - **`formData`** — flat object from the form (include hidden `traffic_source`, `segment`, etc.).
 - **`email.to`** — segment quotes inbox, e.g. `quotes@hvacinsurancedirect.com`.
 
@@ -495,3 +493,4 @@ Details and division of labor (Famous vs `pdf-backend`): [CID_CONNECT.md](./CID_
 | 2026-04-23 | Added Connect launch checks: CORS preflight ordering, identity mapping behavior (`X-User-Id` vs `famous_user_id`), and all-segment policy/docs + chat validation checklist. |
 | 2026-05-06 | Postmaster Tools checklist for campaign sending domains; GitHub Actions heartbeat notes (`GET /healthz` on CID-PDF-API vs legacy `/check-quotes`); S5 client email post-deploy checks (body letter, plaintext, subject, segment sign-off). |
 | 2026-05-07 | Pipeline DB vs Connect/Famous Supabase: canonical **`DATABASE_URL`** (cid-postgres), where to run **`psql`** / migrations, segment enum verification query. |
+| 2026-05-14 | **`[CID][Submission]`** plain-text ping after **`recordSubmission`** for **all** segments (**`notifySubmissionReceived`** → **`getSegmentAgentInboxEmail`**); Phase 2 / flow / checklist updates in this guide. |

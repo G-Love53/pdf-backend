@@ -4,8 +4,14 @@ import { getSegmentAgentInboxEmail } from "../config/segmentAgentInbox.js";
 
 const BAR_AGENT_EMAIL = "quote@barinsurancedirect.com";
 
+function normalizeSegmentKey(segment) {
+  let s = String(segment || "").trim().toLowerCase();
+  if (s === "roofing") s = "roofer";
+  return s;
+}
+
 function isBarSegment(segment) {
-  return String(segment || "bar").trim().toLowerCase() === "bar";
+  return normalizeSegmentKey(segment) === "bar";
 }
 
 function buildSubject(prefix, submissionPublicId, suffix = "") {
@@ -14,12 +20,24 @@ function buildSubject(prefix, submissionPublicId, suffix = "") {
   return `${prefix}${idPart}${tail}`;
 }
 
-export async function notifyBarSubmissionReceived({
+/**
+ * Short ops ping after `recordSubmission` commits — same inbox family as
+ * `GMAIL_POLLER_SEGMENTS` / `getSegmentAgentInboxEmail` (one per vertical).
+ */
+export async function notifySubmissionReceived({
   segment,
   submissionPublicId,
   clientName,
 }) {
-  if (!isBarSegment(segment)) return;
+  const seg = normalizeSegmentKey(segment);
+  const toEmail = getSegmentAgentInboxEmail(seg);
+  if (!toEmail) {
+    console.warn(
+      "[notifySubmissionReceived] no agent inbox for segment; skip",
+      seg,
+    );
+    return;
+  }
 
   const subject = buildSubject(
     "[CID][Submission]",
@@ -35,10 +53,10 @@ export async function notifyBarSubmissionReceived({
   ].filter(Boolean);
 
   await sendWithGmail({
-    to: [BAR_AGENT_EMAIL],
+    to: [toEmail],
     subject,
     text: lines.join("\n"),
-    segment: "bar",
+    segment: seg || "bar",
   });
 }
 

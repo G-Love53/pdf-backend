@@ -1,6 +1,6 @@
 import pg from "pg";
 import { createClient } from "@supabase/supabase-js";
-import { notifyBarSubmissionReceived } from "./services/agentNotificationService.js";
+import { notifySubmissionReceived } from "./services/agentNotificationService.js";
 
 const { Pool } = pg;
 
@@ -157,14 +157,14 @@ export async function recordSubmission({
         rawSubmission?.insured_name ||
         rawSubmission?.premises_name ||
         null;
-      await notifyBarSubmissionReceived({
+      await notifySubmissionReceived({
         segment: segEnum,
         submissionPublicId,
         clientName: name,
       });
     } catch (notifyErr) {
       console.error(
-        "[db] notifyBarSubmissionReceived error:",
+        "[db] notifySubmissionReceived error:",
         notifyErr.message || notifyErr,
       );
     }
