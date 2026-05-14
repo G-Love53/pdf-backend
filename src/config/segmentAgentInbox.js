@@ -43,3 +43,16 @@ export function getSegmentAgentInboxEmail(segment) {
   const row = GMAIL_POLLER_SEGMENTS.find((x) => x.segment === s);
   return row?.email ?? null;
 }
+
+/** Default ACORD producer block (agency) — not applicant contact. Phone matches operator collateral. */
+const SEGMENT_PRODUCER_PHONE = "(303) 932-1700";
+
+/**
+ * @param {string} [segment]
+ * @returns {{ email: string | null, phone: string } | null}
+ */
+export function getSegmentProducerDefaults(segment) {
+  const email = getSegmentAgentInboxEmail(segment);
+  if (!email) return null;
+  return { email, phone: SEGMENT_PRODUCER_PHONE };
+}

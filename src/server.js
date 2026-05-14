@@ -17,6 +17,7 @@ import webhooksRouter from "./routes/webhooks.js";
 import { connectAuthMiddleware } from "./middleware/connectAuth.js";
 import connectApiRouter from "./routes/connectApi.js";
 import { renewalPrefillHandler } from "./routes/renewalIntakePublic.js";
+import { getSegmentProducerDefaults } from "./config/segmentAgentInbox.js";
 // Note: Ensure your enricher import matches the file name in your 'src' folder
 // import enrichFormData from '../mapping/data-enricher.js'; 
 
@@ -277,6 +278,16 @@ async function maybeMapData(name, rawData) {
     // Page 1: when No, show "See Page 2"; full explanation only on page 2 (opening_plan_details, prior_experience_details)
     if (d["1_open_for_business_now_or_within_60_days"] === "No") d.if_no_explain = "See Page 2";
     if (d["2_at_least_3_years_restaurantbar_ownership_in_last_5_years"] === "No" || d["2_at_least_3_years_restaurantbar_ownership_in_last_5_years_2"] === "No") d.if_no_prior_experie = "See Page 2";
+    // Form sends total_squarefeet_1; supplemental map uses square_footage
+    if (get("square_footage") == null && get("total_squarefeet_1")) {
+      d.square_footage = String(d.total_squarefeet_1).trim();
+    }
+    // Delivery "past 10 PM" yes/no is not business closing time — keep on remarks so PDF closing_time slot stays clean
+    if (get("delivery_hours_extend_past_10pm") != null && String(d.delivery_hours_extend_past_10pm).trim() !== "") {
+      const line = `Delivery extends past 10 PM: ${d.delivery_hours_extend_past_10pm}`;
+      const prev = get("remarks");
+      d.remarks = prev ? `${prev} | ${line}` : line;
+    }
   }
 
   if (/^ACORD\d+$/i.test(name)) {
@@ -286,12 +297,19 @@ async function maybeMapData(name, rawData) {
     if (get("physical_city") == null && get("premise_city")) d.physical_city = d.premise_city;
     if (get("physical_state") == null && get("premise_state")) d.physical_state = d.premise_state;
     if (get("physical_zip") == null && get("premise_zip")) d.physical_zip = d.premise_zip;
+    if (get("square_footage") == null && get("total_squarefeet_1")) {
+      d.square_footage = String(d.total_squarefeet_1).trim();
+    }
     if (get("date") == null && get("effective_date")) d.date = d.effective_date;
     if (get("date") == null && get("policy_effective_date")) d.date = d.policy_effective_date;
     if (get("policy_effective_date") == null && get("effective_date")) d.policy_effective_date = d.effective_date;
     if (get("business_website") == null && get("premises_website")) d.business_website = d.premises_website;
-    if (get("producer_email") == null && get("contact_email")) d.producer_email = d.contact_email;
-    if (get("producer_phone") == null && get("business_phone")) d.producer_phone = d.business_phone;
+    const segForProducer = String(d.segment || process.env.SEGMENT || "")
+      .trim()
+      .toLowerCase();
+    const prodDefaults = getSegmentProducerDefaults(segForProducer);
+    if (get("producer_email") == null && prodDefaults?.email) d.producer_email = prodDefaults.email;
+    if (get("producer_phone") == null && prodDefaults?.phone) d.producer_phone = prodDefaults.phone;
     if (d.org_type_llc === "Yes") d.llc = "Yes";
     if (d.org_type_corporation === "Yes") d.corporation = "Yes";
     if (d.org_type_individual === "Yes") d.individual = "Yes";
@@ -305,6 +323,10 @@ async function maybeMapData(name, rawData) {
     if (get("contact_email_1") == null && get("contact_email")) d.contact_email_1 = d.contact_email;
     if (get("contact_email_1") == null && get("producer_email")) d.contact_email_1 = d.producer_email;
     if (get("contact_business_phone") == null && get("business_phone")) d.contact_business_phone = d.business_phone;
+    if (get("total_sales") == null && get("annual_revenue_1") != null) {
+      const n = String(d.annual_revenue_1).replace(/[^0-9.-]/g, "");
+      if (n) d.total_sales = n;
+    }
     if (get("annual_revenue_1") == null && get("total_sales")) d.annual_revenue_1 = d.total_sales;
     if (get("total_squarefeet_1") == null && get("square_footage")) d.total_squarefeet_1 = d.square_footage;
     // Additional Insured (Bar form → ACORD names; first AI block)
