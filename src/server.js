@@ -18,6 +18,7 @@ import { connectAuthMiddleware } from "./middleware/connectAuth.js";
 import connectApiRouter from "./routes/connectApi.js";
 import { renewalPrefillHandler } from "./routes/renewalIntakePublic.js";
 import { getSegmentProducerDefaults } from "./config/segmentAgentInbox.js";
+import { applyFormFieldRouting } from "./services/formFieldRoutingService.js";
 // Note: Ensure your enricher import matches the file name in your 'src' folder
 // import enrichFormData from '../mapping/data-enricher.js'; 
 
@@ -732,7 +733,7 @@ APP.post("/render-bundle", async (req, res) => {
 APP.post("/submit-quote", async (req, res) => {
   try {
     const body = req.body || {};
-    const formData =
+    let formData =
       body.data ||
       body.formData ||
       body.fields ||
@@ -759,6 +760,8 @@ APP.post("/submit-quote", async (req, res) => {
       .trim()
       .toLowerCase();
     if (segment === "roofing") segment = "roofer";
+
+    formData = applyFormFieldRouting(formData, segment);
     const forceResubmit = body.force_resubmit === true;
     const submissionIntent =
       body.submission_intent === "corrected" || body.submission_intent === "new"
