@@ -130,6 +130,89 @@
       a:hover {
         text-decoration: underline;
       }
+      .btn-sm {
+        appearance: none;
+        border: 1px solid #334155;
+        background: #0f172a;
+        color: #e5e7eb;
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .btn-sm:hover {
+        border-color: #38bdf8;
+        color: #7dd3fc;
+      }
+      .btn-sm:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.75);
+        z-index: 50;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+      .modal-backdrop.open {
+        display: flex;
+      }
+      .modal {
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 16px 18px;
+        width: min(480px, 100%);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+      }
+      .modal h3 {
+        margin: 0 0 12px;
+        font-size: 16px;
+      }
+      .modal label {
+        display: block;
+        font-size: 12px;
+        color: #9ca3af;
+        margin: 10px 0 4px;
+      }
+      .modal input[type="text"],
+      .modal input[type="file"],
+      .modal textarea {
+        width: 100%;
+        box-sizing: border-box;
+        background: #020617;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        color: #e5e7eb;
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+      .modal textarea {
+        min-height: 64px;
+        resize: vertical;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 14px;
+      }
+      .modal-status {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: 10px;
+        min-height: 1.2em;
+      }
+      .subject-truncate {
+        max-width: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
       .layout {
         display: grid;
         grid-template-columns: 2fr 1.5fr;
@@ -227,7 +310,7 @@
             Submissions waiting for carrier outreach
           </div>
           <p style="font-size: 12px; color: #6b7280; margin: 0 0 10px; line-height: 1.4">
-            Only submissions with no quote row yet (nothing matched from carrier). If a quote exists, the submission is not listed here. The 6-digit suffix is one global sequence for all segments, not per inbox. Oldest-waiting first.
+            Only submissions with no quote row yet (nothing matched from carrier). If a quote exists, the submission is not listed here. The 6-digit suffix is one global sequence for all segments, not per inbox. Oldest-waiting first. Use <strong style="color:#d1d5db">Add quote</strong> when you have a carrier PDF but the poller did not ingest it (missing CID in email, Forward instead of compose, etc.).
           </p>
           <div class="card">
             <table>
@@ -236,9 +319,28 @@
                   <th>Submission</th>
                   <th>Client</th>
                   <th>Received</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody id="tbody-submissions-waiting"></tbody>
+            </table>
+          </div>
+
+          <div class="section-title">Carrier quotes needing CID</div>
+          <p style="font-size: 12px; color: #6b7280; margin: 0 0 10px; line-height: 1.4">
+            Poller stored a carrier PDF with quote/proposal keywords but no <code style="color:#cbd5e1">CID-BAR-…</code> (or segment equivalent) in the email. Link to the correct submission to open S4.
+          </p>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>From / carrier</th>
+                  <th>Subject</th>
+                  <th>Received</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-quotes-needing-cid"></tbody>
             </table>
           </div>
 
@@ -284,6 +386,40 @@
               </thead>
               <tbody id="tbody-renewals"></tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="modal-add-quote" class="modal-backdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-labelledby="modal-add-quote-title">
+          <h3 id="modal-add-quote-title">Add carrier quote to S4</h3>
+          <p style="font-size: 12px; color: #9ca3af; margin: 0">
+            Upload the carrier PDF for <strong id="modal-add-quote-cid" style="color:#e5e7eb"></strong>. This creates a quote row and opens the S4 extraction queue.
+          </p>
+          <label for="modal-carrier-name">Carrier name (optional)</label>
+          <input id="modal-carrier-name" type="text" placeholder="e.g. Society Insurance" />
+          <label for="modal-quote-file">Carrier quote PDF</label>
+          <input id="modal-quote-file" type="file" accept="application/pdf,.pdf" />
+          <label for="modal-quote-note">Note (optional)</label>
+          <textarea id="modal-quote-note" placeholder="Why manual upload was needed"></textarea>
+          <div class="modal-status" id="modal-add-quote-status"></div>
+          <div class="modal-actions">
+            <button type="button" class="btn-sm" id="modal-add-quote-cancel">Cancel</button>
+            <button type="button" class="btn-sm" id="modal-add-quote-submit">Upload &amp; queue S4</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="modal-link-cid" class="modal-backdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-labelledby="modal-link-cid-title">
+          <h3 id="modal-link-cid-title">Link carrier quote to submission</h3>
+          <p style="font-size: 12px; color: #9ca3af; margin: 0" id="modal-link-cid-summary"></p>
+          <label for="modal-link-cid-input">Submission CID</label>
+          <input id="modal-link-cid-input" type="text" placeholder="CID-BAR-20260512-000036" />
+          <div class="modal-status" id="modal-link-cid-status"></div>
+          <div class="modal-actions">
+            <button type="button" class="btn-sm" id="modal-link-cid-cancel">Cancel</button>
+            <button type="button" class="btn-sm" id="modal-link-cid-submit">Link &amp; queue S4</button>
           </div>
         </div>
       </div>
@@ -387,6 +523,165 @@
         if (s6) s6.href = "/operator/bind" + qs;
       }
 
+      function escapeHtml(s) {
+        return String(s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.onerror = () => reject(new Error("Failed to read file"));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      let pendingAddQuoteCid = null;
+      let pendingLinkWqiId = null;
+
+      function openAddQuoteModal(cid) {
+        pendingAddQuoteCid = cid;
+        document.getElementById("modal-add-quote-cid").textContent = cid;
+        document.getElementById("modal-carrier-name").value = "";
+        document.getElementById("modal-quote-file").value = "";
+        document.getElementById("modal-quote-note").value = "";
+        document.getElementById("modal-add-quote-status").textContent = "";
+        const modal = document.getElementById("modal-add-quote");
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeAddQuoteModal() {
+        pendingAddQuoteCid = null;
+        const modal = document.getElementById("modal-add-quote");
+        modal.classList.remove("open");
+        modal.setAttribute("aria-hidden", "true");
+      }
+
+      function openLinkCidModal(item) {
+        pendingLinkWqiId = item.work_queue_item_id;
+        const summary = [
+          item.carrier_name || item.from_email || "Carrier",
+          item.subject ? `Subject: ${item.subject}` : "",
+        ]
+          .filter(Boolean)
+          .join(" · ");
+        document.getElementById("modal-link-cid-summary").textContent = summary;
+        document.getElementById("modal-link-cid-input").value = "";
+        document.getElementById("modal-link-cid-status").textContent = "";
+        const modal = document.getElementById("modal-link-cid");
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeLinkCidModal() {
+        pendingLinkWqiId = null;
+        const modal = document.getElementById("modal-link-cid");
+        modal.classList.remove("open");
+        modal.setAttribute("aria-hidden", "true");
+      }
+
+      async function submitAddQuote() {
+        const statusEl = document.getElementById("modal-add-quote-status");
+        const cid = pendingAddQuoteCid;
+        const fileEl = document.getElementById("modal-quote-file");
+        const file = fileEl && fileEl.files && fileEl.files[0];
+        if (!cid || !file) {
+          statusEl.textContent = "PDF file is required.";
+          return;
+        }
+        if (!/\.pdf$/i.test(file.name || "")) {
+          statusEl.textContent = "Only PDF is supported.";
+          return;
+        }
+        statusEl.textContent = "Uploading…";
+        const submitBtn = document.getElementById("modal-add-quote-submit");
+        if (submitBtn) submitBtn.disabled = true;
+        try {
+          const fileBase64 = await fileToBase64(file);
+          const res = await fetch(
+            "/api/operator/submissions/" + encodeURIComponent(cid) + "/add-carrier-quote",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                carrier_name:
+                  String(document.getElementById("modal-carrier-name").value || "").trim() ||
+                  null,
+                filename: file.name,
+                file_base64: fileBase64,
+                note:
+                  String(document.getElementById("modal-quote-note").value || "").trim() ||
+                  null,
+              }),
+            },
+          );
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            statusEl.textContent = "Failed: " + (data.error || res.status);
+            return;
+          }
+          closeAddQuoteModal();
+          await loadDashboard();
+          if (data.work_queue_item_id) {
+            window.location.href =
+              "/operator/extraction-review/" +
+              encodeURIComponent(data.work_queue_item_id) +
+              currentSegmentQS();
+          }
+        } catch (err) {
+          statusEl.textContent = "Failed: " + (err.message || "error");
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      }
+
+      async function submitLinkCid() {
+        const statusEl = document.getElementById("modal-link-cid-status");
+        const wqiId = pendingLinkWqiId;
+        const cid = String(document.getElementById("modal-link-cid-input").value || "")
+          .trim()
+          .toUpperCase();
+        if (!wqiId || !cid) {
+          statusEl.textContent = "Submission CID is required.";
+          return;
+        }
+        statusEl.textContent = "Linking…";
+        const submitBtn = document.getElementById("modal-link-cid-submit");
+        if (submitBtn) submitBtn.disabled = true;
+        try {
+          const res = await fetch(
+            "/api/operator/quote-needs-cid/" + encodeURIComponent(wqiId) + "/link",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ submission_public_id: cid }),
+            },
+          );
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            statusEl.textContent = "Failed: " + (data.error || res.status);
+            return;
+          }
+          closeLinkCidModal();
+          await loadDashboard();
+          if (data.work_queue_item_id) {
+            window.location.href =
+              "/operator/extraction-review/" +
+              encodeURIComponent(data.work_queue_item_id) +
+              currentSegmentQS();
+          }
+        } catch (err) {
+          statusEl.textContent = "Failed: " + (err.message || "error");
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      }
+
       async function loadDashboard() {
         try {
           const res = await fetch(
@@ -422,13 +717,49 @@
           subTbody.innerHTML = "";
           (queues.submissions_waiting_outreach || []).forEach((item) => {
             const tr = document.createElement("tr");
+            const cid = item.submission_public_id || "";
             tr.innerHTML = `
-              <td>${item.submission_public_id || "—"}</td>
-              <td>${item.client_name || ""}</td>
+              <td>${escapeHtml(cid || "—")}</td>
+              <td>${escapeHtml(item.client_name || "")}</td>
               <td>${fmtDate(item.created_at)}</td>
+              <td>${
+                cid
+                  ? `<button type="button" class="btn-sm btn-add-quote" data-cid="${escapeHtml(cid)}">Add quote</button>`
+                  : ""
+              }</td>
             `;
             subTbody.appendChild(tr);
           });
+          subTbody.querySelectorAll(".btn-add-quote").forEach((btn) => {
+            btn.addEventListener("click", () => openAddQuoteModal(btn.getAttribute("data-cid")));
+          });
+
+          const needsCidTbody = document.getElementById("tbody-quotes-needing-cid");
+          if (needsCidTbody) {
+            needsCidTbody.innerHTML = "";
+            const needsCidItems = queues.quotes_needing_cid || [];
+            if (!needsCidItems.length) {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `<td colspan="4" style="color:#6b7280">None waiting — poller will add rows when a PDF has quote keywords but no CID.</td>`;
+              needsCidTbody.appendChild(tr);
+            }
+            needsCidItems.forEach((item) => {
+              const tr = document.createElement("tr");
+              const fromLabel = escapeHtml(item.carrier_name || item.from_email || "—");
+              const subject = escapeHtml(item.subject || "—");
+              tr.innerHTML = `
+                <td>${fromLabel}</td>
+                <td class="subject-truncate" title="${subject}">${subject}</td>
+                <td>${fmtDate(item.created_at)}</td>
+                <td><button type="button" class="btn-sm btn-link-cid" data-wqi="${escapeHtml(item.work_queue_item_id)}">Link CID</button></td>
+              `;
+              tr.querySelector(".btn-link-cid")._item = item;
+              needsCidTbody.appendChild(tr);
+            });
+            needsCidTbody.querySelectorAll(".btn-link-cid").forEach((btn) => {
+              btn.addEventListener("click", () => openLinkCidModal(btn._item));
+            });
+          }
 
           const s4Tbody = document.getElementById("tbody-quotes-pending-s4");
           s4Tbody.innerHTML = "";
@@ -538,6 +869,25 @@
 
       loadDashboard();
       setInterval(loadDashboard, 30000);
+
+      document
+        .getElementById("modal-add-quote-cancel")
+        ?.addEventListener("click", closeAddQuoteModal);
+      document
+        .getElementById("modal-add-quote-submit")
+        ?.addEventListener("click", submitAddQuote);
+      document
+        .getElementById("modal-link-cid-cancel")
+        ?.addEventListener("click", closeLinkCidModal);
+      document
+        .getElementById("modal-link-cid-submit")
+        ?.addEventListener("click", submitLinkCid);
+      document.getElementById("modal-add-quote")?.addEventListener("click", (e) => {
+        if (e.target.id === "modal-add-quote") closeAddQuoteModal();
+      });
+      document.getElementById("modal-link-cid")?.addEventListener("click", (e) => {
+        if (e.target.id === "modal-link-cid") closeLinkCidModal();
+      });
 
       (function bindRedirectToast() {
         const p = new URLSearchParams(window.location.search);

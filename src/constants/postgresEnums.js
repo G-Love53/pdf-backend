@@ -100,3 +100,17 @@ export const PolicyStatus = Object.freeze({
   EXPIRED: "expired",
   CANCELLED: "cancelled",
 });
+
+/** @see CREATE TYPE queue_type (+ migrations/002, migrations/012) */
+export const QueueType = Object.freeze({
+  SUBMISSION_REVIEW: "submission_review",
+  QUOTE_MATCH_REVIEW: "quote_match_review",
+  QUOTE_UNMATCHED: "quote_unmatched",
+  EXTRACTION_REVIEW: "extraction_review",
+  EXTRACTION_FAILED: "extraction_failed",
+  PACKET_REVIEW: "packet_review",
+  SIGNATURE_FOLLOWUP: "signature_followup",
+  DUPLICATE_QUOTE: "duplicate_quote",
+  UW_QUESTION: "uw_question",
+  QUOTE_NEEDS_CID: "quote_needs_cid",
+});

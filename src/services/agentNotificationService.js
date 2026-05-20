@@ -264,3 +264,48 @@ export async function notifyBarUwQuestionPdf({
   });
 }
 
+/**
+ * Carrier email with PDF + quote keywords but no CID (poller soft-ingest — not routed to S4 until linked).
+ */
+export async function notifyQuoteNeedsCid({
+  segment,
+  carrierName,
+  emailSubject,
+  fromEmail,
+  gmailMessageId,
+  carrierMessageId,
+  pdfCount,
+}) {
+  const seg = normalizeSegmentKey(segment);
+  const toEmail = getSegmentAgentInboxEmail(seg);
+  if (!toEmail) {
+    console.warn("[notifyQuoteNeedsCid] no agent inbox for segment; skip", seg);
+    return;
+  }
+
+  const subject = buildSubject(
+    "[CID][Carrier][NeedsCID]",
+    "",
+    carrierName || fromEmail || "",
+  );
+
+  const lines = [
+    "Carrier sent a quote PDF with quote keywords, but no CID was found in the subject or body.",
+    "Link this message to a submission in Operator Home → Carrier quotes needing CID.",
+    "",
+    carrierName ? `Carrier: ${carrierName}` : "",
+    fromEmail ? `From: ${fromEmail}` : "",
+    emailSubject ? `Subject: ${emailSubject}` : "",
+    `Carrier message ID: ${carrierMessageId}`,
+    `Gmail message ID: ${gmailMessageId}`,
+    pdfCount != null ? `PDFs stored: ${pdfCount}` : "",
+  ].filter(Boolean);
+
+  await sendWithGmail({
+    to: [toEmail],
+    subject,
+    text: lines.join("\n"),
+    segment: seg || "bar",
+  });
+}
+

@@ -14,6 +14,10 @@ import {
   sqlSegmentFilter,
 } from "../utils/operatorSegment.js";
 import { dedupeCarrierMessagesForGmail } from "../jobs/gmailPoller.js";
+import {
+  addManualCarrierQuote,
+  linkQuoteNeedsCidToSubmission,
+} from "../services/quoteIngestService.js";
 
 const router = express.Router();
 const pool = getPool();
@@ -113,6 +117,7 @@ router.get("/api/operator/dashboard", async (req, res) => {
       countsResult,
       submissionsQueueResult,
       s4QueueResult,
+      quoteNeedsCidResult,
       bindsAwaitingResult,
       renewalsResult,
       connectBindQueueResult,
@@ -245,6 +250,29 @@ router.get("/api/operator/dashboard", async (req, res) => {
           `,
           segParams,
         ),
+        pool.query(
+          `
+            SELECT
+              wqi.work_queue_item_id,
+              wqi.created_at,
+              wqi.reason_detail,
+              cm.carrier_message_id,
+              cm.carrier_name,
+              cm.from_email,
+              cm.subject,
+              cm.segment::text AS segment
+            FROM work_queue_items wqi
+            JOIN carrier_messages cm
+              ON wqi.related_entity_type = 'carrier_message'
+             AND wqi.related_entity_id = cm.carrier_message_id
+            WHERE wqi.queue_type = 'quote_needs_cid'
+              AND wqi.status = 'open'
+              AND ($1::text = 'all' OR cm.segment = $1::segment_type)
+            ORDER BY wqi.created_at ASC
+            LIMIT 20
+          `,
+          segParams,
+        ),
         // Binds awaiting signature (avoid policy_type dependency for older schemas)
         pool.query(
           `
@@ -371,6 +399,7 @@ router.get("/api/operator/dashboard", async (req, res) => {
       queues: {
         submissions_waiting_outreach: submissionsQueueResult.rows,
         quotes_pending_s4: s4QueueResult.rows,
+        quotes_needing_cid: quoteNeedsCidResult.rows,
         binds_awaiting_signature: bindsAwaitingResult.rows,
         upcoming_policy_renewals: renewalsResult.rows,
         connect_bind_confirmation_stored: connectBindQueueResult.rows,
@@ -382,6 +411,71 @@ router.get("/api/operator/dashboard", async (req, res) => {
     res.status(500).json({ error: "internal_error" });
   }
 });
+
+// Manual carrier quote upload → S4 extraction queue (submissions waiting for outreach).
+router.post(
+  "/api/operator/submissions/:submissionPublicId/add-carrier-quote",
+  async (req, res) => {
+    try {
+      const submissionPublicId = String(req.params.submissionPublicId || "").trim();
+      const { carrier_name, filename, file_base64, note } = req.body || {};
+      const result = await addManualCarrierQuote({
+        submissionPublicId,
+        carrierName: carrier_name,
+        filename,
+        fileBase64: file_base64,
+        note,
+      });
+      return res.json(result);
+    } catch (err) {
+      const msg = err?.message || "internal_error";
+      const status =
+        msg === "submission_not_found" || msg === "submission_already_has_quote"
+          ? 409
+          : msg === "missing_required_fields" ||
+              msg === "empty_or_invalid_pdf" ||
+              msg === "invalid_file_base64"
+            ? 400
+            : 500;
+      if (status === 500) {
+        console.error("[operator/add-carrier-quote] error:", msg);
+      }
+      return res.status(status).json({ success: false, error: msg });
+    }
+  },
+);
+
+// Link poller soft-ingest (quote_needs_cid) to a submission → S4.
+router.post(
+  "/api/operator/quote-needs-cid/:workQueueItemId/link",
+  async (req, res) => {
+    try {
+      const workQueueItemId = String(req.params.workQueueItemId || "").trim();
+      const submissionPublicId = String(req.body?.submission_public_id || "").trim();
+      const result = await linkQuoteNeedsCidToSubmission({
+        workQueueItemId,
+        submissionPublicId,
+      });
+      return res.json(result);
+    } catch (err) {
+      const msg = err?.message || "internal_error";
+      const status =
+        msg === "work_queue_item_not_found" ||
+        msg === "work_queue_item_not_open" ||
+        msg === "submission_not_found" ||
+        msg === "submission_already_has_quote" ||
+        msg === "segment_mismatch"
+          ? 409
+          : msg === "missing_required_fields"
+            ? 400
+            : 500;
+      if (status === 500) {
+        console.error("[operator/quote-needs-cid/link] error:", msg);
+      }
+      return res.status(status).json({ success: false, error: msg });
+    }
+  },
+);
 
 // Admin: policy indexing status for Connect "Am I Covered?" retrieval.
 // Requires CID_MAINTENANCE_SECRET in env + matching `x-admin-secret` header (or ?secret=...).

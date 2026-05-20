@@ -8,8 +8,9 @@ import { getPool } from "../db.js";
 import {
   notifyBarCarrierQuoteReceived,
   notifyBarUwQuestionPdf,
+  notifyQuoteNeedsCid,
 } from "../services/agentNotificationService.js";
-import { DocumentRole, DocumentType, StorageProvider } from "../constants/postgresEnums.js";
+import { DocumentRole, DocumentType, StorageProvider, QueueType } from "../constants/postgresEnums.js";
 import { GMAIL_POLLER_SEGMENTS } from "../config/segmentAgentInbox.js";
 import { runPolicyIndexer } from "../workers/policyIndexer.js";
 
@@ -296,6 +297,146 @@ async function pollSegmentInbox(seg) {
   }
 }
 
+/** PDF + quote keywords but no CID — store PDFs and queue for operator to link a submission. */
+async function processQuoteNeedsCidMessage(gmail, msg, seg, ctx) {
+  const {
+    messageId,
+    subject,
+    fromEmail,
+    toEmail,
+    bodyText,
+    receivedAt,
+    threadId,
+    gmailMsgId,
+  } = ctx;
+
+  const existingCarrierRes = await pool.query(
+    `
+      SELECT carrier_message_id
+      FROM carrier_messages
+      WHERE gmail_message_id = $1
+        AND segment = $2::segment_type
+      ORDER BY created_at ASC, carrier_message_id ASC
+      LIMIT 1
+    `,
+    [gmailMsgId, seg.segment],
+  );
+
+  let carrierMessageId = existingCarrierRes.rows[0]?.carrier_message_id || null;
+
+  if (carrierMessageId) {
+    const openWqi = await pool.query(
+      `
+        SELECT 1
+        FROM work_queue_items
+        WHERE queue_type = $1::queue_type
+          AND related_entity_type = 'carrier_message'
+          AND related_entity_id = $2
+          AND status = 'open'
+        LIMIT 1
+      `,
+      [QueueType.QUOTE_NEEDS_CID, carrierMessageId],
+    );
+    if (openWqi.rows.length > 0) {
+      console.log(
+        `[${seg.segment}] Skipping message ${messageId} (quote_needs_cid already open for gmail ${gmailMsgId})`,
+      );
+      return true;
+    }
+  }
+
+  if (!carrierMessageId) {
+    carrierMessageId = await createCarrierMessage({
+      submission_id: null,
+      segment: seg.segment,
+      direction: "inbound",
+      carrier_name: resolveCarrierName(fromEmail),
+      from_email: fromEmail,
+      to_email: toEmail,
+      subject,
+      gmail_message_id: gmailMsgId,
+      gmail_thread_id: threadId,
+      body_text: bodyText,
+      received_at: receivedAt,
+    });
+  }
+
+  const attachments = await extractAttachments(gmail, msg, gmailMsgId);
+  const documentIds = [];
+  for (const att of attachments) {
+    try {
+      const docId = await storeAttachment(att, seg, carrierMessageId);
+      if (docId) documentIds.push(docId);
+    } catch (err) {
+      console.error(`[${seg.segment}] Failed to store attachment ${att.filename}:`, err.message);
+    }
+  }
+
+  if (documentIds.length === 0) {
+    console.warn(
+      `[${seg.segment}] quote_needs_cid message ${messageId} had no storable PDFs — skipping queue`,
+    );
+    return false;
+  }
+
+  await createWorkQueueItemIfMissingOpen({
+    queue_type: QueueType.QUOTE_NEEDS_CID,
+    related_entity_type: "carrier_message",
+    related_entity_id: carrierMessageId,
+    priority: 2,
+    reason_code: "pdf_quote_signal_no_cid",
+    reason_detail: `PDF from ${fromEmail} with quote keywords but no CID. Gmail message ${gmailMsgId}. Subject: ${subject}`,
+  });
+
+  const uwEventExists = await pool.query(
+    `
+      SELECT 1
+      FROM timeline_events
+      WHERE event_type = 'carrier.quote_needs_cid'
+        AND (event_payload_json->>'carrier_message_id')::uuid = $1
+      LIMIT 1
+    `,
+    [carrierMessageId],
+  );
+
+  if (uwEventExists.rows.length === 0) {
+    await createTimelineEvent({
+      client_id: null,
+      submission_id: null,
+      quote_id: null,
+      event_type: "carrier.quote_needs_cid",
+      event_label: `Carrier quote PDF needs CID link from ${resolveCarrierName(fromEmail) || fromEmail}`,
+      event_payload_json: {
+        carrier_message_id: carrierMessageId,
+        from_email: fromEmail,
+        subject,
+        attachment_count: attachments.length,
+        document_ids: documentIds,
+      },
+      created_by: "system",
+    });
+  }
+
+  try {
+    await notifyQuoteNeedsCid({
+      segment: seg.segment,
+      carrierName: resolveCarrierName(fromEmail),
+      emailSubject: subject,
+      fromEmail,
+      gmailMessageId: gmailMsgId,
+      carrierMessageId,
+      pdfCount: documentIds.length,
+    });
+  } catch (err) {
+    console.error("[gmailPoller] notifyQuoteNeedsCid error:", err.message || err);
+  }
+
+  console.log(
+    `[${seg.segment}] quote_needs_cid ingest for message ${messageId} (carrier_message ${carrierMessageId}, ${documentIds.length} PDFs)`,
+  );
+  return true;
+}
+
 async function processMessage(gmail, messageId, seg) {
   console.log(`[${seg.segment}] Processing message ${messageId}`);
 
@@ -327,11 +468,30 @@ async function processMessage(gmail, messageId, seg) {
     String(a.filename || "").toLowerCase().endsWith(".pdf"),
   );
 
-  if (!cidCandidate || !hasPdfAttachment) {
+  if (!hasPdfAttachment) {
     console.log(
-      `[${seg.segment}] Skipping message ${messageId} (cid=${cidCandidate ? cidCandidate : "none"} pdf=${
-        hasPdfAttachment ? "yes" : "no"
-      })`,
+      `[${seg.segment}] Skipping message ${messageId} (cid=${cidCandidate ? cidCandidate : "none"} pdf=no)`,
+    );
+    return false;
+  }
+
+  // Soft-ingest: PDF + quote keywords but no CID — ops links submission in operator home.
+  if (!cidCandidate && hasQuoteSignal(subject, bodyText)) {
+    return processQuoteNeedsCidMessage(gmail, msg, seg, {
+      messageId,
+      subject,
+      fromEmail,
+      toEmail,
+      bodyText,
+      receivedAt,
+      threadId,
+      gmailMsgId,
+    });
+  }
+
+  if (!cidCandidate) {
+    console.log(
+      `[${seg.segment}] Skipping message ${messageId} (cid=none pdf=yes)`,
     );
     return false;
   }
