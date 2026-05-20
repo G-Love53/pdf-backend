@@ -278,9 +278,9 @@ async function maybeMapData(name, rawData) {
     // Page 1: when No, show "See Page 2"; full explanation only on page 2 (opening_plan_details, prior_experience_details)
     if (d["1_open_for_business_now_or_within_60_days"] === "No") d.if_no_explain = "See Page 2";
     if (d["2_at_least_3_years_restaurantbar_ownership_in_last_5_years"] === "No" || d["2_at_least_3_years_restaurantbar_ownership_in_last_5_years_2"] === "No") d.if_no_prior_experie = "See Page 2";
-    // Form sends total_squarefeet_1; supplemental map uses square_footage
-    if (get("square_footage") == null && get("total_squarefeet_1")) {
-      d.square_footage = String(d.total_squarefeet_1).trim();
+    // Legacy / third-party keys → canonical ACORD name (Coterie, old SUPP maps)
+    if (get("total_squarefeet_1") == null && get("square_footage")) {
+      d.total_squarefeet_1 = String(d.square_footage).trim();
     }
     // Delivery "past 10 PM" yes/no is not business closing time — keep on remarks so PDF closing_time slot stays clean
     if (get("delivery_hours_extend_past_10pm") != null && String(d.delivery_hours_extend_past_10pm).trim() !== "") {
@@ -297,8 +297,8 @@ async function maybeMapData(name, rawData) {
     if (get("physical_city") == null && get("premise_city")) d.physical_city = d.premise_city;
     if (get("physical_state") == null && get("premise_state")) d.physical_state = d.premise_state;
     if (get("physical_zip") == null && get("premise_zip")) d.physical_zip = d.premise_zip;
-    if (get("square_footage") == null && get("total_squarefeet_1")) {
-      d.square_footage = String(d.total_squarefeet_1).trim();
+    if (get("total_squarefeet_1") == null && get("square_footage")) {
+      d.total_squarefeet_1 = String(d.square_footage).trim();
     }
     if (get("date") == null && get("effective_date")) d.date = d.effective_date;
     if (get("date") == null && get("policy_effective_date")) d.date = d.policy_effective_date;
@@ -328,7 +328,9 @@ async function maybeMapData(name, rawData) {
       if (n) d.total_sales = n;
     }
     if (get("annual_revenue_1") == null && get("total_sales")) d.annual_revenue_1 = d.total_sales;
-    if (get("total_squarefeet_1") == null && get("square_footage")) d.total_squarefeet_1 = d.square_footage;
+    if (get("total_squarefeet_1") == null && get("square_footage")) {
+      d.total_squarefeet_1 = String(d.square_footage).trim();
+    }
     // Additional Insured (Bar form → ACORD names; first AI block)
     if (get("ai_name") == null && get("ai_name_1")) d.ai_name = d.ai_name_1;
     if (get("ai_address") == null && get("ai_address_1")) d.ai_address = d.ai_address_1;
@@ -379,6 +381,7 @@ async function maybeMapData(name, rawData) {
         if (get("prem_basis_3") == null) d.prem_basis_3 = "SQUARE FT";
         if (get("exposure_1") == null && get("total_sales") != null) d.exposure_1 = d.total_sales;
         if (get("exposure_2") == null && get("alcohol_sales") != null) d.exposure_2 = d.alcohol_sales;
+        if (get("exposure_3") == null && get("total_squarefeet_1") != null) d.exposure_3 = d.total_squarefeet_1;
         if (get("exposure_3") == null && get("square_footage") != null) d.exposure_3 = d.square_footage;
       }
       if (name === "ACORD130") {
