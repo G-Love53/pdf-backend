@@ -251,9 +251,67 @@ APP.get("/__version", (_req, res) => {
 });
 
 // Helper: Data Mapping — add ACORD-expected keys from Bar form so ACORD PDFs fill
+function applyUniversalCanonicalFields(d, get, name) {
+  const setFromLegacy = (canonical, legacyKeys) => {
+    if (get(canonical) != null) return;
+    for (const key of legacyKeys) {
+      if (get(key) != null) {
+        d[canonical] = d[key];
+        return;
+      }
+    }
+  };
+
+  setFromLegacy("business_website", ["web_address", "premises_website"]);
+  setFromLegacy("policy_effective_date", ["policy_period_from", "effective_date"]);
+  setFromLegacy("business_phone", ["applicant_phone"]);
+  setFromLegacy("num_ft_employees", ["wc_employees_ft", "fulltime_1", "num_employees"]);
+  setFromLegacy("num_pt_employees", ["wc_employees_pt"]);
+  setFromLegacy("annual_payroll", ["wc_annual_payroll", "annual_payroll_excl_owners"]);
+  setFromLegacy("total_squarefeet_1", ["square_footage"]);
+  setFromLegacy("projected_gross_revenue", ["projected_revenue"]);
+
+  if (get("insured_name") == null && get("premises_name")) d.insured_name = d.premises_name;
+
+  for (let n = 1; n <= 4; n += 1) {
+    setFromLegacy(`premise_address_${n}`, [`location_${n}_address`]);
+    setFromLegacy(`premise_city_${n}`, [`location_${n}_city`]);
+  }
+  if (get("physical_address_1") == null && get("premise_address_1")) {
+    d.physical_address_1 = d.premise_address_1;
+  }
+  if (get("physical_address_1") == null && get("location_1_address")) {
+    d.physical_address_1 = d.location_1_address;
+  }
+  if (get("physical_city") == null && get("premise_city_1")) d.physical_city = d.premise_city_1;
+  if (get("physical_city") == null && get("location_1_city")) d.physical_city = d.location_1_city;
+  if (get("physical_state") == null && get("location_1_state")) d.physical_state = d.location_1_state;
+  if (get("physical_zip") == null && get("location_1_zip")) d.physical_zip = d.location_1_zip;
+
+  if (String(name || "").startsWith("SUPP_") && get("mailing_address") == null && get("physical_address_1")) {
+    const parts = [
+      d.physical_address_1,
+      d.physical_city,
+      d.physical_state,
+      d.physical_zip,
+    ].filter(Boolean);
+    if (parts.length) d.mailing_address = parts.join(", ");
+  }
+
+  if (get("date") == null && get("policy_effective_date")) d.date = d.policy_effective_date;
+  if (get("date") == null) {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    d.date = `${y}-${m}-${day}`;
+  }
+}
+
 async function maybeMapData(name, rawData) {
   const d = { ...rawData };
   const get = (k) => (d[k] != null && d[k] !== "") ? d[k] : undefined;
+  applyUniversalCanonicalFields(d, get, name);
   // SUPP_BAR: build premises_address from ACORD-style physical_* when form sends those
   if (name === "SUPP_BAR") {
     if (get("premises_address") == null) {
@@ -263,13 +321,6 @@ async function maybeMapData(name, rawData) {
     if (get("insured_name") == null && get("premises_name")) d.insured_name = d.premises_name;
     if (get("insured_name") == null && get("applicant_name")) d.insured_name = d.applicant_name;
     // DATE: no form field for "today" — auto-set so SUPP shows current date
-    if (get("date") == null && get("policy_effective_date")) d.date = d.policy_effective_date;
-    if (get("date") == null) {
-      const today = new Date();
-      const y = today.getFullYear(), m = String(today.getMonth() + 1).padStart(2, "0"), day = String(today.getDate()).padStart(2, "0");
-      d.date = `${y}-${m}-${day}`;
-      d.date_2 = d.date;
-    }
     if (get("date_2") == null && get("date")) d.date_2 = d.date;
     // Q17: Solid Fuel 10ft from unit on SUPP = form "Smoker within 10ft" (solid_fuel_smoker_grill_within_10_ft)
     if (get("full_limited_none12_solid_fuel_10_ft_from_unit") == null && get("solid_fuel_smoker_grill_within_10_ft")) d.full_limited_none12_solid_fuel_10_ft_from_unit = d.solid_fuel_smoker_grill_within_10_ft;
@@ -282,7 +333,6 @@ async function maybeMapData(name, rawData) {
     if (get("total_squarefeet_1") == null && get("square_footage")) {
       d.total_squarefeet_1 = String(d.square_footage).trim();
     }
-    // Delivery "past 10 PM" yes/no is not business closing time — keep on remarks so PDF closing_time slot stays clean
     if (get("delivery_hours_extend_past_10pm") != null && String(d.delivery_hours_extend_past_10pm).trim() !== "") {
       const line = `Delivery extends past 10 PM: ${d.delivery_hours_extend_past_10pm}`;
       const prev = get("remarks");
@@ -404,7 +454,18 @@ async function maybeMapData(name, rawData) {
       }
     }
 
-    // Smoker/grill notes (SUPP page-2 continuation; build from form if not provided)
+    if (name === "ACORD126" && segment !== "bar") {
+      if (get("exposure_1") == null && get("projected_gross_revenue") != null) {
+        const n = String(d.projected_gross_revenue).replace(/[^0-9.-]/g, "");
+        d.exposure_1 = n || d.projected_gross_revenue;
+      }
+      if (get("grosssales_1") == null && get("projected_gross_revenue") != null) {
+        const n = String(d.projected_gross_revenue).replace(/[^0-9.-]/g, "");
+        d.grosssales_1 = n || d.projected_gross_revenue;
+      }
+    }
+
+    // Smoker/grill notes
     if (get("smoker_grill_notes_cont") == null && get("solid_fuel_smoker_grill_within_10_ft") === "Yes") {
       const parts = [];
       if (d.unit_professionally_installed) parts.push("Professionally installed: " + d.unit_professionally_installed);
