@@ -26,6 +26,13 @@ function brandForSegment(segment) {
   return SEGMENT_BRAND[segmentKey(segment)] || "Commercial Insurance Direct";
 }
 
+/** First name only for letter salutation (e.g. "Dave w seubert" → "Dave"). */
+function deriveFirstName(clientData, contactName) {
+  const raw = String(clientData?.first_name || contactName || "").trim();
+  if (!raw) return "";
+  return raw.split(/\s+/)[0] || "";
+}
+
 function buildFallbackLetter(segment, extractionData, clientData, _letterContext = {}) {
   const policyType = extractionData?.policy_type || "insurance";
   const carrierName = extractionData?.carrier_name || "a carrier";
@@ -35,10 +42,10 @@ function buildFallbackLetter(segment, extractionData, clientData, _letterContext
   const perOcc = extractionData?.gl_per_occurrence || "N/A";
   const agg = extractionData?.gl_aggregate || "N/A";
 
-  const dearName =
-    clientData?.contact_name || clientData?.business_name || "Business Owner";
+  const firstName =
+    deriveFirstName(clientData, clientData?.contact_name) || "there";
 
-  return `Dear ${dearName},
+  return `${firstName},
 
 Thank you for requesting a commercial insurance quote through ${brand}.
 
@@ -96,49 +103,56 @@ function normalizeLetterClosing(text, segment) {
   return t;
 }
 
-function rewriteSalutation(letterText, businessName) {
-  const bn = String(businessName || "").trim();
-  const target = bn ? `Dear ${bn},` : "Dear Business Owner,";
+function rewriteSalutation(letterText, firstName) {
+  const fn = String(firstName || "").trim();
+  const target = fn ? `${fn},` : "Hello,";
   const lines = String(letterText || "").split(/\r?\n/);
-  let replaced = false;
-  for (let i = 0; i < Math.min(lines.length, 5); i += 1) {
+  let openerIndex = -1;
+  for (let i = 0; i < Math.min(lines.length, 8); i += 1) {
     const t = lines[i].trim();
     if (!t) continue;
     if (
       /^client,?$/i.test(t) ||
       /^dear\b.*,/i.test(t) ||
       /^hi\b.*,/i.test(t) ||
-      /^hello\b.*,/i.test(t)
+      /^hello\b.*,/i.test(t) ||
+      (fn && new RegExp(`^${fn.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")},?$`, "i").test(t))
     ) {
-      lines[i] = target;
-      replaced = true;
+      openerIndex = i;
       break;
     }
   }
-  if (!replaced) {
+
+  if (openerIndex < 0) {
     const body = String(letterText || "").trim();
     return `${target}\n\n${body}`;
   }
-  // Remove an immediate duplicate name line after salutation (e.g. "Dear X,\n\nX,")
+
+  lines[openerIndex] = target;
   const out = [];
-  let salutationSeen = false;
+  let salutationDone = false;
+  const skipRe = fn
+    ? new RegExp(`^(dear\\s+)?${fn.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i")
+    : /^dear\b/i;
+
   for (let i = 0; i < lines.length; i += 1) {
-    const line = lines[i];
-    const trimmed = line.trim();
-    if (!salutationSeen && /^dear\b.*,/i.test(trimmed)) {
-      salutationSeen = true;
-      out.push(line);
+    const trimmed = lines[i].trim();
+    if (!salutationDone) {
+      out.push(lines[i]);
+      if (i === openerIndex) salutationDone = true;
       continue;
     }
-    if (
-      salutationSeen &&
-      (trimmed === bn || trimmed === `${bn},`) &&
-      out.length > 0 &&
-      out[out.length - 1].trim() === ""
-    ) {
+    if (!trimmed) {
+      out.push(lines[i]);
       continue;
     }
-    out.push(line);
+    if (/^dear\b.*,/i.test(trimmed) || /^hi\b.*,/i.test(trimmed)) {
+      continue;
+    }
+    if (skipRe.test(trimmed) && (trimmed.endsWith(",") || /^dear\b/i.test(trimmed))) {
+      continue;
+    }
+    out.push(lines[i]);
   }
   return out.join("\n");
 }
@@ -297,13 +311,14 @@ export async function generateLetter(segment, extractionData, clientData, letter
   const extraction = extractionData || {};
   const client = clientData || {};
   const businessName = client.business_name || extraction.business_name || extraction.insured_name || "";
-  const salutationName = (
+  const salutationName = deriveFirstName(
+    client,
     client.contact_name ||
-    client.business_name ||
-    extraction.business_name ||
-    extraction.insured_name ||
-    ""
-  ).trim();
+      client.business_name ||
+      extraction.business_name ||
+      extraction.insured_name ||
+      "",
+  );
 
   if (!promptBuilder) {
     return finalizeLetterBody(

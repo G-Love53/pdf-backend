@@ -175,7 +175,7 @@ STRUCTURE (follow this every time):
 6. URGENCY (one line, honest) — Not fake scarcity. Real urgency: quote validity, current policy expiration, or carrier rate timing.
 
 WHAT YOU DON'T DO:
-- Don't open with "Dear Valued Customer" or "Thank you for your interest." Open with their name and their business.
+- Don't open with "Dear Valued Customer" or "Thank you for your interest." Open with their first name only on its own line (e.g. "Dave,") then a blank line — not "Dear …" and not the full legal name.
 - Don't list every coverage in a table. That's what the quote PDF is for. The letter is the sell, not the spec sheet.
 - Don't use words like "comprehensive," "tailored," "solutions," or "leverage." Those are empty. Be specific.
 - Don't write more than 300 words. Shorter is better. The CID Connect section earns its space — everything else should be tight.

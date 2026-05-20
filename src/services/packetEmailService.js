@@ -136,13 +136,15 @@ export function buildPacketEmailHtml({ segment, packetData, bodyOverride }) {
   const questionBody = "My question about my quote: ";
   const questionMailto = `mailto:${encodeURIComponent(questionsTo)}?subject=${encodeURIComponent(questionSubject)}&body=${encodeURIComponent(questionBody)}`;
   const letterHtml = formatLetterHtml(packetData.sales_letter_text);
+  const hasEmbeddedLetter = Boolean(letterHtml);
 
   const html = `
 <div style="font-family: Arial, Helvetica, sans-serif; color:#111827; line-height:1.5; max-width:760px;">
-  <p style="margin:0 0 12px 0; font-size:15px;">Hi ${escapeHtml(packetData.contact_name || packetData.client_name || "there")},</p>
   ${
-    letterHtml ||
-    `<p style="margin:0 0 14px 0; font-size:15px; line-height:1.65; color:#111827;">
+    hasEmbeddedLetter
+      ? letterHtml
+      : `<p style="margin:0 0 12px 0; font-size:15px;">Hi ${escapeHtml(packetData.contact_name || packetData.client_name || "there")},</p>
+  <p style="margin:0 0 14px 0; font-size:15px; line-height:1.65; color:#111827;">
       Thank you for the opportunity to earn your business. Please review your quote details below and attached packet.
     </p>`
   }
@@ -219,13 +221,19 @@ export function buildPacketEmailText({ segment, packetData, bodyOverride }) {
   const questionBody = "My question about my quote: ";
   const questionMailto = `mailto:${encodeURIComponent(questionsTo)}?subject=${encodeURIComponent(questionSubject)}&body=${encodeURIComponent(questionBody)}`;
   const letterText = formatLetterText(packetData.sales_letter_text);
+  const hasEmbeddedLetter = Boolean(String(letterText || "").trim());
+
+  const introLines = hasEmbeddedLetter
+    ? [letterText, ""]
+    : [
+        `Hi ${packetData.contact_name || packetData.client_name || "there"},`,
+        "",
+        "Thank you for the opportunity to earn your business. Please review your quote details below and attached packet.",
+        "",
+      ];
 
   const lines = [
-    `Hi ${packetData.contact_name || packetData.client_name || "there"},`,
-    "",
-    letterText ||
-      "Thank you for the opportunity to earn your business. Please review your quote details below and attached packet.",
-    "",
+    ...introLines,
     line,
     "",
     "Quote Summary",
