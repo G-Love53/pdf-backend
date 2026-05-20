@@ -360,7 +360,11 @@ router.post("/api/quotes/:quoteId/packet/finalize", async (req, res) => {
   } catch (err) {
     console.error("[packetBuilder] finalize error:", err.message || err);
     if (err.message === "packet_already_sent") {
-      return res.status(400).json({ error: "packet_already_sent" });
+      return res.status(200).json({
+        success: true,
+        already_sent: true,
+        message: "Packet was already sent for this quote.",
+      });
     }
     res.status(500).json({ error: "internal_error" });
   }

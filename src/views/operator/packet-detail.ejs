@@ -425,6 +425,17 @@
         } catch (_) {}
       }
 
+      async function packetAlreadySent() {
+        try {
+          const r = await fetch("/api/quotes/" + quoteId + "/packet-meta");
+          if (!r.ok) return false;
+          const data = await r.json();
+          return data.status === "sent";
+        } catch (_) {
+          return false;
+        }
+      }
+
       async function sendPacket() {
         const sendBtn = document.getElementById("send-btn");
         if (sendBtn && sendBtn.disabled) return;
@@ -437,25 +448,56 @@
           ? ccRaw.split(",").map((s) => s.trim()).filter(Boolean)
           : [];
 
-        const res = await fetch(
-          "/api/quotes/" + quoteId + "/packet/finalize",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              agent_id: "operator",
-              recipient_email: to,
-              cc_emails: cc,
-              email_subject: subject,
-              email_body_override: body || null,
-            }),
-          }
-        );
-        if (!res.ok) {
-          alert("Failed to send packet.");
-          return;
+        if (sendBtn) {
+          sendBtn.disabled = true;
+          sendBtn.textContent = "Sending…";
         }
-        window.location.href = "/operator/packet-builder" + segmentSuffix;
+
+        try {
+          const res = await fetch(
+            "/api/quotes/" + quoteId + "/packet/finalize",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                agent_id: "operator",
+                recipient_email: to,
+                cc_emails: cc,
+                email_subject: subject,
+                email_body_override: body || null,
+              }),
+            }
+          );
+          const out = await res.json().catch(() => ({}));
+          if (res.ok && (out.success || out.already_sent)) {
+            window.location.href = "/operator/packet-builder" + segmentSuffix;
+            return;
+          }
+          if (await packetAlreadySent()) {
+            window.location.href = "/operator/packet-builder" + segmentSuffix;
+            return;
+          }
+          const detail =
+            (out && (out.message || out.error)) ||
+            (res.status ? "HTTP " + res.status : "network error");
+          alert(
+            "Send may have failed — check the client inbox before retrying. " + detail
+          );
+        } catch (err) {
+          if (await packetAlreadySent()) {
+            window.location.href = "/operator/packet-builder" + segmentSuffix;
+            return;
+          }
+          alert(
+            "Send request did not finish — check the client inbox before retrying. " +
+              (err.message || "network error")
+          );
+        } finally {
+          if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.textContent = "Send Packet";
+          }
+        }
       }
 
       async function resendPacket() {
