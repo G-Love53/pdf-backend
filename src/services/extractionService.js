@@ -4,6 +4,7 @@ import buildBarExtractionPrompt from "../prompts/extraction/bar.js";
 import buildRooferExtractionPrompt from "../prompts/extraction/roofer.js";
 import buildPlumberExtractionPrompt from "../prompts/extraction/plumber.js";
 import buildHvacExtractionPrompt from "../prompts/extraction/hvac.js";
+import buildElectricalExtractionPrompt from "../prompts/extraction/electrical.js";
 import { orderByPrimaryCarrierPdf } from "../utils/carrierPdfPrimaryOrder.js";
 import { QuoteStatus } from "../constants/postgresEnums.js";
 
@@ -28,6 +29,7 @@ function resolvePromptBuilder(segment) {
   if (seg === "plumber") return buildPlumberExtractionPrompt;
   if (seg === "hvac") return buildHvacExtractionPrompt;
   if (seg === "fitness") return buildHvacExtractionPrompt;
+  if (seg === "electrical") return buildElectricalExtractionPrompt;
   return buildBarExtractionPrompt;
 }
 

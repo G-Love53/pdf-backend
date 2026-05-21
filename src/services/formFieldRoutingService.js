@@ -20,7 +20,7 @@ const HOME_BASE = path.join(__dirname, "../../CID_HomeBase/templates");
 const SIBLING = path.join(__dirname, "../../..");
 const ACORD_TEMPLATES = ["ACORD125", "ACORD126", "ACORD130", "ACORD140"];
 
-const CONTRACTOR_SEGMENTS = new Set(["plumber", "hvac", "fitness"]);
+const CONTRACTOR_SEGMENTS = new Set(["plumber", "hvac", "fitness", "electrical"]);
 
 function getVal(d, key) {
   const v = d[key];

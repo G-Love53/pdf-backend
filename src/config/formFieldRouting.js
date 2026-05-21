@@ -33,6 +33,7 @@ export const META_FIELDS = new Set([
   "plumber-contractor-quote",
   "hvac-contractor-quote",
   "fitness-contractor-quote",
+  "electrical-contractor-quote",
   "trade",
   "segment",
   "bundle_id",
@@ -204,6 +205,18 @@ export const REMARKS_OVERFLOW = {
     { form: "crane_operations", label: "Crane operations" },
     { form: "hvac_operations", label: "HVAC operations" },
   ],
+  electrical: [
+    { form: "gas_line_work", label: "Gas line work" },
+    { form: "boiler_work", label: "Boiler work" },
+    { form: "high_pressure_steam_work", label: "High pressure steam work" },
+    { form: "refrigeration_work", label: "Refrigeration work" },
+    { form: "ac_units_work", label: "AC units work" },
+    { form: "welding_operations", label: "Welding operations" },
+    { form: "welding_fire_measures", label: "Welding fire measures" },
+    { form: "crane_operations", label: "Crane operations" },
+    { form: "current_carrier", label: "Current carrier" },
+    { form: "hvac_operations", label: "HVAC operations" },
+  ],
   roofer: [
     { form: "CERTA_Certified_Employees", label: "CERTA certified employees" },
     { form: "Heat_Application_Experience_Years", label: "Heat application experience years" },
@@ -273,6 +286,7 @@ export const SEGMENT_FORMS = {
   plumber: path.join(SIBLING, "plumber-pdf-backend/Netlify/index.html"),
   hvac: path.join(SIBLING, "hvac-pdf-backend/Netlify/index.html"),
   fitness: path.join(SIBLING, "fitness-pdf-backend/Netlify/index.html"),
+  electrical: path.join(SIBLING, "electrical-pdf-backend/Netlify/index.html"),
 };
 
 export const SEGMENT_SUPP = {
@@ -281,4 +295,5 @@ export const SEGMENT_SUPP = {
   plumber: "SUPP_PLUMBER",
   hvac: "SUPP_HVAC",
   fitness: "SUPP_FITNESS",
+  electrical: "SUPP_ELECTRICAL",
 };

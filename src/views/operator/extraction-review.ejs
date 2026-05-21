@@ -338,6 +338,16 @@
             ${fieldRow("pollution_liability_limit", "Pollution Liability Limit", "number")}
             ${fieldRow("tools_equipment_coverage", "Tools & Equipment Coverage", "number")}
           `;
+        } else if (seg === "electrical") {
+          html += `
+            ${fieldRow("wc_included", "WC Included")}
+            ${fieldRow("wc_premium", "WC Premium", "number")}
+            ${fieldRow("professional_liability", "Professional Liability Included")}
+            ${fieldRow("professional_liability_limit", "Professional Liability Limit", "number")}
+            ${fieldRow("completed_operations", "Completed Operations")}
+            ${fieldRow("subcontractor_coverage", "Subcontractor Coverage")}
+            ${fieldRow("tools_equipment_coverage", "Tools & Equipment Coverage", "number")}
+          `;
         }
 
         html += `

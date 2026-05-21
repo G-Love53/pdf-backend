@@ -24,6 +24,7 @@ export function segmentIntakeBaseUrl(segment) {
     roofer: "https://roofingcontractorinsurancedirect.com/",
     hvac: "https://hvacinsurancedirect.com/",
     fitness: "https://www.fitnessinsurancedirect.com/",
+    electrical: "https://electricalinsurancedirect.com/",
   };
   const k = String(segment || "bar").toLowerCase();
   return m[k] || m.bar;

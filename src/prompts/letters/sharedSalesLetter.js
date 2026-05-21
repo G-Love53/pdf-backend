@@ -28,6 +28,11 @@ const SEGMENT_VALUE_PROPS = {
 - Equipment breakdown and tenant improvements when carriers include them — not a one-size BOP assumption
 - Professional and participant-injury nuances vary by carrier — we stay conservative in what we promise in the letter
 - Peak-hour traffic and seasonal membership swings — limits that match how you actually operate`,
+
+  electrical: `- GL and completed operations built for wiring, panels, and commercial service work
+- Protection when a job fails after you leave — callbacks and latent defects are where claims actually show up
+- Subcontractor and hired-labor exposure addressed when the carrier includes it — not assumed on every quote
+- Tools and equipment coverage when quoted — so a truck break-in does not stop your week`,
 };
 
 function segmentKey(segment) {

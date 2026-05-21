@@ -2,12 +2,14 @@ import { build as buildBarPrompt } from "../prompts/letters/bar.js";
 import { build as buildPlumberPrompt } from "../prompts/letters/plumber.js";
 import { build as buildRooferPrompt } from "../prompts/letters/roofer.js";
 import { build as buildHvacPrompt } from "../prompts/letters/hvac.js";
+import { build as buildElectricalPrompt } from "../prompts/letters/electrical.js";
 const LETTER_PROMPTS = {
   bar: buildBarPrompt,
   roofer: buildRooferPrompt,
   plumber: buildPlumberPrompt,
   hvac: buildHvacPrompt,
   fitness: buildHvacPrompt,
+  electrical: buildElectricalPrompt,
 };
 
 const SEGMENT_BRAND = {
@@ -16,6 +18,7 @@ const SEGMENT_BRAND = {
   plumber: "Plumber Insurance Direct",
   hvac: "HVAC Insurance Direct",
   fitness: "Fitness Insurance Direct",
+  electrical: "Electrical Insurance Direct",
 };
 
 function segmentKey(segment) {

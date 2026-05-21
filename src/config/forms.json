@@ -64,6 +64,11 @@
     "engine": "svg",
     "templatePath": "CID_HomeBase/templates/SUPP_FITNESS"
   },
+  "SUPP_ELECTRICAL": {
+    "enabled": true,
+    "engine": "svg",
+    "templatePath": "CID_HomeBase/templates/SUPP_ELECTRICAL"
+  },
   "CLIENT_SUBMISSION": {
     "enabled": true,
     "engine": "html",

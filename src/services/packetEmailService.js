@@ -8,6 +8,7 @@ const SEGMENT_DISPLAY = {
   plumber: "Plumber",
   hvac: "HVAC Contractor",
   fitness: "Fitness Facility",
+  electrical: "Electrical Contractor",
 };
 
 const SEGMENT_SUBJECT_DISPLAY = {
@@ -16,6 +17,7 @@ const SEGMENT_SUBJECT_DISPLAY = {
   plumber: "Plumbing",
   hvac: "HVAC",
   fitness: "Fitness Facility",
+  electrical: "Electrical",
 };
 
 const SEGMENT_LINE = {
@@ -24,6 +26,7 @@ const SEGMENT_LINE = {
   plumber: "This quote covers the professional liability and equipment risks specific to plumbing operations.",
   hvac: "This quote includes pollution liability and refrigerant coverage designed for HVAC contractors.",
   fitness: "This quote is structured for fitness facilities and studios — verify participant and professional coverages against the carrier terms attached.",
+  electrical: "This quote is structured for electrical contractors — verify completed operations, tools, and subcontractor coverages against the carrier terms attached.",
 };
 
 function escapeHtml(v) {

@@ -82,7 +82,8 @@ export async function recordSubmission({
         seg === "roofer" ||
         seg === "plumber" ||
         seg === "hvac" ||
-        seg === "fitness"
+        seg === "fitness" ||
+        seg === "electrical"
         ? seg
         : "bar";
 

@@ -39,6 +39,14 @@ const SEGMENT_BRANDING = {
     segmentDisplayName: "Fitness Facility",
     logoPath: null,
   },
+  electrical: {
+    segmentColor: "#eab308",
+    segmentIcon: "E",
+    segmentBrandName: "Electrical Insurance Direct",
+    segmentDomain: "electricalinsurancedirect.com",
+    segmentDisplayName: "Electrical Contractor",
+    logoPath: null,
+  },
 };
 
 export function getSegmentBranding(segment) {
