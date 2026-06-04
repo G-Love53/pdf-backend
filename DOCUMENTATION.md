@@ -8,6 +8,10 @@
 |----------|-------------|
 | **[docs/Deploy_Guide.md](./docs/Deploy_Guide.md)** | **Canonical** — Render, Netlify, env, post-deploy checks, intake JSON contract, **Postmaster** + campaign DNS alignment, GitHub heartbeat notes |
 | **[docs/VENDORS_S1_S6_CONNECT.md](./docs/VENDORS_S1_S6_CONNECT.md)** | **Dated** — vendors by S1–S6 stage and Connect; active vs legacy vs marketing-only |
+| **[docs/corporate-structure.md](./docs/corporate-structure.md)** | **Dated** — legal entity, segment brands/domains/inboxes, partner narrative vs internal stack |
+| **[docs/partnerships.md](./docs/partnerships.md)** | **Dated** — partnerships/integrations registry (exit, carriers, vendors, SOC vendor status) |
+| **[docs/partnership-gaps.md](./docs/partnership-gaps.md)** | **Dated** — diligence gaps P0–P3; segment carrier appointments; Ray inter-company |
+| **[docs/compliance-roadmap.md](./docs/compliance-roadmap.md)** | **Dated** — SOC 2 / security roadmap for founder & counsel review (download/share with Ray) |
 | **[docs/OPERATOR_DAILY_RUNBOOK.md](./docs/OPERATOR_DAILY_RUNBOOK.md)** | Operator quote → bind → policy flow; **S5 client email** preview/send expectations |
 | **[OPERATOR_SEGMENT_AUDIT.md](./OPERATOR_SEGMENT_AUDIT.md)** | Segment filter audit + **S5 email** behavior (shared backend) |
 | [CID-docs/README.md](../CID-docs/README.md) | Optional local index (if present) |

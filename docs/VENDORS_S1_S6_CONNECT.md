@@ -3,7 +3,7 @@
 > **Canonical location (RSS):** `pdf-backend/docs/VENDORS_S1_S6_CONNECT.md` — version with **CID-PDF-API** on Render.  
 > **As of:** 2026-05-15 (America/Denver). Update this date when vendors or roles change.
 
-**Purpose:** One dated reference for **who we use** (and what we dropped) across intake → operator → bind and **CID Connect**. For deploy steps and env var names, see [`Deploy_Guide.md`](./Deploy_Guide.md). For daily ops, see [`OPERATOR_DAILY_RUNBOOK.md`](./OPERATOR_DAILY_RUNBOOK.md). For Connect architecture, see **`cid-connect`** [`docs/ARCHITECTURE.md`](https://github.com/G-Love53/cid-connect/blob/main/docs/ARCHITECTURE.md).
+**Purpose:** One dated reference for **who we use** (and what we dropped) across intake → operator → bind and **CID Connect**. For deploy steps and env var names, see [`Deploy_Guide.md`](./Deploy_Guide.md). For daily ops, see [`OPERATOR_DAILY_RUNBOOK.md`](./OPERATOR_DAILY_RUNBOOK.md). For Connect architecture, see **`cid-connect`** [`docs/ARCHITECTURE.md`](https://github.com/G-Love53/cid-connect/blob/main/docs/ARCHITECTURE.md). For business registry, gaps, and SOC roadmap, see [`partnerships.md`](./partnerships.md), [`partnership-gaps.md`](./partnership-gaps.md), [`compliance-roadmap.md`](./compliance-roadmap.md).
 
 ---
 

@@ -155,7 +155,7 @@ Use **Secret Files** in Render for private keys if you prefer file-based config.
 - [ ] S6 **Docs Reconcile** lookup/upload works for a known CID and writes `policy.document.manual_linked` timeline event.
 - [ ] Operator Home "Connect: policy / dec PDFs (today)" increments after policy upload/link.
 
-### Post-deploy checks (all intake segments: Bar/Roofer/Plumber/HVAC/Fitness)
+### Post-deploy checks (all intake segments: Bar/Roofer/Plumber/HVAC/Fitness/Electrical)
 
 - [ ] Outbound carrier outreach subject includes a bracketed **`submission_public_id`** token (`[CID-SEG-YYYYMMDD-######]`) so Gmail poller can auto-match replies in S4.
 - [ ] Outbound intake email includes **`Client-Submission.pdf`** ("questions answered" snapshot) plus the expected ACORD/SUPP attachments.
@@ -275,7 +275,7 @@ Run these per segment test account:
 - **Outbound send** (`sendWithGmail` / Nodemailer) uses **`GMAIL_USER_*`** + **`GMAIL_APP_PASSWORD_*`** (16‑character Google **App passwords**). See **Email infrastructure** below.
 - **Inbound poller** (`src/jobs/gmailPoller.js`) uses **OAuth 2.0**, not app passwords. On **CID-PDF-API Render** it needs:
   - **`GMAIL_CLIENT_ID`**, **`GMAIL_CLIENT_SECRET`**, **`GMAIL_REDIRECT_URI`**
-  - **`GMAIL_REFRESH_TOKEN_BAR`**, **`GMAIL_REFRESH_TOKEN_ROOFER`**, **`GMAIL_REFRESH_TOKEN_PLUMBER`**, **`GMAIL_REFRESH_TOKEN_HVAC`**  
+  - **`GMAIL_REFRESH_TOKEN_BAR`**, **`GMAIL_REFRESH_TOKEN_ROOFER`**, **`GMAIL_REFRESH_TOKEN_PLUMBER`**, **`GMAIL_REFRESH_TOKEN_HVAC`**, **`GMAIL_REFRESH_TOKEN_ELECTRICAL`** (add matching key when launching a new segment — see **Backend configuration → CID-PDF-API**)  
   Segment key comes from the inbox domain (e.g. `quotes@hvacinsurancedirect.com` → **`GMAIL_REFRESH_TOKEN_HVAC`**).
 
 #### When logs show `invalid_grant` (one segment, e.g. `[hvac]`)
@@ -401,7 +401,7 @@ Goal: `quotes@<segment>insurancedirect.com` stays working while DNS moves and is
 
 ## Backend configuration (Render, per segment)
 
-Goal: one Render Web Service per segment (`bar-pdf-backend`, `roofer-pdf-backend`, `plumber-pdf-backend`, `hvac-pdf-backend`) with the same Dockerfile pattern and env names.
+Goal: one Render Web Service per segment (`bar-pdf-backend`, `roofer-pdf-backend`, `plumber-pdf-backend`, `hvac-pdf-backend`, `electrical-pdf-backend`, …) with the same Dockerfile pattern and env names.
 
 ### Common Render settings
 
@@ -409,50 +409,109 @@ Goal: one Render Web Service per segment (`bar-pdf-backend`, `roofer-pdf-backend
 - Start: `npm start` → `node src/server.js`.
 - Port: Express listens on `process.env.PORT || 8080`. Render sets `PORT` (typically 10000); do not hard‑code a port env var.
 
-### Canonical environment variables
+### Render Environment Groups (recommended — RSS)
 
-Use the same names for all segments; only values change.
+Use a **Render Environment Group** so every new segment starts from the same template instead of hand-copying HVAC.
 
-| Variable | Purpose | Example (HVAC) |
-|---------|---------|----------------|
-| `SEGMENT` | Segment id used in packets/DB | `hvac` |
-| `CARRIER_EMAIL` | Default recipient if caller does not override | `quotes@hvacinsurancedirect.com` |
-| `GMAIL_USER` | Sender Gmail account | `quotes@hvacinsurancedirect.com` |
-| `GMAIL_APP_PASSWORD` | 16‑character app password for `GMAIL_USER` | `***` |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | Service account for Gmail API / Sheets | `svc-…@…gserviceaccount.com` |
-| `GOOGLE_PRIVATE_KEY` | RSA private key for the service account (with `\n` escaped) | `***` |
-| `SUPABASE_URL` | Supabase project URL (shared across segments) | `https://xyz.supabase.co` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (shared) | `***` |
-| `OPENAI_API_KEY` | AI (quote parsing, etc.) | `***` |
-| `GEMINI_API_KEY` | Gemini / Google GenAI key | `***` |
-| `CORS_ORIGINS` | Optional list of allowed origins | `https://hvacinsurancedirect.com,https://www.hvacinsurancedirect.com` |
+1. **Create group once** (e.g. `cid-segment-template`):
+   - Copy **all** env vars from a working segment service (HVAC is the reference contractor segment).
+   - Prefer **generic key names** in the group: `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `SEGMENT` — not `GMAIL_USER_HVAC` (segment code reads `GMAIL_USER` / `GMAIL_APP_PASSWORD` in `src/email.js`).
+2. **Link the group** to every segment Web Service (`hvac-pdf-backend`, `electrical-pdf-backend`, …).
+3. **On each service only**, add **service-level overrides** for segment-specific values (overrides win over the group). Linked group vars are read-only on the service page — edit overrides in the top **Environment Variables** section, not in the linked group block.
+4. **Deploy** after overrides are saved.
+
+**Typical segment service total: 12 env vars** — 6 shared (from group) + 6 segment-specific (service overrides). Same keys on every segment; only override values change.
+
+### Shared vs segment-specific (segment Render Web Service)
+
+| Variable | Shared or segment? | Value |
+|----------|-------------------|--------|
+| `DATABASE_URL` | **Shared** — same as HVAC / all segments | cid-postgres (`DATABASE_URL` on CID-PDF-API) |
+| `OPENAI_API_KEY` | **Shared** | Same key as HVAC |
+| `GEMINI_API_KEY` | **Shared** | Same key as HVAC |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | **Shared** | Same service account as HVAC |
+| `GOOGLE_PRIVATE_KEY` | **Shared** | Same key as HVAC |
+| `SUPABASE_URL` | **Shared** | Same project as HVAC |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Shared** | Same key as HVAC |
+| `SEGMENT` | **Segment-specific** | e.g. `hvac`, `electrical` |
+| `SEGMENT_NAME` | **Segment-specific** | Same as `SEGMENT` (used by `quote-processor.js`) |
+| `GMAIL_USER` | **Segment-specific** | `quotes@<segment>insurancedirect.com` |
+| `GMAIL_APP_PASSWORD` | **Segment-specific** | App password for that mailbox |
+| `CARRIER_EMAIL` | **Segment-specific** | Usually same as `GMAIL_USER` |
+| `CORS_ORIGINS` | **Segment-specific** | `https://<segment-domain>,https://www.<segment-domain>` |
+
+**Do not set on segment services:** `GMAIL_REFRESH_TOKEN_*` (inbound poller lives on **CID-PDF-API** only). **`PORT`** / **`RENDER_*`** are set by Render.
+
+**Intake path:** Netlify forms **`POST https://cid-pdf-api.onrender.com/submit-quote`** — not the segment Render URL. Segment Render is Leg 2 (Docker); central API is operator + intake + poller.
+
+### CID-PDF-API — additional per-segment env (central service)
+
+On **`cid-pdf-api`** (`pdf-backend`), add when launching a new segment:
+
+| Variable | Shared or segment? | Purpose |
+|----------|-------------------|---------|
+| `GMAIL_REFRESH_TOKEN_<SEGKEY>` | **Segment-specific** | OAuth refresh token for that segment’s quotes inbox (poller). Example: `GMAIL_REFRESH_TOKEN_ELECTRICAL` for `quotes@electricalinsurancedirect.com`. See Gmail poller renewal steps above. |
+| `GMAIL_USER_<SEGKEY>` / `GMAIL_APP_PASSWORD_<SEGKEY>` | **Segment-specific** (optional) | Per-segment outbound send on central API when implemented; fallback is global `GMAIL_USER`. |
+
+Shared on CID-PDF-API: same `DATABASE_URL`, R2, BoldSign, `GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET`, etc. — copy from existing production env; do not duplicate per segment.
+
+### Canonical environment variables (segment Web Service)
+
+Use the same **names** for all segments; only **values** change.
+
+| Variable | Purpose | Example (HVAC) | Example (Electrical) |
+|---------|---------|----------------|----------------------|
+| `SEGMENT` | Segment id in server / packets | `hvac` | `electrical` |
+| `SEGMENT_NAME` | Leg 2 quote processor | `hvac` | `electrical` |
+| `CARRIER_EMAIL` | Default recipient if caller does not override | `quotes@hvacinsurancedirect.com` | `quotes@electricalinsurancedirect.com` |
+| `GMAIL_USER` | Sender Gmail account | `quotes@hvacinsurancedirect.com` | `quotes@electricalinsurancedirect.com` |
+| `GMAIL_APP_PASSWORD` | 16‑character app password for `GMAIL_USER` | `***` | `***` |
+| `DATABASE_URL` | Postgres (shared) | *(same as all segments)* | *(same)* |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | Service account for Gmail API | *(shared)* | *(shared)* |
+| `GOOGLE_PRIVATE_KEY` | RSA private key (escaped `\n`) | *(shared)* | *(shared)* |
+| `SUPABASE_URL` | Supabase project URL | *(shared)* | *(shared)* |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role | *(shared)* | *(shared)* |
+| `OPENAI_API_KEY` | AI (quote parsing, etc.) | *(shared)* | *(shared)* |
+| `GEMINI_API_KEY` | Gemini / Google GenAI | *(shared)* | *(shared)* |
+| `CORS_ORIGINS` | Allowed origins | `https://hvacinsurancedirect.com,…` | `https://electricalinsurancedirect.com,…` |
 
 Notes:
 
-- The email helper prefers `GMAIL_USER` / `GMAIL_APP_PASSWORD`. `EMAIL_USER` / `EMAIL_APP_PASSWORD` are legacy and should only be used where the code explicitly supports them.
-- `CARRIER_EMAIL` is a fallback; callers (Netlify forms) can always override with `email.to` in the payload.
+- The email helper prefers `GMAIL_USER` / `GMAIL_APP_PASSWORD`. `EMAIL_USER` / `EMAIL_APP_PASSWORD` are legacy.
+- `CARRIER_EMAIL` is a fallback; Netlify forms override with `email.to` in the JSON body.
+- If a legacy env group uses `GMAIL_USER_HVAC`, segment code **does not** read it — add `GMAIL_USER` on the service override.
+
+### New segment checklist (Electrical template)
+
+**Order:** GitHub repo → cid-postgres migration → CID-PDF-API code + poller token → segment Render + env group → Netlify → smoke.
+
+1. **GitHub:** `{segment}-pdf-backend` (clone HVAC repo pattern), push `main`.
+2. **cid-postgres:** Run migration (e.g. `migrations/012_segment_electrical.sql`) on **`DATABASE_URL`** — use Render Postgres Shell or `node` + `pg` in CID-PDF-API Shell (do not paste SQL into bash).
+3. **CID-PDF-API (`pdf-backend`):** `{SEGMENT}_INTAKE`, `SUPP_{SEGMENT}`, form routing, operator/poller config; deploy; set **`GMAIL_REFRESH_TOKEN_{SEGKEY}`** on Render.
+4. **Segment Render:** New Docker Web Service from `{segment}-pdf-backend`; link **`cid-segment-template`**; service overrides for the 6 segment-specific vars above.
+5. **Netlify:** Same repo, publish `Netlify/`, domain `<segment>insurancedirect.com`; form **`POST`s CID-PDF-API** with `bundle_id` + `segment`.
+6. **Smoke:** § Post-deploy checks (all intake segments).
 
 ### Segment‑specific example (HVAC)
 
-1. Render → `hvac-pdf-backend` → Environment:
-   - Set:
-     - `SEGMENT=hvac`
-     - `CARRIER_EMAIL=quotes@hvacinsurancedirect.com`
-     - `GMAIL_USER=quotes@hvacinsurancedirect.com`
-     - `GMAIL_APP_PASSWORD=<App password>`
-     - `GOOGLE_SERVICE_ACCOUNT_EMAIL=<from Google Cloud>`
-     - `GOOGLE_PRIVATE_KEY=<escaped private key>`
-     - `SUPABASE_URL=<same as other segments>`
-     - `SUPABASE_SERVICE_ROLE_KEY=<same as other segments>`
-     - `OPENAI_API_KEY=<shared>`
-     - `GEMINI_API_KEY=<shared>`
-2. CID_HomeBase:
-   - Ensure `CID_HomeBase/templates/SUPP_HVAC` (assets + mapping) exists and is pushed.
-3. Backend config:
-   - In `src/config/forms.json` add:
-     - `SUPP_HVAC` entry pointing at `CID_HomeBase/templates/SUPP_HVAC`.
-   - In `src/config/bundles.json` add:
-     - `HVAC_INTAKE` bundle that includes `SUPP_HVAC` + ACORD forms.
+1. Render → `hvac-pdf-backend` → link env group + overrides:
+   - `SEGMENT=hvac`, `SEGMENT_NAME=hvac`
+   - `CARRIER_EMAIL=quotes@hvacinsurancedirect.com`
+   - `GMAIL_USER=quotes@hvacinsurancedirect.com`
+   - `GMAIL_APP_PASSWORD=<App password>`
+   - `CORS_ORIGINS=https://hvacinsurancedirect.com,https://www.hvacinsurancedirect.com`
+   - Shared keys from group: `DATABASE_URL`, `GOOGLE_*`, `SUPABASE_*`, `OPENAI_API_KEY`, `GEMINI_API_KEY`
+2. CID_HomeBase: `CID_HomeBase/templates/SUPP_HVAC`
+3. CID-PDF-API: `HVAC_INTAKE` in `config/bundles.json`, `GMAIL_REFRESH_TOKEN_HVAC` on Render
+
+### Segment‑specific example (Electrical)
+
+Same as HVAC; replace segment slug, domain, and inbox:
+
+- Repo: `electrical-pdf-backend` · Render service: `electrical-pdf-backend`
+- Overrides: `SEGMENT=electrical`, `SEGMENT_NAME=electrical`, `quotes@electricalinsurancedirect.com`, `CORS_ORIGINS=https://electricalinsurancedirect.com,…`
+- CID-PDF-API: `ELECTRICAL_INTAKE`, `SUPP_ELECTRICAL`, `GMAIL_REFRESH_TOKEN_ELECTRICAL`
+- Migration: `migrations/012_segment_electrical.sql` · public id code **ELC**
 
 ---
 
@@ -494,3 +553,4 @@ Details and division of labor (Famous vs `pdf-backend`): [CID_CONNECT.md](./CID_
 | 2026-05-06 | Postmaster Tools checklist for campaign sending domains; GitHub Actions heartbeat notes (`GET /healthz` on CID-PDF-API vs legacy `/check-quotes`); S5 client email post-deploy checks (body letter, plaintext, subject, segment sign-off). |
 | 2026-05-07 | Pipeline DB vs Connect/Famous Supabase: canonical **`DATABASE_URL`** (cid-postgres), where to run **`psql`** / migrations, segment enum verification query. |
 | 2026-05-14 | **`[CID][Submission]`** plain-text ping after **`recordSubmission`** for **all** segments (**`notifySubmissionReceived`** → **`getSegmentAgentInboxEmail`**); Phase 2 / flow / checklist updates in this guide. |
+| 2026-05-21 | Render **Environment Groups** (`cid-segment-template`); shared vs segment-specific env table (12 vars per segment service); **`GMAIL_REFRESH_TOKEN_*`** on CID-PDF-API; Electrical segment example; DB migration via Node in API Shell. |
