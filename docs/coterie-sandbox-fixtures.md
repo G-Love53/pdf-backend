@@ -86,7 +86,7 @@ Content-Type: application/json
 }
 ```
 
-**Error (current sandbox — graceful handling in code):**
+**Error (historical — resolved when CO license enabled):**
 
 ```json
 {
@@ -95,7 +95,9 @@ Content-Type: application/json
 }
 ```
 
-CID ConnectQuote intake returns `coterie.bindBlocked` with `retryWhen: coterie_co_producer_license_enabled` — submission still recorded.
+CID ConnectQuote intake returns `coterie.bindBlocked` with `retryWhen: coterie_co_producer_license_enabled` when license missing — submission still recorded.
+
+**Success (2026-06-12 — electrical CO, redacted):** bindable quote `isSuccess: true`, premium ~$1,448/yr BOP; demo-finalize creates policy row + Connect URL.
 
 ---
 

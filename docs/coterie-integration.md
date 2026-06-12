@@ -1,7 +1,9 @@
 # CID × Coterie — ConnectQuote integration (sandbox)
 
 > **Canonical location (RSS):** `pdf-backend/docs/coterie-integration.md`  
-> **As of:** 2026-06-04 (America/Denver). Update when API behavior, pilots, or env change.
+> **As of:** 2026-06-12 (America/Denver). Update when API behavior, pilots, or env change.
+>
+> **Shipped summary:** [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md)
 >
 > **Related:** [`corporate-structure.md`](./corporate-structure.md) (quote rails) · [`partnerships.md`](./partnerships.md) · [`Deploy_Guide.md`](./Deploy_Guide.md) (Render env) · AKHash workbook (local ops — **not in repo**).
 
@@ -9,30 +11,32 @@
 
 ---
 
-## Status (2026-06-04)
+## Status (2026-06-12)
 
 | Item | State |
 |------|--------|
-| Sandbox credentials | Issued — store in **Render env only** (never commit) |
-| Create Application | **Validated** — auth + `AKHash` + BOP/GL for Electrical |
-| Bindable Quote | **Blocked** — `E0122: Producer is not licensed in CO` until Coterie enables CO producer license in sandbox |
+| Sandbox credentials | **Live on Render** — never commit |
+| Create Application | **Validated** — Electrical + Fitness AKHashes |
+| Bindable Quote | **Working in CO sandbox** — premiums returned (e.g. electrical BOP ~$1,448/yr) |
+| Bind / payment | **Stripe `tok_` bind wired**; **demo-finalize** for investor demos |
 | Pilot geography | **CO only** (v1) |
-| Pilot segments | **Electrical** (primary), **Fitness** (next) |
-| Code on CID-PDF-API | **Skeleton live** — intake + API client + webhook ack; bind finalize pending CO license + webhook sample |
-| Webhook | `POST /webhooks/coterie` on `cid-pdf-api.onrender.com` (skeleton) |
+| Pilot segments | **Electrical** + **Fitness** (yoga, pilates, personal trainer) |
+| Intake UI | Segment `connectquote.html` + shared `/static/connectquote-intake.js` |
+| Webhook | `POST /webhooks/coterie` skeleton — production doc ingest **TBD** |
+| Connect handoff | **Live** — Open Connect button + bind token / email prefill |
 
 ---
 
 ## Architecture (locked)
 
 ```text
-Campaign / organic → segment /quote (URL prefill)
-    → ConnectQuote form (6 Q + business class → AKHash)
-    → CID-PDF-API (record submission + Coterie adapter)
+Campaign / organic → segment connectquote.html (URL prefill)
+    → shared intake (coverage toggles + Coterie rating fields)
+    → CID-PDF-API POST /api/coterie/connectquote
     → POST /v1.6/commercial/applications
     → POST /v1.6/commercial/quotes/bindable
-    → bind / Stripe (Coterie)
-    → webhook → policy row (S6-lite) → Connect invite
+    → bind / Stripe (Coterie) OR demo-finalize (sandbox)
+    → policy row (S6-lite) → Connect invite
 ```
 
 - **Traditional rail** unchanged (full `*_INTAKE` bundle, BoldSign S6).
@@ -58,6 +62,8 @@ Campaign / organic → segment /quote (URL prefill)
 | `COTERIE_API_BASE` | `https://api-sandbox.coterieinsurance.com` (prod URL TBD) |
 | `COTERIE_PUBLISHABLE_KEY` | Partner publishable key |
 | `COTERIE_AGENCY_EXTERNAL_ID` | Agency UUID from Coterie |
+| `COTERIE_STRIPE_PUBLISHABLE_KEY` | Browser Stripe pk for Coterie bind (safe for intake page) |
+| `COTERIE_DEMO_FINALIZE_ENABLED` | `true` in sandbox — demo bind without live charge |
 | `COTERIE_WEBHOOK_SECRET` | When webhook registration provides one (TBD) |
 
 ---
@@ -134,11 +140,15 @@ Full mapping: local file `Coterie AKHash 06-04-2026-V2-10.xlsx` — sheet **BOP 
 
 | Path | Role |
 |------|------|
-| `src/config/coterieAkHash.js` | Per-segment `business_class` → AKHash; CO pilot states |
-| `src/services/coterieService.js` | Coterie API client (`createApplication`, `createBindableQuote`) |
-| `src/services/coterieIntakeService.js` | ConnectQuote orchestration (submission + handoff) |
-| `src/services/coterieBindCompletion.js` | Webhook → policy skeleton (finalize TBD) |
-| `src/routes/coterieRoutes.js` | `POST /api/coterie/connectquote` |
+| `src/config/coterieRegistry.js` | Segment business classes, AKHash, coverage toggles |
+| `src/config/connectQuoteIntakeSchema.js` | Coterie rating fields + conditional sections |
+| `src/config/coterieAkHash.js` | AKHash resolution; CO pilot states |
+| `src/services/coterieService.js` | Coterie API client + bindable payload builder |
+| `src/services/coterieIntakeService.js` | ConnectQuote orchestration (submission + quote) |
+| `src/services/coterieBindCompletion.js` | Bind + demo-finalize → policy + emails |
+| `src/routes/coterieRoutes.js` | `/api/coterie/*` |
+| `public/connectquote-intake.js` | Shared browser intake (segment Netlify shells) |
+| `public/connectquote-intake.css` | Shared intake styles |
 | `src/routes/webhooks.js` | `POST /webhooks/coterie` |
 | `docs/coterie-sandbox-fixtures.md` | Redacted request/response examples |
 
@@ -165,13 +175,14 @@ See redacted examples in [`coterie-sandbox-fixtures.md`](./coterie-sandbox-fixtu
 
 ## Open items
 
-- [ ] CO producer license active in sandbox
-- [ ] First successful bindable quote + premium JSON (update fixtures doc)
-- [ ] Webhook payload sample + registration URL confirmed with Coterie
-- [ ] Fitness/Yoga AKHash rows confirmed with Coterie
-- [ ] Partner DPA / production keys process
-- [x] `coterieService.js` + webhook skeleton on CID-PDF-API
-- [ ] `coterieBindCompletion.js` → `createPolicy()` + emails (after webhook sample)
+- [ ] Coterie issued-policy PDF webhook → R2 → Connect vault
+- [ ] Fitness GL-only bindable — ensure payroll/sales sent when Coterie requires on GL path
+- [ ] Welcome email + PWA install hint on bind success card
+- [ ] Partner DPA / production keys / multi-state registry
+- [x] CO sandbox bindable quote + demo finalize → Connect
+- [x] Electrical + Fitness intake on Netlify
+- [x] Extended Coterie fields + coverage toggles on intake
+- [x] Stripe token bind + annual/monthly plan cards
 
 ---
 
@@ -181,3 +192,4 @@ See redacted examples in [`coterie-sandbox-fixtures.md`](./coterie-sandbox-fixtu
 |------|--------|
 | 2026-06-04 | Initial spec: sandbox validated, AKHash field, bindable shape, CO blocker, env names. |
 | 2026-06-10 | Code skeleton: connectquote intake, coterieService, webhook ack, fixtures doc, E0122 graceful path. |
+| 2026-06-12 | **Shipped sandbox E2E:** bindable quotes, demo-finalize, Connect handoff, Fitness segment, extended intake UI, plan cards. See `connectquote-shipped-2026-06.md`. |

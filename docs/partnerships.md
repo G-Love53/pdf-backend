@@ -36,8 +36,8 @@
 | **Google Postmaster Tools** | Marketing / Compliance | Live | Sending-domain reputation monitoring | N/A | Operational | N/A | SPF/DKIM/DMARC evidence per domain | Rick |
 | **Instantly** | Marketing | Live (ops) | Cold/warm outbound; **not wired to S1 API** | Lead gen customer | Marketing / links | Verify if available | Vendor terms; domain alignment | Rick |
 | **Cohesive AI** | Marketing | Planned | Warm leads → segment `quotes@` | Referral partner | Email forward (planned) | N/A | Written lead-referral agreement before prod | Rick |
-| **Coterie Insurance** | MGA / API carrier | Sandbox validated | ConnectQuote instant rail (CO pilot) | Distribution / API volume | API + webhooks (+ Stripe bind) | Coterie states compliant; confirm | CO producer license in sandbox; bindable test; webhook; DPA | Gerry |
-| **Stripe** (via Coterie) | API | In progress | Payment on Coterie instant bind | Payment volume | Embedded (Coterie) | Stripe Type II (standard) | Clarify PCI scope (insured pays Coterie/Stripe) | Gerry |
+| **Coterie Insurance** | MGA / API carrier | **Sandbox live (CO)** | ConnectQuote instant rail — Electrical + Fitness | Distribution / API volume | API + webhooks (+ Stripe bind) | Coterie states compliant; confirm | DPA; issued-policy webhook; prod keys | Gerry |
+| **Stripe** (via Coterie) | API | **Live (sandbox)** | Payment on Coterie instant bind | Payment volume | Embedded (Coterie) | Stripe Type II (standard) | PCI: insured pays Coterie/Stripe; CID not MoR | Gerry |
 | **Traditional carriers** (per segment) | Carrier | Live | Placement for non-instant risks | Submissions / premium | ACORD/SUPP + email (S1–S6) | Varies by carrier | **Named appointment matrix** (see gaps doc) | Gerry / Rick |
 | **Coterie admitted insurers** (Spinnaker, Clear Spring, Benchmark) | Carrier | Via Coterie | Paper behind Coterie BOP/GL/PL | N/A | Via Coterie API | Carrier NAIC per Coterie FAQ | Document as Coterie paper, not direct CID API | Gerry |
 | **CID_HomeBase** (repo / submodule) | Other | Live | Templates, mapping, PDF truth | Internal IP | Git submodule | N/A | Access control | Gerry |
@@ -67,3 +67,4 @@
 |------|--------|
 | 2026-05-20 | Initial registry from repo markdown + VENDORS; Coterie in progress; SOC wording corrected (CID not certified). |
 | 2026-06-04 | Coterie sandbox auth + applications validated; bindable blocked on CO producer license; see `coterie-integration.md`. |
+| 2026-06-12 | ConnectQuote sandbox E2E shipped — bindable quotes, demo bind, Connect; see `connectquote-shipped-2026-06.md`. |

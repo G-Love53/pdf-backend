@@ -248,8 +248,12 @@ When the instant rail is enabled on CID-PDF-API, set on **Render → CID-PDF-API
 | `COTERIE_API_BASE` | `https://api-sandbox.coterieinsurance.com` (prod TBD) |
 | `COTERIE_PUBLISHABLE_KEY` | Sandbox/partner publishable key |
 | `COTERIE_AGENCY_EXTERNAL_ID` | Agency UUID (`agencyExternalId` in API body) |
+| `COTERIE_STRIPE_PUBLISHABLE_KEY` | Coterie Stripe pk for intake page (browser-safe) |
+| `COTERIE_DEMO_FINALIZE_ENABLED` | `true` in sandbox for investor demo bind |
 
-Spec: [`coterie-integration.md`](./coterie-integration.md). **v1 pilot:** CO only; bind blocked until Coterie enables CO producer license in sandbox.
+Spec: [`coterie-integration.md`](./coterie-integration.md) · Shipped: [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md). **v1 pilot:** CO only; Electrical + Fitness live in sandbox.
+
+**Static intake assets** (served from same Render service): `/static/connectquote-intake.js` and `.css` — segment Netlify pages load these; do not duplicate logic in segment repos.
 
 ### Connect identity + CORS checks
 

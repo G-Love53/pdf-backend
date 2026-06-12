@@ -32,12 +32,12 @@
 | **C-Corp filing** | In progress / planned | Align cap table, bylaws, and **inter-company** agreements with Ray |
 | **CID SOC 2 audit** | **Not started** | No Type I or Type II report for CID as organization |
 | **Infrastructure vendors** | **Strong foundation** | Render, Netlify, GitHub commonly provide SOC 2 Type II; verify current trust pages annually |
-| **Coterie** | **In progress** | API docs received; sandbox not yet issued; partner terms TBD |
+| **Coterie** | **Sandbox live (CO)** | API + sandbox bind; ConnectQuote E2E; partner DPA + prod keys TBD |
 | **Written security policies** | **Gap** | Likely practices exist; need documentation |
 | **MFA on admin systems** | **Verify** | GitHub, Render, Netlify, Google Workspace, BoldSign, Coterie |
 | **Vendor DPAs** | **Gap** | Collect click-through / executed terms in one folder |
 | **Carrier appointments (by segment)** | **Gap** | Document who appoints CID for each live segment |
-| **Privacy / data map** | **Gap** | PII and financial fields in forms, cid-postgres, Famous, future Coterie |
+| **Privacy / data map** | **In progress** | PII in forms + cid-postgres; Coterie/Stripe on instant rail — document in data map |
 
 ---
 

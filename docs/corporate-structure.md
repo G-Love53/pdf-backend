@@ -57,8 +57,8 @@ Keep in sync with `src/config/segmentBranding.js` and `src/config/segmentAgentIn
 | `roofer` | Roofing Contractor Insurance Direct | roofingcontractorinsurancedirect.com | quotes@roofingcontractorinsurancedirect.com | `/quote` |
 | `plumber` | Plumber Insurance Direct | plumberinsurancedirect.com | quotes@plumberinsurancedirect.com | `/quote` |
 | `hvac` | HVAC Insurance Direct | hvacinsurancedirect.com | quotes@hvacinsurancedirect.com | `/quote` |
-| `fitness` | Fitness Insurance Direct | fitnessinsurancedirect.com | quotes@fitnessinsurancedirect.com | `/quote` |
-| `electrical` | Electrical Insurance Direct | electricalinsurancedirect.com | quotes@electricalinsurancedirect.com | `/quote` |
+| `fitness` | Fitness Insurance Direct | fitnessinsurancedirect.com | quotes@fitnessinsurancedirect.com | `/quote` + **`connectquote.html`** (CO instant) |
+| `electrical` | Electrical Insurance Direct | electricalinsurancedirect.com | quotes@electricalinsurancedirect.com | `/quote` + **`connectquote.html`** (CO instant) |
 
 **Outreach / reserved (not full pipeline rows yet):** `generalcontractorinsurancedirect.com`, `landscaperinsurancedirect.com` — see `src/outreach/urlBuilder.js`.
 
@@ -83,7 +83,7 @@ Segment GitHub repos and Netlify sites are **wrappers**. Operational truth lives
 | Rail | When | Customer sees |
 |------|------|-----------------|
 | **Traditional** | Full supplement + carrier quote + S5 packet + S6 (BoldSign) | Segment brand through bind; agency ops via segment inbox |
-| **ConnectQuote (Coterie API)** | Segment passes appetite gate + **AKHash**; CO pilot first | Segment intake + prefill; bind/pay via Coterie; ongoing service via Connect — see [`coterie-integration.md`](./coterie-integration.md) |
+| **ConnectQuote (Coterie API)** | Segment passes appetite gate + **AKHash**; **CO pilot live** (Electrical + Fitness) | Segment `connectquote.html` + prefill → Coterie bind/pay → **Connect** same day — see [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) |
 
 Both rails should write the **same policy shape** in cid-postgres (`bind_source` distinguishes origin). Segment **`quotes@…`** remains the ops story even when bind is API-driven (contact, BCC, attribution).
 
@@ -127,3 +127,4 @@ Use this with partners who do **not** need product architecture detail.
 |------|--------|
 | 2026-05-20 | Initial doc: LLC, umbrella vs segments, inbox registry, partner narrative, quote rails. |
 | 2026-06-04 | ConnectQuote rail label; link to `coterie-integration.md`. |
+| 2026-06-12 | Electrical + Fitness `connectquote.html` intake; link to `connectquote-shipped-2026-06.md`. |

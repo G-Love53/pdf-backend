@@ -20,12 +20,12 @@
 
 | Stage | What happens | Vendors in use | Notes |
 |-------|----------------|----------------|-------|
-| **S1 — Capture** | Lead opens segment form or lands from outreach | **Netlify** (segment `Netlify/`), **GoDaddy** (or registrar DNS), **CID-PDF-API** (Render) | Form posts to `POST /submit-quote` on **one** API host with `segment` in JSON |
+| **S1 — Capture** | Lead opens segment form or lands from outreach | **Netlify** (segment `Netlify/`), **GoDaddy** (or registrar DNS), **CID-PDF-API** (Render) | Traditional: `POST /submit-quote`. **ConnectQuote (CO pilot):** `connectquote.html` → `POST /api/coterie/connectquote` |
 | **S2 — Submit** | Record submission, render PDFs, email carrier packet | **Render**, **Render Postgres**, **Gmail** (app passwords), **Cloudflare R2**, **Puppeteer/Chrome** (in image) | Short **`[CID][Submission]`** ops ping to segment `quotes@…` inbox (all segments) |
 | **S3** | *(Grouped with submit in practice)* | Same as S2 | No separate third-party product |
 | **S4 — Carrier ingest + review** | Poller reads inbox; quote PDFs → R2; extraction queue | **Gmail** (OAuth poller), **Google Cloud** (OAuth client), **Render**, **Postgres**, **R2**, **Anthropic** | Operator UI on Render `/operator` |
 | **S5 — Client packet** | Sales letter + email quote packet to insured | **Render**, **Gmail**, **Anthropic** (primary), **Gemini** (fallback), **R2** | **OpenAI** not wired in `pdf-backend` letter/chat today |
-| **S6 — Bind** | E-sign, policy row, bind/welcome mail | **BoldSign**, **Render**, **Postgres**, **R2**, **Gmail** | **HelloSign/Dropbox Sign** legacy webhook only |
+| **S6 — Bind** | E-sign, policy row, bind/welcome mail | **BoldSign**, **Render**, **Postgres**, **R2**, **Gmail** | **ConnectQuote:** **Coterie** + **Stripe (via Coterie)** + demo-finalize; `bind_source: coterie` |
 
 ---
 
@@ -93,7 +93,8 @@
 | **OpenAI** | — | — | — | — | — | — | Not wired (API) |
 | **Instantly** | Marketing | — | — | — | — | — | Ops / DNS; not in S1 code |
 | **Cohesive AI** | Planned | — | — | — | — | — | Not in repo yet |
-| **Coterie Insurance** | ConnectQuote pilot | — | — | — | Planned | — | Sandbox validated; CO license pending; see `coterie-integration.md` |
+| **Coterie Insurance** | ConnectQuote (S1+S6-lite) | — | — | — | ✓ (instant) | — | **Sandbox live CO** — Electrical + Fitness; see `connectquote-shipped-2026-06.md` |
+| **Stripe** (via Coterie) | ConnectQuote bind | — | — | — | ✓ | — | Insured pays Coterie/Stripe; CID not MoR |
 
 ---
 
@@ -103,3 +104,4 @@
 |------|--------|
 | 2026-05-15 | Initial vendor table: S1–S6 + Connect; BoldSign active; HelloSign legacy; single CID-PDF-API intake; bridge vs Famous split; Cohesive/Instantly called out as non-pipeline. |
 | 2026-06-04 | Coterie row (ConnectQuote pilot); link to `coterie-integration.md`. |
+| 2026-06-12 | ConnectQuote live in S1+S6-lite; Coterie + Stripe-via-Coterie rows updated. |

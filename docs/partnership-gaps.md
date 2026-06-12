@@ -71,8 +71,8 @@ Use this as a working checklist (fill names with Ray / Gerry):
 | roofer | Yes | quotes@roofingcontractorinsurancedirect.com | _Document_ | TBD |
 | plumber | Yes | quotes@plumberinsurancedirect.com | _Document_ | TBD |
 | hvac | Yes | quotes@hvacinsurancedirect.com | _Document_ | TBD |
-| fitness | Yes | quotes@fitnessinsurancedirect.com | _Document_ | Pilot candidate |
-| electrical | Yes | quotes@electricalinsurancedirect.com | _Document_ | **Coterie ConnectQuote CO pilot** (sandbox) |
+| fitness | Yes | quotes@fitnessinsurancedirect.com | _Document_ | **Coterie ConnectQuote CO pilot** (sandbox — yoga / pilates / trainer) |
+| electrical | Yes | quotes@electricalinsurancedirect.com | _Document_ | **Coterie ConnectQuote CO pilot** (sandbox — live demo) |
 
 ---
 
@@ -92,3 +92,4 @@ Use this as a working checklist (fill names with Ray / Gerry):
 |------|--------|
 | 2026-05-20 | Initial gap analysis P0–P3; segment appointment checklist; Ray inter-company item. |
 | 2026-06-04 | Coterie sandbox credentials issued; applications OK; CO producer license pending for bindable quote. |
+| 2026-06-12 | ConnectQuote E2E in sandbox for electrical + fitness; bindable quotes + demo bind + Connect handoff verified. |

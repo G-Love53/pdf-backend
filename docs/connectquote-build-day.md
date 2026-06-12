@@ -1,8 +1,9 @@
 # ConnectQuote build day — one page
 
-> **Date:** 2026-06-10 · **Goal:** End-to-end sandbox demo + production path without waiting on Coterie.  
+> **Date:** 2026-06-12 (updated) · **Shipped summary:** [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md)  
+> **Goal:** End-to-end sandbox demo + production path without waiting on Coterie.  
 > **Stripe:** Payment collects **direct to Coterie** (their Stripe Connect / embed) — CID is **not** merchant of record.  
-> **Pilot:** Electrical + Fitness · CO · segment AKHashes in `coterieRegistry.js`.
+> **Pilot:** Electrical + Fitness · CO · AKHashes in `coterieRegistry.js`.
 
 ---
 
@@ -10,8 +11,8 @@
 
 1. Open prefill URL:  
    `https://electricalinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Electric+LLC&src=demo&cid=build-day`
-2. Confirm prefilled fields → pick business class (pre-selected) → answer owner + 6 Q.
-3. See instant quote (premium) → pay via **Coterie Stripe** (sandbox test card) or **Demo: simulate bind (sandbox)**.
+2. Confirm prefilled fields → **Owner: Yes** → business type → employees → **complete Coterie rating fields** (sales, payroll, limits — all Select… until chosen).
+3. See instant quote (premium) → choose **annual or monthly card** → pay via **Coterie Stripe** or **Demo: simulate bind (sandbox)**.
 4. Success screen → **Open Connect** (bind token / email prefill).
 5. Connect: policy vault, timeline, **Am I Covered**, **Request COI**, docs download.
 6. Operator ([`/operator`](https://cid-pdf-api.onrender.com/operator)): submission badge **ConnectQuote**, policy bound today, timeline events.
@@ -88,15 +89,17 @@
 
 ---
 
-## Done definition (today)
+## Done definition (2026-06-12)
 
-- [ ] Render env updated; Coterie code deployed
-- [ ] CO electrical bindable quote returns premium in sandbox
-- [ ] Sandbox payment completes via Coterie Stripe
-- [ ] Policy row + timeline + welcome email + Connect login works for demo email
-- [ ] Connect: larger logo, policy visible, COI request succeeds, chat loads policy context
-- [ ] Operator shows ConnectQuote submission + bound policy
-- [ ] Demo URL + script rehearsed once end-to-end
+- [x] Render env updated; Coterie code deployed
+- [x] CO electrical bindable quote returns premium in sandbox
+- [x] Sandbox demo bind → policy row + Connect login works for demo email
+- [x] Extended Coterie questions on intake (coverage toggles + rating fields)
+- [x] Annual/monthly plan cards on quote screen
+- [x] Fitness segment live (3 business classes)
+- [ ] Live Stripe pay & bind confirmed with Nicole (demo bind works)
+- [ ] Welcome email + PWA hint on success card
+- [ ] Operator ConnectQuote pipeline card (full)
 
 ---
 
