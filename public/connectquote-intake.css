@@ -26,7 +26,13 @@
 .cq-section summary::-webkit-details-marker { display: none; }
 .cq-hint { font-weight: 400; font-size: .8rem; color: #6b7280; }
 .cq-section-body { padding: 0 14px 14px; }
-.cq-section-body label:first-child { margin-top: 4px; }
+.cq-ext-field:invalid,
+select.cq-ext-field option[value=""]:checked {
+  color: #6b7280;
+}
+select.cq-ext-field:required:invalid {
+  border-color: #e5e7eb;
+}
 
 .plan-picker-label {
   font-weight: 700; font-size: .95rem; margin: 16px 0 10px; color: #374151;

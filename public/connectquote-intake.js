@@ -219,9 +219,13 @@
   function renderField(field) {
     const p = new URLSearchParams(location.search);
     const pre = field.prefillParam ? p.get(field.prefillParam) : null;
-    const val = pre || field.default || "";
+    const val = pre || "";
     if (field.type === "select") {
-      let opts = field.options
+      let opts =
+        '<option value="" disabled' +
+        (val ? "" : " selected") +
+        ">Select…</option>";
+      opts += field.options
         .map(
           (o) =>
             '<option value="' +
@@ -233,6 +237,7 @@
             "</option>",
         )
         .join("");
+      const prefilled = pre ? ' class="cq-ext-field prefilled"' : ' class="cq-ext-field"';
       return (
         '<label for="f_' +
         field.name +
@@ -242,15 +247,18 @@
         field.name +
         '" id="f_' +
         field.name +
-        '" class="cq-ext-field" data-section="' +
+        '"' +
+        prefilled +
+        ' data-section="' +
         field.section +
-        '">' +
+        '" required>' +
         opts +
         "</select>"
       );
     }
     if (field.type === "date") {
-      const dv = pre || defaultStartDate();
+      const dv = pre || "";
+      const prefilled = pre ? ' class="cq-ext-field prefilled"' : ' class="cq-ext-field"';
       return (
         '<label for="f_' +
         field.name +
@@ -260,14 +268,38 @@
         field.name +
         '" id="f_' +
         field.name +
-        '" class="cq-ext-field" data-section="' +
+        '"' +
+        prefilled +
+        ' data-section="' +
         field.section +
         '" value="' +
         dv +
-        '"/>'
+        '" required/>'
       );
     }
     return "";
+  }
+
+  function isExtendedFieldVisible(el) {
+    const section = el.closest(".cq-section");
+    if (section && section.style.display === "none") return false;
+    return true;
+  }
+
+  function validateExtendedFields() {
+    const missing = [];
+    document.querySelectorAll(".cq-ext-field").forEach((el) => {
+      if (!isExtendedFieldVisible(el)) return;
+      if (!el.value) {
+        const label = el.id ? document.querySelector('label[for="' + el.id + '"]') : null;
+        missing.push(label ? label.textContent : el.name);
+      }
+    });
+    if (missing.length) {
+      showErr("Please select: " + missing.join(", ") + ".");
+      return false;
+    }
+    return true;
   }
 
   function renderSections(schema) {
@@ -400,6 +432,7 @@
       showErr("Select at least one coverage option to continue.");
       return false;
     }
+    if (!validateExtendedFields()) return false;
     return true;
   }
 
