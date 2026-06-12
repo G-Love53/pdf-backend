@@ -9,14 +9,14 @@
 ## Demo script (5–7 min — sandbox)
 
 1. Open prefill URL:  
-   `https://electricalinsurancedirect.com/quote?fn=Demo&ln=Insured&em=demo+coterie@commercialinsurance-direct.com&st=CO&zp=80202&bn=Demo+Electric+LLC&src=demo&cid=build-day`
+   `https://electricalinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Electric+LLC&src=demo&cid=build-day`
 2. Confirm prefilled fields → pick business class (pre-selected) → answer owner + 6 Q.
-3. See instant quote (premium) → pay via **Coterie Stripe** (sandbox test card).
+3. See instant quote (premium) → pay via **Coterie Stripe** (sandbox test card) or **Demo: simulate bind (sandbox)**.
 4. Success screen → **Open Connect** (bind token / email prefill).
 5. Connect: policy vault, timeline, **Am I Covered**, **Request COI**, docs download.
 6. Operator ([`/operator`](https://cid-pdf-api.onrender.com/operator)): submission badge **ConnectQuote**, policy bound today, timeline events.
 
-**Demo account:** `demo+coterie@commercialinsurance-direct.com` · reuse for repeat runs.
+**Demo account:** `g@commercialinsurance-direct.com` · real inbox for welcome email + Connect login.
 
 ---
 

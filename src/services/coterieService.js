@@ -354,26 +354,46 @@ export function extractQuoteSummary(bindableResponse) {
 /** POST /v1.6/commercial/quotes/{quoteId}/bind — payment collects on Coterie Stripe. */
 export async function bindQuote(quoteId, paymentPayload = {}) {
   const { agencyExternalId } = getCoterieConfig();
-  const base = { agencyExternalId, ...paymentPayload };
+  const paymentPlan = paymentPayload.paymentPlan || "Annual";
+  const stripeToken =
+    paymentPayload.stripeToken ||
+    paymentPayload.stripe_token ||
+    paymentPayload.token ||
+    null;
+  const stripePaymentMethodId = paymentPayload.stripePaymentMethodId || null;
 
-  const attempts = [
-    base,
-    { agencyExternalId, paymentInfo: paymentPayload.paymentInfo || paymentPayload },
-    {
-      agencyExternalId,
-      paymentInfo: {
-        stripePaymentMethodId: paymentPayload.stripePaymentMethodId,
-        paymentPlan: paymentPayload.paymentPlan || "Annual",
+  /** Coterie sandbox expects Stripe token (tok_…) from /v1/tokens, not pm_…. */
+  const attempts = [];
+  if (stripeToken) {
+    attempts.push(
+      { agencyExternalId, paymentInfo: { stripeToken, paymentPlan } },
+      { agencyExternalId, paymentInfo: { StripeToken: stripeToken, PaymentPlan: paymentPlan } },
+      { agencyExternalId, paymentInfo: { token: stripeToken, paymentPlan } },
+      { agencyExternalId, stripeToken, paymentPlan },
+      { agencyExternalId, StripeToken: stripeToken, PaymentPlan: paymentPlan },
+    );
+  }
+  if (stripePaymentMethodId) {
+    attempts.push(
+      {
+        agencyExternalId,
+        paymentInfo: {
+          stripePaymentMethodId,
+          paymentPlan,
+        },
       },
-    },
-    {
-      agencyExternalId,
-      PaymentInfo: {
-        StripePaymentMethodId: paymentPayload.stripePaymentMethodId,
-        PaymentPlan: paymentPayload.paymentPlan || "Annual",
+      {
+        agencyExternalId,
+        PaymentInfo: {
+          StripePaymentMethodId: stripePaymentMethodId,
+          PaymentPlan: paymentPlan,
+        },
       },
-    },
-  ];
+    );
+  }
+  if (!attempts.length) {
+    attempts.push({ agencyExternalId, paymentPlan });
+  }
 
   let lastBody = null;
   for (const body of attempts) {

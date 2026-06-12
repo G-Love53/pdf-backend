@@ -69,6 +69,7 @@ router.post("/api/coterie/bind", async (req, res) => {
     const result = await processCoterieBindPayment({
       submissionPublicId: body.submission_public_id,
       quoteId: body.quote_id || body.coterie_quote_id,
+      stripeToken: body.stripe_token || body.stripeToken || body.token,
       stripePaymentMethodId:
         body.stripe_payment_method_id || body.payment_method_id,
       paymentPlan: body.payment_plan || "Annual",

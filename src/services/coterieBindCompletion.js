@@ -85,6 +85,7 @@ export async function processCoterieBindWebhook(payload, meta = {}) {
 export async function processCoterieBindPayment({
   submissionPublicId,
   quoteId,
+  stripeToken,
   stripePaymentMethodId,
   paymentPlan = "Annual",
 }) {
@@ -93,22 +94,27 @@ export async function processCoterieBindPayment({
   if (!resolvedQuoteId) {
     return { ok: false, error: "QUOTE_ID_REQUIRED" };
   }
+  if (!stripeToken && !stripePaymentMethodId) {
+    return { ok: false, error: "PAYMENT_TOKEN_REQUIRED" };
+  }
 
   const bindResult = await bindQuote(resolvedQuoteId, {
+    stripeToken,
     stripePaymentMethodId,
     paymentPlan,
-    paymentInfo: {
-      stripePaymentMethodId,
-      paymentPlan,
-    },
   });
 
   const body = bindResult.result;
+  const errMsg =
+    (Array.isArray(body?.errors) && body.errors[0]?.message) ||
+    (typeof body?.errors?.[0] === "string" && body.errors[0]) ||
+    body?.message ||
+    null;
   if (body?.isSuccess === false || (body?.errors && body.errors.length)) {
     return {
       ok: false,
       error: "COTERIE_BIND_FAILED",
-      message: body?.errors?.[0] || "Bind failed",
+      message: errMsg || "Bind failed",
       coterie: body,
     };
   }
