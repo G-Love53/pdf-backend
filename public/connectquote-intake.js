@@ -377,24 +377,81 @@
     return true;
   }
 
-  function updatePremiumDisplay() {
+  function selectedPaymentPlan() {
+    return ($("payment_plan") && $("payment_plan").value) || "Annual";
+  }
+
+  function setPaymentPlan(plan) {
+    if ($("payment_plan")) $("payment_plan").value = plan;
+    document.querySelectorAll("[data-plan]").forEach((el) => {
+      el.classList.toggle("selected", el.dataset.plan === plan);
+    });
+    updatePremiumSummary();
+    updatePayButtonLabel();
+  }
+
+  function updatePayButtonLabel() {
     const q = session.quote;
-    if (!q) return;
-    const plan = $("payment_plan").value;
+    const btn = $("pay-btn");
+    if (!q || !btn) return;
+    const plan = selectedPaymentPlan();
     const yr = Number(q.premium || q.totalYearlyOwed || 0);
     const mo = Number(q.monthlyOwed || q.monthlyPremium || 0);
-    const annualSel = $("payment_plan").querySelector('[value="Annual"]');
-    const monthlySel = $("payment_plan").querySelector('[value="Monthly"]');
-    if (annualSel) {
-      annualSel.textContent = yr
-        ? "Pay annually — $" + yr.toLocaleString() + " / yr"
-        : "Pay annually";
+    if (plan === "Monthly" && mo) {
+      btn.textContent = "Pay $" + mo.toFixed(2) + "/mo & bind coverage";
+    } else if (yr) {
+      btn.textContent = "Pay $" + yr.toLocaleString() + " & bind coverage";
+    } else {
+      btn.textContent = "Pay & bind coverage";
     }
-    if (monthlySel) {
-      monthlySel.textContent = mo
-        ? "Pay monthly — $" + mo.toFixed(2) + " / mo"
-        : "Pay monthly";
+  }
+
+  function renderPaymentPlanPicker() {
+    const q = session.quote;
+    const host = $("payment-plan-picker");
+    if (!q || !host) return;
+
+    const yr = Number(q.premium || q.totalYearlyOwed || 0);
+    const mo = Number(q.monthlyOwed || q.monthlyPremium || 0);
+    const hasMonthly = mo > 0;
+
+    let html =
+      '<button type="button" class="plan-card" data-plan="Annual">' +
+      '<span class="plan-name">Pay annually</span>' +
+      '<span class="plan-price">' +
+      (yr ? "$" + yr.toLocaleString() : "—") +
+      "</span>" +
+      '<span class="plan-period">per year</span>' +
+      '<span class="plan-note">One payment for the full policy year · simplest option</span>' +
+      "</button>";
+
+    if (hasMonthly) {
+      html +=
+        '<button type="button" class="plan-card" data-plan="Monthly">' +
+        '<span class="plan-name">Pay monthly</span>' +
+        '<span class="plan-price">$' +
+        mo.toFixed(2) +
+        "</span>" +
+        '<span class="plan-period">per month</span>' +
+        '<span class="plan-note">About $' +
+        yr.toLocaleString() +
+        "/yr total · billed monthly through Coterie</span>" +
+        "</button>";
     }
+
+    host.innerHTML = html;
+    host.querySelectorAll("[data-plan]").forEach((btn) => {
+      btn.addEventListener("click", () => setPaymentPlan(btn.dataset.plan));
+    });
+    setPaymentPlan(hasMonthly ? selectedPaymentPlan() : "Annual");
+  }
+
+  function updatePremiumSummary() {
+    const q = session.quote;
+    if (!q) return;
+    const plan = selectedPaymentPlan();
+    const yr = Number(q.premium || q.totalYearlyOwed || 0);
+    const mo = Number(q.monthlyOwed || q.monthlyPremium || 0);
     if (plan === "Monthly" && mo) {
       $("premium-display").textContent = "$" + mo.toFixed(2) + " / mo";
       $("premium-detail").textContent =
@@ -405,13 +462,19 @@
         " · " +
         (q.carrier || "Coterie");
     } else {
-      $("premium-display").textContent = "$" + yr.toLocaleString() + " / yr";
+      $("premium-display").textContent = yr ? "$" + yr.toLocaleString() + " / yr" : "—";
       $("premium-detail").textContent =
-        (mo ? "Or $" + mo.toFixed(2) + "/mo · " : "") +
+        (mo ? "Or $" + mo.toFixed(2) + "/mo available · " : "") +
         (q.policyType || "GL") +
         " · " +
         (q.carrier || "Coterie");
     }
+  }
+
+  function updatePremiumDisplay() {
+    renderPaymentPlanPicker();
+    updatePremiumSummary();
+    updatePayButtonLabel();
   }
 
   async function loadConfig() {
@@ -508,7 +571,7 @@
             submission_public_id: session.submission_public_id,
             quote_id: session.quote_id,
             stripe_token: tokenResult.token.id,
-            payment_plan: $("payment_plan").value || "Annual",
+            payment_plan: selectedPaymentPlan(),
           }),
         });
         const data = await res.json();
@@ -546,7 +609,6 @@
       }
     });
 
-    $("payment_plan").addEventListener("change", updatePremiumDisplay);
   }
 
   async function init() {

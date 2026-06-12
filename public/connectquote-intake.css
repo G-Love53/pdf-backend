@@ -27,3 +27,27 @@
 .cq-hint { font-weight: 400; font-size: .8rem; color: #6b7280; }
 .cq-section-body { padding: 0 14px 14px; }
 .cq-section-body label:first-child { margin-top: 4px; }
+
+.plan-picker-label {
+  font-weight: 700; font-size: .95rem; margin: 16px 0 10px; color: #374151;
+}
+.plan-picker {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
+}
+@media (max-width: 560px) { .plan-picker { grid-template-columns: 1fr; } }
+.plan-card {
+  display: flex; flex-direction: column; align-items: flex-start; text-align: left;
+  border: 2px solid #e5e7eb; border-radius: 12px; background: #fff;
+  padding: 14px 16px; cursor: pointer; transition: border-color .15s, background .15s, box-shadow .15s;
+  font-family: inherit; width: 100%;
+}
+.plan-card:hover { border-color: #fdba74; }
+.plan-card.selected {
+  border-color: var(--brand, #ea580c); background: #fff7ed;
+  box-shadow: 0 0 0 1px var(--brand, #ea580c);
+}
+.plan-name { font-weight: 800; font-size: .95rem; color: #111; }
+.plan-price { font-size: 1.65rem; font-weight: 800; color: var(--navy, #1B3A5F); line-height: 1.2; margin-top: 4px; }
+.plan-period { font-size: .85rem; color: #6b7280; margin-bottom: 6px; }
+.plan-note { font-size: .8rem; color: #6b7280; line-height: 1.35; }
+.plan-card.selected .plan-name { color: #9a3412; }
