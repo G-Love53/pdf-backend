@@ -87,6 +87,8 @@ export async function processConnectQuoteIntake(body, reqMeta = {}) {
     };
   }
 
+  const registryEntry = resolveRegistryEntry(segment, businessClassKey);
+
   const primaryEmail = pickPrimaryEmail(form);
   if (!primaryEmail) {
     return {
@@ -135,6 +137,26 @@ export async function processConnectQuoteIntake(body, reqMeta = {}) {
       );
       submissionId = r.rows[0]?.submission_id || null;
     }
+  }
+
+  const isNonOwner =
+    form.is_owner === false ||
+    form.is_owner === "no" ||
+    String(form.is_owner).toLowerCase() === "false";
+
+  if (registryEntry?.ownerOnly && isNonOwner) {
+    await appendCoterieTimeline(submissionId, "coterie.rail_traditional", {
+      submission_public_id: submissionPublicId,
+      reason: "employee_not_owner",
+    });
+    return {
+      ok: true,
+      rail: "traditional",
+      reason: "employee_not_owner",
+      submission_public_id: submissionPublicId,
+      message:
+        "Instant quotes are for business owners. Use our full application for employee / non-owner coverage.",
+    };
   }
 
   if (!isCoterieConfigured()) {

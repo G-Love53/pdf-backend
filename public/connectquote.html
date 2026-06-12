@@ -77,16 +77,27 @@
         </div>
       </div>
       <label>Do you own or operate this business?</label>
-      <select name="is_owner" id="is_owner">
+      <select name="is_owner" id="is_owner" required>
+        <option value="" selected disabled>Select…</option>
         <option value="yes">Yes — I own / operate the business</option>
         <option value="no">No — I work for someone else</option>
       </select>
       <label>Business type</label>
-      <select name="business_class" id="business_class">
-        <option value="electric_contracting">Electrical contracting (primary work)</option>
+      <select name="business_class" id="business_class" required>
+        <option value="" selected disabled>Select…</option>
       </select>
-      <label>Employees</label>
-      <input name="num_employees" id="num_employees" type="number" min="1" value="3"/>
+      <label>Employees (including yourself)</label>
+      <select name="num_employees" id="num_employees" required>
+        <option value="" selected disabled>Select…</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6–10</option>
+        <option value="11">11–25</option>
+        <option value="26">26+</option>
+      </select>
       <input type="hidden" name="traffic_source" id="traffic_source" value="direct"/>
       <input type="hidden" name="campaign_id" id="campaign_id" value=""/>
       <button type="submit" id="quote-btn">Get instant quote</button>
@@ -99,6 +110,11 @@
     <div class="premium" id="premium-display">—</div>
     <p id="premium-detail"></p>
     <div id="payment-section">
+      <label>Payment plan</label>
+      <select id="payment_plan" style="margin-bottom:12px">
+        <option value="Annual">Annual</option>
+        <option value="Monthly">Monthly</option>
+      </select>
       <label>Pay to bind (secure payment via Coterie)</label>
       <div id="card-element"></div>
       <button type="button" id="pay-btn">Pay &amp; bind coverage</button>
@@ -120,8 +136,55 @@
 const API = "https://cid-pdf-api.onrender.com";
 let stripe = null;
 let cardElement = null;
-let session = { submission_public_id: null, quote_id: null, email: null };
+let session = { submission_public_id: null, quote_id: null, email: null, quote: null };
 let demoEnabled = false;
+
+function redirectTraditional(message, reason) {
+  showErr(message || "This needs our detailed application — redirecting…");
+  setTimeout(() => {
+    location.href = "https://electricalinsurancedirect.com/index.html" + location.search;
+  }, 2500);
+}
+
+function updatePremiumDisplay() {
+  const q = session.quote;
+  if (!q) return;
+  const plan = document.getElementById("payment_plan").value;
+  const annualSel = document.getElementById("payment_plan").querySelector('[value="Annual"]');
+  const monthlySel = document.getElementById("payment_plan").querySelector('[value="Monthly"]');
+  const yr = Number(q.premium || q.totalYearlyOwed || 0);
+  const mo = Number(q.monthlyOwed || q.monthlyPremium || 0);
+  if (annualSel) annualSel.textContent = yr ? `Pay annually — $${yr.toLocaleString()} / yr` : "Pay annually";
+  if (monthlySel) monthlySel.textContent = mo ? `Pay monthly — $${mo.toFixed(2)} / mo` : "Pay monthly";
+  if (plan === "Monthly" && mo) {
+    document.getElementById("premium-display").textContent = "$" + mo.toFixed(2) + " / mo";
+    document.getElementById("premium-detail").textContent =
+      "About $" + yr.toLocaleString() + "/yr total · " + (q.policyType || "BOP") + " · " + (q.carrier || "Coterie");
+  } else {
+    document.getElementById("premium-display").textContent = "$" + yr.toLocaleString() + " / yr";
+    document.getElementById("premium-detail").textContent =
+      (mo ? "Or $" + mo.toFixed(2) + "/mo · " : "") + (q.policyType || "BOP") + " · " + (q.carrier || "Coterie");
+  }
+}
+
+async function loadBusinessClasses() {
+  const sel = document.getElementById("business_class");
+  try {
+    const r = await fetch(API + "/api/coterie/registry/electrical");
+    const j = await r.json();
+    (j.businessClasses || []).filter((c) => !c.prohibited && c.akHash).forEach((c) => {
+      const opt = document.createElement("option");
+      opt.value = c.key;
+      opt.textContent = c.label;
+      sel.appendChild(opt);
+    });
+  } catch {
+    const opt = document.createElement("option");
+    opt.value = "electric_contracting";
+    opt.textContent = "Electrical contracting (primary work)";
+    sel.appendChild(opt);
+  }
+}
 
 function showErr(msg) {
   const el = document.getElementById("err-box");
@@ -191,17 +254,19 @@ document.getElementById("cq-form").addEventListener("submit", async (e) => {
     const data = await res.json();
     if (!data.ok) throw new Error(data.message || data.error || "Quote failed");
     if (data.rail === "traditional") {
-      showErr("This business needs our detailed application.");
+      redirectTraditional(
+        data.reason === "employee_not_owner" ? data.message : "This business needs our detailed application.",
+        data.reason,
+      );
       return;
     }
     const q = data.coterie?.quote;
-    if (!q?.isSuccess) throw new Error(data.coterie?.bindBlocked?.message || "Quote unavailable");
+    if (!q?.isSuccess) throw new Error(data.coterie?.bindBlocked?.message || data.message || "Quote unavailable");
     session.submission_public_id = data.submission_public_id;
     session.quote_id = q.quoteId;
     session.email = formPayload().contact_email;
-    document.getElementById("premium-display").textContent = "$" + Number(q.premium).toLocaleString() + " / yr";
-    document.getElementById("premium-detail").textContent =
-      "About $" + Number(q.monthlyOwed || q.monthlyPremium || 0).toFixed(2) + "/mo · BOP · " + (q.carrier || "Coterie");
+    session.quote = q;
+    updatePremiumDisplay();
     document.getElementById("quote-box").classList.add("show");
     document.getElementById("payment-section").classList.add("show");
   } catch (err) {
@@ -227,7 +292,7 @@ document.getElementById("pay-btn").addEventListener("click", async () => {
         submission_public_id: session.submission_public_id,
         quote_id: session.quote_id,
         stripe_token: tokenResult.token.id,
-        payment_plan: "Annual",
+        payment_plan: document.getElementById("payment_plan").value || "Annual",
       }),
     });
     const data = await res.json();
@@ -270,6 +335,8 @@ function showSuccess(connectUrl) {
 }
 
 applyPrefill();
+loadBusinessClasses().catch(() => {});
+document.getElementById("payment_plan").addEventListener("change", updatePremiumDisplay);
 loadConfig().catch(() => {});
 </script>
 </body>
