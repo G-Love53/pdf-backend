@@ -11,6 +11,23 @@ export const COTERIE_BUSINESS_CLASSES = {
       akHash: "1520d13449f07456570fa1048b4bd7c4",
       defaultApplicationTypes: ["BOP"],
       ownerOnly: true,
+      coverage: {
+        owner: {
+          options: [
+            {
+              id: "BOP",
+              label: "Businessowners Policy (BOP)",
+              defaultOn: true,
+              required: true,
+            },
+            {
+              id: "GL",
+              label: "General liability (add-on)",
+              defaultOn: false,
+            },
+          ],
+        },
+      },
     },
     {
       key: "solar",
@@ -24,9 +41,40 @@ export const COTERIE_BUSINESS_CLASSES = {
       key: "yoga_studio",
       label: "Yoga studio",
       akHash: "dc8a2c208bfed26ce3cc102f929bf557",
-      /** Workbook: BOP off / GL off — GL-only instant; PL via traditional if needed. */
       defaultApplicationTypes: ["GL"],
       employeeApplicationTypes: ["GL"],
+      coverage: {
+        owner: {
+          options: [
+            {
+              id: "GL",
+              label: "General liability (GL)",
+              defaultOn: true,
+              required: true,
+            },
+          ],
+          extras: [
+            {
+              id: "PL",
+              label: "Professional liability",
+              instant: false,
+              message:
+                "Professional liability needs our full application — we'll redirect you after you continue.",
+            },
+          ],
+        },
+      },
+      extras: {
+        nonOwner: [
+          {
+            id: "PL",
+            label: "Professional liability",
+            instant: false,
+            message:
+              "Professional liability needs our full application — we'll redirect you after you continue.",
+          },
+        ],
+      },
     },
     {
       key: "pilates_studio",
@@ -34,6 +82,22 @@ export const COTERIE_BUSINESS_CLASSES = {
       akHash: "96811230e7feec657c12dc32b6910a60",
       defaultApplicationTypes: ["BOP", "GL"],
       employeeApplicationTypes: ["GL"],
+      coverage: {
+        owner: {
+          options: [
+            {
+              id: "BOP",
+              label: "Businessowners Policy (BOP)",
+              defaultOn: true,
+            },
+            {
+              id: "GL",
+              label: "General liability (GL)",
+              defaultOn: true,
+            },
+          ],
+        },
+      },
     },
     {
       key: "personal_trainer",
@@ -41,6 +105,18 @@ export const COTERIE_BUSINESS_CLASSES = {
       akHash: "39c33b2f8fe71a4716f92728aba92278",
       defaultApplicationTypes: ["GL"],
       employeeApplicationTypes: ["GL"],
+      coverage: {
+        owner: {
+          options: [
+            {
+              id: "GL",
+              label: "General liability (GL)",
+              defaultOn: true,
+              required: true,
+            },
+          ],
+        },
+      },
     },
   ],
 };

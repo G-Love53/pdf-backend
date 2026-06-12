@@ -202,6 +202,16 @@ function defaultPolicyStartDate() {
   return `${mm}/${dd}/${d.getUTCFullYear()}`;
 }
 
+function formatPolicyStartDate(form) {
+  const raw = form.policy_start_date || form.policyStartDate || null;
+  if (!raw) return defaultPolicyStartDate();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(raw))) {
+    const [y, m, d] = String(raw).split("-");
+    return `${m}/${d}/${y}`;
+  }
+  return String(raw);
+}
+
 export function buildApplicationPayload(form, { akHash }) {
   const zip =
     form.premise_zip || form.physical_zip || form.zip || form.businessZip || null;
@@ -235,6 +245,20 @@ export function buildApplicationPayload(form, { akHash }) {
   };
 }
 
+function parseBusinessAgeMonths(form) {
+  const raw =
+    form.business_age_months ||
+    form.businessAgeInMonths ||
+    form.business_age_years ||
+    null;
+  if (raw == null || raw === "") return 36;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return 36;
+  // Values from select are already months (6, 18, 36, …)
+  if (n <= 120) return n;
+  return n * 12;
+}
+
 export function buildBindableQuotePayload(
   form,
   { akHash, applicationId, applicationTypes = ["BOP"] },
@@ -251,9 +275,14 @@ export function buildBindableQuotePayload(
   const zip =
     form.premise_zip || form.physical_zip || form.zip || form.businessZip || null;
 
+  const types = Array.isArray(applicationTypes)
+    ? applicationTypes
+    : [applicationTypes];
+  const includesBop = types.includes("BOP");
+
   const payload = {
     applicationId,
-    applicationTypes,
+    applicationTypes: types,
     AKHash: akHash,
     legalBusinessName:
       form.insured_name ||
@@ -265,14 +294,6 @@ export function buildBindableQuotePayload(
     contactFirstName: names.contactFirstName,
     contactLastName: names.contactLastName,
     numEmployees: Number(form.num_employees || form.numEmployees || 1),
-    annualPayroll: Number(form.annual_payroll || form.annualPayroll || 50000),
-    grossAnnualSales: Number(
-      form.gross_annual_sales || form.grossAnnualSales || 150000,
-    ),
-    businessAgeInMonths: Number(
-      form.business_age_months || form.businessAgeInMonths || 36,
-    ),
-    bppDeductible: Number(form.bpp_deductible || form.bppDeductible || 1000),
     locations: [
       {
         street,
@@ -286,9 +307,21 @@ export function buildBindableQuotePayload(
     glAggregateLimit: String(
       form.gl_aggregate_limit || form.glAggregateLimit || "2000000",
     ),
-    policyStartDate:
-      form.policy_start_date || form.policyStartDate || defaultPolicyStartDate(),
+    policyStartDate: formatPolicyStartDate(form),
   };
+
+  if (includesBop) {
+    payload.annualPayroll = Number(
+      form.annual_payroll || form.annualPayroll || 50000,
+    );
+    payload.grossAnnualSales = Number(
+      form.gross_annual_sales || form.grossAnnualSales || 150000,
+    );
+    payload.businessAgeInMonths = parseBusinessAgeMonths(form);
+    payload.bppDeductible = Number(
+      form.bpp_deductible || form.bppDeductible || 1000,
+    );
+  }
 
   return payload;
 }

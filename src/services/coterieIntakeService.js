@@ -27,10 +27,19 @@ function pickPrimaryEmail(form) {
 
 function resolveApplicationTypes(form, segment, businessClassKey) {
   const entry = resolveRegistryEntry(segment, businessClassKey);
-  if (form.application_types) {
-    return Array.isArray(form.application_types)
-      ? form.application_types
-      : [form.application_types];
+  const rawTypes =
+    form.application_types ||
+    form.applicationTypes ||
+    form.coverage_types ||
+    null;
+  if (rawTypes) {
+    const list = Array.isArray(rawTypes)
+      ? rawTypes
+      : String(rawTypes)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+    if (list.length) return list;
   }
   const isNonOwner =
     form.is_owner === false ||

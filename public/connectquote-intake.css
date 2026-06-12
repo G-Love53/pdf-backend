@@ -1,0 +1,29 @@
+/* ConnectQuote extended intake — shared styles */
+.cq-block { margin-top: 20px; padding-top: 4px; border-top: 1px solid #f3f4f6; }
+.cq-block-title { font-weight: 700; margin: 0 0 10px; font-size: .95rem; color: #374151; }
+.cq-placeholder { color: #6b7280; font-size: .9rem; margin: 16px 0 0; font-style: italic; }
+.cov-toggle { display: flex; flex-wrap: wrap; gap: 10px; }
+.cov-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 2px solid #e5e7eb; border-radius: 999px;
+  padding: 10px 16px; cursor: pointer; font-size: .9rem; font-weight: 600;
+  background: #fff; transition: border-color .15s, background .15s;
+  user-select: none;
+}
+.cov-chip input { position: absolute; opacity: 0; width: 0; height: 0; }
+.cov-chip.on { border-color: var(--brand, #ea580c); background: #fff7ed; color: #9a3412; }
+.cov-chip.solo { cursor: default; opacity: .95; }
+.cov-extra { border-style: dashed; font-weight: 500; }
+.cov-extra em { font-style: normal; font-size: .8rem; color: #6b7280; font-weight: 400; }
+.cq-section {
+  margin-top: 14px; border: 1px solid #e5e7eb; border-radius: 10px;
+  background: #fafafa; overflow: hidden;
+}
+.cq-section summary {
+  padding: 12px 14px; font-weight: 700; cursor: pointer; list-style: none;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
+}
+.cq-section summary::-webkit-details-marker { display: none; }
+.cq-hint { font-weight: 400; font-size: .8rem; color: #6b7280; }
+.cq-section-body { padding: 0 14px 14px; }
+.cq-section-body label:first-child { margin-top: 4px; }

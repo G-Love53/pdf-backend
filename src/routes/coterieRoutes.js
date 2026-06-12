@@ -1,6 +1,10 @@
 import express from "express";
 import { listBusinessClasses } from "../config/coterieRegistry.js";
 import {
+  resolveIntakeSchema,
+  listIntakeSchemasForSegment,
+} from "../config/connectQuoteIntakeSchema.js";
+import {
   processConnectQuoteIntake,
   loadCoterieSession,
 } from "../services/coterieIntakeService.js";
@@ -30,7 +34,16 @@ router.get("/api/coterie/registry/:segment", (req, res) => {
     ok: true,
     segment,
     businessClasses: listBusinessClasses(segment),
+    intakeSchemas: listIntakeSchemasForSegment(segment),
   });
+});
+
+router.get("/api/coterie/intake-schema/:segment/:businessClass", (req, res) => {
+  const segment = String(req.params.segment || "").toLowerCase();
+  const businessClass = String(req.params.businessClass || "").toLowerCase();
+  const isOwner = req.query.is_owner !== "false" && req.query.is_owner !== "no";
+  const schema = resolveIntakeSchema(segment, businessClass, { isOwner });
+  return res.json({ ok: true, schema });
 });
 
 router.post("/api/coterie/connectquote", async (req, res) => {
