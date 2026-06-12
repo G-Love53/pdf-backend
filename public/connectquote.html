@@ -327,6 +327,8 @@ document.getElementById("demo-btn").addEventListener("click", async () => {
 });
 
 function showSuccess(connectUrl) {
+  document.getElementById("err-box").classList.remove("show");
+  document.getElementById("err-box").textContent = "";
   document.getElementById("quote-box").classList.remove("show");
   document.getElementById("success-box").classList.add("show");
   const base = connectUrl || "https://app.cid.famous.ai";

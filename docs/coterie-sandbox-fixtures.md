@@ -196,9 +196,17 @@ Registration with Coterie pending. Skeleton handler acknowledges `verification` 
 
 ## AKHash reference (electrical pilot)
 
-| `business_class` key | AKHash | Rail |
-|---------------------|--------|------|
-| `electric_contracting` | `1520d13449f07456570fa1048b4bd7c4` | Coterie |
-| `solar` | — (null) | Traditional |
+| `business_class` key | AKHash | Owner products | Non-owner |
+|---------------------|--------|----------------|-----------|
+| `electric_contracting` | `1520d13449f07456570fa1048b4bd7c4` | BOP | Traditional (ownerOnly) |
+| `solar` | — (null) | — | Traditional |
 
-Config: `src/config/coterieAkHash.js`. Full workbook: local `Coterie AKHash 06-04-2026-V2-10.xlsx`.
+## AKHash reference (fitness pilot)
+
+| `business_class` key | AKHash | Owner products | Non-owner |
+|---------------------|--------|----------------|-----------|
+| `yoga_studio` | `dc8a2c208bfed26ce3cc102f929bf557` | GL | GL |
+| `pilates_studio` | `96811230e7feec657c12dc32b6910a60` | BOP, GL | GL |
+| `personal_trainer` | `39c33b2f8fe71a4716f92728aba92278` | GL | GL |
+
+Config: `src/config/coterieRegistry.js`. Full workbook: local `Coterie AKHash 06-04-2026-V2-10.xlsx`.

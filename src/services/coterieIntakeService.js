@@ -32,11 +32,17 @@ function resolveApplicationTypes(form, segment, businessClassKey) {
       ? form.application_types
       : [form.application_types];
   }
-  if (form.is_owner === false || form.is_owner === "no") {
-    return ["GL"];
+  const isNonOwner =
+    form.is_owner === false ||
+    form.is_owner === "no" ||
+    String(form.is_owner).toLowerCase() === "false";
+  if (isNonOwner) {
+    return entry?.employeeApplicationTypes || ["GL"];
   }
   return entry?.defaultApplicationTypes || ["BOP"];
 }
+
+const CONNECTQUOTE_SEGMENTS = new Set(["electrical", "fitness"]);
 
 export async function processConnectQuoteIntake(body, reqMeta = {}) {
   const form = normalizeFormData(body);
@@ -55,12 +61,12 @@ export async function processConnectQuoteIntake(body, reqMeta = {}) {
     form.businessState ||
     null;
 
-  if (segment !== "electrical") {
+  if (!CONNECTQUOTE_SEGMENTS.has(segment)) {
     return {
       ok: false,
       status: 400,
       error: "CONNECTQUOTE_SEGMENT_NOT_SUPPORTED",
-      message: "ConnectQuote v1 supports electrical segment only.",
+      message: `ConnectQuote does not support segment "${segment}".`,
     };
   }
 

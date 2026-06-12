@@ -2,7 +2,7 @@
 
 > **Date:** 2026-06-10 · **Goal:** End-to-end sandbox demo + production path without waiting on Coterie.  
 > **Stripe:** Payment collects **direct to Coterie** (their Stripe Connect / embed) — CID is **not** merchant of record.  
-> **Pilot:** Electrical · CO · electric_contracting AKHash. Fitness dropdown is **day 1.5** (same pattern).
+> **Pilot:** Electrical + Fitness · CO · segment AKHashes in `coterieRegistry.js`.
 
 ---
 
@@ -100,9 +100,25 @@
 
 ---
 
-## Out of scope today (next sprint)
+## Fitness demo URLs (CO sandbox)
 
-- Fitness multi-AKHash dropdown (clone Electrical pattern)
+| Sub-segment | `bc` param | Owner products | Non-owner |
+|-------------|------------|----------------|-----------|
+| Yoga studio | `yoga_studio` | GL | GL |
+| Pilates / mind-body | `pilates_studio` | BOP + GL | GL |
+| Personal trainer | `personal_trainer` | GL | GL |
+
+**Pilates (owner, BOP+GL):**  
+`https://fitnessinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Pilates+Studio&bc=pilates_studio&src=demo&cid=build-day`
+
+**Yoga:** append `&bc=yoga_studio&bn=Demo+Yoga+Studio`  
+**Trainer:** append `&bc=personal_trainer&bn=Demo+Fit+Trainer+LLC`
+
+Flow matches electrical: confirm dropdowns → Get quote → Demo simulate bind → Open Connect.
+
+---
+
+## Out of scope today (next sprint)
 - FB/IG landing variants (URL-only segment routing)
 - Full operator ConnectQuote pipeline card
 - Production keys / multi-state registry

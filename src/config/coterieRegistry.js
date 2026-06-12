@@ -19,6 +19,30 @@ export const COTERIE_BUSINESS_CLASSES = {
       prohibited: true,
     },
   ],
+  fitness: [
+    {
+      key: "yoga_studio",
+      label: "Yoga studio",
+      akHash: "dc8a2c208bfed26ce3cc102f929bf557",
+      /** Workbook: BOP off / GL off — GL-only instant; PL via traditional if needed. */
+      defaultApplicationTypes: ["GL"],
+      employeeApplicationTypes: ["GL"],
+    },
+    {
+      key: "pilates_studio",
+      label: "Pilates / mind-body studio",
+      akHash: "96811230e7feec657c12dc32b6910a60",
+      defaultApplicationTypes: ["BOP", "GL"],
+      employeeApplicationTypes: ["GL"],
+    },
+    {
+      key: "personal_trainer",
+      label: "Personal trainer / fitness instructor",
+      akHash: "39c33b2f8fe71a4716f92728aba92278",
+      defaultApplicationTypes: ["GL"],
+      employeeApplicationTypes: ["GL"],
+    },
+  ],
 };
 
 export function listBusinessClasses(segment) {
