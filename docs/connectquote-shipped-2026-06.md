@@ -32,7 +32,45 @@ Campaign URL prefill → segment Netlify connectquote.html
 | **Secrets** | `COTERIE_*` on Render only — never in segment repos or browser bundle (except Coterie Stripe **publishable** pk) |
 | **Customer ownership** | Connect vault, COI, Am I Covered — **not** Coterie insured portal |
 | **Payment** | Coterie Stripe embed; bind payload uses **`stripeToken`** (`tok_…`), not PaymentMethod `pm_…` |
+| **Merchant of record** | **Coterie / their Stripe** collects premium — see **Payment & merchant of record** below |
 | **Pilot geography** | **CO only** (`COTERIE_PILOT_STATES`) |
+
+---
+
+## Payment & merchant of record (compliance — locked)
+
+**Commercial Insurance Direct LLC is not the merchant of record (MoR) on the ConnectQuote / Coterie instant rail.**
+
+| Question | Answer (Coterie rail, v1) |
+|----------|---------------------------|
+| Who charges the insured’s card? | **Coterie** (via **their** Stripe Connect / embedded checkout) |
+| Who is MoR for the premium payment? | **Coterie** (and underlying admitted carrier paper), **not CID** |
+| Does CID hold or route premium funds? | **No** — no CID Stripe **secret** key, no CID merchant account on this rail |
+| What Stripe key appears in the browser? | **`COTERIE_STRIPE_PUBLISHABLE_KEY`** only (Coterie’s publishable pk, Render env) |
+| What does the bind API send? | **`stripeToken`** (`tok_…` from Stripe.js) to Coterie bind — **not** a CID payment intent |
+| PCI scope for CID on this rail | **Reduced** — card data touches Stripe/Coterie; CID does not process or store PAN |
+
+**What CID still owns:** agency distribution, intake UX, submission/policy rows in cid-postgres, insured service in **Connect** (vault, COI, Am I Covered), ops via segment **`quotes@…`**.
+
+**What CID must not do on this rail (without explicit re-architecture + compliance review):**
+
+- Add a **CID Stripe** account or **`sk_`** secret for ConnectQuote bind
+- Present CID as the party “charging your card” in copy or receipts
+- Commingle instant-rail premiums with CID bank accounts
+
+### Future instant rails (Thimble, other MGAs/APIs)
+
+When adding another instant bind partner, **document MoR per rail** in this file and in [`compliance-roadmap.md`](./compliance-roadmap.md) before production:
+
+| Rail | MoR (expected) | Payment surface | CID role |
+|------|----------------|-----------------|----------|
+| **Coterie (ConnectQuote v1)** | **Coterie / their Stripe** | Coterie Stripe embed on segment intake | Agency + Connect service; not MoR |
+| **Thimble (future)** | _TBD — confirm in partner agreement_ | _TBD (likely partner-hosted or partner Stripe)_ | Same pattern unless contract says otherwise |
+| **Traditional S6 (BoldSign)** | Carrier / billing per bind workflow | Outside instant Stripe embed | Full supplement + ops bind |
+
+**Rule:** Do not assume all instant rails share Coterie’s payment model. Each new partner requires an explicit **MoR + PCI + premium flow** row before ship.
+
+See also: [`coterie-integration.md`](./coterie-integration.md) · [`partnerships.md`](./partnerships.md) (Stripe via Coterie row) · [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md).
 
 ---
 
@@ -107,7 +145,8 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 
 | Topic | Status |
 |-------|--------|
-| **PCI** | Insured pays **Coterie/Stripe** — CID not MoR on instant rail |
+| **Merchant of record** | **CID is not MoR** on ConnectQuote — **Coterie/Stripe** collects premium; see **Payment & merchant of record** above |
+| **PCI** | Card entry via Coterie’s Stripe.js embed; CID has no `sk_` Stripe key on this rail |
 | **PII** | Submission + quote in cid-postgres; Coterie as processor — DPA TBD |
 | **SOC 2** | CID not certified; infra on Render/Netlify/GitHub SOC 2 Type II — see `compliance-roadmap.md` |
 | **CO producer license** | Enabled in sandbox — bindable quotes returning premium (e.g. electrical ~$1,448/yr tested) |
@@ -159,3 +198,4 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 |------|--------|
 | 2026-06-10 | Initial ConnectQuote rail: electrical CO, demo bind, Connect handoff |
 | 2026-06-12 | Fitness segment; extended Coterie fields; coverage toggles; plan cards; static asset fix |
+| 2026-06-12 | Explicit **CID not MoR** / Stripe-via-Coterie compliance section; future-rail template (Thimble) |
