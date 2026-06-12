@@ -1,9 +1,9 @@
 # CID vendors — S1–S6 pipeline and Connect
 
 > **Canonical location (RSS):** `pdf-backend/docs/VENDORS_S1_S6_CONNECT.md` — version with **CID-PDF-API** on Render.  
-> **As of:** 2026-05-15 (America/Denver). Update this date when vendors or roles change.
+> **As of:** 2026-06-04 (America/Denver). Update this date when vendors or roles change.
 
-**Purpose:** One dated reference for **who we use** (and what we dropped) across intake → operator → bind and **CID Connect**. For deploy steps and env var names, see [`Deploy_Guide.md`](./Deploy_Guide.md). For daily ops, see [`OPERATOR_DAILY_RUNBOOK.md`](./OPERATOR_DAILY_RUNBOOK.md). For Connect architecture, see **`cid-connect`** [`docs/ARCHITECTURE.md`](https://github.com/G-Love53/cid-connect/blob/main/docs/ARCHITECTURE.md). For business registry, gaps, and SOC roadmap, see [`partnerships.md`](./partnerships.md), [`partnership-gaps.md`](./partnership-gaps.md), [`compliance-roadmap.md`](./compliance-roadmap.md).
+**Purpose:** One dated reference for **who we use** (and what we dropped) across intake → operator → bind and **CID Connect**. Deploy/env → [`Deploy_Guide.md`](./Deploy_Guide.md). Coterie ConnectQuote → [`coterie-integration.md`](./coterie-integration.md). Ops → [`OPERATOR_DAILY_RUNBOOK.md`](./OPERATOR_DAILY_RUNBOOK.md). Connect arch → **`cid-connect`** [`docs/ARCHITECTURE.md`](https://github.com/G-Love53/cid-connect/blob/main/docs/ARCHITECTURE.md). Business/compliance → [`partnerships.md`](./partnerships.md), [`partnership-gaps.md`](./partnership-gaps.md), [`compliance-roadmap.md`](./compliance-roadmap.md).
 
 ---
 
@@ -93,6 +93,7 @@
 | **OpenAI** | — | — | — | — | — | — | Not wired (API) |
 | **Instantly** | Marketing | — | — | — | — | — | Ops / DNS; not in S1 code |
 | **Cohesive AI** | Planned | — | — | — | — | — | Not in repo yet |
+| **Coterie Insurance** | ConnectQuote pilot | — | — | — | Planned | — | Sandbox validated; CO license pending; see `coterie-integration.md` |
 
 ---
 
@@ -101,3 +102,4 @@
 | Date | Change |
 |------|--------|
 | 2026-05-15 | Initial vendor table: S1–S6 + Connect; BoldSign active; HelloSign legacy; single CID-PDF-API intake; bridge vs Famous split; Cohesive/Instantly called out as non-pipeline. |
+| 2026-06-04 | Coterie row (ConnectQuote pilot); link to `coterie-integration.md`. |

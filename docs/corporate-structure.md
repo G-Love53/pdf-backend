@@ -1,7 +1,7 @@
 # CID — Corporate structure and segment brands
 
 > **Canonical location (RSS):** `pdf-backend/docs/corporate-structure.md` — versioned with **CID-PDF-API** (`main`).  
-> **As of:** 2026-05-20 (America/Denver). Update when segments, domains, or partner-facing narrative change.
+> **As of:** 2026-06-04 (America/Denver). Update when segments, domains, or partner-facing narrative change.
 >
 > **Purpose:** One reference for **legal entity**, **umbrella vs segment brands**, **domains and ops inboxes**, and **what we tell partners** (e.g. carriers, MGAs) vs internal stack details. For deploy steps see [`Deploy_Guide.md`](./Deploy_Guide.md). For vendors see [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md).
 
@@ -83,7 +83,7 @@ Segment GitHub repos and Netlify sites are **wrappers**. Operational truth lives
 | Rail | When | Customer sees |
 |------|------|-----------------|
 | **Traditional** | Full supplement + carrier quote + S5 packet + S6 (BoldSign) | Segment brand through bind; agency ops via segment inbox |
-| **Instant (API carrier)** | Segment passes appetite gate; API quote/bind (e.g. Coterie pilot) | Segment intake; bind confirmation may include carrier branding; ongoing service via CID ops |
+| **ConnectQuote (Coterie API)** | Segment passes appetite gate + **AKHash**; CO pilot first | Segment intake + prefill; bind/pay via Coterie; ongoing service via Connect — see [`coterie-integration.md`](./coterie-integration.md) |
 
 Both rails should write the **same policy shape** in cid-postgres (`bind_source` distinguishes origin). Segment **`quotes@…`** remains the ops story even when bind is API-driven (contact, BCC, attribution).
 
@@ -126,3 +126,4 @@ Use this with partners who do **not** need product architecture detail.
 | Date | Change |
 |------|--------|
 | 2026-05-20 | Initial doc: LLC, umbrella vs segments, inbox registry, partner narrative, quote rails. |
+| 2026-06-04 | ConnectQuote rail label; link to `coterie-integration.md`. |

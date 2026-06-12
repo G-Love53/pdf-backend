@@ -1,9 +1,9 @@
 # CID — Partnerships and integrations registry
 
 > **Canonical location (RSS):** `pdf-backend/docs/partnerships.md`  
-> **As of:** 2026-05-20 (America/Denver). Update when vendors, carriers, or status change.
+> **As of:** 2026-06-04 (America/Denver). Update when vendors, carriers, or status change.
 >
-> **Related:** Technical vendor-by-stage detail → [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md). Entity/brands → [`corporate-structure.md`](./corporate-structure.md). Diligence backlog → [`partnership-gaps.md`](./partnership-gaps.md). Compliance timeline → [`compliance-roadmap.md`](./compliance-roadmap.md).
+> **Related:** Coterie ConnectQuote spec → [`coterie-integration.md`](./coterie-integration.md). Technical vendor-by-stage → [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md). Entity/brands → [`corporate-structure.md`](./corporate-structure.md). Diligence backlog → [`partnership-gaps.md`](./partnership-gaps.md). Compliance → [`compliance-roadmap.md`](./compliance-roadmap.md).
 
 ---
 
@@ -36,7 +36,7 @@
 | **Google Postmaster Tools** | Marketing / Compliance | Live | Sending-domain reputation monitoring | N/A | Operational | N/A | SPF/DKIM/DMARC evidence per domain | Rick |
 | **Instantly** | Marketing | Live (ops) | Cold/warm outbound; **not wired to S1 API** | Lead gen customer | Marketing / links | Verify if available | Vendor terms; domain alignment | Rick |
 | **Cohesive AI** | Marketing | Planned | Warm leads → segment `quotes@` | Referral partner | Email forward (planned) | N/A | Written lead-referral agreement before prod | Rick |
-| **Coterie Insurance** | MGA / API carrier | In progress | Instant quote/bind rail (pilot) | Distribution / API volume | API + webhooks (+ Stripe bind) | Coterie states compliant; confirm | Sandbox token, webhook, appointment, DPA | Gerry |
+| **Coterie Insurance** | MGA / API carrier | Sandbox validated | ConnectQuote instant rail (CO pilot) | Distribution / API volume | API + webhooks (+ Stripe bind) | Coterie states compliant; confirm | CO producer license in sandbox; bindable test; webhook; DPA | Gerry |
 | **Stripe** (via Coterie) | API | In progress | Payment on Coterie instant bind | Payment volume | Embedded (Coterie) | Stripe Type II (standard) | Clarify PCI scope (insured pays Coterie/Stripe) | Gerry |
 | **Traditional carriers** (per segment) | Carrier | Live | Placement for non-instant risks | Submissions / premium | ACORD/SUPP + email (S1–S6) | Varies by carrier | **Named appointment matrix** (see gaps doc) | Gerry / Rick |
 | **Coterie admitted insurers** (Spinnaker, Clear Spring, Benchmark) | Carrier | Via Coterie | Paper behind Coterie BOP/GL/PL | N/A | Via Coterie API | Carrier NAIC per Coterie FAQ | Document as Coterie paper, not direct CID API | Gerry |
@@ -66,3 +66,4 @@
 | Date | Change |
 |------|--------|
 | 2026-05-20 | Initial registry from repo markdown + VENDORS; Coterie in progress; SOC wording corrected (CID not certified). |
+| 2026-06-04 | Coterie sandbox auth + applications validated; bindable blocked on CO producer license; see `coterie-integration.md`. |

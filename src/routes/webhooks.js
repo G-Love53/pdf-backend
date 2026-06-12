@@ -14,6 +14,10 @@ import {
   processBoldSignDocumentCompleted,
   tryFinalizeBoldSignFromDocumentId,
 } from "../services/boldsignBindCompletion.js";
+import {
+  parseCoterieWebhookPayload,
+} from "../services/coterieService.js";
+import { processCoterieBindWebhook } from "../services/coterieBindCompletion.js";
 import { getDocumentProperties } from "../services/boldsignService.js";
 import {
   DocumentRole,
@@ -756,6 +760,53 @@ router.post("/api/webhooks/boldsign", async (req, res) => {
   } catch (err) {
     console.error("[boldsign webhook] error:", err);
     // Still 200 to avoid retry storms during initial integration.
+    return res.status(200).json({ ok: true });
+  }
+});
+
+// Coterie webhook — POST /webhooks/coterie (no /api prefix; mount uses express.raw()).
+router.post("/webhooks/coterie", async (req, res) => {
+  try {
+    const payload = parseCoterieWebhookPayload(req);
+    if (!payload) {
+      return res.status(200).json({ ok: true, ignored: true });
+    }
+
+    const eventId =
+      payload.eventId ||
+      payload.event_id ||
+      payload.id ||
+      null;
+
+    const webhookSecret = process.env.COTERIE_WEBHOOK_SECRET || null;
+    if (webhookSecret) {
+      const sig =
+        req.headers["x-coterie-signature"] ||
+        req.headers["x-webhook-signature"] ||
+        null;
+      if (sig && sig !== webhookSecret) {
+        console.warn("[coterie webhook] signature mismatch");
+        return res.status(200).json({ ok: true, ignored: true });
+      }
+    }
+
+    const eventType =
+      payload.eventType ||
+      payload.event_type ||
+      payload.type ||
+      "unknown";
+
+    if (
+      String(eventType).toLowerCase() === "verification" ||
+      String(eventType).toLowerCase() === "ping"
+    ) {
+      return res.status(200).json({ ok: true });
+    }
+
+    await processCoterieBindWebhook(payload, { eventId });
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error("[coterie webhook] error:", err);
     return res.status(200).json({ ok: true });
   }
 });

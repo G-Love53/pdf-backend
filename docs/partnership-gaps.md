@@ -1,7 +1,7 @@
 # CID — Partnership and diligence gaps
 
 > **Canonical location (RSS):** `pdf-backend/docs/partnership-gaps.md`  
-> **As of:** 2026-05-20 (America/Denver). Review with **Ray** for governance, inter-company, and exit readiness.
+> **As of:** 2026-06-04 (America/Denver). Review with **Ray** for governance, inter-company, and exit readiness.
 >
 > **Related:** Full registry → [`partnerships.md`](./partnerships.md). Compliance timeline → [`compliance-roadmap.md`](./compliance-roadmap.md). Technical vendors → [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md).
 
@@ -20,7 +20,7 @@ CID’s **technology stack is diligence-friendly** (hosted on vendors that typic
 | # | Gap | Risk if ignored | Recommended action | Owner |
 |---|-----|---------------|-------------------|-------|
 | 1 | **No segment → carrier/MGA appointment matrix** | Cannot answer “who is appointed for Electrical?” in diligence | One table: segment, appointing entity, carrier/MGA, traditional vs instant rail, status | Gerry / Rick |
-| 2 | **Coterie — no sandbox, no signed partner/API terms** | Instant rail blocked; API use unclear | Sandbox token, webhook URL, DPA/partner agreement, `agencyExternalId` | Gerry |
+| 2 | **Coterie — sandbox bind blocked (CO producer license)** | Cannot complete test bind or demo | Coterie enable CO license in sandbox; then bindable quote + webhook — see [`coterie-integration.md`](./coterie-integration.md) | Gerry |
 | 3 | **Inter-company services agreement** (if multiple entities post C-Corp) | IP, billing, and liability unclear on acquisition | Ray drafts: who owns `pdf-backend`, Connect, HomeBase; cost allocation; employment | Ray |
 | 4 | **Vendor DPAs / terms not centralized** | SOC 2 and privacy diligence stall | Folder of executed or click-through: Render, Google, BoldSign, Anthropic, Famous, Cloudflare | Gerry / Ray |
 
@@ -72,7 +72,7 @@ Use this as a working checklist (fill names with Ray / Gerry):
 | plumber | Yes | quotes@plumberinsurancedirect.com | _Document_ | TBD |
 | hvac | Yes | quotes@hvacinsurancedirect.com | _Document_ | TBD |
 | fitness | Yes | quotes@fitnessinsurancedirect.com | _Document_ | Pilot candidate |
-| electrical | Yes | quotes@electricalinsurancedirect.com | _Document_ | Pilot candidate |
+| electrical | Yes | quotes@electricalinsurancedirect.com | _Document_ | **Coterie ConnectQuote CO pilot** (sandbox) |
 
 ---
 
@@ -91,3 +91,4 @@ Use this as a working checklist (fill names with Ray / Gerry):
 | Date | Change |
 |------|--------|
 | 2026-05-20 | Initial gap analysis P0–P3; segment appointment checklist; Ray inter-company item. |
+| 2026-06-04 | Coterie sandbox credentials issued; applications OK; CO producer license pending for bindable quote. |

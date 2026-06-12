@@ -14,6 +14,7 @@ import { startPolicyIndexer } from "./workers/policyIndexer.js";
 import documentRoutes from "./routes/documentRoutes.js";
 import operatorRoutes from "./routes/operatorRoutes.js";
 import webhooksRouter from "./routes/webhooks.js";
+import coterieRoutes from "./routes/coterieRoutes.js";
 import { connectAuthMiddleware } from "./middleware/connectAuth.js";
 import connectApiRouter from "./routes/connectApi.js";
 import { renewalPrefillHandler } from "./routes/renewalIntakePublic.js";
@@ -85,6 +86,12 @@ APP.use(
 // BoldSign webhook: must see the raw body so we can parse JSON + (optionally) validate signature
 APP.use(
   "/api/webhooks/boldsign",
+  express.raw({ type: "*/*", limit: "5mb" }),
+);
+
+// Coterie webhook: raw body for future signature verification
+APP.use(
+  "/webhooks/coterie",
   express.raw({ type: "*/*", limit: "5mb" }),
 );
 
@@ -1049,12 +1056,11 @@ APP.post("/submit-quote", async (req, res) => {
   }
 });
 
+APP.use(coterieRoutes);
 APP.use(documentRoutes);
 APP.use(operatorRoutes);
-// HelloSign webhook: must be mounted with raw body for signature verification
-APP.use(
-  webhooksRouter,
-);
+// HelloSign + BoldSign + Coterie webhooks (Coterie raw body mounted above)
+APP.use(webhooksRouter);
 
 startGmailPoller();
 startPolicyIndexer();

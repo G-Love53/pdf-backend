@@ -239,6 +239,18 @@ These apply to **`pdf-backend`** on Render (`cid-pdf-api`, etc.), not the segmen
   - `endorsement` rows carry `document_priority=1`
   - Connect chat retrieves policy excerpts for coverage prompts.
 
+### Coterie ConnectQuote (sandbox — optional env)
+
+When the instant rail is enabled on CID-PDF-API, set on **Render → CID-PDF-API → Environment** (values from Coterie partner setup — **never commit**):
+
+| Variable | Purpose |
+|----------|---------|
+| `COTERIE_API_BASE` | `https://api-sandbox.coterieinsurance.com` (prod TBD) |
+| `COTERIE_PUBLISHABLE_KEY` | Sandbox/partner publishable key |
+| `COTERIE_AGENCY_EXTERNAL_ID` | Agency UUID (`agencyExternalId` in API body) |
+
+Spec: [`coterie-integration.md`](./coterie-integration.md). **v1 pilot:** CO only; bind blocked until Coterie enables CO producer license in sandbox.
+
 ### Connect identity + CORS checks
 
 - CORS preflight must be handled before `/api/connect` auth routing so browser `OPTIONS` requests succeed and real `GET/POST` follow.
