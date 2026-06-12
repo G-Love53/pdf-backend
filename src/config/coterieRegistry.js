@@ -53,27 +53,7 @@ export const COTERIE_BUSINESS_CLASSES = {
               required: true,
             },
           ],
-          extras: [
-            {
-              id: "PL",
-              label: "Professional liability",
-              instant: false,
-              message:
-                "Professional liability is not on Coterie instant bind for yoga yet — use our full application for PL quotes.",
-            },
-          ],
         },
-      },
-      extras: {
-        nonOwner: [
-          {
-            id: "PL",
-            label: "Professional liability",
-            instant: false,
-            message:
-              "Professional liability is not on Coterie instant bind for yoga yet — use our full application for PL quotes.",
-          },
-        ],
       },
     },
     {

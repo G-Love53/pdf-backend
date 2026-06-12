@@ -27,8 +27,8 @@
 |------|------|
 | Payment | Coterie Stripe only — use `COTERIE_STRIPE_PUBLISHABLE_KEY` on intake page; no CID Stripe |
 | Coterie contact | **Zero** — discover bind/pay/webhook from sandbox responses only |
-| Primary intake | ConnectQuote thin form |
-| Backup | Existing long Netlify `/submit-quote` link in footer |
+| Primary intake | ConnectQuote only on `connectquote.html` — no PL toggle, no link to full supplement |
+| Backup | Long-form `/quote` on segment site for ops/marketing; not linked from ConnectQuote page |
 | Customer ownership | Welcome email + Connect onboarding; **Connect COI**, not Coterie COI portal |
 | Keys (Render) | New sandbox set: Agency `8202035f-…`, Publishable `6abe3fe6-…`, Secret server-only, Stripe `pk_test_…` |
 

@@ -105,7 +105,7 @@ See also: [`coterie-integration.md`](./coterie-integration.md) · [`partnerships
 | Segment | `business_class` | Products (owner) | Non-owner |
 |---------|------------------|-------------------|-----------|
 | **electrical** | `electric_contracting` | BOP (+ optional GL add-on) | Traditional (ownerOnly) |
-| **fitness** | `yoga_studio` | GL (+ PL → full app) | GL |
+| **fitness** | `yoga_studio` | GL | GL |
 | **fitness** | `pilates_studio` | BOP + GL toggles | GL |
 | **fitness** | `personal_trainer` | GL | GL |
 
@@ -120,19 +120,12 @@ Registry: `src/config/coterieRegistry.js` · Intake schema: `src/config/connectQ
 | **Employees** | Core form (`num_employees`) | Always shown — maps to Coterie `numEmployees` |
 | **Revenue, payroll, years in business** | **Business rating details** section | Required by Coterie bindable for **GL-only** paths too (not just BOP) |
 | **GL limits** | Pre-selected **$1M / $2M** | Changeable |
-| **Professional liability** | Optional toggle → **full application** | See below — not on Coterie instant bind for this AKHash |
 
-### Why Professional Liability uses the full application (not extra Coterie questions)
+**ConnectQuote-only UX:** Professional liability and other non-instant products are **not shown** on ConnectQuote intake — avoids confusing insureds with options we cannot bind instantly. Ops can still handle PL via traditional workflow off-segment if needed.
 
-Yoga’s Coterie **`AKHash`** supports **GL on the instant bindable API** today. **Professional liability (PL)** is a **separate product** on Coterie’s workbook — it is **not** exposed as an `applicationType` we can price/bind on the same instant quote call for yoga in v1.
+### Professional liability (not on ConnectQuote)
 
-| If we did… | Result |
-|------------|--------|
-| Add PL fields on ConnectQuote only | UI collects data but **no instant premium/bind** — would fail or mislead |
-| Send `applicationTypes: ["PL"]` without Coterie appetite | Bindable quote errors or traditional declination |
-| **Route PL to full supplement (`index.html`)** | Correct today — ops/carrier review path for PL until Coterie enables PL on instant bind for this class |
-
-When Coterie confirms **PL on bindable** for yoga’s AKHash, we add PL to `applicationTypes` and intake toggles — same pattern as BOP/GL.
+Yoga’s Coterie **`AKHash`** supports **GL on the instant bindable API** only. **PL is omitted from ConnectQuote UI** (no toggle, no redirect to full application on this page). When Coterie enables **PL on bindable** for this class, we add it as a coverage toggle — same pattern as BOP/GL.
 
 ---
 
@@ -141,7 +134,7 @@ When Coterie confirms **PL on bindable** for yoga’s AKHash, we add PL to `appl
 1. **Campaign prefill** — `fn`, `ln`, `em`, `ad`, `ct`, `st`, `zp`, `bn`, `bc`, `src`, `cid`
 2. **Core questions** — contact, location, owner?, business type, employees
 3. **Smart sections** (after owner + type selected):
-   - Coverage toggles (BOP / GL; yoga PL optional → full app)
+   - Coverage toggles (BOP / GL only — instant-bind products)
    - **Business rating details:** sales, payroll, years in business *(Select… until chosen)* — **shown for GL-only (yoga/trainer) and BOP**
    - Property deductible *(BOP only)*
    - GL limits — **default $1M / $2M**, changeable
