@@ -121,6 +121,14 @@ APP.use(
   express.static(path.join(process.cwd(), "public"), { maxAge: 3600, etag: true }),
 );
 
+// ConnectQuote intake assets (also available at /static/… for consistency with other public helpers)
+APP.get("/connectquote-intake.js", (_req, res) => {
+  res.sendFile(path.join(process.cwd(), "public", "connectquote-intake.js"));
+});
+APP.get("/connectquote-intake.css", (_req, res) => {
+  res.sendFile(path.join(process.cwd(), "public", "connectquote-intake.css"));
+});
+
 // CID Connect API bridge (Phase 1: X-User-Email + optional X-User-Id)
 APP.use("/api/connect", connectAuthMiddleware, connectApiRouter);
 

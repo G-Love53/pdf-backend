@@ -3,6 +3,21 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
+  const ASSET_V = "20260612";
+
+  const FALLBACK_CLASSES = {
+    electrical: [
+      {
+        key: "electric_contracting",
+        label: "Electrical contracting (primary work)",
+      },
+    ],
+    fitness: [
+      { key: "yoga_studio", label: "Yoga studio" },
+      { key: "pilates_studio", label: "Pilates / mind-body studio" },
+      { key: "personal_trainer", label: "Personal trainer / fitness instructor" },
+    ],
+  };
 
   let stripe = null;
   let cardElement = null;
@@ -87,18 +102,29 @@
     const p = new URLSearchParams(location.search);
     const bcPrefill = p.get("bc") || p.get("business_class");
     sel.innerHTML = '<option value="" selected disabled>Select…</option>';
+    let loaded = false;
     try {
       const j = await loadRegistry();
-      (j.businessClasses || [])
-        .filter((c) => !c.prohibited && c.akHash)
-        .forEach((c) => {
+      const rows = (j.businessClasses || []).filter((c) => !c.prohibited && c.akHash);
+      if (rows.length) {
+        rows.forEach((c) => {
           const opt = document.createElement("option");
           opt.value = c.key;
           opt.textContent = c.label;
           sel.appendChild(opt);
         });
-    } catch {
-      /* segment pages may ship fallback options in HTML */
+        loaded = true;
+      }
+    } catch (err) {
+      console.warn("[connectquote] registry load failed", err);
+    }
+    if (!loaded && FALLBACK_CLASSES[SEGMENT]) {
+      FALLBACK_CLASSES[SEGMENT].forEach((c) => {
+        const opt = document.createElement("option");
+        opt.value = c.key;
+        opt.textContent = c.label;
+        sel.appendChild(opt);
+      });
     }
     if (bcPrefill && [...sel.options].some((o) => o.value === bcPrefill)) {
       sel.value = bcPrefill;
@@ -616,6 +642,13 @@
     await loadBusinessClasses();
     wireForm();
     await refreshDynamicForm();
+    if (selectedBusinessClass() && !$("is_owner").value) {
+      const host = $("cq-dynamic");
+      if (host) {
+        host.innerHTML =
+          '<p class="cq-placeholder">Select ownership above to see coverage options and Coterie rating questions.</p>';
+      }
+    }
     loadConfig().catch(() => {});
   }
 
