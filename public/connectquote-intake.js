@@ -216,15 +216,22 @@
     return html;
   }
 
+  function fieldInitialValue(field, pre) {
+    if (pre) return pre;
+    if (field.defaultPreselect && field.default) return String(field.default);
+    return "";
+  }
+
   function renderField(field) {
     const p = new URLSearchParams(location.search);
     const pre = field.prefillParam ? p.get(field.prefillParam) : null;
-    const val = pre || "";
+    const val = fieldInitialValue(field, pre);
     if (field.type === "select") {
-      let opts =
-        '<option value="" disabled' +
-        (val ? "" : " selected") +
-        ">Select…</option>";
+      let opts = "";
+      if (!val) {
+        opts =
+          '<option value="" disabled selected>Select…</option>';
+      }
       opts += field.options
         .map(
           (o) =>
@@ -305,9 +312,20 @@
   function renderSections(schema) {
     let html = renderCoverageToggles(schema);
 
+    if (schema.sections?.rating) {
+      html +=
+        '<details class="cq-section" id="section-rating" open><summary>Business rating details <span class="cq-hint">Revenue, payroll &amp; experience — required by Coterie for GL and BOP</span></summary><div class="cq-section-body">';
+      schema.fields
+        .filter((f) => f.section === "rating")
+        .forEach((f) => {
+          html += renderField(f);
+        });
+      html += "</div></details>";
+    }
+
     if (schema.sections?.bop) {
       html +=
-        '<details class="cq-section" id="section-bop" open><summary>BOP rating details <span class="cq-hint">Coterie uses these to price property &amp; operations</span></summary><div class="cq-section-body">';
+        '<details class="cq-section" id="section-bop" open><summary>Property coverage (BOP)</summary><div class="cq-section-body">';
       schema.fields
         .filter((f) => f.section === "bop")
         .forEach((f) => {
@@ -384,12 +402,14 @@
   function updateSectionVisibility() {
     const bop = $("section-bop");
     const gl = $("section-gl");
+    const rating = $("section-rating");
     const bopToggle = document.querySelector('[data-cov-id="BOP"]');
-    if (bop) bop.style.display = !bopToggle || coverageChecked("BOP") ? "" : "none";
-    if (gl) {
-      const glToggle = document.querySelector('[data-cov-id="GL"]');
-      gl.style.display = !glToggle || coverageChecked("GL") ? "" : "none";
-    }
+    const glToggle = document.querySelector('[data-cov-id="GL"]');
+    const bopOn = !bopToggle || coverageChecked("BOP");
+    const glOn = !glToggle || coverageChecked("GL");
+    if (rating) rating.style.display = bopOn || glOn ? "" : "none";
+    if (bop) bop.style.display = bopOn ? "" : "none";
+    if (gl) gl.style.display = glOn ? "" : "none";
   }
 
   function bindCoverageUi() {

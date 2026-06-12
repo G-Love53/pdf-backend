@@ -7,7 +7,11 @@
 
 ## Executive summary
 
-**ConnectQuote** is CID’s **instant quote-and-bind rail** via **Coterie API v1.6**, live in **sandbox** for **Colorado** on **Electrical** and **Fitness** (yoga, pilates, personal trainer). Insureds complete a **segment-branded** thin intake → receive a **bindable premium** → pay through **Coterie’s Stripe** (CID is **not** merchant of record) → land in **CID Connect** same day with a policy row in **cid-postgres** (`bind_source: coterie`).
+**Investor deck (one line):** ConnectQuote is **nationwide live**, gated only by **carrier appetite** and **state licensing availability** — not by a fixed state pilot.
+
+**ConnectQuote** is CID’s **instant quote-and-bind rail** via **Coterie API v1.6**, deployed on **Electrical** and **Fitness** (yoga, pilates, personal trainer). Insureds complete a **segment-branded** thin intake → receive a **bindable premium** → pay through **Coterie’s Stripe** (**CID is not merchant of record**) → land in **CID Connect** same day with a policy row in **cid-postgres** (`bind_source: coterie`).
+
+**Geography:** Product and architecture are **nationwide-ready**. Coterie **`AKHash`** appetite and **producer licensing per state** determine where bindable quotes succeed. Sandbox demos use **CO**; expanding states is configuration + licensing, not a rebuild.
 
 **Traditional S6 (BoldSign)** is unchanged for full supplement / non-appetite risks.
 
@@ -33,7 +37,7 @@ Campaign URL prefill → segment Netlify connectquote.html
 | **Customer ownership** | Connect vault, COI, Am I Covered — **not** Coterie insured portal |
 | **Payment** | Coterie Stripe embed; bind payload uses **`stripeToken`** (`tok_…`), not PaymentMethod `pm_…` |
 | **Merchant of record** | **Coterie / their Stripe** collects premium — see **Payment & merchant of record** below |
-| **Pilot geography** | **CO only** (`COTERIE_PILOT_STATES`) |
+| **Geography** | **Nationwide live**, gated by **AKHash appetite** + **state producer licensing** (see Executive summary) |
 
 ---
 
@@ -96,16 +100,39 @@ See also: [`coterie-integration.md`](./coterie-integration.md) · [`partnerships
 
 ---
 
-## Segments & AKHashes (CO sandbox)
+## Segments & AKHashes
 
 | Segment | `business_class` | Products (owner) | Non-owner |
 |---------|------------------|-------------------|-----------|
 | **electrical** | `electric_contracting` | BOP (+ optional GL add-on) | Traditional (ownerOnly) |
-| **fitness** | `yoga_studio` | GL (+ PL → traditional) | GL |
+| **fitness** | `yoga_studio` | GL (+ PL → full app) | GL |
 | **fitness** | `pilates_studio` | BOP + GL toggles | GL |
 | **fitness** | `personal_trainer` | GL | GL |
 
+**GL limits (all segments):** default **$1M each occurrence** / **$2M aggregate** — insured can change on intake.
+
 Registry: `src/config/coterieRegistry.js` · Intake schema: `src/config/connectQuoteIntakeSchema.js`
+
+### Yoga / GL-only — what Coterie needs
+
+| Field | On intake | Notes |
+|-------|-----------|--------|
+| **Employees** | Core form (`num_employees`) | Always shown — maps to Coterie `numEmployees` |
+| **Revenue, payroll, years in business** | **Business rating details** section | Required by Coterie bindable for **GL-only** paths too (not just BOP) |
+| **GL limits** | Pre-selected **$1M / $2M** | Changeable |
+| **Professional liability** | Optional toggle → **full application** | See below — not on Coterie instant bind for this AKHash |
+
+### Why Professional Liability uses the full application (not extra Coterie questions)
+
+Yoga’s Coterie **`AKHash`** supports **GL on the instant bindable API** today. **Professional liability (PL)** is a **separate product** on Coterie’s workbook — it is **not** exposed as an `applicationType` we can price/bind on the same instant quote call for yoga in v1.
+
+| If we did… | Result |
+|------------|--------|
+| Add PL fields on ConnectQuote only | UI collects data but **no instant premium/bind** — would fail or mislead |
+| Send `applicationTypes: ["PL"]` without Coterie appetite | Bindable quote errors or traditional declination |
+| **Route PL to full supplement (`index.html`)** | Correct today — ops/carrier review path for PL until Coterie enables PL on instant bind for this class |
+
+When Coterie confirms **PL on bindable** for yoga’s AKHash, we add PL to `applicationTypes` and intake toggles — same pattern as BOP/GL.
 
 ---
 
@@ -114,10 +141,11 @@ Registry: `src/config/coterieRegistry.js` · Intake schema: `src/config/connectQ
 1. **Campaign prefill** — `fn`, `ln`, `em`, `ad`, `ct`, `st`, `zp`, `bn`, `bc`, `src`, `cid`
 2. **Core questions** — contact, location, owner?, business type, employees
 3. **Smart sections** (after owner + type selected):
-   - Coverage toggles (BOP / GL / PL handoff)
-   - BOP rating: sales, payroll, years in business, BPP deductible *(blank Select… until chosen)*
-   - GL limits *(blank until chosen)*
-   - Policy start date *(blank until chosen)*
+   - Coverage toggles (BOP / GL; yoga PL optional → full app)
+   - **Business rating details:** sales, payroll, years in business *(Select… until chosen)* — **shown for GL-only (yoga/trainer) and BOP**
+   - Property deductible *(BOP only)*
+   - GL limits — **default $1M / $2M**, changeable
+   - Policy start date *(Select date)*
 4. **Quote** — premium returned from Coterie bindable
 5. **Pay plan** — clickable **annual vs monthly** cards (not dropdown)
 6. **Bind** — Pay & bind (Stripe) or **Demo simulate bind** (sandbox)
@@ -154,7 +182,7 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 
 ---
 
-## Demo URLs (CO)
+## Demo URLs (sandbox — CO example)
 
 **Electrical:**  
 `https://electricalinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Electric+LLC&src=demo&cid=build-day`
@@ -199,3 +227,4 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 | 2026-06-10 | Initial ConnectQuote rail: electrical CO, demo bind, Connect handoff |
 | 2026-06-12 | Fitness segment; extended Coterie fields; coverage toggles; plan cards; static asset fix |
 | 2026-06-12 | Explicit **CID not MoR** / Stripe-via-Coterie compliance section; future-rail template (Thimble) |
+| 2026-06-12 | Nationwide investor positioning; yoga GL rating fields; GL $1M/$2M defaults; PL rationale |

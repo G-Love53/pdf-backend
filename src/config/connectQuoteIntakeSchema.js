@@ -7,7 +7,7 @@ export const COTERIE_EXTENDED_FIELDS = {
     label: "Gross annual sales / revenue",
     type: "select",
     coterieKey: "grossAnnualSales",
-    section: "bop",
+    section: "rating",
     options: [
       { value: "75000", label: "Under $100,000" },
       { value: "150000", label: "$100,000 – $250,000" },
@@ -23,7 +23,7 @@ export const COTERIE_EXTENDED_FIELDS = {
     label: "Annual payroll",
     type: "select",
     coterieKey: "annualPayroll",
-    section: "bop",
+    section: "rating",
     options: [
       { value: "25000", label: "Under $50,000" },
       { value: "75000", label: "$50,000 – $100,000" },
@@ -39,7 +39,7 @@ export const COTERIE_EXTENDED_FIELDS = {
     label: "Years in business",
     type: "select",
     coterieKey: "businessAgeInMonths",
-    section: "bop",
+    section: "rating",
     options: [
       { value: "6", label: "Less than 1 year" },
       { value: "18", label: "1 – 2 years" },
@@ -76,6 +76,7 @@ export const COTERIE_EXTENDED_FIELDS = {
       { value: "2000000", label: "$2,000,000" },
     ],
     default: "1000000",
+    defaultPreselect: true,
     prefillParam: "gl",
   },
   gl_aggregate_limit: {
@@ -89,6 +90,7 @@ export const COTERIE_EXTENDED_FIELDS = {
       { value: "4000000", label: "$4,000,000" },
     ],
     default: "2000000",
+    defaultPreselect: true,
     prefillParam: "gla",
   },
   policy_start_date: {
@@ -163,17 +165,23 @@ export function resolveIntakeSchema(segment, businessClassKey, { isOwner = true 
   const nonOwner = isNonOwner(isOwner);
 
   const instantIds = coverage.instant.map((c) => c.id);
+  const hasBop = instantIds.includes("BOP") && !nonOwner;
+  const hasGl = instantIds.includes("GL");
+  /** Coterie bindable requires payroll/sales/age for GL-only paths too (yoga, trainer). */
+  const needsRating = hasGl || hasBop;
 
   const fields = [];
-  if (instantIds.includes("BOP") && !nonOwner) {
+  if (needsRating) {
     fields.push(
       COTERIE_EXTENDED_FIELDS.gross_annual_sales,
       COTERIE_EXTENDED_FIELDS.annual_payroll,
       COTERIE_EXTENDED_FIELDS.business_age_years,
-      COTERIE_EXTENDED_FIELDS.bpp_deductible,
     );
   }
-  if (instantIds.includes("GL")) {
+  if (hasBop) {
+    fields.push(COTERIE_EXTENDED_FIELDS.bpp_deductible);
+  }
+  if (hasGl) {
     fields.push(
       COTERIE_EXTENDED_FIELDS.gl_limit,
       COTERIE_EXTENDED_FIELDS.gl_aggregate_limit,
@@ -190,8 +198,9 @@ export function resolveIntakeSchema(segment, businessClassKey, { isOwner = true 
     coverage,
     fields,
     sections: {
-      bop: instantIds.includes("BOP") && !nonOwner,
-      gl: instantIds.includes("GL"),
+      rating: needsRating,
+      bop: hasBop,
+      gl: hasGl,
       policy: true,
     },
   };

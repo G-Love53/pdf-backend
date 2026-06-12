@@ -59,7 +59,7 @@ export const COTERIE_BUSINESS_CLASSES = {
               label: "Professional liability",
               instant: false,
               message:
-                "Professional liability needs our full application — we'll redirect you after you continue.",
+                "Professional liability is not on Coterie instant bind for yoga yet — use our full application for PL quotes.",
             },
           ],
         },
@@ -71,7 +71,7 @@ export const COTERIE_BUSINESS_CLASSES = {
             label: "Professional liability",
             instant: false,
             message:
-              "Professional liability needs our full application — we'll redirect you after you continue.",
+              "Professional liability is not on Coterie instant bind for yoga yet — use our full application for PL quotes.",
           },
         ],
       },

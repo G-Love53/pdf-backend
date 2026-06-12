@@ -310,7 +310,7 @@ export function buildBindableQuotePayload(
     policyStartDate: formatPolicyStartDate(form),
   };
 
-  if (includesBop) {
+  if (includesBop || types.includes("GL")) {
     payload.annualPayroll = Number(
       form.annual_payroll || form.annualPayroll || 50000,
     );
@@ -318,6 +318,8 @@ export function buildBindableQuotePayload(
       form.gross_annual_sales || form.grossAnnualSales || 150000,
     );
     payload.businessAgeInMonths = parseBusinessAgeMonths(form);
+  }
+  if (includesBop) {
     payload.bppDeductible = Number(
       form.bpp_deductible || form.bppDeductible || 1000,
     );
