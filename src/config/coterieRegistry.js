@@ -36,6 +36,58 @@ export const COTERIE_BUSINESS_CLASSES = {
       prohibited: true,
     },
   ],
+  plumber: [
+    {
+      key: "plumbing_contractor",
+      label: "Plumbing contracting (primary work)",
+      akHash: "b977fc92dc7b5436e7a79c5df4f7d9f9",
+      defaultApplicationTypes: ["BOP"],
+      ownerOnly: true,
+      coverage: {
+        owner: {
+          options: [
+            {
+              id: "BOP",
+              label: "Businessowners Policy (BOP)",
+              defaultOn: true,
+              required: true,
+            },
+            {
+              id: "GL",
+              label: "General liability (add-on)",
+              defaultOn: false,
+            },
+          ],
+        },
+      },
+    },
+  ],
+  hvac: [
+    {
+      key: "hvac_contractor",
+      label: "HVAC contracting (primary work)",
+      akHash: "3cdfc10ad6660692a3f77f6a4e3825b4",
+      defaultApplicationTypes: ["BOP"],
+      ownerOnly: true,
+      coverage: {
+        owner: {
+          options: [
+            {
+              id: "BOP",
+              label: "Businessowners Policy (BOP)",
+              defaultOn: true,
+              required: true,
+            },
+            {
+              id: "GL",
+              label: "General liability (add-on)",
+              defaultOn: false,
+            },
+          ],
+        },
+      },
+    },
+  ],
   fitness: [
     {
       key: "yoga_studio",

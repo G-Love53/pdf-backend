@@ -12,6 +12,18 @@
         label: "Electrical contracting (primary work)",
       },
     ],
+    plumber: [
+      {
+        key: "plumbing_contractor",
+        label: "Plumbing contracting (primary work)",
+      },
+    ],
+    hvac: [
+      {
+        key: "hvac_contractor",
+        label: "HVAC contracting (primary work)",
+      },
+    ],
     fitness: [
       { key: "yoga_studio", label: "Yoga studio" },
       { key: "pilates_studio", label: "Pilates / mind-body studio" },

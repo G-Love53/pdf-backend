@@ -51,7 +51,12 @@ function resolveApplicationTypes(form, segment, businessClassKey) {
   return entry?.defaultApplicationTypes || ["BOP"];
 }
 
-const CONNECTQUOTE_SEGMENTS = new Set(["electrical", "fitness"]);
+const CONNECTQUOTE_SEGMENTS = new Set([
+  "electrical",
+  "fitness",
+  "plumber",
+  "hvac",
+]);
 
 export async function processConnectQuoteIntake(body, reqMeta = {}) {
   const form = normalizeFormData(body);
