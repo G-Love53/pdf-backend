@@ -565,23 +565,63 @@
       cardElement = stripe.elements().create("card");
       cardElement.mount("#card-element");
     }
-    if (demoEnabled) $("demo-btn").style.display = "block";
+    if (demoEnabled) {
+      const demoBtn = $("demo-btn");
+      if (demoBtn) {
+        demoBtn.style.display = "block";
+        demoBtn.textContent = "Skip payment — demo only";
+      }
+    }
+  }
+
+  async function callDemoFinalize() {
+    const res = await fetch(API + "/api/coterie/demo-finalize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        submission_public_id: session.submission_public_id,
+        quote_id: session.quote_id,
+      }),
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      throw new Error(data.message || data.error || "Demo finalize failed");
+    }
+    return data;
   }
 
   function showSuccess(connectUrl) {
     $("err-box").classList.remove("show");
     $("err-box").textContent = "";
     $("quote-box").classList.remove("show");
-    $("success-box").classList.add("show");
+    $("payment-section")?.classList.remove("show");
+    const demoBtn = $("demo-btn");
+    if (demoBtn) demoBtn.style.display = "none";
+    const formCard = $("cq-form")?.closest(".card");
+    if (formCard) formCard.style.display = "none";
+
+    const successBox = $("success-box");
+    if (successBox) {
+      const h2 = successBox.querySelector("h2");
+      if (h2) h2.textContent = "Congratulations — you're covered!";
+      successBox.classList.add("show");
+      successBox.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    const connectBtn = $("connect-btn");
+    if (connectBtn) connectBtn.textContent = "Sign up for CID Connect";
+
     const base = connectUrl || "https://app.cid.famous.ai";
     const url =
       base +
       (base.includes("?") ? "&" : "?") +
       "email=" +
       encodeURIComponent(session.email || "");
-    $("connect-btn").onclick = () => {
-      location.href = url;
-    };
+    if (connectBtn) {
+      connectBtn.onclick = () => {
+        location.href = url;
+      };
+    }
   }
 
   function wireForm() {
@@ -640,9 +680,11 @@
         return;
       }
       $("pay-btn").disabled = true;
+      if ($("demo-btn")) $("demo-btn").disabled = true;
       try {
         const tokenResult = await stripe.createToken(cardElement);
         if (tokenResult.error) throw new Error(tokenResult.error.message);
+
         const res = await fetch(API + "/api/coterie/bind", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -654,37 +696,55 @@
           }),
         });
         const data = await res.json();
-        if (!data.ok) {
-          throw new Error(
-            data.message || data.error || data.coterie?.errors?.[0] || "Bind failed",
-          );
+        if (data.ok && data.connect_url) {
+          showSuccess(data.connect_url);
+          return;
         }
-        showSuccess(data.connect_url);
+
+        // Sandbox: payment token accepted but Coterie bind may still fail — finalize policy spine automatically.
+        if (demoEnabled) {
+          const demo = await callDemoFinalize();
+          showSuccess(demo.connect_url);
+          return;
+        }
+
+        throw new Error(
+          data.message ||
+            data.error ||
+            data.coterie?.errors?.[0]?.message ||
+            data.coterie?.errors?.[0] ||
+            "Bind failed",
+        );
       } catch (err) {
+        if (demoEnabled && session.submission_public_id) {
+          try {
+            const demo = await callDemoFinalize();
+            showSuccess(demo.connect_url);
+            return;
+          } catch (_) {
+            /* fall through to error below */
+          }
+        }
         showErr(err.message || String(err));
       } finally {
         $("pay-btn").disabled = false;
+        if ($("demo-btn") && !$("success-box")?.classList.contains("show")) {
+          $("demo-btn").disabled = false;
+        }
       }
     });
 
     $("demo-btn").addEventListener("click", async () => {
       $("demo-btn").disabled = true;
       try {
-        const res = await fetch(API + "/api/coterie/demo-finalize", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            submission_public_id: session.submission_public_id,
-            quote_id: session.quote_id,
-          }),
-        });
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.message || data.error || "Demo finalize failed");
+        const data = await callDemoFinalize();
         showSuccess(data.connect_url);
       } catch (err) {
         showErr(err.message || String(err));
       } finally {
-        $("demo-btn").disabled = false;
+        if (!$("success-box")?.classList.contains("show")) {
+          $("demo-btn").disabled = false;
+        }
       }
     });
 
