@@ -129,6 +129,15 @@ APP.get("/connectquote-intake.css", (_req, res) => {
   res.sendFile(path.join(process.cwd(), "public", "connectquote-intake.css"));
 });
 
+// ConnectQuote segment shells (fallback when segment Netlify has not picked up connectquote.html)
+APP.use(
+  "/connectquote",
+  express.static(path.join(process.cwd(), "public", "connectquote"), {
+    maxAge: 3600,
+    etag: true,
+  }),
+);
+
 // CID Connect API bridge (Phase 1: X-User-Email + optional X-User-Id)
 APP.use("/api/connect", connectAuthMiddleware, connectApiRouter);
 
