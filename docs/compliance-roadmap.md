@@ -28,7 +28,7 @@
 
 | Area | Status | Notes |
 |------|--------|-------|
-| **Legal entity** | **Commercial Insurance Direct LLC** | Segment brands under umbrella; see `corporate-structure.md` |
+| **Legal entity** | **All Access Insurance** (CO) · dba **Commercial Insurance Direct** | Segment brands under umbrella; see `corporate-structure.md` |
 | **C-Corp filing** | In progress / planned | Align cap table, bylaws, and **inter-company** agreements with Ray |
 | **CID SOC 2 audit** | **Not started** | No Type I or Type II report for CID as organization |
 | **Infrastructure vendors** | **Strong foundation** | Render, Netlify, GitHub commonly provide SOC 2 Type II; verify current trust pages annually |

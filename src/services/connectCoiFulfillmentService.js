@@ -82,7 +82,7 @@ function defaultProducerLines(segment) {
   const b = getSegmentBranding(segment);
   const agency =
     process.env.COI_PRODUCER_NAME ||
-    "Commercial Insurance Direct LLC";
+    "All Access Insurance dba Commercial Insurance Direct";
   const contact =
     process.env.COI_PRODUCER_CONTACT ||
     `(303) 932-1700 • quotes@${b.segmentDomain}`;

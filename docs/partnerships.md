@@ -9,7 +9,7 @@
 
 ## Summary
 
-**Commercial Insurance Direct LLC** operates a multi-segment commercial insurance platform: segment intake (Netlify), single pipeline backend (**CID-PDF-API** on Render), and insured service (**CID Connect**). This registry is the **business and exit-facing** view—who we depend on, integration type, SOC posture of vendors, and next actions. It extends (does not replace) the S1–S6 vendor matrix in `VENDORS_S1_S6_CONNECT.md`.
+**All Access Insurance** (dba **Commercial Insurance Direct**, Colorado) operates a multi-segment commercial insurance platform: segment intake (Netlify), single pipeline backend (**CID-PDF-API** on Render), and insured service (**CID Connect**). This registry is the **business and exit-facing** view—who we depend on, integration type, SOC posture of vendors, and next actions. It extends (does not replace) the S1–S6 vendor matrix in `VENDORS_S1_S6_CONNECT.md`.
 
 **CID is not SOC 2 certified.** Several infrastructure partners publish SOC 2 Type II attestations we inherit in diligence; formal CID audit is planned—see [`compliance-roadmap.md`](./compliance-roadmap.md).
 
@@ -19,7 +19,7 @@
 
 | Partner / service | Category | Status | Our dependency (if this ends) | Their dependency on us | Integration type | SOC 2 / security (vendor) | Next action | Owner |
 |-------------------|----------|--------|-------------------------------|-------------------------|------------------|----------------------------|-------------|-------|
-| **Commercial Insurance Direct LLC** | Legal / Compliance | Live | Legal entity for agency ops | N/A | N/A | N/A (entity governance) | Cap table, filings, inter-company docs | Gerry / Rick / Ray |
+| **All Access Insurance** (dba Commercial Insurance Direct, CO) | Legal / Compliance | Live | Legal entity for agency ops | N/A | N/A | N/A (entity governance) | Cap table, filings, inter-company docs | Gerry / Rick / Ray |
 | **Render** (Web Service + Postgres) | Infrastructure | Live | CID-PDF-API, operator, S4–S6, poller, Connect bridge down | Hosting revenue | Infrastructure hosting | Type II (verify trust page) | DPA on file; MFA on Render; env access list | Gerry |
 | **Netlify** | Infrastructure | Live | Segment sites + typical Connect host | Hosting revenue | Infrastructure hosting | Type II (verify) | MFA; site access list | Gerry |
 | **GitHub** | Infrastructure | Live | Source control, deploy path | N/A | Infrastructure / change mgmt | Type II (verify) | MFA; branch protection | Gerry |

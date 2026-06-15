@@ -1,7 +1,7 @@
 # CID — Partnership and diligence gaps
 
 > **Canonical location (RSS):** `pdf-backend/docs/partnership-gaps.md`  
-> **As of:** 2026-06-04 (America/Denver). Review with **Ray** for governance, inter-company, and exit readiness.
+> **As of:** 2026-06-10 (America/Denver). Review with **Ray** for governance, inter-company, and exit readiness.
 >
 > **Related:** Full registry → [`partnerships.md`](./partnerships.md). Compliance timeline → [`compliance-roadmap.md`](./compliance-roadmap.md). Technical vendors → [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md).
 
@@ -20,7 +20,7 @@ CID’s **technology stack is diligence-friendly** (hosted on vendors that typic
 | # | Gap | Risk if ignored | Recommended action | Owner |
 |---|-----|---------------|-------------------|-------|
 | 1 | **No segment → carrier/MGA appointment matrix** | Cannot answer “who is appointed for Electrical?” in diligence | One table: segment, appointing entity, carrier/MGA, traditional vs instant rail, status | Gerry / Rick |
-| 2 | **Coterie — sandbox bind blocked (CO producer license)** | Cannot complete test bind or demo | Coterie enable CO license in sandbox; then bindable quote + webhook — see [`coterie-integration.md`](./coterie-integration.md) | Gerry |
+| 2 | **Coterie — producer license on platform** | Cannot complete live bind | **Appointment signed** (All Access / Rick Cline). Ask Coterie to enable Rick’s producer license in sandbox + prod; then live bind + webhook — see [`coterie-integration.md`](./coterie-integration.md) | Gerry / Rick |
 | 3 | **Inter-company services agreement** (if multiple entities post C-Corp) | IP, billing, and liability unclear on acquisition | Ray drafts: who owns `pdf-backend`, Connect, HomeBase; cost allocation; employment | Ray |
 | 4 | **Vendor DPAs / terms not centralized** | SOC 2 and privacy diligence stall | Folder of executed or click-through: Render, Google, BoldSign, Anthropic, Famous, Cloudflare | Gerry / Ray |
 
@@ -67,12 +67,14 @@ Use this as a working checklist (fill names with Ray / Gerry):
 
 | Segment | Intake live | Ops inbox | Named appointing carrier/MGA (traditional) | Instant rail (Coterie) |
 |---------|-------------|-----------|---------------------------------------------|-------------------------|
-| bar | Yes | quote@barinsurancedirect.com | _Document_ | TBD |
-| roofer | Yes | quotes@roofingcontractorinsurancedirect.com | _Document_ | TBD |
-| plumber | Yes | quotes@plumberinsurancedirect.com | _Document_ | TBD |
-| hvac | Yes | quotes@hvacinsurancedirect.com | _Document_ | TBD |
-| fitness | Yes | quotes@fitnessinsurancedirect.com | _Document_ | **Coterie ConnectQuote CO pilot** (sandbox — yoga / pilates / trainer) |
-| electrical | Yes | quotes@electricalinsurancedirect.com | _Document_ | **Coterie ConnectQuote CO pilot** (sandbox — live demo) |
+| bar | Yes | quote@barinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | Not on ConnectQuote (appetite) |
+| roofer | Yes | quotes@roofingcontractorinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | Not on ConnectQuote (appetite prohibited) |
+| plumber | Yes | quotes@plumberinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | **ConnectQuote** — CO sandbox; prod keys pending |
+| hvac | Yes | quotes@hvacinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | **ConnectQuote** — CO sandbox; prod keys pending |
+| fitness | Yes | quotes@fitnessinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | **ConnectQuote** — CO sandbox (yoga / pilates / trainer) |
+| electrical | Yes | quotes@electricalinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | **ConnectQuote** — CO sandbox (live demo) |
+
+**Agency block (appointments):** All Access Insurance (CO) · dba Commercial Insurance Direct · Rick Cline · (303) 932-1700 · info@commercialinsurance-direct.com
 
 ---
 
@@ -93,3 +95,4 @@ Use this as a working checklist (fill names with Ray / Gerry):
 | 2026-05-20 | Initial gap analysis P0–P3; segment appointment checklist; Ray inter-company item. |
 | 2026-06-04 | Coterie sandbox credentials issued; applications OK; CO producer license pending for bindable quote. |
 | 2026-06-12 | ConnectQuote E2E in sandbox for electrical + fitness; bindable quotes + demo bind + Connect handoff verified. |
+| 2026-06-10 | Coterie / carrier appointment paperwork signed — All Access Insurance, Rick Cline, dba Commercial Insurance Direct. |

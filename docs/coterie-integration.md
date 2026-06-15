@@ -1,7 +1,7 @@
 # CID × Coterie — ConnectQuote integration (sandbox)
 
 > **Canonical location (RSS):** `pdf-backend/docs/coterie-integration.md`  
-> **As of:** 2026-06-12 (America/Denver). Update when API behavior, pilots, or env change.
+> **As of:** 2026-06-10 (America/Denver). Update when API behavior, pilots, or env change.
 >
 > **Shipped summary:** [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md)
 >
@@ -15,6 +15,7 @@
 
 | Item | State |
 |------|--------|
+| Agency appointment | **Signed** — All Access Insurance (CO), dba Commercial Insurance Direct · Rick Cline · (303) 932-1700 · info@commercialinsurance-direct.com |
 | Sandbox credentials | **Live on Render** — never commit |
 | Create Application | **Validated** — Electrical + Fitness AKHashes |
 | Bindable Quote | **Working in CO sandbox** — premiums returned (e.g. electrical BOP ~$1,448/yr) |
@@ -113,7 +114,7 @@ Full mapping: local file `Coterie AKHash 06-04-2026-V2-10.xlsx` — sheet **BOP 
 - Limits — e.g. `glLimit`, `glAggregateLimit`, `glAggregateProdLimit`
 - `policyStartDate` — e.g. `06/01/2026`
 
-**Current sandbox error:** `E0122: Producer is not licensed in {state}` — resolve with Coterie (CO license # provided).
+**Producer licensing:** Appointment paperwork is signed (Rick Cline / All Access). Ask Coterie to attach Rick’s **CO** (and future state) producer license to our `agencyExternalId` so bindable quotes clear `E0122`.
 
 ---
 
@@ -178,7 +179,8 @@ See redacted examples in [`coterie-sandbox-fixtures.md`](./coterie-sandbox-fixtu
 - [ ] Coterie issued-policy PDF webhook → R2 → Connect vault
 - [ ] Fitness GL-only bindable — ensure payroll/sales sent when Coterie requires on GL path
 - [ ] Welcome email + PWA install hint on bind success card
-- [ ] Partner DPA / production keys / multi-state registry
+- [ ] Coterie: enable Rick Cline producer license on agency + issue **production** API/Stripe keys
+- [ ] Partner DPA / multi-state registry expansion
 - [x] CO sandbox bindable quote + demo finalize → Connect
 - [x] Electrical + Fitness intake on Netlify
 - [x] Extended Coterie fields + coverage toggles on intake
@@ -193,3 +195,4 @@ See redacted examples in [`coterie-sandbox-fixtures.md`](./coterie-sandbox-fixtu
 | 2026-06-04 | Initial spec: sandbox validated, AKHash field, bindable shape, CO blocker, env names. |
 | 2026-06-10 | Code skeleton: connectquote intake, coterieService, webhook ack, fixtures doc, E0122 graceful path. |
 | 2026-06-12 | **Shipped sandbox E2E:** bindable quotes, demo-finalize, Connect handoff, Fitness segment, extended intake UI, plan cards. See `connectquote-shipped-2026-06.md`. |
+| 2026-06-10 | Carrier appointment signed — All Access Insurance, Rick Cline, dba Commercial Insurance Direct. |

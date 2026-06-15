@@ -1,7 +1,7 @@
 # CID — Corporate structure and segment brands
 
 > **Canonical location (RSS):** `pdf-backend/docs/corporate-structure.md` — versioned with **CID-PDF-API** (`main`).  
-> **As of:** 2026-06-04 (America/Denver). Update when segments, domains, or partner-facing narrative change.
+> **As of:** 2026-06-10 (America/Denver). Update when segments, domains, or partner-facing narrative change.
 >
 > **Purpose:** One reference for **legal entity**, **umbrella vs segment brands**, **domains and ops inboxes**, and **what we tell partners** (e.g. carriers, MGAs) vs internal stack details. For deploy steps see [`Deploy_Guide.md`](./Deploy_Guide.md). For vendors see [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md).
 
@@ -11,19 +11,26 @@
 
 | Item | Value |
 |------|--------|
-| **Legal name** | Commercial Insurance Direct LLC |
-| **Umbrella / agency brand** | Commercial Insurance Direct (CID) |
+| **Legal entity (agency of record)** | **All Access Insurance** |
+| **State of incorporation / domicile** | **Colorado (CO)** |
+| **DBA (good standing)** | **Commercial Insurance Direct** (CID) — registered DBA of All Access Insurance |
+| **Named producer (appointment)** | Rick Cline |
+| **Agency phone (ACORD / collateral)** | (303) 932-1700 |
+| **Agency email (general)** | info@commercialinsurance-direct.com |
 | **Corporate site** | [commercialinsurancedirect.com](https://www.commercialinsurancedirect.com/) |
-| **Producer phone (ACORD / collateral)** | (303) 932-1700 |
 
-CID is the **parent distribution platform**. Customers often first meet us through a **trade-specific segment brand** (intake site + `quotes@…` mailbox). Legally and on carrier paperwork, the agency is **Commercial Insurance Direct LLC** unless a segment-specific disclosure is required.
+**On carrier paperwork and ACORD/COI:** use **All Access Insurance, dba Commercial Insurance Direct** (or the exact string carriers require). Customers and campaigns use the **Commercial Insurance Direct** brand and **segment** domains; ops mail uses **`quotes@…`** per trade. **`info@commercialinsurance-direct.com`** is the general agency contact.
+
+**ConnectQuote v1 geography:** CO is both domicile and first pilot state — aligns with Coterie producer licensing and `COTERIE_PILOT_STATES`.
 
 ---
 
 ## How the model works
 
 ```text
-Commercial Insurance Direct LLC  (legal / agency of record)
+All Access Insurance  (legal entity — incorporated in Colorado)
+        │
+        ├── DBA: Commercial Insurance Direct (CID) — good standing in CO
         │
         ├── Corporate hub          commercialinsurancedirect.com
         │
@@ -55,10 +62,10 @@ Keep in sync with `src/config/segmentBranding.js` and `src/config/segmentAgentIn
 |-------------|---------------|---------------|-----------|--------|
 | `bar` | Bar Insurance Direct | barinsurancedirect.com | quote@barinsurancedirect.com | `/quote` on segment site |
 | `roofer` | Roofing Contractor Insurance Direct | roofingcontractorinsurancedirect.com | quotes@roofingcontractorinsurancedirect.com | `/quote` |
-| `plumber` | Plumber Insurance Direct | plumberinsurancedirect.com | quotes@plumberinsurancedirect.com | `/quote` |
-| `hvac` | HVAC Insurance Direct | hvacinsurancedirect.com | quotes@hvacinsurancedirect.com | `/quote` |
-| `fitness` | Fitness Insurance Direct | fitnessinsurancedirect.com | quotes@fitnessinsurancedirect.com | `/quote` + **`connectquote.html`** (CO instant) |
-| `electrical` | Electrical Insurance Direct | electricalinsurancedirect.com | quotes@electricalinsurancedirect.com | `/quote` + **`connectquote.html`** (CO instant) |
+| `plumber` | Plumber Insurance Direct | plumberinsurancedirect.com | quotes@plumberinsurancedirect.com | **`connectquote.html`** (primary) · `/index.html` long-form |
+| `hvac` | HVAC Insurance Direct | hvacinsurancedirect.com | quotes@hvacinsurancedirect.com | **`connectquote.html`** (primary) · `/index.html` long-form |
+| `fitness` | Fitness Insurance Direct | fitnessinsurancedirect.com | quotes@fitnessinsurancedirect.com | **`connectquote.html`** — yoga / pilates / personal trainer |
+| `electrical` | Electrical Insurance Direct | electricalinsurancedirect.com | quotes@electricalinsurancedirect.com | **`connectquote.html`** (CO instant) |
 
 **Outreach / reserved (not full pipeline rows yet):** `generalcontractorinsurancedirect.com`, `landscaperinsurancedirect.com` — see `src/outreach/urlBuilder.js`.
 
@@ -128,3 +135,4 @@ Use this with partners who do **not** need product architecture detail.
 | 2026-05-20 | Initial doc: LLC, umbrella vs segments, inbox registry, partner narrative, quote rails. |
 | 2026-06-04 | ConnectQuote rail label; link to `coterie-integration.md`. |
 | 2026-06-12 | Electrical + Fitness `connectquote.html` intake; link to `connectquote-shipped-2026-06.md`. |
+| 2026-06-10 | Legal structure: All Access Insurance (CO) · Commercial Insurance Direct DBA; Rick Cline appointment. |
