@@ -2,7 +2,11 @@
 .cq-block { margin-top: 20px; padding-top: 4px; border-top: 1px solid #f3f4f6; }
 .cq-block-title { font-weight: 700; margin: 0 0 10px; font-size: .95rem; color: #374151; }
 .cq-placeholder { color: #6b7280; font-size: .9rem; margin: 16px 0 0; font-style: italic; }
-.cov-toggle { display: flex; flex-wrap: wrap; gap: 10px; }
+.cov-toggle { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.cov-toggle-extras { margin-top: 10px; }
+.cov-chip-row {
+  display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap;
+}
 .cov-chip {
   display: inline-flex; align-items: center; gap: 8px;
   border: 2px solid #e5e7eb; border-radius: 999px;
@@ -13,6 +17,20 @@
 .cov-chip input { position: absolute; opacity: 0; width: 0; height: 0; }
 .cov-chip.on { border-color: var(--brand, #ea580c); background: #fff7ed; color: #9a3412; }
 .cov-chip.solo { cursor: default; opacity: .95; }
+.cov-help-btn {
+  flex-shrink: 0; width: 1.65rem; height: 1.65rem; padding: 0;
+  border: 1px solid #d1d5db; border-radius: 50%; background: #fff;
+  color: #4b5563; font-size: .85rem; font-weight: 700; line-height: 1;
+  cursor: pointer; font-family: inherit;
+}
+.cov-help-btn:hover,
+.cov-help-btn[aria-expanded="true"] {
+  border-color: var(--brand, #ea580c); color: var(--brand, #ea580c); background: #fff7ed;
+}
+.cov-help-blurb {
+  margin: 10px 0 0; padding: 12px 14px; font-size: .875rem; line-height: 1.45;
+  color: #374151; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px;
+}
 .cov-extra { border-style: dashed; font-weight: 500; }
 .cov-extra em { font-style: normal; font-size: .8rem; color: #6b7280; font-weight: 400; }
 .cq-section {

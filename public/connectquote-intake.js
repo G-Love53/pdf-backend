@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260612";
+  const ASSET_V = "20260617";
 
   const FALLBACK_CLASSES = {
     electrical: [
@@ -188,14 +188,24 @@
   function renderCoverageToggles(schema) {
     const instant = schema.coverage?.instant || [];
     const extras = schema.coverage?.extras || [];
+    const exclusive =
+      schema.coverage?.instantSelection === "one" && instant.length > 1;
     if (!instant.length && !extras.length) return "";
 
     let html =
-      '<div class="cq-block"><p class="cq-block-title">Coverage options</p><div class="cov-toggle">';
+      '<div class="cq-block"><p class="cq-block-title">Coverage options' +
+      (exclusive
+        ? ' <span class="cq-hint">Choose one — instant quote includes a single product</span>'
+        : "") +
+      '</p><div class="cov-toggle"' +
+      (exclusive ? ' data-cov-exclusive="true"' : "") +
+      ">";
+
     instant.forEach((c) => {
       const on = c.defaultOn !== false;
-      const req = c.required ? " data-cov-required='true'" : "";
+      const req = c.required && !exclusive ? " data-cov-required='true'" : "";
       const solo = instant.length === 1 && c.required;
+      html += '<div class="cov-chip-row">';
       html +=
         '<label class="cov-chip' +
         (on ? " on" : "") +
@@ -211,7 +221,24 @@
         "<span>" +
         c.label +
         "</span></label>";
+      if (c.help) {
+        html +=
+          '<button type="button" class="cov-help-btn" data-cov-help-id="' +
+          c.id +
+          '" aria-label="Learn about ' +
+          c.id +
+          ' coverage">?</button>';
+      }
+      html += "</div>";
     });
+    html += "</div>";
+    if (instant.some((c) => c.help)) {
+      html +=
+        '<div class="cov-help-blurb" id="cov-help-blurb" hidden role="status"></div>';
+    }
+    if (extras.length) {
+      html += '<div class="cov-toggle cov-toggle-extras">';
+    }
     extras.forEach((c) => {
       html +=
         '<label class="cov-chip cov-extra">' +
@@ -224,7 +251,10 @@
         c.label +
         " <em>(full application)</em></span></label>";
     });
-    html += "</div></div>";
+    if (extras.length) {
+      html += "</div>";
+    }
+    html += "</div>";
     return html;
   }
 
@@ -391,13 +421,20 @@
 
   function applyCoveragePrefill() {
     const p = new URLSearchParams(location.search);
+    const exclusive = document.querySelector('[data-cov-exclusive="true"]');
     if (p.get("cov_bop") === "1") {
       const el = document.querySelector('[data-cov-id="BOP"]');
       if (el && !el.disabled) el.checked = true;
     }
     if (p.get("cov_gl") === "1") {
       const el = document.querySelector('[data-cov-id="GL"]');
-      if (el && !el.disabled) el.checked = true;
+      if (el && !el.disabled) {
+        if (exclusive && coverageChecked("BOP")) {
+          const bop = document.querySelector('[data-cov-id="BOP"]');
+          if (bop) bop.checked = false;
+        }
+        el.checked = true;
+      }
     }
     syncCovChips();
     updateSectionVisibility();
@@ -425,15 +462,62 @@
   }
 
   function bindCoverageUi() {
+    const exclusive = document.querySelector('[data-cov-exclusive="true"]');
+    const helpTexts = {};
+    if (currentSchema?.coverage?.instant) {
+      currentSchema.coverage.instant.forEach((c) => {
+        if (c.help) helpTexts[c.id] = c.help;
+      });
+    }
+
     document.querySelectorAll("[data-cov-id]").forEach((input) => {
       input.addEventListener("change", () => {
-        if (input.dataset.covRequired === "true" && !input.checked) {
+        if (exclusive && input.dataset.covInstant === "true") {
+          if (input.checked) {
+            document
+              .querySelectorAll('[data-cov-id][data-cov-instant="true"]')
+              .forEach((other) => {
+                if (other !== input) other.checked = false;
+              });
+          } else {
+            const anyChecked = [
+              ...document.querySelectorAll('[data-cov-id][data-cov-instant="true"]'),
+            ].some((el) => el.checked);
+            if (!anyChecked) input.checked = true;
+          }
+        } else if (input.dataset.covRequired === "true" && !input.checked) {
           input.checked = true;
         }
         syncCovChips();
         updateSectionVisibility();
       });
     });
+
+    document.querySelectorAll(".cov-help-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = btn.dataset.covHelpId;
+        const blurb = $("cov-help-blurb");
+        const text = helpTexts[id] || "";
+        if (!blurb || !text) return;
+        const open = blurb.dataset.active === id && !blurb.hidden;
+        document.querySelectorAll(".cov-help-btn").forEach((b) => {
+          b.setAttribute("aria-expanded", "false");
+        });
+        if (open) {
+          blurb.hidden = true;
+          blurb.dataset.active = "";
+          blurb.textContent = "";
+        } else {
+          blurb.textContent = text;
+          blurb.hidden = false;
+          blurb.dataset.active = id;
+          btn.setAttribute("aria-expanded", "true");
+        }
+      });
+    });
+
     syncCovChips();
     updateSectionVisibility();
   }

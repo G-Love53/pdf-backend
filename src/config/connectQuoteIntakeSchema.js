@@ -112,6 +112,32 @@ function isNonOwner(isOwner) {
   );
 }
 
+/** Plain-language blurbs for the ? help on coverage toggles. */
+export const COVERAGE_HELP = {
+  BOP:
+    "Businessowners Policy — general liability plus coverage for your business property (tools, equipment, inventory) and often business income if you have to close temporarily. Typical choice for contractors and studio owners with a physical location.",
+  GL:
+    "General liability only — covers third-party bodily injury and property damage from your operations (e.g. a customer slips, or your work damages someone else's property). Does not cover your own building, tools, or stock.",
+};
+
+function enrichInstantOption(option) {
+  const help = option.help || COVERAGE_HELP[option.id] || null;
+  return help ? { ...option, help } : { ...option };
+}
+
+function resolveInstantSelection(entry, instantOptions) {
+  const configured = entry?.coverage?.owner?.selection;
+  if (configured === "one" || configured === "many") {
+    return configured;
+  }
+  const ids = instantOptions.map((c) => c.id);
+  /** BOP and GL are separate Coterie products — bind one, not both (except pilates-style combos). */
+  if (ids.includes("BOP") && ids.includes("GL")) {
+    return "one";
+  }
+  return instantOptions.length > 1 ? "many" : "one";
+}
+
 /** Coverage toggles + extras for a registry row. */
 export function getCoverageOptions(entry, { isOwner = true } = {}) {
   if (!entry || entry.prohibited) {
@@ -122,8 +148,8 @@ export function getCoverageOptions(entry, { isOwner = true } = {}) {
 
   if (nonOwner) {
     const types = entry.employeeApplicationTypes || ["GL"];
-    return {
-      instant: types.map((id) => ({
+    const instant = types.map((id) =>
+      enrichInstantOption({
         id,
         label:
           id === "BOP"
@@ -131,22 +157,28 @@ export function getCoverageOptions(entry, { isOwner = true } = {}) {
             : "General liability (GL)",
         defaultOn: true,
         required: true,
-      })),
+      }),
+    );
+    return {
+      instant,
+      instantSelection: "one",
       extras: entry.extras?.employee || entry.extras?.nonOwner || [],
     };
   }
 
   const configured = entry.coverage?.owner?.options;
   if (configured?.length) {
+    const instant = configured.map(enrichInstantOption);
     return {
-      instant: configured,
+      instant,
+      instantSelection: resolveInstantSelection(entry, instant),
       extras: entry.coverage?.owner?.extras || entry.extras?.owner || [],
     };
   }
 
   const defaults = entry.defaultApplicationTypes || ["BOP"];
-  return {
-    instant: defaults.map((id, i) => ({
+  const instant = defaults.map((id) =>
+    enrichInstantOption({
       id,
       label:
         id === "BOP"
@@ -154,7 +186,11 @@ export function getCoverageOptions(entry, { isOwner = true } = {}) {
           : "General liability (GL)",
       defaultOn: true,
       required: defaults.length === 1,
-    })),
+    }),
+  );
+  return {
+    instant,
+    instantSelection: resolveInstantSelection(entry, instant),
     extras: entry.extras?.owner || [],
   };
 }

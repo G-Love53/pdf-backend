@@ -13,6 +13,7 @@ export const COTERIE_BUSINESS_CLASSES = {
       ownerOnly: true,
       coverage: {
         owner: {
+          selection: "one",
           options: [
             {
               id: "BOP",
@@ -22,7 +23,7 @@ export const COTERIE_BUSINESS_CLASSES = {
             },
             {
               id: "GL",
-              label: "General liability (add-on)",
+              label: "General liability only",
               defaultOn: false,
             },
           ],
@@ -45,6 +46,7 @@ export const COTERIE_BUSINESS_CLASSES = {
       ownerOnly: true,
       coverage: {
         owner: {
+          selection: "one",
           options: [
             {
               id: "BOP",
@@ -54,7 +56,7 @@ export const COTERIE_BUSINESS_CLASSES = {
             },
             {
               id: "GL",
-              label: "General liability (add-on)",
+              label: "General liability only",
               defaultOn: false,
             },
           ],
@@ -71,6 +73,7 @@ export const COTERIE_BUSINESS_CLASSES = {
       ownerOnly: true,
       coverage: {
         owner: {
+          selection: "one",
           options: [
             {
               id: "BOP",
@@ -80,7 +83,7 @@ export const COTERIE_BUSINESS_CLASSES = {
             },
             {
               id: "GL",
-              label: "General liability (add-on)",
+              label: "General liability only",
               defaultOn: false,
             },
           ],
@@ -116,6 +119,7 @@ export const COTERIE_BUSINESS_CLASSES = {
       employeeApplicationTypes: ["GL"],
       coverage: {
         owner: {
+          selection: "many",
           options: [
             {
               id: "BOP",
