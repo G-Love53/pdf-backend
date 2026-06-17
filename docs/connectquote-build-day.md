@@ -10,7 +10,7 @@
 ## Demo script (5–7 min — sandbox)
 
 1. Open prefill URL:  
-   `https://electricalinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ph=3039321700&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Electric+LLC&sales=150000&payroll=75000&ys=2019&src=coterie-demo&cid=coterie-preview`
+   `https://electricalinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ph=3039321700&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Electric+LLC&sales=150000&payroll=75000&src=coterie-demo&cid=coterie-preview`
 2. Confirm prefilled fields (incl. **phone**, revenue, payroll, year started) → **Owner: Yes** → business type → employees → adjust any rating fields if needed.
 3. See instant quote (premium) → choose **annual or monthly card** → pay via **Coterie Stripe** or **Demo: simulate bind (sandbox)**.
 4. Success screen → **Open Connect** (bind token / email prefill).
@@ -112,7 +112,7 @@
 | Personal trainer | `personal_trainer` | GL | GL |
 
 **Pilates (owner, BOP+GL):**  
-`https://fitnessinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ph=3039321700&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Pilates+Studio&bc=pilates_studio&sales=150000&payroll=75000&ys=2019&src=coterie-demo&cid=coterie-preview`
+`https://fitnessinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ph=3039321700&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Pilates+Studio&bc=pilates_studio&sales=150000&payroll=75000&src=coterie-demo&cid=coterie-preview`
 
 **Yoga:** append `&bc=yoga_studio&bn=Demo+Yoga+Studio`  
 **Trainer:** append `&bc=personal_trainer&bn=Demo+Fit+Trainer+LLC`

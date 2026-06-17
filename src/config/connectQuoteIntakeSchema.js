@@ -11,7 +11,6 @@ export const COTERIE_EXTENDED_FIELDS = {
     section: "rating",
     min: 1000,
     step: 1,
-    placeholder: "000,000",
     prefillParam: "sales",
   },
   annual_payroll: {
@@ -23,7 +22,6 @@ export const COTERIE_EXTENDED_FIELDS = {
     section: "rating",
     min: 1000,
     step: 1,
-    placeholder: "00,000",
     prefillParam: "payroll",
   },
   business_start_year: {
@@ -35,7 +33,6 @@ export const COTERIE_EXTENDED_FIELDS = {
     min: 1950,
     max: new Date().getFullYear(),
     step: 1,
-    placeholder: String(new Date().getFullYear() - 5),
     prefillParam: "ys",
   },
   location_type: {

@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260620";
+  const ASSET_V = "20260621";
 
   const FALLBACK_CLASSES = {
     electrical: [
