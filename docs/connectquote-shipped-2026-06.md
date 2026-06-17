@@ -178,10 +178,10 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 ## Demo URLs (sandbox — CO example)
 
 **Electrical:**  
-`https://electricalinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Electric+LLC&src=demo&cid=build-day`
+`https://electricalinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ph=3039321700&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Electric+LLC&sales=150000&payroll=75000&ys=2019&src=coterie-demo&cid=coterie-preview`
 
 **Fitness pilates:**  
-`https://fitnessinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Pilates+Studio&bc=pilates_studio&src=demo&cid=build-day`
+`https://fitnessinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ph=3039321700&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Pilates+Studio&bc=pilates_studio&sales=150000&payroll=75000&ys=2019&src=coterie-demo&cid=coterie-preview`
 
 **Demo account:** `g@commercialinsurance-direct.com`
 
