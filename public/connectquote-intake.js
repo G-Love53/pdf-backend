@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260619";
+  const ASSET_V = "20260620";
 
   const FALLBACK_CLASSES = {
     electrical: [
@@ -363,7 +363,7 @@
       const raw = val || "";
       const display = formatCurrencyDigits(raw);
       const prefilled =
-        pre || (field.defaultPreselect && field.default) ? " prefilled" : "";
+        (pre || (field.defaultPreselect && field.default)) ? " prefilled" : "";
       const placeholder = field.placeholder
         ? ' placeholder="' + String(field.placeholder).replace(/"/g, "&quot;") + '"'
         : "";
@@ -645,6 +645,7 @@
       if (el.dataset.currencyBound === "1") return;
       el.dataset.currencyBound = "1";
       el.addEventListener("input", () => {
+        el.classList.remove("prefilled");
         const formatted = formatCurrencyDigits(el.value);
         el.value = formatted;
       });

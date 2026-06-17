@@ -11,7 +11,7 @@ export const COTERIE_EXTENDED_FIELDS = {
     section: "rating",
     min: 1000,
     step: 1,
-    placeholder: "150,000",
+    placeholder: "000,000",
     prefillParam: "sales",
   },
   annual_payroll: {
@@ -23,7 +23,7 @@ export const COTERIE_EXTENDED_FIELDS = {
     section: "rating",
     min: 1000,
     step: 1,
-    placeholder: "75,000",
+    placeholder: "00,000",
     prefillParam: "payroll",
   },
   business_start_year: {
