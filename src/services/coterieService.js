@@ -213,14 +213,8 @@ function formatPolicyStartDate(form) {
 }
 
 export function buildApplicationPayload(form, { akHash }) {
-  const zip =
-    form.premise_zip || form.physical_zip || form.zip || form.businessZip || null;
-  const state =
-    form.premise_state ||
-    form.physical_state ||
-    form.state ||
-    form.businessState ||
-    null;
+  const { street, city, state, zip } = buildMailingAddress(form);
+  const phone = pickContactPhone(form);
 
   return {
     legalBusinessName:
@@ -233,19 +227,22 @@ export function buildApplicationPayload(form, { akHash }) {
     numEmployees: Number(form.num_employees || form.numEmployees || 1),
     AKHash: akHash,
     email: form.contact_email || form.email || form.applicant_email,
-    locations: [
-      {
-        zip,
-        street: form.premise_street || form.address || form.street || null,
-        city: form.premise_city || form.city || null,
-        state,
-        isPrimaryLocation: true,
-      },
-    ],
+    ...(phone ? { contactPhone: phone } : {}),
+    locations: [buildLocationRow(form)],
   };
 }
 
 function parseBusinessAgeMonths(form) {
+  const startYear = Number(form.business_start_year || form.businessStartYear);
+  const now = new Date();
+  if (
+    Number.isFinite(startYear) &&
+    startYear >= 1900 &&
+    startYear <= now.getFullYear()
+  ) {
+    return Math.max(1, (now.getFullYear() - startYear) * 12 + now.getMonth());
+  }
+
   const raw =
     form.business_age_months ||
     form.businessAgeInMonths ||
@@ -254,16 +251,27 @@ function parseBusinessAgeMonths(form) {
   if (raw == null || raw === "") return 36;
   const n = Number(raw);
   if (!Number.isFinite(n)) return 36;
-  // Values from select are already months (6, 18, 36, …)
   if (n <= 120) return n;
   return n * 12;
 }
 
-export function buildBindableQuotePayload(
-  form,
-  { akHash, applicationId, applicationTypes = ["BOP"] },
-) {
-  const names = splitContactName(form);
+function formatBusinessStartDate(form) {
+  const startYear = Number(form.business_start_year || form.businessStartYear);
+  if (!Number.isFinite(startYear) || startYear < 1900) return null;
+  return `01/01/${startYear}`;
+}
+
+function pickContactPhone(form) {
+  return (
+    form.contact_phone ||
+    form.contactPhone ||
+    form.phone ||
+    form.applicant_phone ||
+    null
+  );
+}
+
+function buildMailingAddress(form) {
   const street = form.premise_street || form.address || form.street || null;
   const city = form.premise_city || form.city || null;
   const state =
@@ -274,6 +282,45 @@ export function buildBindableQuotePayload(
     null;
   const zip =
     form.premise_zip || form.physical_zip || form.zip || form.businessZip || null;
+  return { street, city, state, zip };
+}
+
+function parseGlLimit(form) {
+  const n = Number(form.gl_limit || form.glLimit || 1000000);
+  return Number.isFinite(n) ? n : 1000000;
+}
+
+function parseGlAggregateLimit(form, glLimit) {
+  const n = Number(form.gl_aggregate_limit || form.glAggregateLimit);
+  if (Number.isFinite(n)) return n;
+  return glLimit * 2;
+}
+
+function buildLocationRow(form, { includeBopFields = false } = {}) {
+  const { street, city, state, zip } = buildMailingAddress(form);
+  const row = {
+    street,
+    city,
+    state,
+    zip,
+    isPrimaryLocation: true,
+  };
+  if (includeBopFields) {
+    row.locationType =
+      form.location_type || form.locationType || "BuildingLeased";
+  }
+  return row;
+}
+
+export function buildBindableQuotePayload(
+  form,
+  { akHash, applicationId, applicationTypes = ["BOP"] },
+) {
+  const names = splitContactName(form);
+  const { street, city, state, zip } = buildMailingAddress(form);
+  const phone = pickContactPhone(form);
+  const glLimit = parseGlLimit(form);
+  const glAggregateLimit = parseGlAggregateLimit(form, glLimit);
 
   const types = Array.isArray(applicationTypes)
     ? applicationTypes
@@ -293,22 +340,23 @@ export function buildBindableQuotePayload(
       form.contact_email || form.email || form.applicant_email || null,
     contactFirstName: names.contactFirstName,
     contactLastName: names.contactLastName,
+    ...(phone ? { contactPhone: phone } : {}),
+    mailingAddressStreet: street,
+    mailingAddressCity: city,
+    mailingAddressState: state,
+    mailingAddressZip: zip,
     numEmployees: Number(form.num_employees || form.numEmployees || 1),
-    locations: [
-      {
-        street,
-        city,
-        state,
-        zip,
-        isPrimaryLocation: true,
-      },
-    ],
-    glLimit: String(form.gl_limit || form.glLimit || "1000000"),
-    glAggregateLimit: String(
-      form.gl_aggregate_limit || form.glAggregateLimit || "2000000",
-    ),
+    locations: [buildLocationRow(form, { includeBopFields: includesBop })],
+    glLimit,
+    glAggregateLimit,
+    glAggregatePcoLimit: glAggregateLimit,
     policyStartDate: formatPolicyStartDate(form),
   };
+
+  const businessStartDate = formatBusinessStartDate(form);
+  if (businessStartDate) {
+    payload.businessStartDate = businessStartDate;
+  }
 
   if (includesBop || types.includes("GL")) {
     payload.annualPayroll = Number(

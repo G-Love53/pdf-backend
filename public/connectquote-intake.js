@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260617";
+  const ASSET_V = "20260618";
 
   const FALLBACK_CLASSES = {
     electrical: [
@@ -72,6 +72,25 @@
     return raw;
   }
 
+  function ensureContactPhoneField() {
+    if ($("contact_phone")) return;
+    const emailInput = $("contact_email");
+    if (!emailInput || !emailInput.parentNode) return;
+    const label = document.createElement("label");
+    label.setAttribute("for", "contact_phone");
+    label.textContent = "Phone";
+    const input = document.createElement("input");
+    input.name = "contact_phone";
+    input.id = "contact_phone";
+    input.type = "tel";
+    input.required = true;
+    input.autocomplete = "tel";
+    input.inputMode = "tel";
+    const anchor = emailInput.nextSibling;
+    emailInput.parentNode.insertBefore(label, anchor);
+    emailInput.parentNode.insertBefore(input, anchor);
+  }
+
   function applyPrefill() {
     const p = new URLSearchParams(location.search);
     const map = {
@@ -83,6 +102,8 @@
       ct: "premise_city",
       st: "state",
       zp: "zip",
+      ph: "contact_phone",
+      phone: "contact_phone",
     };
     let count = 0;
     Object.entries(map).forEach(([param, id]) => {
@@ -326,6 +347,40 @@
         '" required/>'
       );
     }
+    if (field.type === "number") {
+      const dv = val || "";
+      const prefilled = pre ? ' class="cq-ext-field prefilled"' : ' class="cq-ext-field"';
+      const min =
+        field.min != null ? ' min="' + String(field.min) + '"' : "";
+      const max =
+        field.max != null ? ' max="' + String(field.max) + '"' : "";
+      const step =
+        field.step != null ? ' step="' + String(field.step) + '"' : ' step="1"';
+      const placeholder = field.placeholder
+        ? ' placeholder="' + String(field.placeholder).replace(/"/g, "&quot;") + '"'
+        : "";
+      return (
+        '<label for="f_' +
+        field.name +
+        '">' +
+        field.label +
+        '</label><input type="number" name="' +
+        field.name +
+        '" id="f_' +
+        field.name +
+        '"' +
+        prefilled +
+        min +
+        max +
+        step +
+        placeholder +
+        ' inputmode="numeric" data-section="' +
+        field.section +
+        '" value="' +
+        dv +
+        '" required/>'
+      );
+    }
     return "";
   }
 
@@ -339,13 +394,24 @@
     const missing = [];
     document.querySelectorAll(".cq-ext-field").forEach((el) => {
       if (!isExtendedFieldVisible(el)) return;
+      const label = el.id
+        ? document.querySelector('label[for="' + el.id + '"]')
+        : null;
+      const labelText = label ? label.textContent : el.name;
       if (!el.value) {
-        const label = el.id ? document.querySelector('label[for="' + el.id + '"]') : null;
-        missing.push(label ? label.textContent : el.name);
+        missing.push(labelText);
+        return;
+      }
+      if (el.type === "number") {
+        const n = Number(el.value);
+        const min = el.min ? Number(el.min) : null;
+        if (!Number.isFinite(n) || (min != null && n < min)) {
+          missing.push(labelText);
+        }
       }
     });
     if (missing.length) {
-      showErr("Please select: " + missing.join(", ") + ".");
+      showErr("Please complete: " + missing.join(", ") + ".");
       return false;
     }
     return true;
@@ -356,7 +422,7 @@
 
     if (schema.sections?.rating) {
       html +=
-        '<details class="cq-section" id="section-rating" open><summary>Business rating details <span class="cq-hint">Revenue, payroll &amp; experience — required by Coterie for GL and BOP</span></summary><div class="cq-section-body">';
+        '<details class="cq-section" id="section-rating" open><summary>Business rating details <span class="cq-hint">Exact revenue, payroll &amp; year started — required by Coterie</span></summary><div class="cq-section-body">';
       schema.fields
         .filter((f) => f.section === "rating")
         .forEach((f) => {
@@ -549,6 +615,11 @@
       return false;
     }
     if (!validateExtendedFields()) return false;
+    const phone = $("contact_phone");
+    if (phone && !String(phone.value || "").trim()) {
+      showErr("Phone number is required.");
+      return false;
+    }
     return true;
   }
 
@@ -847,6 +918,7 @@
   }
 
   async function init() {
+    ensureContactPhoneField();
     applyPrefill();
     await loadBusinessClasses();
     wireForm();

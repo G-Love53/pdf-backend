@@ -115,7 +115,7 @@ export const COTERIE_BUSINESS_CLASSES = {
       key: "pilates_studio",
       label: "Pilates / mind-body studio",
       akHash: "96811230e7feec657c12dc32b6910a60",
-      defaultApplicationTypes: ["BOP", "GL"],
+      defaultApplicationTypes: ["BOP"],
       employeeApplicationTypes: ["GL"],
       coverage: {
         owner: {
@@ -129,7 +129,7 @@ export const COTERIE_BUSINESS_CLASSES = {
             {
               id: "GL",
               label: "General liability (GL)",
-              defaultOn: true,
+              defaultOn: false,
             },
           ],
         },

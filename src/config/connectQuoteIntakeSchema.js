@@ -4,51 +4,52 @@ import { resolveRegistryEntry, listBusinessClasses } from "./coterieRegistry.js"
 export const COTERIE_EXTENDED_FIELDS = {
   gross_annual_sales: {
     name: "gross_annual_sales",
-    label: "Gross annual sales / revenue",
-    type: "select",
+    label: "Gross annual sales / revenue (exact $)",
+    type: "number",
     coterieKey: "grossAnnualSales",
     section: "rating",
-    options: [
-      { value: "75000", label: "Under $100,000" },
-      { value: "150000", label: "$100,000 – $250,000" },
-      { value: "350000", label: "$250,000 – $500,000" },
-      { value: "750000", label: "$500,000 – $1M" },
-      { value: "1500000", label: "Over $1M" },
-    ],
-    default: "150000",
+    min: 1000,
+    step: 1,
+    placeholder: "150000",
     prefillParam: "sales",
   },
   annual_payroll: {
     name: "annual_payroll",
-    label: "Annual payroll",
-    type: "select",
+    label: "Annual payroll (exact $)",
+    type: "number",
     coterieKey: "annualPayroll",
     section: "rating",
-    options: [
-      { value: "25000", label: "Under $50,000" },
-      { value: "75000", label: "$50,000 – $100,000" },
-      { value: "150000", label: "$100,000 – $250,000" },
-      { value: "350000", label: "$250,000 – $500,000" },
-      { value: "750000", label: "Over $500,000" },
-    ],
-    default: "75000",
+    min: 1000,
+    step: 1,
+    placeholder: "75000",
     prefillParam: "payroll",
   },
-  business_age_years: {
-    name: "business_age_years",
-    label: "Years in business",
-    type: "select",
-    coterieKey: "businessAgeInMonths",
+  business_start_year: {
+    name: "business_start_year",
+    label: "Year business started",
+    type: "number",
+    coterieKey: "businessStartDate",
     section: "rating",
+    min: 1950,
+    max: new Date().getFullYear(),
+    step: 1,
+    placeholder: String(new Date().getFullYear() - 5),
+    prefillParam: "ys",
+  },
+  location_type: {
+    name: "location_type",
+    label: "Occupancy / location type",
+    type: "select",
+    coterieKey: "locationType",
+    section: "bop",
     options: [
-      { value: "6", label: "Less than 1 year" },
-      { value: "18", label: "1 – 2 years" },
-      { value: "36", label: "2 – 5 years" },
-      { value: "84", label: "5 – 10 years" },
-      { value: "120", label: "10+ years" },
+      { value: "BuildingLeased", label: "Leased commercial space" },
+      { value: "BuildingOwned", label: "Owned building" },
+      { value: "Home", label: "Home-based business" },
     ],
-    default: "36",
-    prefillParam: "age",
+    default: "BuildingLeased",
+    defaultPreselect: true,
+    prefillParam: "occ",
   },
   bpp_deductible: {
     name: "bpp_deductible",
@@ -72,6 +73,8 @@ export const COTERIE_EXTENDED_FIELDS = {
     coterieKey: "glLimit",
     section: "gl",
     options: [
+      { value: "300000", label: "$300,000" },
+      { value: "500000", label: "$500,000" },
       { value: "1000000", label: "$1,000,000" },
       { value: "2000000", label: "$2,000,000" },
     ],
@@ -211,11 +214,14 @@ export function resolveIntakeSchema(segment, businessClassKey, { isOwner = true 
     fields.push(
       COTERIE_EXTENDED_FIELDS.gross_annual_sales,
       COTERIE_EXTENDED_FIELDS.annual_payroll,
-      COTERIE_EXTENDED_FIELDS.business_age_years,
+      COTERIE_EXTENDED_FIELDS.business_start_year,
     );
   }
   if (hasBop) {
-    fields.push(COTERIE_EXTENDED_FIELDS.bpp_deductible);
+    fields.push(
+      COTERIE_EXTENDED_FIELDS.location_type,
+      COTERIE_EXTENDED_FIELDS.bpp_deductible,
+    );
   }
   if (hasGl) {
     fields.push(
