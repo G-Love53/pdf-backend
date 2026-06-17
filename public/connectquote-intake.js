@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260618";
+  const ASSET_V = "20260619";
 
   const FALLBACK_CLASSES = {
     electrical: [
@@ -279,6 +279,18 @@
     return html;
   }
 
+  function parseCurrencyDigits(raw) {
+    const digits = String(raw || "").replace(/\D/g, "");
+    if (!digits) return NaN;
+    return Number(digits);
+  }
+
+  function formatCurrencyDigits(raw) {
+    const n = parseCurrencyDigits(raw);
+    if (!Number.isFinite(n)) return "";
+    return n.toLocaleString("en-US");
+  }
+
   function fieldInitialValue(field, pre) {
     if (pre) return pre;
     if (field.defaultPreselect && field.default) return String(field.default);
@@ -347,6 +359,37 @@
         '" required/>'
       );
     }
+    if (field.type === "number" && field.format === "currency") {
+      const raw = val || "";
+      const display = formatCurrencyDigits(raw);
+      const prefilled =
+        pre || (field.defaultPreselect && field.default) ? " prefilled" : "";
+      const placeholder = field.placeholder
+        ? ' placeholder="' + String(field.placeholder).replace(/"/g, "&quot;") + '"'
+        : "";
+      const minAttr =
+        field.min != null ? ' data-min="' + String(field.min) + '"' : "";
+      return (
+        '<label for="f_' +
+        field.name +
+        '">' +
+        field.label +
+        '</label><div class="cq-money-wrap"><span class="cq-money-prefix" aria-hidden="true">$</span><input type="text" name="' +
+        field.name +
+        '" id="f_' +
+        field.name +
+        '" class="cq-ext-field cq-currency-input' +
+        prefilled +
+        '" data-currency="true"' +
+        minAttr +
+        placeholder +
+        ' inputmode="numeric" autocomplete="off" data-section="' +
+        field.section +
+        '" value="' +
+        display +
+        '" required/></div>'
+      );
+    }
     if (field.type === "number") {
       const dv = val || "";
       const prefilled = pre ? ' class="cq-ext-field prefilled"' : ' class="cq-ext-field"';
@@ -400,6 +443,14 @@
       const labelText = label ? label.textContent : el.name;
       if (!el.value) {
         missing.push(labelText);
+        return;
+      }
+      if (el.dataset.currency === "true") {
+        const n = parseCurrencyDigits(el.value);
+        const min = el.dataset.min ? Number(el.dataset.min) : null;
+        if (!Number.isFinite(n) || (min != null && n < min)) {
+          missing.push(labelText);
+        }
         return;
       }
       if (el.type === "number") {
@@ -482,6 +533,7 @@
     }
     host.innerHTML = renderSections(currentSchema);
     bindCoverageUi();
+    bindCurrencyInputs();
     applyCoveragePrefill();
   }
 
@@ -588,11 +640,31 @@
     updateSectionVisibility();
   }
 
+  function bindCurrencyInputs() {
+    document.querySelectorAll("[data-currency='true']").forEach((el) => {
+      if (el.dataset.currencyBound === "1") return;
+      el.dataset.currencyBound = "1";
+      el.addEventListener("input", () => {
+        const formatted = formatCurrencyDigits(el.value);
+        el.value = formatted;
+      });
+      el.addEventListener("blur", () => {
+        el.value = formatCurrencyDigits(el.value);
+      });
+    });
+  }
+
   function formPayload() {
     const fd = new FormData($("cq-form"));
     const o = {};
     fd.forEach((v, k) => {
       o[k] = v;
+    });
+    ["gross_annual_sales", "annual_payroll"].forEach((key) => {
+      if (o[key] != null && o[key] !== "") {
+        const n = parseCurrencyDigits(o[key]);
+        if (Number.isFinite(n)) o[key] = String(n);
+      }
     });
     o.is_owner = isOwnerSelected();
     o.application_types = selectedInstantCoverages();

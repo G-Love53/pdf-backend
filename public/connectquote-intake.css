@@ -52,6 +52,37 @@ select.cq-ext-field:required:invalid {
   border-color: #e5e7eb;
 }
 
+.cq-money-wrap {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+.cq-money-prefix {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border: 2px solid #e5e7eb;
+  border-right: 0;
+  border-radius: 8px 0 0 8px;
+  background: #f9fafb;
+  color: #374151;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+}
+.cq-money-wrap .cq-currency-input {
+  flex: 1;
+  min-width: 0;
+  border-radius: 0 8px 8px 0;
+}
+.cq-money-wrap:has(.cq-currency-input.prefilled) .cq-money-prefix {
+  border-color: #fdba74;
+  background: #fff7ed;
+}
+.cq-money-wrap:has(.cq-currency-input.prefilled) .cq-currency-input {
+  border-color: #fdba74;
+}
+
 .plan-picker-label {
   font-weight: 700; font-size: .95rem; margin: 16px 0 10px; color: #374151;
 }
