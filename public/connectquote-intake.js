@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260621";
+  const ASSET_V = "20260622";
 
   const FALLBACK_CLASSES = {
     electrical: [
@@ -176,6 +176,7 @@
     const bc = selectedBusinessClass();
     if (!bc) return null;
     const owner = isOwnerSelected();
+    const st = ($("state") && $("state").value) || "";
     const r = await fetch(
       API +
         "/api/coterie/intake-schema/" +
@@ -183,10 +184,36 @@
         "/" +
         encodeURIComponent(bc) +
         "?is_owner=" +
-        (owner ? "true" : "false"),
+        (owner ? "true" : "false") +
+        (st ? "&state=" + encodeURIComponent(st) : ""),
     );
     const j = await r.json();
     return j.schema || null;
+  }
+
+  function bindLocationTypeUi() {
+    const loc = document.getElementById("f_location_type");
+    if (!loc) return;
+    const sync = () => {
+      document.querySelectorAll("[data-show-when-location]").forEach((wrap) => {
+        const need = wrap.dataset.showWhenLocation;
+        const show = need === loc.value;
+        wrap.style.display = show ? "" : "none";
+        wrap.querySelectorAll(".cq-ext-field").forEach((el) => {
+          if (show) el.setAttribute("required", "");
+          else {
+            el.removeAttribute("required");
+            el.value = "";
+            el.classList.remove("prefilled");
+          }
+        });
+      });
+    };
+    if (loc.dataset.locationBound !== "1") {
+      loc.dataset.locationBound = "1";
+      loc.addEventListener("change", sync);
+    }
+    sync();
   }
 
   function coverageChecked(id) {
@@ -293,13 +320,41 @@
 
   function fieldInitialValue(field, pre) {
     if (pre) return pre;
+    if (field.legacyYearPrefillParam) {
+      const p = new URLSearchParams(location.search);
+      const ys = p.get(field.legacyYearPrefillParam);
+      if (ys && /^\d{4}$/.test(String(ys))) return ys + "-01";
+    }
     if (field.defaultPreselect && field.default) return String(field.default);
     return "";
   }
 
-  function renderField(field) {
+  function resolveFieldPrefill(field) {
     const p = new URLSearchParams(location.search);
-    const pre = field.prefillParam ? p.get(field.prefillParam) : null;
+    if (field.prefillParam) {
+      const v = p.get(field.prefillParam);
+      if (v) return v;
+    }
+    if (field.legacyYearPrefillParam) {
+      const ys = p.get(field.legacyYearPrefillParam);
+      if (ys && /^\d{4}$/.test(String(ys))) return ys + "-01";
+    }
+    return null;
+  }
+
+  function wrapConditionalField(field, inner) {
+    if (!field.showWhenLocationType) return inner;
+    return (
+      '<div class="cq-conditional-field" data-show-when-location="' +
+      field.showWhenLocationType +
+      '" style="display:none">' +
+      inner +
+      "</div>"
+    );
+  }
+
+  function renderField(field) {
+    const pre = resolveFieldPrefill(field);
     const val = fieldInitialValue(field, pre);
     if (field.type === "select") {
       let opts = "";
@@ -320,12 +375,34 @@
         )
         .join("");
       const prefilled = pre ? ' class="cq-ext-field prefilled"' : ' class="cq-ext-field"';
+      return wrapConditionalField(
+        field,
+        '<label for="f_' +
+          field.name +
+          '">' +
+          field.label +
+          '</label><select name="' +
+          field.name +
+          '" id="f_' +
+          field.name +
+          '"' +
+          prefilled +
+          ' data-section="' +
+          field.section +
+          '" required>' +
+          opts +
+          "</select>",
+      );
+    }
+    if (field.type === "month") {
+      const dv = val || "";
+      const prefilled = pre ? ' class="cq-ext-field prefilled"' : ' class="cq-ext-field"';
       return (
         '<label for="f_' +
         field.name +
         '">' +
         field.label +
-        '</label><select name="' +
+        '</label><input type="month" name="' +
         field.name +
         '" id="f_' +
         field.name +
@@ -333,9 +410,9 @@
         prefilled +
         ' data-section="' +
         field.section +
-        '" required>' +
-        opts +
-        "</select>"
+        '" value="' +
+        dv +
+        '" required/>'
       );
     }
     if (field.type === "date") {
@@ -369,25 +446,29 @@
         : "";
       const minAttr =
         field.min != null ? ' data-min="' + String(field.min) + '"' : "";
-      return (
+      const maxAttr =
+        field.max != null ? ' data-max="' + String(field.max) + '"' : "";
+      return wrapConditionalField(
+        field,
         '<label for="f_' +
-        field.name +
-        '">' +
-        field.label +
-        '</label><div class="cq-money-wrap"><span class="cq-money-prefix" aria-hidden="true">$</span><input type="text" name="' +
-        field.name +
-        '" id="f_' +
-        field.name +
-        '" class="cq-ext-field cq-currency-input' +
-        prefilled +
-        '" data-currency="true"' +
-        minAttr +
-        placeholder +
-        ' inputmode="numeric" autocomplete="off" data-section="' +
-        field.section +
-        '" value="' +
-        display +
-        '" required/></div>'
+          field.name +
+          '">' +
+          field.label +
+          '</label><div class="cq-money-wrap"><span class="cq-money-prefix" aria-hidden="true">$</span><input type="text" name="' +
+          field.name +
+          '" id="f_' +
+          field.name +
+          '" class="cq-ext-field cq-currency-input' +
+          prefilled +
+          '" data-currency="true"' +
+          minAttr +
+          maxAttr +
+          placeholder +
+          ' inputmode="numeric" autocomplete="off" data-section="' +
+          field.section +
+          '" value="' +
+          display +
+          '" required/></div>',
       );
     }
     if (field.type === "number") {
@@ -428,6 +509,8 @@
   }
 
   function isExtendedFieldVisible(el) {
+    const conditional = el.closest(".cq-conditional-field");
+    if (conditional && conditional.style.display === "none") return false;
     const section = el.closest(".cq-section");
     if (section && section.style.display === "none") return false;
     return true;
@@ -448,8 +531,11 @@
       if (el.dataset.currency === "true") {
         const n = parseCurrencyDigits(el.value);
         const min = el.dataset.min ? Number(el.dataset.min) : null;
+        const max = el.dataset.max ? Number(el.dataset.max) : null;
         if (!Number.isFinite(n) || (min != null && n < min)) {
           missing.push(labelText);
+        } else if (max != null && n > max) {
+          missing.push(labelText + " (max $" + max.toLocaleString("en-US") + ")");
         }
         return;
       }
@@ -473,7 +559,7 @@
 
     if (schema.sections?.rating) {
       html +=
-        '<details class="cq-section" id="section-rating" open><summary>Business rating details <span class="cq-hint">Exact revenue, payroll &amp; year started — required by Coterie</span></summary><div class="cq-section-body">';
+        '<details class="cq-section" id="section-rating" open><summary>Business rating details <span class="cq-hint">Revenue, payroll &amp; month started — required by Coterie</span></summary><div class="cq-section-body">';
       schema.fields
         .filter((f) => f.section === "rating")
         .forEach((f) => {
@@ -534,6 +620,7 @@
     host.innerHTML = renderSections(currentSchema);
     bindCoverageUi();
     bindCurrencyInputs();
+    bindLocationTypeUi();
     applyCoveragePrefill();
   }
 
@@ -661,7 +748,7 @@
     fd.forEach((v, k) => {
       o[k] = v;
     });
-    ["gross_annual_sales", "annual_payroll"].forEach((key) => {
+    ["gross_annual_sales", "annual_payroll", "building_limit", "bpp_limit"].forEach((key) => {
       if (o[key] != null && o[key] !== "") {
         const n = parseCurrencyDigits(o[key]);
         if (Number.isFinite(n)) o[key] = String(n);
@@ -867,6 +954,8 @@
   function wireForm() {
     $("is_owner").addEventListener("change", refreshDynamicForm);
     $("business_class").addEventListener("change", refreshDynamicForm);
+    const stateEl = $("state");
+    if (stateEl) stateEl.addEventListener("change", refreshDynamicForm);
 
     $("cq-form").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -895,9 +984,12 @@
         }
         const q = data.coterie?.quote;
         if (!q?.isSuccess) {
-          throw new Error(
-            data.coterie?.bindBlocked?.message || data.message || "Quote unavailable",
-          );
+          const coterieErr =
+            (Array.isArray(q?.errors) && q.errors[0]) ||
+            data.coterie?.bindBlocked?.message ||
+            data.message ||
+            "Quote unavailable";
+          throw new Error(coterieErr);
         }
         session.submission_public_id = data.submission_public_id;
         session.quote_id = q.quoteId;

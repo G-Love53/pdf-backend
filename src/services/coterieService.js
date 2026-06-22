@@ -1,3 +1,8 @@
+import {
+  filterGlLimitOptions,
+  filterGlAggregateOptions,
+} from "../config/connectQuoteIntakeSchema.js";
+
 const DEFAULT_API_BASE = "https://api-sandbox.coterieinsurance.com";
 
 export class CoterieApiError extends Error {
@@ -233,6 +238,18 @@ export function buildApplicationPayload(form, { akHash }) {
 }
 
 function parseBusinessAgeMonths(form) {
+  const monthVal = form.business_start_month || form.businessStartMonth;
+  if (monthVal && /^\d{4}-\d{2}$/.test(String(monthVal))) {
+    const [y, m] = String(monthVal).split("-").map(Number);
+    const start = new Date(y, m - 1, 1);
+    const now = new Date();
+    return Math.max(
+      1,
+      (now.getFullYear() - start.getFullYear()) * 12 +
+        (now.getMonth() - start.getMonth()),
+    );
+  }
+
   const startYear = Number(form.business_start_year || form.businessStartYear);
   const now = new Date();
   if (
@@ -256,6 +273,11 @@ function parseBusinessAgeMonths(form) {
 }
 
 function formatBusinessStartDate(form) {
+  const monthVal = form.business_start_month || form.businessStartMonth;
+  if (monthVal && /^\d{4}-\d{2}$/.test(String(monthVal))) {
+    const [y, m] = String(monthVal).split("-");
+    return `${m}/01/${y}`;
+  }
   const startYear = Number(form.business_start_year || form.businessStartYear);
   if (!Number.isFinite(startYear) || startYear < 1900) return null;
   return `01/01/${startYear}`;
@@ -287,13 +309,49 @@ function buildMailingAddress(form) {
 
 function parseGlLimit(form) {
   const n = Number(form.gl_limit || form.glLimit || 1000000);
-  return Number.isFinite(n) ? n : 1000000;
+  const raw = Number.isFinite(n) ? n : 1000000;
+  const segment = String(form.segment || "").toLowerCase();
+  const state =
+    form.premise_state ||
+    form.physical_state ||
+    form.state ||
+    form.mailingAddressState ||
+    null;
+  const allowed = filterGlLimitOptions(segment, state).map((o) => Number(o.value));
+  if (!allowed.length) return raw;
+  if (allowed.includes(raw)) return raw;
+  const sorted = [...allowed].sort((a, b) => b - a);
+  return sorted.find((v) => v <= raw) || sorted[sorted.length - 1];
 }
 
 function parseGlAggregateLimit(form, glLimit) {
   const n = Number(form.gl_aggregate_limit || form.glAggregateLimit);
-  if (Number.isFinite(n)) return n;
+  if (Number.isFinite(n)) {
+    const segment = String(form.segment || "").toLowerCase();
+    const state =
+      form.premise_state ||
+      form.physical_state ||
+      form.state ||
+      form.mailingAddressState ||
+      null;
+    const allowed = filterGlAggregateOptions(segment, state, glLimit).map(
+      (o) => Number(o.value),
+    );
+    if (allowed.includes(n)) return n;
+  }
   return glLimit * 2;
+}
+
+function parseBuildingLimit(form) {
+  const n = Number(form.building_limit || form.buildingLimit);
+  if (!Number.isFinite(n)) return null;
+  return Math.min(1000000, Math.max(25000, Math.round(n)));
+}
+
+function parseBppLimit(form) {
+  const n = Number(form.bpp_limit || form.bppLimit);
+  if (!Number.isFinite(n)) return null;
+  return Math.min(500000, Math.max(5000, Math.round(n)));
 }
 
 function buildLocationRow(form, { includeBopFields = false } = {}) {
@@ -306,8 +364,19 @@ function buildLocationRow(form, { includeBopFields = false } = {}) {
     isPrimaryLocation: true,
   };
   if (includeBopFields) {
-    row.locationType =
+    const locType =
       form.location_type || form.locationType || "BuildingLeased";
+    row.locationType = locType;
+    const bppLimit = parseBppLimit(form);
+    if (bppLimit != null) {
+      row.bppLimit = bppLimit;
+    }
+    if (locType === "BuildingOwned") {
+      const buildingLimit = parseBuildingLimit(form);
+      if (buildingLimit != null) {
+        row.buildingLimit = buildingLimit;
+      }
+    }
   }
   return row;
 }

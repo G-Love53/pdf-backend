@@ -249,11 +249,14 @@ export async function processConnectQuoteIntake(body, reqMeta = {}) {
     const types = applicationTypes.filter((t) =>
       appSummary.availablePolicyTypes?.includes(t),
     );
-    const quoteBody = buildBindableQuotePayload(form, {
-      akHash,
-      applicationId: appSummary.applicationId,
-      applicationTypes: types.length ? types : applicationTypes,
-    });
+    const quoteBody = buildBindableQuotePayload(
+      { ...form, segment },
+      {
+        akHash,
+        applicationId: appSummary.applicationId,
+        applicationTypes: types.length ? types : applicationTypes,
+      },
+    );
 
     try {
       bindableResponse = await createBindableQuote(quoteBody);

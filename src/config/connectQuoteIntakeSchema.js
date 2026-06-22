@@ -1,5 +1,16 @@
 import { resolveRegistryEntry, listBusinessClasses } from "./coterieRegistry.js";
 
+/** States where Coterie caps GL occurrence at $1M for contractor classes. */
+export const COTERIE_CONTRACTOR_GL_CAP_STATES = new Set([
+  "NY",
+  "TX",
+  "CO",
+  "CA",
+  "FL",
+]);
+
+const CONTRACTOR_SEGMENTS = new Set(["electrical", "plumber", "hvac"]);
+
 /** Coterie bindable fields exposed on ConnectQuote (investor / real-quote mode). */
 export const COTERIE_EXTENDED_FIELDS = {
   gross_annual_sales: {
@@ -24,16 +35,14 @@ export const COTERIE_EXTENDED_FIELDS = {
     step: 1,
     prefillParam: "payroll",
   },
-  business_start_year: {
-    name: "business_start_year",
-    label: "Year business started",
-    type: "number",
+  business_start_month: {
+    name: "business_start_month",
+    label: "Month business started",
+    type: "month",
     coterieKey: "businessStartDate",
     section: "rating",
-    min: 1950,
-    max: new Date().getFullYear(),
-    step: 1,
-    prefillParam: "ys",
+    prefillParam: "bsm",
+    legacyYearPrefillParam: "ys",
   },
   location_type: {
     name: "location_type",
@@ -64,6 +73,29 @@ export const COTERIE_EXTENDED_FIELDS = {
     ],
     default: "1000",
     prefillParam: "bpp",
+  },
+  building_limit: {
+    name: "building_limit",
+    label: "Building limit (owned property)",
+    type: "number",
+    format: "currency",
+    coterieKey: "buildingLimit",
+    section: "bop",
+    min: 25000,
+    max: 1000000,
+    showWhenLocationType: "BuildingOwned",
+    prefillParam: "bldg",
+  },
+  bpp_limit: {
+    name: "bpp_limit",
+    label: "Business personal property (tools, equipment, inventory)",
+    type: "number",
+    format: "currency",
+    coterieKey: "bppLimit",
+    section: "bop",
+    min: 5000,
+    max: 500000,
+    prefillParam: "bpp_lim",
   },
   gl_limit: {
     name: "gl_limit",
@@ -105,6 +137,33 @@ export const COTERIE_EXTENDED_FIELDS = {
     prefillParam: "start",
   },
 };
+
+export function isContractorGlCapState(state) {
+  const st = String(state || "").trim().toUpperCase();
+  return COTERIE_CONTRACTOR_GL_CAP_STATES.has(st);
+}
+
+export function filterGlLimitOptions(segment, state) {
+  const options = [...COTERIE_EXTENDED_FIELDS.gl_limit.options];
+  if (!CONTRACTOR_SEGMENTS.has(String(segment || "").toLowerCase())) {
+    return options;
+  }
+  if (!isContractorGlCapState(state)) return options;
+  return options.filter((o) => Number(o.value) <= 1000000);
+}
+
+export function filterGlAggregateOptions(segment, state, glLimitValue) {
+  const options = [...COTERIE_EXTENDED_FIELDS.gl_aggregate_limit.options];
+  const glLimit = Number(glLimitValue || 1000000);
+  let filtered = options;
+  if (
+    CONTRACTOR_SEGMENTS.has(String(segment || "").toLowerCase()) &&
+    isContractorGlCapState(state)
+  ) {
+    filtered = filtered.filter((o) => Number(o.value) <= 2000000);
+  }
+  return filtered.filter((o) => Number(o.value) >= glLimit * 2);
+}
 
 function isNonOwner(isOwner) {
   return (
@@ -197,7 +256,11 @@ export function getCoverageOptions(entry, { isOwner = true } = {}) {
   };
 }
 
-export function resolveIntakeSchema(segment, businessClassKey, { isOwner = true } = {}) {
+export function resolveIntakeSchema(
+  segment,
+  businessClassKey,
+  { isOwner = true, state = null } = {},
+) {
   const entry = resolveRegistryEntry(segment, businessClassKey);
   const coverage = getCoverageOptions(entry, { isOwner });
   const nonOwner = isNonOwner(isOwner);
@@ -213,19 +276,33 @@ export function resolveIntakeSchema(segment, businessClassKey, { isOwner = true 
     fields.push(
       COTERIE_EXTENDED_FIELDS.gross_annual_sales,
       COTERIE_EXTENDED_FIELDS.annual_payroll,
-      COTERIE_EXTENDED_FIELDS.business_start_year,
+      COTERIE_EXTENDED_FIELDS.business_start_month,
     );
   }
   if (hasBop) {
     fields.push(
       COTERIE_EXTENDED_FIELDS.location_type,
       COTERIE_EXTENDED_FIELDS.bpp_deductible,
+      COTERIE_EXTENDED_FIELDS.bpp_limit,
+      COTERIE_EXTENDED_FIELDS.building_limit,
     );
   }
   if (hasGl) {
+    const glLimitField = {
+      ...COTERIE_EXTENDED_FIELDS.gl_limit,
+      options: filterGlLimitOptions(segment, state),
+    };
+    const defaultGl =
+      glLimitField.options.find((o) => o.value === glLimitField.default)?.value ||
+      glLimitField.options[glLimitField.options.length - 1]?.value ||
+      "1000000";
+    glLimitField.default = defaultGl;
     fields.push(
-      COTERIE_EXTENDED_FIELDS.gl_limit,
-      COTERIE_EXTENDED_FIELDS.gl_aggregate_limit,
+      glLimitField,
+      {
+        ...COTERIE_EXTENDED_FIELDS.gl_aggregate_limit,
+        options: filterGlAggregateOptions(segment, state, defaultGl),
+      },
     );
   }
   fields.push(COTERIE_EXTENDED_FIELDS.policy_start_date);

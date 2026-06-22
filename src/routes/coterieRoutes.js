@@ -42,7 +42,10 @@ router.get("/api/coterie/intake-schema/:segment/:businessClass", (req, res) => {
   const segment = String(req.params.segment || "").toLowerCase();
   const businessClass = String(req.params.businessClass || "").toLowerCase();
   const isOwner = req.query.is_owner !== "false" && req.query.is_owner !== "no";
-  const schema = resolveIntakeSchema(segment, businessClass, { isOwner });
+  const schema = resolveIntakeSchema(segment, businessClass, {
+    isOwner,
+    state: req.query.state || null,
+  });
   return res.json({ ok: true, schema });
 });
 
