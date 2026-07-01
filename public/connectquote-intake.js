@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260701";
+  const ASSET_V = "20260701b";
 
   const FALLBACK_CLASSES = {
     electrical: [
@@ -906,28 +906,37 @@
         applyInterimDemoPaymentUi();
       }
     }
+    onConfigReady();
   }
 
   function applyInterimDemoPaymentUi() {
     const noticeId = "interim-demo-notice";
-    if (!document.getElementById(noticeId)) {
-      const paySection = $("payment-section");
-      if (paySection) {
-        const el = document.createElement("p");
-        el.id = noticeId;
-        el.className = "interim-demo-notice";
-        el.textContent =
-          "Live card payment is coming soon. Use the button below to finish and open CID Connect — no charge.";
-        paySection.insertBefore(el, paySection.firstChild);
-      }
+    const paySection = $("payment-section");
+    if (paySection && !document.getElementById(noticeId)) {
+      const el = document.createElement("p");
+      el.id = noticeId;
+      el.className = "interim-demo-notice";
+      el.textContent =
+        "Live card payment is coming soon. Use the button below to finish and open CID Connect — no charge.";
+      paySection.insertBefore(el, paySection.firstChild);
     }
     const cardHost = document.getElementById("card-element");
     if (cardHost) {
-      const wrap = cardHost.closest(".field") || cardHost.parentElement;
-      if (wrap) wrap.style.display = "none";
+      cardHost.style.display = "none";
+      const cardLabel = cardHost.previousElementSibling;
+      if (cardLabel && cardLabel.tagName === "LABEL") {
+        cardLabel.style.display = "none";
+      }
     }
     const payBtn = $("pay-btn");
     if (payBtn) payBtn.style.display = "none";
+    const demoBtn = $("demo-btn");
+    if (demoBtn) {
+      demoBtn.style.display = "block";
+      demoBtn.textContent = paymentBindReady
+        ? "Skip payment — demo only"
+        : "Complete bind — demo (no charge)";
+    }
   }
 
   async function callDemoFinalize() {
@@ -1027,6 +1036,9 @@
         updatePremiumDisplay();
         $("quote-box").classList.add("show");
         $("payment-section").classList.add("show");
+        if (demoEnabled && !paymentBindReady) {
+          applyInterimDemoPaymentUi();
+        }
         $("quote-box").scrollIntoView({ behavior: "smooth", block: "start" });
       } catch (err) {
         showErr(err.message || String(err));
@@ -1130,7 +1142,14 @@
           '<p class="cq-placeholder">Select ownership above to see coverage options and Coterie rating questions.</p>';
       }
     }
-    loadConfig().catch(() => {});
+    await loadConfig().catch(() => {});
+  }
+
+  /** Re-apply interim demo UI when quote box is already open before config returned. */
+  function onConfigReady() {
+    if (demoEnabled && !paymentBindReady && $("quote-box")?.classList.contains("show")) {
+      applyInterimDemoPaymentUi();
+    }
   }
 
   if (document.readyState === "loading") {
