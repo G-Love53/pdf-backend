@@ -163,7 +163,7 @@ async function callClaudeChat(systemPrompt, messages) {
   const model =
     process.env.ANTHROPIC_CONNECT_CHAT_MODEL ||
     process.env.ANTHROPIC_LETTER_MODEL ||
-    "claude-sonnet-4-20250514";
+    "claude-sonnet-4-6";
   const timeoutMs = Number(process.env.CONNECT_CHAT_TIMEOUT_MS || 55000);
   const maxTokens = Number(process.env.CONNECT_CHAT_MAX_TOKENS || 1536);
 
@@ -208,7 +208,7 @@ async function callGeminiChat(systemPrompt, chatHistory, message) {
   const model =
     process.env.GEMINI_CONNECT_CHAT_MODEL ||
     process.env.GEMINI_LETTER_MODEL ||
-    "gemini-2.0-flash";
+    "gemini-2.5-flash";
   const timeoutMs = Number(process.env.GEMINI_CONNECT_CHAT_TIMEOUT_MS || 55000);
 
   const lines = [systemPrompt, "", "Conversation:"];

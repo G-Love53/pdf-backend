@@ -1,7 +1,7 @@
 export default function buildBarExtractionPrompt(pdfBase64) {
   return {
     // Locked model for PDF/document input compatibility across segments.
-    model: "claude-sonnet-4-20250514",
+    model: "claude-sonnet-4-6",
     max_tokens: 2000,
     messages: [
       {

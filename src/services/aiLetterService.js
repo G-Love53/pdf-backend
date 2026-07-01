@@ -225,7 +225,7 @@ async function callClaude(systemPrompt, userPrompt) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
 
-  const model = process.env.ANTHROPIC_LETTER_MODEL || "claude-sonnet-4-20250514";
+  const model = process.env.ANTHROPIC_LETTER_MODEL || "claude-sonnet-4-6";
   // Default 28s: 9s was aborting healthy Sonnet calls ("This operation was aborted").
   // Keep under typical ~30s edge timeouts; raise via CLAUDE_LETTER_TIMEOUT_MS if your host allows.
   const timeoutMs = Number(process.env.CLAUDE_LETTER_TIMEOUT_MS || 28000);
@@ -268,7 +268,7 @@ async function callGeminiFallback(systemPrompt, userPrompt) {
   if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
 
   const timeoutMs = Number(process.env.GEMINI_LETTER_TIMEOUT_MS || 9000);
-  const model = process.env.GEMINI_LETTER_MODEL || "gemini-2.0-flash";
+  const model = process.env.GEMINI_LETTER_MODEL || "gemini-2.5-flash";
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
     model,
