@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260701c";
+  const ASSET_V = "20260701d";
 
   const FALLBACK_CLASSES = {
     electrical: [
@@ -327,6 +327,18 @@
     return html;
   }
 
+  function readCurrencyFieldValue(el) {
+    if (!el) return NaN;
+    const typed = parseCurrencyDigits(el.value);
+    if (Number.isFinite(typed)) return typed;
+    const suggested = el.dataset.suggested;
+    if (suggested) {
+      const n = parseCurrencyDigits(suggested);
+      if (Number.isFinite(n)) return n;
+    }
+    return NaN;
+  }
+
   function parseCurrencyDigits(raw) {
     const digits = String(raw || "").replace(/\D/g, "");
     if (!digits) return NaN;
@@ -458,13 +470,24 @@
       );
     }
     if (field.type === "number" && field.format === "currency") {
-      const raw = val || "";
-      const display = formatCurrencyDigits(raw);
+      const isSuggestedPrefill = Boolean(pre);
+      const raw = isSuggestedPrefill ? "" : val || "";
+      const display = raw ? formatCurrencyDigits(raw) : "";
       const prefilled =
-        (pre || (field.defaultPreselect && field.default)) ? " prefilled" : "";
-      const placeholder = field.placeholder
-        ? ' placeholder="' + String(field.placeholder).replace(/"/g, "&quot;") + '"'
+        !isSuggestedPrefill && (pre || (field.defaultPreselect && field.default))
+          ? " prefilled"
+          : "";
+      const suggestedAttr = isSuggestedPrefill
+        ? ' data-suggested="' +
+          String(parseCurrencyDigits(pre)).replace(/"/g, "") +
+          '"'
         : "";
+      const placeholder =
+        isSuggestedPrefill && pre
+          ? formatCurrencyDigits(pre)
+          : field.placeholder || "0";
+      const placeholderAttr =
+        ' placeholder="' + String(placeholder).replace(/"/g, "&quot;") + '"';
       const minAttr =
         field.min != null ? ' data-min="' + String(field.min) + '"' : "";
       const maxAttr =
@@ -482,9 +505,10 @@
           '" class="cq-ext-field cq-currency-input' +
           prefilled +
           '" data-currency="true"' +
+          suggestedAttr +
           minAttr +
           maxAttr +
-          placeholder +
+          placeholderAttr +
           ' inputmode="numeric" autocomplete="off" data-section="' +
           field.section +
           '" value="' +
@@ -545,12 +569,8 @@
         ? document.querySelector('label[for="' + el.id + '"]')
         : null;
       const labelText = label ? label.textContent : el.name;
-      if (!el.value) {
-        missing.push(labelText);
-        return;
-      }
       if (el.dataset.currency === "true") {
-        const n = parseCurrencyDigits(el.value);
+        const n = readCurrencyFieldValue(el);
         const min = el.dataset.min ? Number(el.dataset.min) : null;
         const max = el.dataset.max ? Number(el.dataset.max) : null;
         if (!Number.isFinite(n) || (min != null && n < min)) {
@@ -558,6 +578,10 @@
         } else if (max != null && n > max) {
           missing.push(labelText + " (max $" + max.toLocaleString("en-US") + ")");
         }
+        return;
+      }
+      if (!el.value) {
+        missing.push(labelText);
         return;
       }
       if (el.type === "number") {
@@ -756,12 +780,26 @@
     document.querySelectorAll("[data-currency='true']").forEach((el) => {
       if (el.dataset.currencyBound === "1") return;
       el.dataset.currencyBound = "1";
+      el.addEventListener("focus", () => {
+        el.classList.remove("prefilled");
+        window.setTimeout(() => {
+          try {
+            el.select();
+          } catch (_) {
+            /* iOS may ignore select on focus */
+          }
+        }, 0);
+      });
       el.addEventListener("input", () => {
         el.classList.remove("prefilled");
+        delete el.dataset.suggested;
         const formatted = formatCurrencyDigits(el.value);
         el.value = formatted;
       });
       el.addEventListener("blur", () => {
+        if (!String(el.value || "").trim() && el.dataset.suggested) {
+          return;
+        }
         el.value = formatCurrencyDigits(el.value);
       });
     });
@@ -774,10 +812,16 @@
       o[k] = v;
     });
     ["gross_annual_sales", "annual_payroll", "building_limit", "bpp_limit"].forEach((key) => {
-      if (o[key] != null && o[key] !== "") {
-        const n = parseCurrencyDigits(o[key]);
-        if (Number.isFinite(n)) o[key] = String(n);
+      const el =
+        document.getElementById("f_" + key) ||
+        document.querySelector('[name="' + key + '"]');
+      let n = NaN;
+      if (el && el.dataset.currency === "true") {
+        n = readCurrencyFieldValue(el);
+      } else if (o[key] != null && o[key] !== "") {
+        n = parseCurrencyDigits(o[key]);
       }
+      if (Number.isFinite(n)) o[key] = String(n);
     });
     o.is_owner = isOwnerSelected();
     o.application_types = selectedInstantCoverages();

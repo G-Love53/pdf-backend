@@ -95,6 +95,10 @@ select.cq-ext-field:required:invalid {
   min-width: 0;
   border-radius: 0 8px 8px 0;
 }
+.cq-currency-input::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
 .cq-currency-input:placeholder-shown,
 .cq-currency-input.prefilled {
   color: #9ca3af;
