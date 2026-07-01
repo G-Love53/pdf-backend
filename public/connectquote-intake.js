@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260701b";
+  const ASSET_V = "20260701c";
 
   const FALLBACK_CLASSES = {
     electrical: [
@@ -167,6 +167,26 @@
 
   function isOwnerSelected() {
     return $("is_owner").value === "yes";
+  }
+
+  function isOwnerOnlyBlocked() {
+    return currentSchema?.ownerOnly && !isOwnerSelected();
+  }
+
+  function ownerOnlyNoticeHtml() {
+    const label =
+      currentSchema?.businessClassLabel || "This business type";
+    return (
+      '<div class="cq-owner-only-notice" role="alert">' +
+      "<strong>Instant quote is for business owners only.</strong> " +
+      label +
+      " on ConnectQuote requires you to own or operate the business " +
+      "(sole proprietor, LLC, etc.). If you are an employee, use our " +
+      '<a href="index.html' +
+      (location.search || "") +
+      '">full application</a> instead — or change ownership above to "Yes" if you are the owner.' +
+      "</div>"
+    );
   }
 
   function selectedBusinessClass() {
@@ -618,6 +638,10 @@
       host.innerHTML = "";
       return;
     }
+    if (isOwnerOnlyBlocked()) {
+      host.innerHTML = ownerOnlyNoticeHtml();
+      return;
+    }
     host.innerHTML = renderSections(currentSchema);
     bindCoverageUi();
     bindCurrencyInputs();
@@ -762,6 +786,12 @@
   }
 
   function validateBeforeQuote() {
+    if (isOwnerOnlyBlocked()) {
+      showErr(
+        "Instant quotes are for business owners. Select “Yes — I own / operate the business” if you are a sole proprietor, or use our full application for employee coverage.",
+      );
+      return false;
+    }
     const extras = selectedExtraCoverages();
     if (extras.includes("PL")) {
       redirectTraditional(
