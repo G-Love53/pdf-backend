@@ -10,6 +10,7 @@ import { uploadBuffer, deleteObject } from "../services/r2Service.js";
 import { generateConnectChatReply } from "../services/connectChatService.js";
 import { buildEnrichedChatInput } from "../services/connectChatEnrichment.js";
 import { searchCarrierKnowledgeRows } from "../lib/carrierKnowledgeSearch.js";
+import { coterieKbSlugOverride } from "../lib/coterieCarrierKb.js";
 import { mintRenewalIntakeToken, segmentIntakeBaseUrl } from "../lib/renewalIntakeToken.js";
 
 const router = express.Router();
@@ -121,6 +122,8 @@ function mapPolicy(row, supabaseUserId) {
 async function resolveCarrierSlug(pool, carrierName) {
   if (!carrierName) return null;
   const raw = String(carrierName).trim();
+  const coterieSlug = coterieKbSlugOverride(raw);
+  if (coterieSlug) return coterieSlug;
   const slugify = (s) =>
     String(s)
       .toLowerCase()

@@ -1040,12 +1040,14 @@
           return;
         }
 
-        throw new Error(
+        const bindMsg =
           data.message ||
-            data.error ||
-            data.coterie?.errors?.[0]?.message ||
-            data.coterie?.errors?.[0] ||
-            "Bind failed",
+          data.error ||
+          data.coterie?.errors?.[0]?.message ||
+          data.coterie?.errors?.[0] ||
+          "Bind failed";
+        throw new Error(
+          data.hint ? bindMsg + " " + data.hint : bindMsg,
         );
       } catch (err) {
         if (demoEnabled && session.submission_public_id) {

@@ -3,6 +3,7 @@
  * + Famous `carrier_resources` (Train AI uploads) when Supabase is configured on CID-PDF-API.
  */
 import { searchCarrierKnowledgeRows } from "../lib/carrierKnowledgeSearch.js";
+import { coterieKbSlugOverride } from "../lib/coterieCarrierKb.js";
 import { fetchCarrierResourcesPromptBlock } from "./connectCarrierResourcesPrompt.js";
 
 async function searchPolicyDocumentChunks(pool, policyId, searchText, limit = 5) {
@@ -55,6 +56,8 @@ function formatPolicyExcerptBlock(rows) {
 async function resolveCarrierSlug(pool, carrierName) {
   if (!carrierName) return null;
   const raw = String(carrierName).trim();
+  const coterieSlug = coterieKbSlugOverride(raw);
+  if (coterieSlug) return coterieSlug;
   const slugify = (s) =>
     String(s)
       .toLowerCase()

@@ -111,10 +111,25 @@ export async function processCoterieBindPayment({
     body?.message ||
     null;
   if (body?.isSuccess === false || (body?.errors && body.errors.length)) {
+    const sandbox =
+      process.env.COTERIE_DEMO_FINALIZE_ENABLED === "true" ||
+      (process.env.COTERIE_API_BASE || "").includes("sandbox");
+    const stripePk = process.env.COTERIE_STRIPE_PUBLISHABLE_KEY || "";
+    let hint = null;
+    if (/payment info is missing/i.test(String(errMsg || ""))) {
+      if (!sandbox && stripePk.startsWith("pk_test_")) {
+        hint =
+          "Production Coterie API is live but Stripe publishable key is still pk_test_. Coterie likely needs pk_live_ (or a prod test key from Coterie) before bind accepts payment tokens.";
+      } else if (!sandbox) {
+        hint =
+          "Coterie rejected the payment token. Confirm prod Stripe key with Coterie and see API docs — Bind Using Stripe.";
+      }
+    }
     return {
       ok: false,
       error: "COTERIE_BIND_FAILED",
       message: errMsg || "Bind failed",
+      hint,
       coterie: body,
     };
   }

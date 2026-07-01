@@ -503,10 +503,21 @@ export function extractQuoteSummary(bindableResponse) {
   };
 }
 
-/** POST /v1.6/commercial/quotes/{quoteId}/bind — payment collects on Coterie Stripe. */
-export async function bindQuote(quoteId, paymentPayload = {}) {
-  const { agencyExternalId } = getCoterieConfig();
-  const paymentPlan = paymentPayload.paymentPlan || "Annual";
+function normalizePaymentPlan(plan) {
+  const p = String(plan || "Annual").trim();
+  if (/^month/i.test(p)) return "Monthly";
+  if (/^year|^annual/i.test(p)) return "Annual";
+  return p;
+}
+
+function buildBindAttempts(quoteId, agencyExternalId, paymentPayload) {
+  const paymentPlan = normalizePaymentPlan(paymentPayload.paymentPlan);
+  const altPlan =
+    paymentPlan === "Monthly"
+      ? "Monthly"
+      : paymentPlan === "Annual"
+        ? "Yearly"
+        : paymentPlan;
   const stripeToken =
     paymentPayload.stripeToken ||
     paymentPayload.stripe_token ||
@@ -514,57 +525,108 @@ export async function bindQuote(quoteId, paymentPayload = {}) {
     null;
   const stripePaymentMethodId = paymentPayload.stripePaymentMethodId || null;
 
-  /** Coterie sandbox expects Stripe token (tok_…) from /v1/tokens, not pm_…. */
+  /** @type {{ path: string, body: Record<string, unknown> }[]} */
   const attempts = [];
-  if (stripeToken) {
-    attempts.push(
-      { agencyExternalId, paymentInfo: { stripeToken, paymentPlan } },
-      { agencyExternalId, paymentInfo: { StripeToken: stripeToken, PaymentPlan: paymentPlan } },
-      { agencyExternalId, paymentInfo: { token: stripeToken, paymentPlan } },
-      { agencyExternalId, stripeToken, paymentPlan },
-      { agencyExternalId, StripeToken: stripeToken, PaymentPlan: paymentPlan },
-    );
-  }
-  if (stripePaymentMethodId) {
-    attempts.push(
-      {
-        agencyExternalId,
-        paymentInfo: {
-          stripePaymentMethodId,
-          paymentPlan,
-        },
-      },
-      {
-        agencyExternalId,
-        PaymentInfo: {
-          StripePaymentMethodId: stripePaymentMethodId,
-          PaymentPlan: paymentPlan,
-        },
-      },
-    );
-  }
-  if (!attempts.length) {
-    attempts.push({ agencyExternalId, paymentPlan });
-  }
 
-  let lastBody = null;
-  for (const body of attempts) {
-    try {
-      const result = await coterieFetch(
-        `/v1.6/commercial/quotes/${quoteId}/bind`,
-        { method: "POST", body },
-      );
-      if (result?.isSuccess !== false && !result?.errors?.length) {
-        return { result, bindBodyUsed: body };
-      }
-      lastBody = result;
-      if (!/payment info is missing/i.test(JSON.stringify(result))) {
-        return { result, bindBodyUsed: body };
-      }
-    } catch (err) {
-      lastBody = err.body || { message: err.message };
+  const add = (path, body) => attempts.push({ path, body });
+
+  if (stripeToken) {
+    for (const plan of [paymentPlan, altPlan]) {
+      add(`/v1.6/commercial/quotes/${quoteId}/bind`, {
+        agencyExternalId,
+        paymentInfo: { stripeToken, paymentPlan: plan },
+      });
+      add(`/v1.6/commercial/quotes/${quoteId}/bind`, {
+        agencyExternalId,
+        paymentInfo: { StripeToken: stripeToken, PaymentPlan: plan },
+      });
+      add(`/v1.6/commercial/quotes/${quoteId}/bind`, {
+        agencyExternalId,
+        paymentInfo: { stripePaymentToken: stripeToken, paymentPlan: plan },
+      });
+      add(`/v1.6/commercial/quotes/${quoteId}/bind`, {
+        agencyExternalId,
+        stripeToken,
+        paymentPlan: plan,
+      });
+      add(`/v1.6/commercial/quotes/${quoteId}/bind`, {
+        agencyExternalId,
+        StripeToken: stripeToken,
+        PaymentPlan: plan,
+      });
+      add(`/v1.6/commercial/policies`, {
+        agencyExternalId,
+        agencyId: agencyExternalId,
+        quoteId,
+        stripePaymentToken: stripeToken,
+        paymentPlan: plan,
+      });
+      add(`/v1.6/commercial/policies`, {
+        agencyExternalId,
+        quoteId,
+        paymentInfo: { stripePaymentToken: stripeToken, paymentPlan: plan },
+      });
     }
   }
 
-  return { result: lastBody, bindBodyUsed: null };
+  if (stripePaymentMethodId) {
+    for (const plan of [paymentPlan, altPlan]) {
+      add(`/v1.6/commercial/quotes/${quoteId}/bind`, {
+        agencyExternalId,
+        paymentInfo: { stripePaymentMethodId, paymentPlan: plan },
+      });
+      add(`/v1.6/commercial/quotes/${quoteId}/bind`, {
+        agencyExternalId,
+        PaymentInfo: { StripePaymentMethodId: stripePaymentMethodId, PaymentPlan: plan },
+      });
+    }
+  }
+
+  if (!attempts.length) {
+    add(`/v1.6/commercial/quotes/${quoteId}/bind`, {
+      agencyExternalId,
+      paymentPlan,
+    });
+  }
+
+  return attempts;
+}
+
+function bindAttemptSucceeded(result) {
+  return result?.isSuccess !== false && !(result?.errors?.length > 0);
+}
+
+/** POST bind — Coterie Stripe token (tok_…) or payment method; tries quote bind + policies paths. */
+export async function bindQuote(quoteId, paymentPayload = {}) {
+  const { agencyExternalId } = getCoterieConfig();
+  const attempts = buildBindAttempts(quoteId, agencyExternalId, paymentPayload);
+
+  let lastBody = null;
+  for (const { path, body } of attempts) {
+    try {
+      const result = await coterieFetch(path, { method: "POST", body });
+      if (bindAttemptSucceeded(result)) {
+        console.log("[coterie bind] success", { path, keys: Object.keys(body) });
+        return { result, bindBodyUsed: body, bindPathUsed: path };
+      }
+      lastBody = result;
+      if (!/payment info is missing/i.test(JSON.stringify(result))) {
+        console.warn("[coterie bind] non-missing error", { path, result });
+        return { result, bindBodyUsed: body, bindPathUsed: path };
+      }
+    } catch (err) {
+      lastBody = err.body || { message: err.message };
+      if (!/payment info is missing/i.test(JSON.stringify(lastBody))) {
+        console.warn("[coterie bind] fetch error", { path, message: err.message });
+        return { result: lastBody, bindBodyUsed: body, bindPathUsed: path };
+      }
+    }
+  }
+
+  console.warn("[coterie bind] all attempts failed", {
+    quoteId,
+    attemptCount: attempts.length,
+    lastError: lastBody?.errors?.[0] || lastBody?.message,
+  });
+  return { result: lastBody, bindBodyUsed: null, bindPathUsed: null };
 }
