@@ -6,10 +6,13 @@ import { searchCarrierKnowledgeRows } from "../lib/carrierKnowledgeSearch.js";
 import { coterieKbSlugOverride } from "../lib/coterieCarrierKb.js";
 import {
   hydrateCoterieCoverageData,
-  indexCoterieCoverageForChat,
   isSparseCoterieCoverage,
 } from "./coterieCoverageData.js";
 import { fetchCarrierResourcesPromptBlock } from "./connectCarrierResourcesPrompt.js";
+import {
+  policyHasUploadedDocuments,
+  UPLOADED_POLICY_DOCUMENT_ROLES,
+} from "./connectChatPolicyDocs.js";
 
 async function searchPolicyDocumentChunks(pool, policyId, searchText, limit = 5) {
   if (!policyId || !searchText) return [];
@@ -26,6 +29,7 @@ async function searchPolicyDocumentChunks(pool, policyId, searchText, limit = 5)
         FROM policy_document_chunks, plainto_tsquery('english', $1) q
         WHERE policy_id = $2::uuid
           AND index_status = 'indexed'
+          AND document_role = ANY($4::text[])
           AND content_tsv @@ q
         ORDER BY
           COALESCE(document_priority, 9) ASC,
@@ -33,7 +37,7 @@ async function searchPolicyDocumentChunks(pool, policyId, searchText, limit = 5)
           chunk_index ASC
         LIMIT $3
       `,
-      [searchText, policyId, Math.min(Math.max(Number(limit) || 5, 1), 12)],
+      [searchText, policyId, Math.min(Math.max(Number(limit) || 5, 1), 12), UPLOADED_POLICY_DOCUMENT_ROLES],
     );
     return rows;
   } catch (e) {
@@ -132,6 +136,8 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
   let mergedPolicy = { ...clientPolicy };
   let activePolicyId = null;
 
+  let policyDocumentsPending = false;
+
   if (pol.rows.length) {
     const row = pol.rows[0];
     activePolicyId = row.id || null;
@@ -182,6 +188,8 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
       expiration_date: row.expiration_date,
       status: row.status,
     };
+
+    policyDocumentsPending = !(await policyHasUploadedDocuments(pool, activePolicyId));
   }
 
   let knowledgeRows = [];
@@ -219,52 +227,13 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
     "\n\n--- CARRIER RESOURCES (Train AI metadata) ---\n\n",
   );
 
-  const policyExcerptRows = await searchPolicyDocumentChunks(
-    pool,
-    activePolicyId,
-    message,
-    5,
-  );
-  let policyPdfExcerptsBlock = formatPolicyExcerptBlock(policyExcerptRows);
+  const policyExcerptRows = policyDocumentsPending
+    ? []
+    : await searchPolicyDocumentChunks(pool, activePolicyId, message, 5);
+  const policyPdfExcerptsBlock = formatPolicyExcerptBlock(policyExcerptRows);
 
-  if (
-    activePolicyId &&
-    !policyExcerptRows.length &&
-    mergedPolicy?.coverage_data?.bind_source === "coterie"
-  ) {
-    try {
-      const client = await pool.connect();
-      try {
-        await client.query("BEGIN");
-        const indexed = await indexCoterieCoverageForChat(client, {
-          policyId: activePolicyId,
-          clientId,
-          submissionId: pol.rows[0]?.submission_id,
-          segment: mergedPolicy.segment,
-          coverageData: mergedPolicy.coverage_data,
-        });
-        await client.query("COMMIT");
-        if (indexed.indexed > 0) {
-          const retryRows = await searchPolicyDocumentChunks(
-            pool,
-            activePolicyId,
-            message,
-            5,
-          );
-          policyPdfExcerptsBlock = formatPolicyExcerptBlock(retryRows);
-        }
-      } catch (e) {
-        await client.query("ROLLBACK");
-        console.warn("[connectChatEnrichment] coterie lazy index failed:", e?.message || e);
-      } finally {
-        client.release();
-      }
-    } catch (e) {
-      console.warn("[connectChatEnrichment] coterie lazy index pool failed:", e?.message || e);
-    }
-  }
   if (process.env.CONNECT_CHAT_PROMPT_DEBUG === "true") {
-    console.log("[connectChatEnrichment] policy excerpt rows:", policyExcerptRows.length);
+    console.log("[connectChatEnrichment] policy excerpt rows:", policyExcerptRows.length, "pending:", policyDocumentsPending);
   }
 
   return {
@@ -277,5 +246,6 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
     knowledgeBlock,
     policyPdfExcerptsBlock,
     policyExcerptRows,
+    policyDocumentsPending,
   };
 }

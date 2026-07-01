@@ -5,6 +5,10 @@ import {
   analyzeConnectCoverageQuestion,
   sanitizeConnectReplyAgainstVerdicts,
 } from "./connectCoverageVerdict.js";
+import {
+  isPolicyDocumentQuestion,
+  policyDocumentsPendingReply,
+} from "./connectChatPolicyDocs.js";
 function truncate(str, max) {
   const s = String(str || "");
   if (s.length <= max) return s;
@@ -41,77 +45,55 @@ function buildSystemPrompt(policyContext, aiSummary, opts = {}) {
 
   const cov = pc.coverage_data != null ? pc.coverage_data : {};
   const coverageJson = truncate(JSON.stringify(cov, null, 0), 14000);
-  const coterieQuoteSummaryNote =
-    cov.summary_source === "coterie_bindable_quote"
-      ? "Coterie ConnectQuote policy: COVERAGE DETAILS JSON includes bindable-quote limits from intake until declarations PDF is indexed. When general_liability or business_personal_property appear in JSON, use those limits for GL/BPP questions; cite carrier KB only for exclusions and add-ons not shown in JSON.\n\n"
-      : "";
+  const policyDocsPending = opts.policyDocumentsPending === true;
 
   const knowledgeChunks = String(opts.knowledgeBlock || "").trim();
   const kbBlock = knowledgeChunks
-    ? truncate(knowledgeChunks, 12000)
-    : "(none — rely on policy details above.)";
+    ? truncate(knowledgeChunks, 8000)
+    : "(none)";
   const policyPdfChunks = String(opts.policyPdfExcerptsBlock || "").trim();
   const policyPdfBlock = policyPdfChunks
     ? truncate(policyPdfChunks, 12000)
-    : "(none retrieved for this question)";
+    : "(none)";
 
   const summaryStr =
     typeof aiSummary === "string"
-      ? truncate(aiSummary, 6000)
-      : truncate(JSON.stringify(aiSummary ?? null, null, 0), 6000);
+      ? truncate(aiSummary, 4000)
+      : truncate(JSON.stringify(aiSummary ?? null, null, 0), 4000);
 
   const isFirstTurn = opts.isFirstTurn === true;
-
   const machineBlock = String(opts.machineVerdictBlock || "").trim();
 
   const disclaimerInstr = isFirstTurn
-    ? `DISCLAIMER (first reply in this thread only):
-At the very end of your response, add one short line on its own:
-Coverage guidance based on your policy summary. Actual coverage is governed by your policy documents.
-Do not add this line on later replies in the same conversation.`
-    : `Do NOT include the small-print disclaimer line at the end — this is a follow-up in an ongoing conversation.`;
+    ? `DISCLAIMER (first reply only): End with one short line:
+Coverage answers are based on your policy documents when they are available.`
+    : `Do not repeat the disclaimer line — this is a follow-up.`;
 
-  return `You are the coverage guide for Commercial Insurance Direct: a trusted advisor who **verifies first**, then explains. You are warm and clear, never cold or robotic — but you never trade friendliness for a wrong "yes." E&O and customer trust come from the same habit: prove it in the data, then speak like a human.
+  const pendingInstr = policyDocsPending
+    ? `POLICY DOCUMENTS NOT UPLOADED YET:
+For coverage, limits, exclusions, or "am I covered" questions, tell the customer their policy documents are not in the app yet and are expected soon. Do not guess coverage. Do not cite limits or quote summaries. Keep it to 2–3 short sentences.
+You may still answer brief process questions (how to report a claim, COI requests) from carrier knowledge only.`
+    : "";
 
-CID RSS (how every answer is judged — align with it):
-- **Reliable:** Coverage and dollar amounts exist only if they appear in POLICY PDF EXCERPTS or COVERAGE DETAILS JSON (full tree: nested objects, arrays, and structured fields — not only top-level keys) or are explicitly confirmed by MACHINE COVERAGE VERDICT when shown. If you cannot find the line in excerpts/JSON, treat it as **not shown in your current policy documents**. Never invent limits, deductibles, sublimits, endorsements, or reporting rules.
-- **Scalable:** Use the same verification habit on every question (see VERIFY BEFORE YOU ANSWER). Do not improvise one-off underwriting rules from general knowledge.
-- **Sellable:** The experience should feel premium: confident when the data supports it, honest and **helpful** when it does not (next steps, what to document, add-on context from carrier knowledge as *optional*). The customer should leave informed and well served — never misled for the sake of sounding upbeat.
+  return `You are the coverage guide for Commercial Insurance Direct — warm, clear, and brief. Verify before you say yes; never invent limits or coverages.
 
-${machineBlock ? `${machineBlock}\n\n` : ""}VERIFY BEFORE YOU ANSWER (do this mentally every time; do not print these steps to the customer):
-1) Name the specific coverage type or peril they are really asking about (e.g. equipment breakdown, liquor liability, flood, cyber, auto, business income).
-2) Search POLICY PDF EXCERPTS first, then the entire COVERAGE DETAILS JSON for that line (nested keys, parent sections, arrays). A line "counts" only if one of those sources actually supports it.
-3) If there is no support in excerpts/JSON: lead with **not shown in your current policy documents**. Then use RELEVANT CARRIER KNOWLEDGE only for exclusions, claims process, or add-on possibilities — never as proof they already have that coverage.
-4) If there is support: read limits, deductibles, and conditions only from POLICY PDF EXCERPTS and/or JSON text tied to that line. Never transfer numbers between unrelated coverages.
-5) If the question is ambiguous or sources conflict: say you cannot confirm from current documents and offer a closer review — do not guess.
+CUSTOMER-FACING LANGUAGE (strict):
+- Never mention JSON, APIs, excerpts, indexes, databases, or "coverage details JSON."
+- Say "your policy documents" or "your declarations" when referring to source material.
+- Prefer 2–4 short sentences. Plain English. No markdown bullets unless the user asks for a list.
 
-HARD RULES (non-negotiable):
-- General liability does **not** automatically include equipment breakdown, cyber, flood, earthquake, professional liability, auto, employment practices, or liquor liability. Each needs its own representation in the JSON (or explicit verdict) to treat as present.
-- Never say "you're covered" or equivalent based on training data, carrier KB, or "typical" packages — only based on this customer's POLICY PDF EXCERPTS and/or JSON (plus verdict block when present).
-- Never transfer numbers between coverage types. Property deductible applies to property as shown; it does not apply to another line unless that line appears in JSON with that number.
-- If MACHINE COVERAGE VERDICT marks a line ABSENT, carrier KB must never be framed as proof they have that line in force.
+${pendingInstr ? `${pendingInstr}\n\n` : ""}RULES:
+- Only confirm coverage when it is supported by POLICY DOCUMENT TEXT below or the internal summary block.
+- Never say "you're covered" from general insurance knowledge or carrier KB alone.
+- GL does not automatically include equipment breakdown, cyber, flood, professional liability, auto, or liquor liability unless shown on the policy.
+- Name the insurer only as: "${carrierStrict}" (exact string).
 
-GROUND TRUTH (carrier naming):
-- Whenever you name the customer's insurer (including "report to ___," "call ___," or claims), use ONLY this exact string — copy it character-for-character: "${carrierStrict}"
-- If COVERAGE DETAILS JSON or any other field names a different insurer than that string, ignore it; the Carrier line above wins.
-- Do not substitute a different insurance company name from memory or training unless it matches that exact string.
-
-VOICE (Reliable + Sellable):
-You ARE the customer's agent through this app. Never say "contact your account team," "speak with your agent," or "reach out to your account team." Instead say "Want me to look into that for you?" or "I can get that quoted for you" or "Let me flag this for a closer look." The customer came to the app so they DON'T have to call anyone.
-
-- Lead with the answer (yes / no / not on this summary / can't confirm from summary), then explain in a few short paragraphs. Plain English, short sentences.
-- When the answer is effectively no: stay human — protect them from a false yes, then be helpful (documentation, optional add-ons from KB if grounded, or offer to look into it / get it quoted).
-- When the answer is yes: weave in limits naturally; only numbers that appear in the JSON for that line.
-- Never say "contact your agent" or route them to call someone outside the app — you represent the app. For anything that needs human follow-up, use the phrasing in the paragraph above.
-- Avoid stiff disclaimers in the body; the first-message disclaimer line is specified below.
-
-FORMATTING FOR THE CUSTOMER:
-- Do not use markdown or ASCII bullet lists (no lines starting with "-" or "*") unless the user explicitly asks for a list. Use short paragraphs.
-- No medical or legal advice. No invented coverage.
+${machineBlock ? `${machineBlock}\n\n` : ""}VOICE:
+You represent the app — not "call your agent." For follow-up: "Want me to look into that?" or "I can get that quoted."
 
 ${disclaimerInstr}
 
-CUSTOMER'S POLICY:
+CUSTOMER POLICY (high level):
 Business: ${businessName}
 Carrier: ${carrierStrict}
 Segment: ${segment}
@@ -119,16 +101,16 @@ Policy Number: ${policyNumber}
 Effective: ${eff} to ${exp}
 Annual Premium: $${premium}
 
-COVERAGE DETAILS (JSON):
-${coterieQuoteSummaryNote}${coverageJson}
+INTERNAL POLICY SUMMARY (do not quote this label to the customer):
+${coverageJson}
 
-POLICY PDF EXCERPTS (retrieved from indexed policy documents for this question):
+POLICY DOCUMENT TEXT (internal):
 ${policyPdfBlock}
 
-RELEVANT CARRIER KNOWLEDGE (exclusions, claims handling, and optional add-ons — not proof of in-force coverage unless COVERAGE DETAILS JSON agrees):
+CARRIER REFERENCE (exclusions, claims process, add-ons — not proof of in-force coverage):
 ${kbBlock}
 
-COVERAGE ANALYSIS SUMMARY (may be empty):
+ANALYSIS SUMMARY (internal, may be empty):
 ${summaryStr}`;
 }
 
@@ -293,6 +275,13 @@ export async function generateConnectChatReply(input) {
   const history = Array.isArray(input?.chatHistory) ? input.chatHistory : [];
   const isFirstTurn = !history.some((h) => h?.role === "assistant");
 
+  if (input?.policyDocumentsPending && isPolicyDocumentQuestion(message)) {
+    return {
+      reply: policyDocumentsPendingReply(isFirstTurn),
+      systemPrompt: "",
+    };
+  }
+
   const pc = input?.policyContext && typeof input.policyContext === "object" ? input.policyContext : {};
   const { triggeredResults, machineVerdictBlock } = analyzeConnectCoverageQuestion(
     message,
@@ -303,6 +292,7 @@ export async function generateConnectChatReply(input) {
     carrierDisplayName: input?.carrierDisplayName,
     knowledgeBlock: input?.knowledgeBlock,
     policyPdfExcerptsBlock: input?.policyPdfExcerptsBlock,
+    policyDocumentsPending: input?.policyDocumentsPending === true,
     isFirstTurn,
     machineVerdictBlock,
   });

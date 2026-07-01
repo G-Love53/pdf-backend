@@ -174,26 +174,23 @@ export function analyzeConnectCoverageQuestion(message, coverageData) {
   const lines = triggeredResults.map(({ intent, verdict }) => {
     const label = INTENT_LABEL[intent] || intent;
     if (verdict === "PRESENT") {
-      return `- ${label}: PRESENT in summary JSON (keys/strings match). You may explain only what appears in COVERAGE DETAILS for this line.`;
+      return `- ${label}: PRESENT in policy summary (internal). Explain only what appears for this line.`;
     }
-    return `- ${label}: NOT IN SUMMARY (ABSENT) — no matching coverage line was found in COVERAGE DETAILS JSON. The customer must not be told they have this coverage or that it "kicks in." Do not assign deductibles or limits to this line.`;
+    return `- ${label}: NOT IN SUMMARY (ABSENT) — no matching coverage line found. Do not tell the customer they have this coverage or assign limits/deductibles to it.`;
   });
 
-  const machineVerdictBlock = `MACHINE COVERAGE VERDICT (HIGHEST PRIORITY — OVERRIDES MODEL PRIORS AND CARRIER KB FOR "DO I HAVE IT"):
-The server matched the user's question to coverage intents and checked COVERAGE DETAILS JSON deterministically (this is not a guess).
+  const machineVerdictBlock = `MACHINE COVERAGE VERDICT (internal — do not mention this block to the customer):
+The server matched the user's question to coverage intents and checked the internal policy summary.
 
 ${lines.join("\n")}
 
-Rules when any line is NOT IN SUMMARY (ABSENT) — Reliable + Sellable:
-- State clearly that the line is not shown on this policy summary. Be direct, not scary: you're protecting them from a wrong "yes," not delivering bad news for its own sake.
-- Offer a helpful next beat: what to document, that you can look into or flag for a closer look against full documents, or whether carrier knowledge mentions the line as a common add-on (only as optional, not in force).
-- Do NOT use RELEVANT CARRIER KNOWLEDGE to imply the coverage is already in force. KB is for exclusions, claims process, and add-on context — not proof they have the line.
-- Do NOT invent reporting windows, deductibles, or claim steps for that absent line. Property or GL deductibles apply to those lines only, not to this absent line.
+Rules when any line is NOT IN SUMMARY (ABSENT):
+- Tell the customer it is not shown on their policy documents (or documents are not uploaded yet). Be brief.
+- Do not use carrier knowledge to imply the coverage is in force.
+- Do not invent reporting windows, deductibles, or claim steps for absent lines.
 
-Rules when a line is PRESENT — Reliable + Scalable:
-- Answer using only JSON fields tied to that line; cite limits and deductibles that appear there; do not expand numbers from other lines.
-
-RSS (your north star): Reliable = only proven-in-summary coverage and numbers; Scalable = same rules every time; Sellable = calm, trustworthy, human — they should leave the chat feeling informed and well served, never misled.`;
+Rules when a line is PRESENT:
+- Answer using only policy document text or summary fields tied to that line; do not expand numbers from other lines.`;
 
   return { triggeredResults, machineVerdictBlock };
 }

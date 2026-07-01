@@ -769,6 +769,7 @@ router.post(
         carrierDisplayName: enriched.carrierDisplayName,
         knowledgeBlock: enriched.knowledgeBlock,
         policyPdfExcerptsBlock: enriched.policyPdfExcerptsBlock,
+        policyDocumentsPending: enriched.policyDocumentsPending === true,
       });
       if (process.env.CONNECT_CHAT_PROMPT_DEBUG === "true") {
         console.log("[ConnectAPI] /chat systemPrompt prefix:", String(systemPrompt || "").substring(0, 400));
