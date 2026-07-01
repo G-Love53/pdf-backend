@@ -157,7 +157,7 @@ async function withTimeout(promiseFactory, timeoutMs) {
 }
 
 async function callClaudeChat(systemPrompt, messages) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = String(process.env.ANTHROPIC_API_KEY || "").trim();
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
 
   const model =
@@ -202,7 +202,7 @@ async function callClaudeChat(systemPrompt, messages) {
 }
 
 async function callGeminiChat(systemPrompt, chatHistory, message) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = String(process.env.GEMINI_API_KEY || "").trim();
   if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
 
   const model =
@@ -304,6 +304,8 @@ export async function generateConnectChatReply(input) {
   });
   const anthropicMessages = buildAnthropicMessages(input?.chatHistory, message);
 
+  const providerErrors = [];
+
   for (const provider of connectChatProviderOrder()) {
     try {
       if (provider === "claude") {
@@ -323,12 +325,15 @@ export async function generateConnectChatReply(input) {
         systemPrompt,
       };
     } catch (err) {
-      console.warn(
-        `[connectChatService] ${provider} failed:`,
-        err?.message || err,
-      );
+      const errMsg = err?.message || String(err);
+      providerErrors.push({ provider, error: errMsg });
+      console.warn(`[connectChatService] ${provider} failed:`, errMsg);
     }
   }
 
-  return { reply: fallbackReply(), systemPrompt };
+  return {
+    reply: fallbackReply(),
+    systemPrompt,
+    providerErrors: providerErrors.length ? providerErrors : undefined,
+  };
 }
