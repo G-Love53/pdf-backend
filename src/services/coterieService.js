@@ -21,14 +21,42 @@ export function isCoterieConfigured() {
   );
 }
 
+function coterieApiBase() {
+  return (process.env.COTERIE_API_BASE || DEFAULT_API_BASE).replace(/\/$/, "");
+}
+
+export function isCoterieSandboxApi() {
+  return coterieApiBase().includes("sandbox");
+}
+
+/** True when prod Coterie can accept live Stripe bind (pk_live on prod API). */
+export function isCoteriePaymentBindReady() {
+  const stripePk = process.env.COTERIE_STRIPE_PUBLISHABLE_KEY || "";
+  if (!stripePk) return false;
+  if (isCoterieSandboxApi()) return stripePk.startsWith("pk_");
+  return stripePk.startsWith("pk_live_");
+}
+
+/**
+ * Skip-payment demo bind allowed (sandbox, explicit flag, or interim prod quoting).
+ * Interim: prod Coterie API + pk_test_ — quotes are real; bind uses demo-finalize until Coterie ships pk_live.
+ */
+export function isDemoFinalizeAllowed() {
+  if (process.env.COTERIE_DEMO_FINALIZE_ENABLED === "true") return true;
+  if (isCoterieSandboxApi()) return true;
+  if (process.env.COTERIE_INTERIM_DEMO_MODE === "true") return true;
+  const stripePk = process.env.COTERIE_STRIPE_PUBLISHABLE_KEY || "";
+  if (!isCoterieSandboxApi() && stripePk.startsWith("pk_test_")) return true;
+  return false;
+}
+
 export function getCoteriePublicConfig() {
   return {
     apiConfigured: isCoterieConfigured(),
     stripePublishableKey: process.env.COTERIE_STRIPE_PUBLISHABLE_KEY || null,
-    sandbox: (process.env.COTERIE_API_BASE || DEFAULT_API_BASE).includes("sandbox"),
-    demoFinalizeEnabled:
-      process.env.COTERIE_DEMO_FINALIZE_ENABLED === "true" ||
-      (process.env.COTERIE_API_BASE || DEFAULT_API_BASE).includes("sandbox"),
+    sandbox: isCoterieSandboxApi(),
+    demoFinalizeEnabled: isDemoFinalizeAllowed(),
+    paymentBindReady: isCoteriePaymentBindReady(),
   };
 }
 

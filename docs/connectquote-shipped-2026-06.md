@@ -86,17 +86,18 @@ See also: [`coterie-integration.md`](./coterie-integration.md) · [`partnerships
 | **Intake assets** | `public/connectquote-intake.js` + `.css` at `/static/…` | Same Render deploy |
 | **Electrical intake** | `electricalinsurancedirect.com/connectquote.html` | `electrical-pdf-backend` → Netlify |
 | **Fitness intake** | `fitnessinsurancedirect.com/connectquote.html` | `fitness-pdf-backend` → Netlify (git-connected `netlify.toml`) |
-| **Connect PWA** | Netlify (`cid-connect`) | Separate; reads policies via bridge |
+| **Connect PWA** | Netlify (`cid-connect`) | Git push → auto deploy |
+| **Marketing site** | `commercialinsurance-direct.com` | Manual Netlify deploy from **`CID Website/Netlify/`** (not git-connected) |
 
 ### Render env (CID-PDF-API)
 
 | Variable | Purpose |
 |----------|---------|
-| `COTERIE_API_BASE` | `https://api-sandbox.coterieinsurance.com` |
-| `COTERIE_PUBLISHABLE_KEY` | Coterie API auth (server + safe publishable pattern) |
+| `COTERIE_API_BASE` | `https://api.coterieinsurance.com` (prod) or sandbox URL |
+| `COTERIE_PUBLISHABLE_KEY` | Coterie API auth (server) |
 | `COTERIE_AGENCY_EXTERNAL_ID` | Agency UUID on all Coterie bodies |
-| `COTERIE_STRIPE_PUBLISHABLE_KEY` | Browser Stripe for Coterie bind (`pk_test_…`) |
-| `COTERIE_DEMO_FINALIZE_ENABLED` | `true` in sandbox — **Demo: simulate bind** without live charge |
+| `COTERIE_STRIPE_PUBLISHABLE_KEY` | Browser Stripe for Coterie bind — **prod needs `pk_live` from Coterie/David** |
+| `COTERIE_DEMO_FINALIZE_ENABLED` | `false` in prod; `true` in sandbox only |
 
 ---
 
@@ -172,6 +173,22 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 | **SOC 2** | CID not certified; infra on Render/Netlify/GitHub SOC 2 Type II — see `compliance-roadmap.md` |
 | **CO producer license** | Enabled in sandbox — bindable quotes returning premium (e.g. electrical ~$1,448/yr tested) |
 | **Issued policy PDF** | Not yet ingested from Coterie webhook — Connect uses summary + KB for Am I Covered v1 |
+| **Am I Covered KB (Coterie/Spinnaker)** | **Shipped 2026-07-01** — **63 rows** in **`carrier_knowledge`** via migrations **`009`–`013`**; retrieval in **`connectChatEnrichment.js`** |
+
+---
+
+## Production status (2026-07-01)
+
+| Item | Status |
+|------|--------|
+| Coterie **prod** quoting (CO electrical, fitness) | **Working** on Render (`sandbox: false`) |
+| Coterie **prod bind** + Stripe charge | **Interim demo mode** — auto when `pk_test_` on prod API; **Complete bind — demo (no charge)** until **`pk_live_`** |
+| Coterie carrier **KB** for Connect chat | **Loaded** (appetite, GL limits, BOP property, Gold tier default, ops/FAQ) |
+| Connect **branding** | **Shipped** — cropped **`logo-nav.png`**, **`BrandLogo`** component |
+| Marketing hero phone mockups | **Updated** — enlarged logo in static PNGs; manual Netlify deploy |
+| **Campaign / acquisition** | **Soft hold** for paid bind; demo bind OK for partner/investor demos |
+
+**Waiting on David/Coterie:** prod Stripe publishable key, v1.6 bind JSON confirmation, webhook URL `https://cid-pdf-api.onrender.com/webhooks/coterie`.
 
 ---
 
@@ -209,7 +226,8 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 | `pdf-backend` | Coterie adapter, registry, intake schema, routes, bind completion, static intake JS |
 | `electrical-pdf-backend` | `Netlify/connectquote.html` + index banner |
 | `fitness-pdf-backend` | `Netlify/connectquote.html` + index banner |
-| `cid-connect` | Logo scale, post-bind PWA hint (earlier in sprint) |
+| `cid-connect` | **`BrandLogo`** + **`public/logo-nav.png`**; header/login prominence; PWA post-bind hint |
+| `CID Website/Netlify` | Nav + hero phone mockups with enlarged logo (manual deploy) |
 
 ---
 
@@ -221,3 +239,4 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 | 2026-06-12 | Fitness segment; extended Coterie fields; coverage toggles; plan cards; static asset fix |
 | 2026-06-12 | Explicit **CID not MoR** / Stripe-via-Coterie compliance section; future-rail template (Thimble) |
 | 2026-06-12 | Nationwide investor positioning; yoga GL rating fields; GL $1M/$2M defaults; PL rationale |
+| 2026-07-01 | Coterie **prod** keys on Render; **KB migrations 009–013** (63 rows); **interim demo bind** on prod when Stripe is `pk_test_`; Connect + marketing logo refresh |

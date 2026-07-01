@@ -24,6 +24,7 @@ router.get("/api/coterie/config", (_req, res) => {
     stripePublishableKey: cfg.stripePublishableKey,
     sandbox: cfg.sandbox,
     demoFinalizeEnabled: cfg.demoFinalizeEnabled,
+    paymentBindReady: cfg.paymentBindReady,
     apiBase: process.env.PUBLIC_API_BASE_URL || "https://cid-pdf-api.onrender.com",
   });
 });

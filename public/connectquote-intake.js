@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260622";
+  const ASSET_V = "20260701";
 
   const FALLBACK_CLASSES = {
     electrical: [
@@ -35,6 +35,7 @@
   let cardElement = null;
   let session = { submission_public_id: null, quote_id: null, email: null, quote: null };
   let demoEnabled = false;
+  let paymentBindReady = false;
   let registryCache = null;
   let currentSchema = null;
 
@@ -887,7 +888,8 @@
     const r = await fetch(API + "/api/coterie/config");
     const j = await r.json();
     demoEnabled = !!j.demoFinalizeEnabled;
-    if (j.stripePublishableKey && window.Stripe) {
+    paymentBindReady = !!j.paymentBindReady;
+    if (j.stripePublishableKey && window.Stripe && paymentBindReady) {
       stripe = Stripe(j.stripePublishableKey);
       cardElement = stripe.elements().create("card");
       cardElement.mount("#card-element");
@@ -896,9 +898,36 @@
       const demoBtn = $("demo-btn");
       if (demoBtn) {
         demoBtn.style.display = "block";
-        demoBtn.textContent = "Skip payment — demo only";
+        demoBtn.textContent = paymentBindReady
+          ? "Skip payment — demo only"
+          : "Complete bind — demo (no charge)";
+      }
+      if (!paymentBindReady) {
+        applyInterimDemoPaymentUi();
       }
     }
+  }
+
+  function applyInterimDemoPaymentUi() {
+    const noticeId = "interim-demo-notice";
+    if (!document.getElementById(noticeId)) {
+      const paySection = $("payment-section");
+      if (paySection) {
+        const el = document.createElement("p");
+        el.id = noticeId;
+        el.className = "interim-demo-notice";
+        el.textContent =
+          "Live card payment is coming soon. Use the button below to finish and open CID Connect — no charge.";
+        paySection.insertBefore(el, paySection.firstChild);
+      }
+    }
+    const cardHost = document.getElementById("card-element");
+    if (cardHost) {
+      const wrap = cardHost.closest(".field") || cardHost.parentElement;
+      if (wrap) wrap.style.display = "none";
+    }
+    const payBtn = $("pay-btn");
+    if (payBtn) payBtn.style.display = "none";
   }
 
   async function callDemoFinalize() {
@@ -1008,7 +1037,11 @@
 
     $("pay-btn").addEventListener("click", async () => {
       if (!stripe || !cardElement) {
-        showErr("Payment not configured — use Demo bind in sandbox or contact support.");
+        showErr(
+          demoEnabled
+            ? "Use Complete bind — demo (no charge) below."
+            : "Payment not configured — contact support.",
+        );
         return;
       }
       $("pay-btn").disabled = true;

@@ -4,6 +4,8 @@ import {
   bindQuote,
   extractQuoteSummary,
   getQuote,
+  isCoteriePaymentBindReady,
+  isDemoFinalizeAllowed,
 } from "./coterieService.js";
 import { loadCoterieSession } from "./coterieIntakeService.js";
 
@@ -111,16 +113,14 @@ export async function processCoterieBindPayment({
     body?.message ||
     null;
   if (body?.isSuccess === false || (body?.errors && body.errors.length)) {
-    const sandbox =
-      process.env.COTERIE_DEMO_FINALIZE_ENABLED === "true" ||
-      (process.env.COTERIE_API_BASE || "").includes("sandbox");
     const stripePk = process.env.COTERIE_STRIPE_PUBLISHABLE_KEY || "";
     let hint = null;
     if (/payment info is missing/i.test(String(errMsg || ""))) {
-      if (!sandbox && stripePk.startsWith("pk_test_")) {
-        hint =
-          "Production Coterie API is live but Stripe publishable key is still pk_test_. Coterie likely needs pk_live_ (or a prod test key from Coterie) before bind accepts payment tokens.";
-      } else if (!sandbox) {
+      if (!isCoteriePaymentBindReady() && stripePk.startsWith("pk_test_")) {
+        hint = isDemoFinalizeAllowed()
+          ? "Live payment is not enabled yet — use Skip payment — demo only to complete bind and open Connect."
+          : "Production Coterie API is live but Stripe publishable key is still pk_test_. Set COTERIE_DEMO_FINALIZE_ENABLED=true or wait for Coterie pk_live_.";
+      } else if (!isCoteriePaymentBindReady()) {
         hint =
           "Coterie rejected the payment token. Confirm prod Stripe key with Coterie and see API docs — Bind Using Stripe.";
       }
@@ -154,10 +154,7 @@ export async function processCoterieBindPayment({
  * Sandbox demo finalize — simulates post-payment policy write when bind API shape is unresolved.
  */
 export async function processCoterieDemoFinalize({ submissionPublicId, quoteId }) {
-  const sandbox =
-    process.env.COTERIE_DEMO_FINALIZE_ENABLED === "true" ||
-    (process.env.COTERIE_API_BASE || "").includes("sandbox");
-  if (!sandbox) {
+  if (!isDemoFinalizeAllowed()) {
     return { ok: false, error: "DEMO_FINALIZE_DISABLED" };
   }
 
