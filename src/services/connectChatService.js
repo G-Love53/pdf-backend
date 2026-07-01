@@ -41,6 +41,10 @@ function buildSystemPrompt(policyContext, aiSummary, opts = {}) {
 
   const cov = pc.coverage_data != null ? pc.coverage_data : {};
   const coverageJson = truncate(JSON.stringify(cov, null, 0), 14000);
+  const coterieQuoteSummaryNote =
+    cov.summary_source === "coterie_bindable_quote"
+      ? "Coterie ConnectQuote policy: COVERAGE DETAILS JSON includes bindable-quote limits from intake until declarations PDF is indexed. When general_liability or business_personal_property appear in JSON, use those limits for GL/BPP questions; cite carrier KB only for exclusions and add-ons not shown in JSON.\n\n"
+      : "";
 
   const knowledgeChunks = String(opts.knowledgeBlock || "").trim();
   const kbBlock = knowledgeChunks
@@ -116,7 +120,7 @@ Effective: ${eff} to ${exp}
 Annual Premium: $${premium}
 
 COVERAGE DETAILS (JSON):
-${coverageJson}
+${coterieQuoteSummaryNote}${coverageJson}
 
 POLICY PDF EXCERPTS (retrieved from indexed policy documents for this question):
 ${policyPdfBlock}

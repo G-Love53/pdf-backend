@@ -4,6 +4,11 @@
  */
 import { searchCarrierKnowledgeRows } from "../lib/carrierKnowledgeSearch.js";
 import { coterieKbSlugOverride } from "../lib/coterieCarrierKb.js";
+import {
+  hydrateCoterieCoverageData,
+  indexCoterieCoverageForChat,
+  isSparseCoterieCoverage,
+} from "./coterieCoverageData.js";
 import { fetchCarrierResourcesPromptBlock } from "./connectCarrierResourcesPrompt.js";
 
 async function searchPolicyDocumentChunks(pool, policyId, searchText, limit = 5) {
@@ -148,6 +153,22 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
     }
 
     // Server policy row is source of truth (avoid stale client policyContext overriding DB).
+    let coverageData = row.coverage_data;
+    if (isSparseCoterieCoverage(coverageData)) {
+      const hydrated = await hydrateCoterieCoverageData(pool, row);
+      if (hydrated && hydrated !== coverageData) {
+        coverageData = hydrated;
+        try {
+          await pool.query(
+            `UPDATE policies SET coverage_data = $2::jsonb WHERE id = $1::uuid`,
+            [row.id, JSON.stringify(hydrated)],
+          );
+        } catch (e) {
+          console.warn("[connectChatEnrichment] coterie coverage hydrate persist failed:", e?.message || e);
+        }
+      }
+    }
+
     mergedPolicy = {
       ...mergedPolicy,
       id: row.id,
@@ -156,7 +177,7 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
       carrier: carrierDisplayName || row.carrier_name || null,
       carrier_slug: carrierSlug,
       premium: row.annual_premium != null ? Number(row.annual_premium) : undefined,
-      coverage_data: row.coverage_data,
+      coverage_data: coverageData,
       effective_date: row.effective_date,
       expiration_date: row.expiration_date,
       status: row.status,
@@ -204,7 +225,44 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
     message,
     5,
   );
-  const policyPdfExcerptsBlock = formatPolicyExcerptBlock(policyExcerptRows);
+  let policyPdfExcerptsBlock = formatPolicyExcerptBlock(policyExcerptRows);
+
+  if (
+    activePolicyId &&
+    !policyExcerptRows.length &&
+    mergedPolicy?.coverage_data?.bind_source === "coterie"
+  ) {
+    try {
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        const indexed = await indexCoterieCoverageForChat(client, {
+          policyId: activePolicyId,
+          clientId,
+          submissionId: pol.rows[0]?.submission_id,
+          segment: mergedPolicy.segment,
+          coverageData: mergedPolicy.coverage_data,
+        });
+        await client.query("COMMIT");
+        if (indexed.indexed > 0) {
+          const retryRows = await searchPolicyDocumentChunks(
+            pool,
+            activePolicyId,
+            message,
+            5,
+          );
+          policyPdfExcerptsBlock = formatPolicyExcerptBlock(retryRows);
+        }
+      } catch (e) {
+        await client.query("ROLLBACK");
+        console.warn("[connectChatEnrichment] coterie lazy index failed:", e?.message || e);
+      } finally {
+        client.release();
+      }
+    } catch (e) {
+      console.warn("[connectChatEnrichment] coterie lazy index pool failed:", e?.message || e);
+    }
+  }
   if (process.env.CONNECT_CHAT_PROMPT_DEBUG === "true") {
     console.log("[connectChatEnrichment] policy excerpt rows:", policyExcerptRows.length);
   }

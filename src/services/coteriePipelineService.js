@@ -1,4 +1,8 @@
 import crypto from "crypto";
+import {
+  buildCoterieCoverageData,
+  indexCoterieCoverageForChat,
+} from "./coterieCoverageData.js";
 import { getPool } from "../db.js";
 import { uploadBuffer } from "./r2Service.js";
 import { createPolicy } from "./policyService.js";
@@ -16,38 +20,6 @@ import {
 } from "../constants/postgresEnums.js";
 import { normalizeSegment } from "../utils/rss.js";
 
-function buildReviewedJson(quoteSummary, bindResult) {
-  const premium = Number(
-    quoteSummary.premium ??
-      bindResult?.result?.premium ??
-      bindResult?.result?.quote?.premium ??
-      0,
-  );
-  const effective =
-    quoteSummary.effectiveDate ||
-    bindResult?.result?.effectiveDate ||
-    new Date().toISOString().slice(0, 10);
-
-  let expiration = bindResult?.result?.expirationDate || null;
-  if (!expiration && effective) {
-    const d = new Date(String(effective).slice(0, 10) + "T12:00:00Z");
-    d.setUTCFullYear(d.getUTCFullYear() + 1);
-    expiration = d.toISOString().slice(0, 10);
-  }
-
-  return {
-    bind_source: "coterie",
-    carrier_name: quoteSummary.carrier || "Spinnaker",
-    policy_type: quoteSummary.policyType || "BOP",
-    annual_premium: premium,
-    effective_date: String(effective).slice(0, 10),
-    expiration_date: String(expiration || effective).slice(0, 10),
-    coterie_quote_id: quoteSummary.quoteId,
-    coterie_application_id: quoteSummary.applicationId,
-    coterie_bind: bindResult?.result || null,
-  };
-}
-
 /**
  * Create minimal S4–S6 spine rows for Coterie instant bind (no carrier email / BoldSign).
  */
@@ -57,7 +29,11 @@ async function ensureCoteriePipelineRows(client, {
   quoteSummary,
   bindResult,
 }) {
-  const reviewed = buildReviewedJson(quoteSummary, bindResult);
+  const reviewed = buildCoterieCoverageData({
+    quoteSummary,
+    submission,
+    bindResult,
+  });
   const segment = normalizeSegment(submission.segment);
   const coterieQuoteId = quoteSummary.quoteId;
 
@@ -270,6 +246,14 @@ export async function finalizeCoterieBind({
       bindRequest: bindRes.rows[0],
       extraction,
       txClient: client,
+    });
+
+    await indexCoterieCoverageForChat(client, {
+      policyId: policy.id,
+      clientId: clientRow.client_id,
+      submissionId: submission.submission_id,
+      segment: normalizeSegment(submission.segment),
+      coverageData: policy.coverage_data || reviewed,
     });
 
     await client.query(
