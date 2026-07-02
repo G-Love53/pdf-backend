@@ -544,14 +544,41 @@ function normalizePaymentPlan(plan) {
   return p;
 }
 
+function normalizePaymentInterval(plan) {
+  const p = normalizePaymentPlan(plan);
+  return p === "Monthly" ? "Monthly" : "Yearly";
+}
+
+function pickBindContactEmail(paymentPayload = {}) {
+  const raw =
+    paymentPayload.contactEmail ||
+    paymentPayload.contact_email ||
+    paymentPayload.email ||
+    null;
+  const trimmed = String(raw || "").trim();
+  return trimmed || null;
+}
+
+function withBindContact(body, contactEmail) {
+  if (!contactEmail) return body;
+  return {
+    ...body,
+    contactEmail,
+    email: contactEmail,
+  };
+}
+
 function buildBindAttempts(quoteId, agencyExternalId, paymentPayload) {
   const paymentPlan = normalizePaymentPlan(paymentPayload.paymentPlan);
+  const paymentInterval = normalizePaymentInterval(paymentPayload.paymentPlan);
   const altPlan =
     paymentPlan === "Monthly"
       ? "Monthly"
       : paymentPlan === "Annual"
         ? "Yearly"
         : paymentPlan;
+  const altInterval = paymentInterval === "Monthly" ? "Yearly" : "Monthly";
+  const contactEmail = pickBindContactEmail(paymentPayload);
   const stripeToken =
     paymentPayload.stripeToken ||
     paymentPayload.stripe_token ||
@@ -562,9 +589,16 @@ function buildBindAttempts(quoteId, agencyExternalId, paymentPayload) {
   /** @type {{ path: string, body: Record<string, unknown> }[]} */
   const attempts = [];
 
-  const add = (path, body) => attempts.push({ path, body });
+  const add = (path, body) => attempts.push({ path, body: withBindContact(body, contactEmail) });
 
   if (stripeToken) {
+    for (const interval of [paymentInterval, altInterval]) {
+      add(`/v1.6/commercial/quotes/${quoteId}/bind`, {
+        agencyExternalId,
+        tokenizedPaymentID: stripeToken,
+        paymentInterval: interval,
+      });
+    }
     for (const plan of [paymentPlan, altPlan]) {
       add(`/v1.6/commercial/quotes/${quoteId}/bind`, {
         agencyExternalId,

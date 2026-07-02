@@ -1130,6 +1130,16 @@
         );
         return;
       }
+      const bindEmail = String(
+        formPayload().contact_email || session.email || "",
+      ).trim();
+      if (!bindEmail) {
+        showErr(
+          "Email is required before payment. Enter your email above and tap Get instant quote again.",
+        );
+        return;
+      }
+      session.email = bindEmail;
       $("pay-btn").disabled = true;
       if ($("demo-btn")) $("demo-btn").disabled = true;
       try {
@@ -1144,6 +1154,7 @@
             quote_id: session.quote_id,
             stripe_token: tokenResult.token.id,
             payment_plan: selectedPaymentPlan(),
+            contact_email: bindEmail,
           }),
         });
         const data = await res.json();

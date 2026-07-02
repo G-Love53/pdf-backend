@@ -90,6 +90,8 @@ router.post("/api/coterie/bind", async (req, res) => {
       stripePaymentMethodId:
         body.stripe_payment_method_id || body.payment_method_id,
       paymentPlan: body.payment_plan || "Annual",
+      contactEmail:
+        body.contact_email || body.contactEmail || body.email || null,
     });
     return res.status(result.ok ? 200 : 400).json(result);
   } catch (err) {

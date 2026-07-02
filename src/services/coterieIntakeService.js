@@ -289,6 +289,7 @@ export async function processConnectQuoteIntake(body, reqMeta = {}) {
           submission_public_id: submissionPublicId,
           applicationId: appSummary.applicationId,
           quoteId: quoteSummary.quoteId,
+          contactEmail: primaryEmail,
           quoteSummary,
         });
       }
@@ -396,4 +397,40 @@ export async function loadCoterieSession(submissionPublicId) {
     [submissionPublicId],
   );
   return r.rows[0]?.event_payload_json || null;
+}
+
+export async function resolveSubmissionContactEmail(
+  submissionPublicId,
+  override = null,
+) {
+  const trimmed = String(override || "").trim();
+  if (trimmed) return trimmed;
+
+  const session = await loadCoterieSession(submissionPublicId);
+  const fromSession = String(session?.contactEmail || "").trim();
+  if (fromSession) return fromSession;
+
+  const pool = getPool();
+  if (!pool || !submissionPublicId) return null;
+
+  const r = await pool.query(
+    `
+      SELECT primary_email, raw_submission_json
+      FROM submissions
+      WHERE submission_public_id = $1
+      LIMIT 1
+    `,
+    [submissionPublicId],
+  );
+  const row = r.rows[0];
+  if (!row) return null;
+
+  const fromPrimary = String(row.primary_email || "").trim();
+  if (fromPrimary) return fromPrimary;
+
+  const raw = row.raw_submission_json || {};
+  return (
+    String(raw.contact_email || raw.email || raw.applicant_email || "").trim() ||
+    null
+  );
 }

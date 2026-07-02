@@ -7,7 +7,10 @@ import {
   isCoteriePaymentBindReady,
   isDemoFinalizeAllowed,
 } from "./coterieService.js";
-import { loadCoterieSession } from "./coterieIntakeService.js";
+import {
+  loadCoterieSession,
+  resolveSubmissionContactEmail,
+} from "./coterieIntakeService.js";
 
 /**
  * Coterie bind webhook → policy path.
@@ -90,6 +93,7 @@ export async function processCoterieBindPayment({
   stripeToken,
   stripePaymentMethodId,
   paymentPlan = "Annual",
+  contactEmail = null,
 }) {
   const session = await loadCoterieSession(submissionPublicId);
   const resolvedQuoteId = quoteId || session?.quoteId;
@@ -100,10 +104,24 @@ export async function processCoterieBindPayment({
     return { ok: false, error: "PAYMENT_TOKEN_REQUIRED" };
   }
 
+  const resolvedEmail = await resolveSubmissionContactEmail(
+    submissionPublicId,
+    contactEmail,
+  );
+  if (!resolvedEmail) {
+    return {
+      ok: false,
+      error: "EMAIL_REQUIRED",
+      message:
+        "Insured email is required to bind. Go back and enter a valid email, then get a new quote.",
+    };
+  }
+
   const bindResult = await bindQuote(resolvedQuoteId, {
     stripeToken,
     stripePaymentMethodId,
     paymentPlan,
+    contactEmail: resolvedEmail,
   });
 
   const body = bindResult.result;
