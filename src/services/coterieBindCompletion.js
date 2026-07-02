@@ -113,7 +113,7 @@ export async function processCoterieBindPayment({
     body?.message ||
     null;
   if (body?.isSuccess === false || (body?.errors && body.errors.length)) {
-    const stripePk = process.env.COTERIE_STRIPE_PUBLISHABLE_KEY || "";
+    const stripePk = String(process.env.COTERIE_STRIPE_PUBLISHABLE_KEY || "").trim();
     let hint = null;
     if (/payment info is missing/i.test(String(errMsg || ""))) {
       if (!isCoteriePaymentBindReady() && stripePk.startsWith("pk_test_")) {

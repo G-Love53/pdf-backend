@@ -29,9 +29,15 @@ export function isCoterieSandboxApi() {
   return coterieApiBase().includes("sandbox");
 }
 
+function coterieStripePublishableKey() {
+  const raw = process.env.COTERIE_STRIPE_PUBLISHABLE_KEY;
+  if (raw == null || raw === "") return "";
+  return String(raw).trim();
+}
+
 /** True when prod Coterie can accept live Stripe bind (pk_live on prod API). */
 export function isCoteriePaymentBindReady() {
-  const stripePk = process.env.COTERIE_STRIPE_PUBLISHABLE_KEY || "";
+  const stripePk = coterieStripePublishableKey();
   if (!stripePk) return false;
   if (isCoterieSandboxApi()) return stripePk.startsWith("pk_");
   return stripePk.startsWith("pk_live_");
@@ -45,7 +51,7 @@ export function isDemoFinalizeAllowed() {
   if (process.env.COTERIE_DEMO_FINALIZE_ENABLED === "true") return true;
   if (isCoterieSandboxApi()) return true;
   if (process.env.COTERIE_INTERIM_DEMO_MODE === "true") return true;
-  const stripePk = process.env.COTERIE_STRIPE_PUBLISHABLE_KEY || "";
+  const stripePk = coterieStripePublishableKey();
   if (!isCoterieSandboxApi() && stripePk.startsWith("pk_test_")) return true;
   return false;
 }
@@ -53,7 +59,7 @@ export function isDemoFinalizeAllowed() {
 export function getCoteriePublicConfig() {
   return {
     apiConfigured: isCoterieConfigured(),
-    stripePublishableKey: process.env.COTERIE_STRIPE_PUBLISHABLE_KEY || null,
+    stripePublishableKey: coterieStripePublishableKey() || null,
     sandbox: isCoterieSandboxApi(),
     demoFinalizeEnabled: isDemoFinalizeAllowed(),
     paymentBindReady: isCoteriePaymentBindReady(),
