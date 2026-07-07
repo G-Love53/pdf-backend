@@ -313,6 +313,7 @@ export function resolveIntakeSchema(
     businessClassLabel: entry?.label || businessClassKey,
     isOwner: !nonOwner,
     ownerOnly: !!entry?.ownerOnly,
+    appetiteKnockouts: entry?.appetiteKnockouts || [],
     coverage,
     fields,
     sections: {

@@ -131,3 +131,10 @@ select.cq-ext-field:required:invalid {
 .plan-period { font-size: .85rem; color: #6b7280; margin-bottom: 6px; }
 .plan-note { font-size: .8rem; color: #6b7280; line-height: 1.35; }
 .plan-card.selected .plan-name { color: #9a3412; }
+.cq-knockout-intro { font-size: .88rem; color: #4b5563; margin: 0 0 12px; line-height: 1.45; }
+.cq-knockout {
+  border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; margin: 0 0 10px;
+}
+.cq-knockout legend { font-size: .88rem; font-weight: 600; color: #374151; padding: 0 4px; }
+.cq-knockout label { display: inline-block; font-weight: 500; margin: 6px 12px 0 0; width: auto; }
+.cq-knockout input { width: auto; margin-right: 4px; }

@@ -44,6 +44,32 @@ export const COTERIE_BUSINESS_CLASSES = {
       akHash: "b977fc92dc7b5436e7a79c5df4f7d9f9",
       defaultApplicationTypes: ["BOP"],
       ownerOnly: true,
+      appetiteKnockouts: [
+        {
+          id: "new_construction",
+          question: "New building or ground-up construction?",
+        },
+        {
+          id: "underground_6ft",
+          question: "Work more than 6 feet underground?",
+        },
+        { id: "medical_gas", question: "Medical gas line work?" },
+        {
+          id: "gc_or_paper",
+          question:
+            "General contractor, developer, construction PM, or paper contractor (100% subcontracted)?",
+        },
+        {
+          id: "subs_over_50",
+          question: "Subcontractor cost more than 50% of annual revenue?",
+        },
+        { id: "equipment_rental", question: "Equipment rental to others?" },
+        {
+          id: "exterior_3_story",
+          question: "Exterior work over 3 stories?",
+        },
+        { id: "airport_work", question: "Work performed on airport premises?" },
+      ],
       coverage: {
         owner: {
           selection: "one",

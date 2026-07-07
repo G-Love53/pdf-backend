@@ -106,6 +106,8 @@ See also: [`coterie-integration.md`](./coterie-integration.md) · [`partnerships
 | Segment | `business_class` | Products (owner) | Non-owner |
 |---------|------------------|-------------------|-----------|
 | **electrical** | `electric_contracting` | BOP (+ optional GL add-on) | Traditional (ownerOnly) |
+| **hvac** | `hvac_contractor` | BOP or GL (pick one) | Traditional (ownerOnly) |
+| **plumber** | `plumbing_contractor` | BOP or GL (pick one) | Traditional (ownerOnly) |
 | **fitness** | `yoga_studio` | GL | GL |
 | **fitness** | `pilates_studio` | BOP + GL toggles | GL |
 | **fitness** | `personal_trainer` | GL | GL |
@@ -200,6 +202,12 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 **Fitness pilates:**  
 `https://fitnessinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ph=3039321700&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Pilates+Studio&bc=pilates_studio&sales=150000&payroll=75000&src=coterie-demo&cid=coterie-preview`
 
+**HVAC (CO owner, BOP):**  
+`https://hvacinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ph=3039321700&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+HVAC+LLC&bc=hvac_contractor&sales=200000&payroll=80000&src=coterie-demo&cid=coterie-preview`
+
+**Plumber (CO owner, BOP):**  
+`https://plumberinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ph=3039321700&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Plumbing+LLC&bc=plumbing_contractor&sales=200000&payroll=80000&src=coterie-demo&cid=coterie-preview`
+
 **Demo account:** `g@commercialinsurance-direct.com`
 
 ---
@@ -212,6 +220,8 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 - [x] Extended Coterie fields exposed (user-selected, not hidden defaults)
 - [x] Annual/monthly plan cards on quote screen
 - [x] Fitness registry (3 classes) on API
+- [x] HVAC + plumber registry + prod bindable quote smoke (CO, 2026-07-07)
+- [x] Plumber appetite knockout questions on intake (Coterie exclusion list)
 - [ ] Fitness GL-only bindable (may need always-send payroll/sales on API — next session)
 - [ ] Coterie issued-policy PDF webhook ingest
 - [ ] Welcome email + PWA hint on success card (planned)
