@@ -8,6 +8,7 @@ import {
   bindSignedAttachmentFilename,
   sendBindConfirmationEmail,
   sendWelcomeEmail,
+  buildCidConnectUrl,
 } from "../services/bindEmailService.js";
 import { notifyBarBindSigned } from "../services/agentNotificationService.js";
 import {
@@ -544,7 +545,7 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
         await sendWelcomeEmail({
           client: clientObj,
           policy,
-          cidAppUrl: process.env.CID_APP_URL,
+          cidAppUrl: buildCidConnectUrl(clientObj.primary_email),
           segment,
         });
 

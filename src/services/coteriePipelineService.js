@@ -9,6 +9,7 @@ import { createPolicy } from "./policyService.js";
 import {
   sendBindConfirmationEmail,
   sendWelcomeEmail,
+  buildCidConnectUrl,
 } from "./bindEmailService.js";
 import {
   DocumentRole,
@@ -298,9 +299,12 @@ export async function finalizeCoterieBind({
 
     const segment = normalizeSegment(submission.segment);
     const connectBase = (
-      process.env.CID_APP_URL || "https://app.cid.famous.ai"
+      process.env.CID_APP_URL || "https://cid-connect.netlify.app"
     ).replace(/\/$/, "");
-    const connectUrl = `${connectBase}/?email=${encodeURIComponent(clientRow.primary_email)}`;
+    const connectUrl = buildCidConnectUrl(
+      clientRow.primary_email,
+      connectBase,
+    );
 
     try {
       await sendBindConfirmationEmail({

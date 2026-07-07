@@ -231,7 +231,7 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 - [x] Owner-only gate + non-owner redirect to traditional long-form
 - [ ] Fitness GL-only bindable (may need always-send payroll/sales on API — next session)
 - [ ] Coterie issued-policy PDF webhook ingest → Connect vault
-- [ ] Welcome email + PWA hint on success card (planned)
+- [ ] Welcome email + PWA hint on success card (in-app card planned; **welcome email shipped 2026-07-07**)
 - [ ] Multi-state beyond CO (producer licensing + Coterie appetite)
 
 ---

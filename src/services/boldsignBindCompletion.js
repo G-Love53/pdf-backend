@@ -16,6 +16,7 @@ import {
   bindSignedAttachmentFilename,
   sendBindConfirmationEmail,
   sendWelcomeEmail,
+  buildCidConnectUrl,
 } from "./bindEmailService.js";
 import { notifyBarBindSigned } from "./agentNotificationService.js";
 import {
@@ -271,7 +272,7 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
     await sendWelcomeEmail({
       client: clientObj,
       policy,
-      cidAppUrl: process.env.CID_APP_URL,
+      cidAppUrl: buildCidConnectUrl(clientObj.primary_email),
       segment,
     });
 

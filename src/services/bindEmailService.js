@@ -1,4 +1,16 @@
 import { sendWithGmail } from "../email.js";
+import { getSegmentAgentInboxEmail } from "../config/segmentAgentInbox.js";
+
+/** @param {string} [email] @param {string} [baseUrl] */
+export function buildCidConnectUrl(email, baseUrl) {
+  const base = (
+    baseUrl ||
+    process.env.CID_APP_URL ||
+    "https://cid-connect.netlify.app"
+  ).replace(/\/$/, "");
+  if (email) return `${base}/?email=${encodeURIComponent(email)}`;
+  return base;
+}
 
 /** Filename for Gmail attachment; keep consistent with R2 key basename. */
 export function bindSignedAttachmentFilename(carrierName) {
@@ -35,7 +47,7 @@ export async function sendBindConfirmationEmail({
   const attachmentNote = attachments.length
     ? "Your signed carrier quote is attached for your records."
     : "Your signed carrier quote is on file; reply to this email if you need a copy.";
-  const connectUrl = process.env.CID_APP_URL || "https://app.cid.famous.ai";
+  const connectUrl = process.env.CID_APP_URL || "https://cid-connect.netlify.app";
 
   const text = [
     `Hi ${client.contact_name || client.first_name || "there"},`,
@@ -73,32 +85,65 @@ export async function sendWelcomeEmail({ client, policy, cidAppUrl, segment }) {
   if (!client?.primary_email) return;
 
   const to = [client.primary_email];
-  const subject =
-    "Welcome to CID — Manage Your Policy, Get COIs Instantly";
+  const subject = "You're covered — your CID Connect account is ready";
 
-  const url = cidAppUrl || process.env.CID_APP_URL || "https://app.cid.famous.ai";
+  const firstName =
+    client.first_name ||
+    String(client.contact_name || "")
+      .trim()
+      .split(/\s+/)[0] ||
+    "there";
+  const url = buildCidConnectUrl(client.primary_email, cidAppUrl);
+  const carrier = policy.carrier_name || "your carrier";
+  const coverage = policy.policy_type || "Commercial";
+  const status =
+    String(policy.status || "active").toLowerCase() === "active"
+      ? "Active"
+      : policy.status || "Active";
+  const segmentInbox =
+    getSegmentAgentInboxEmail(segment) ||
+    "info@commercialinsurance-direct.com";
 
   const text = [
-    `Hi ${client.contact_name || client.first_name || "there"},`,
+    `Hi ${firstName},`,
     "",
-    "Welcome to Commercial Insurance Direct. Your " +
-      `${policy.policy_type} policy with ${policy.carrier_name} is active and your account is ready.`,
+    `You're covered. Your ${coverage} policy with ${carrier} is active, and your CID Connect account is ready right now.`,
     "",
-    "Here's what you can do right now:",
-    "",
-    "• Download certificates of insurance (COIs) instantly",
-    "• Add additional insureds for job sites",
-    "• Ask coverage questions and get answers from your actual policy documents",
-    "• View and download your policy documents anytime",
-    "• View your policy details and payment schedule",
-    "",
-    "Access your account:",
+    "Open your account here:",
     url,
     "",
-    "Need a COI for a job tomorrow? You can generate one in under 60 seconds through the app.",
     "",
-    "— CID Team",
+    "SAVE CONNECT TO YOUR HOME SCREEN",
+    "",
+    "CID Connect works like an app — no download required. Save it for instant access:",
+    "",
+    'iPhone: Open the link in Safari → tap the Share button (□↑) → tap "Add to Home Screen"',
+    "",
+    'Android: Open the link in Chrome → tap the three dots (⋮) → tap "Add to Home Screen"',
+    "",
+    "Once saved, Connect opens like any app on your phone.",
+    "",
+    "",
+    "WHAT YOU CAN DO RIGHT NOW",
+    "",
+    "• Need a certificate of insurance for a job? Generate one in under 60 seconds",
+    "• Add a certificate holder or additional insured — done in the app",
+    "• Ask a coverage question and get an answer from your actual policy",
+    "• View and download your policy documents anytime",
+    "• Check your payment schedule",
+    "",
+    "",
+    "Your policy details:",
+    `Carrier: ${carrier}`,
+    `Coverage: ${coverage}`,
+    ...(policy.policy_number ? [`Policy number: ${policy.policy_number}`] : []),
+    `Status: ${status}`,
+    "",
+    "Questions? Just ask inside the app — we're here.",
+    "",
+    "— The CID Team",
     "Commercial Insurance Direct",
+    segmentInbox,
   ].join("\n");
 
   await sendWithGmail({
