@@ -93,7 +93,7 @@
 | **OpenAI** | — | — | — | — | — | — | Not wired (API) |
 | **Instantly** | Marketing | — | — | — | — | — | Ops / DNS; not in S1 code |
 | **Cohesive AI** | Planned | — | — | — | — | — | Not in repo yet |
-| **Coterie Insurance** | ConnectQuote (S1+S6-lite) | — | — | — | ✓ (instant) | — | **Sandbox live CO** — Electrical + Fitness; see `connectquote-shipped-2026-06.md` |
+| **Coterie Insurance** | ConnectQuote (S1+S6-lite) | — | — | — | ✓ (instant) | — | **Prod live CO** — Electrical, Fitness, HVAC, Plumber; see `connectquote-shipped-2026-06.md` |
 | **Stripe** (via Coterie) | ConnectQuote bind | — | — | — | ✓ | — | Insured pays Coterie/Stripe; CID not MoR |
 
 ---
@@ -105,3 +105,4 @@
 | 2026-05-15 | Initial vendor table: S1–S6 + Connect; BoldSign active; HelloSign legacy; single CID-PDF-API intake; bridge vs Famous split; Cohesive/Instantly called out as non-pipeline. |
 | 2026-06-04 | Coterie row (ConnectQuote pilot); link to `coterie-integration.md`. |
 | 2026-06-12 | ConnectQuote live in S1+S6-lite; Coterie + Stripe-via-Coterie rows updated. |
+| 2026-07-07 | ConnectQuote expanded to HVAC + Plumber (CO prod quotes); Coterie row updated to prod live. |

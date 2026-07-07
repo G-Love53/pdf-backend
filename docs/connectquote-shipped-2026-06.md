@@ -1,4 +1,4 @@
-# ConnectQuote — shipped summary (2026-06-10 → 2026-06-12)
+# ConnectQuote — shipped summary (2026-06-10 → 2026-07-07)
 
 > **Canonical “what we built” doc** for investors, Claude context, and team handoff.  
 > **Technical spec:** [`coterie-integration.md`](./coterie-integration.md) · **Demo script:** [`connectquote-build-day.md`](./connectquote-build-day.md)
@@ -9,7 +9,7 @@
 
 **Investor deck (one line):** ConnectQuote is **nationwide live**, gated only by **carrier appetite** and **state licensing availability** — not by a fixed state pilot.
 
-**ConnectQuote** is CID’s **instant quote-and-bind rail** via **Coterie API v1.6**, deployed on **Electrical** and **Fitness** (yoga, pilates, personal trainer). Insureds complete a **segment-branded** thin intake → receive a **bindable premium** → pay through **Coterie’s Stripe** (**CID is not merchant of record**) → land in **CID Connect** same day with a policy row in **cid-postgres** (`bind_source: coterie`).
+**ConnectQuote** is CID’s **instant quote-and-bind rail** via **Coterie API v1.6**, deployed on **Electrical**, **Fitness** (yoga, pilates, personal trainer), **HVAC**, and **Plumber**. Insureds complete a **segment-branded** thin intake → receive a **bindable premium** → pay through **Coterie’s Stripe** (**CID is not merchant of record**) → land in **CID Connect** same day with a policy row in **cid-postgres** (`bind_source: coterie`).
 
 **Geography:** Product and architecture are **nationwide-ready**. Coterie **`AKHash`** appetite and **producer licensing per state** determine where bindable quotes succeed. Sandbox demos use **CO**; expanding states is configuration + licensing, not a rebuild.
 
@@ -86,6 +86,8 @@ See also: [`coterie-integration.md`](./coterie-integration.md) · [`partnerships
 | **Intake assets** | `public/connectquote-intake.js` + `.css` at `/static/…` | Same Render deploy |
 | **Electrical intake** | `electricalinsurancedirect.com/connectquote.html` | `electrical-pdf-backend` → Netlify |
 | **Fitness intake** | `fitnessinsurancedirect.com/connectquote.html` | `fitness-pdf-backend` → Netlify (git-connected `netlify.toml`) |
+| **HVAC intake** | `hvacinsurancedirect.com/connectquote.html` | `hvac-pdf-backend` → Netlify (git-connected `netlify.toml`) |
+| **Plumber intake** | `plumberinsurancedirect.com/connectquote.html` | `plumber-pdf-backend` → Netlify (GitHub Actions or git-connected) |
 | **Connect PWA** | Netlify (`cid-connect`) | Git push → auto deploy |
 | **Marketing site** | `commercialinsurance-direct.com` | Manual Netlify deploy from **`CID Website/Netlify/`** (not git-connected) |
 
@@ -137,6 +139,7 @@ Yoga’s Coterie **`AKHash`** supports **GL on the instant bindable API** only. 
 1. **Campaign prefill** — `fn`, `ln`, `em`, `ad`, `ct`, `st`, `zp`, `bn`, `bc`, `src`, `cid`
 2. **Core questions** — contact, location, owner?, business type, employees
 3. **Smart sections** (after owner + type selected):
+   - **Plumber appetite knockouts** — Coterie exclusion questions; any “Yes” → traditional long-form (`index.html`)
    - Coverage toggles (BOP / GL only — instant-bind products)
    - **Business rating details:** sales, payroll, years in business *(Select… until chosen)* — **shown for GL-only (yoga/trainer) and BOP**
    - Property deductible *(BOP only)*
@@ -179,18 +182,20 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 
 ---
 
-## Production status (2026-07-01)
+## Production status (2026-07-07)
 
 | Item | Status |
 |------|--------|
-| Coterie **prod** quoting (CO electrical, fitness) | **Working** on Render (`sandbox: false`) |
-| Coterie **prod bind** + Stripe charge | **Interim demo mode** — auto when `pk_test_` on prod API; **Complete bind — demo (no charge)** until **`pk_live_`** |
+| Coterie **prod** quoting (CO) | **Working** on Render (`sandbox: false`) — **electrical**, **fitness**, **hvac**, **plumber** |
+| Coterie **prod bind** + Stripe charge | **Live card bind** when **`pk_live_`** on Render (Fitness CO verified); **interim demo bind** when `pk_test_` or **`COTERIE_DEMO_FINALIZE_ENABLED=true`** |
+| HVAC + plumber **quote email** | **Verified 2026-07-07** — bindable premium + insured quote email on prod API |
+| Plumber **appetite knockouts** | **Shipped** — Coterie exclusion list on intake; fail → traditional rail |
 | Coterie carrier **KB** for Connect chat | **Loaded** (appetite, GL limits, BOP property, Gold tier default, ops/FAQ) |
 | Connect **branding** | **Shipped** — cropped **`logo-nav.png`**, **`BrandLogo`** component |
 | Marketing hero phone mockups | **Updated** — enlarged logo in static PNGs; manual Netlify deploy |
-| **Campaign / acquisition** | **Soft hold** for paid bind; demo bind OK for partner/investor demos |
+| **Campaign / acquisition** | **Owners-only** on ConnectQuote segments; CO-first until producer licensing expands |
 
-**Waiting on David/Coterie:** prod Stripe publishable key, v1.6 bind JSON confirmation, webhook URL `https://cid-pdf-api.onrender.com/webhooks/coterie`.
+**Waiting on David/Coterie:** issued-policy **webhook** spec + auth, **GET artifacts** doc ingest → R2 → Connect vault, insured comms alignment. Webhook URL (registered): `https://cid-pdf-api.onrender.com/webhooks/coterie`.
 
 ---
 
@@ -212,20 +217,22 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 
 ---
 
-## Verified sandbox (2026-06-12)
+## Verified (sandbox + prod)
 
-- [x] CO electrical bindable quote + premium
+- [x] CO electrical bindable quote + premium (sandbox → prod)
 - [x] Demo finalize → policy row + Connect
-- [x] Stripe token bind path wired
+- [x] Stripe token bind path wired; **prod live-card bind** (Fitness CO, 2026-07-01)
 - [x] Extended Coterie fields exposed (user-selected, not hidden defaults)
 - [x] Annual/monthly plan cards on quote screen
 - [x] Fitness registry (3 classes) on API
-- [x] HVAC + plumber registry + prod bindable quote smoke (CO, 2026-07-07)
+- [x] HVAC + plumber registry + **prod** bindable quote smoke (CO, 2026-07-07)
+- [x] HVAC + plumber **quote email** on prod (2026-07-07)
 - [x] Plumber appetite knockout questions on intake (Coterie exclusion list)
+- [x] Owner-only gate + non-owner redirect to traditional long-form
 - [ ] Fitness GL-only bindable (may need always-send payroll/sales on API — next session)
-- [ ] Coterie issued-policy PDF webhook ingest
+- [ ] Coterie issued-policy PDF webhook ingest → Connect vault
 - [ ] Welcome email + PWA hint on success card (planned)
-- [ ] Production keys / multi-state
+- [ ] Multi-state beyond CO (producer licensing + Coterie appetite)
 
 ---
 
@@ -236,6 +243,8 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 | `pdf-backend` | Coterie adapter, registry, intake schema, routes, bind completion, static intake JS |
 | `electrical-pdf-backend` | `Netlify/connectquote.html` + index banner |
 | `fitness-pdf-backend` | `Netlify/connectquote.html` + index banner |
+| `hvac-pdf-backend` | `Netlify/connectquote.html` — owner copy, `/` → ConnectQuote |
+| `plumber-pdf-backend` | `Netlify/connectquote.html` — owner copy, `/` → ConnectQuote |
 | `cid-connect` | **`BrandLogo`** + **`public/logo-nav.png`**; header/login prominence; PWA post-bind hint |
 | `CID Website/Netlify` | Nav + hero phone mockups with enlarged logo (manual deploy) |
 
@@ -250,3 +259,4 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 | 2026-06-12 | Explicit **CID not MoR** / Stripe-via-Coterie compliance section; future-rail template (Thimble) |
 | 2026-06-12 | Nationwide investor positioning; yoga GL rating fields; GL $1M/$2M defaults; PL rationale |
 | 2026-07-01 | Coterie **prod** keys on Render; **KB migrations 009–013** (63 rows); **interim demo bind** on prod when Stripe is `pk_test_`; Connect + marketing logo refresh |
+| 2026-07-07 | **HVAC + plumber** ConnectQuote nationwide launch (CO prod quotes verified); plumber appetite knockouts; owner-only copy; commits `98791af`, `2fee64b`, `6e4ca14` |

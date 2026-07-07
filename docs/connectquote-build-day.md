@@ -3,7 +3,7 @@
 > **Date:** 2026-06-12 (updated) · **Shipped summary:** [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md)  
 > **Goal:** End-to-end sandbox demo + production path without waiting on Coterie.  
 > **Stripe:** Payment collects **direct to Coterie** (their Stripe Connect / embed) — CID is **not** merchant of record.  
-> **Pilot:** Electrical + Fitness · CO · AKHashes in `coterieRegistry.js`.
+> **Pilot:** Electrical, Fitness, HVAC, Plumber · CO-first · AKHashes in `coterieRegistry.js`.
 
 ---
 
@@ -97,13 +97,15 @@
 - [x] Extended Coterie questions on intake (coverage toggles + rating fields)
 - [x] Annual/monthly plan cards on quote screen
 - [x] Fitness segment live (3 business classes)
+- [x] HVAC + plumber ConnectQuote on prod (CO quotes + email, 2026-07-07)
+- [x] Plumber appetite knockouts on intake
 - [ ] Live Stripe pay & bind confirmed with Nicole (demo bind works)
 - [ ] Welcome email + PWA hint on success card
 - [ ] Operator ConnectQuote pipeline card (full)
 
 ---
 
-## Fitness demo URLs (CO sandbox)
+## Fitness demo URLs (CO)
 
 | Sub-segment | `bc` param | Owner products | Non-owner |
 |-------------|------------|----------------|-----------|
@@ -121,6 +123,18 @@ Flow matches electrical: confirm dropdowns → Get quote → Demo simulate bind 
 
 ---
 
+## Contractor demo URLs (CO — HVAC + Plumber)
+
+**HVAC (owner, BOP):**  
+`https://hvacinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ph=3039321700&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+HVAC+LLC&bc=hvac_contractor&sales=200000&payroll=80000&src=coterie-demo&cid=coterie-preview`
+
+**Plumber (owner, BOP):**  
+`https://plumberinsurancedirect.com/connectquote.html?fn=Demo&ln=Insured&em=g%40commercialinsurance-direct.com&ph=3039321700&ad=123+Main+St&ct=Denver&st=CO&zp=80202&bn=Demo+Plumbing+LLC&bc=plumbing_contractor&sales=200000&payroll=80000&src=coterie-demo&cid=coterie-preview`
+
+Plumber: answer appetite knockouts **No** to stay on ConnectQuote; any **Yes** redirects to traditional long-form.
+
+---
+
 ## Out of scope today (next sprint)
 - FB/IG landing variants (URL-only segment routing)
 - Full operator ConnectQuote pipeline card
@@ -129,4 +143,4 @@ Flow matches electrical: confirm dropdowns → Get quote → Demo simulate bind 
 
 ---
 
-**Repos:** `pdf-backend` (API) · `electrical-pdf-backend` (intake) · `cid-connect` (PWA) · docs here.
+**Repos:** `pdf-backend` (API) · segment `*-pdf-backend` Netlify shells · `cid-connect` (PWA) · docs here.

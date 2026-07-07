@@ -12,7 +12,9 @@
 | **[docs/partnerships.md](./docs/partnerships.md)** | **Dated** — partnerships/integrations registry (exit, carriers, vendors, SOC vendor status) |
 | **[docs/partnership-gaps.md](./docs/partnership-gaps.md)** | **Dated** — diligence gaps P0–P3; segment carrier appointments; Ray inter-company |
 | **[docs/compliance-roadmap.md](./docs/compliance-roadmap.md)** | **Dated** — SOC 2 / security roadmap for founder & counsel review (download/share with Ray) |
-| **[docs/coterie-integration.md](./docs/coterie-integration.md)** | **Dated** — Coterie ConnectQuote sandbox spec (AKHash, API, CO pilot, env — no secrets) |
+| **[docs/coterie-integration.md](./docs/coterie-integration.md)** | **Dated** — Coterie ConnectQuote technical spec (AKHash, API, prod CO segments, env — no secrets) |
+| **[docs/connectquote-shipped-2026-06.md](./docs/connectquote-shipped-2026-06.md)** | **Dated** — ConnectQuote shipped summary (investor/handoff): architecture, segments, demo URLs, verification checklist |
+| **[docs/connectquote-build-day.md](./docs/connectquote-build-day.md)** | Demo script (5–7 min) for ConnectQuote walkthroughs |
 | **[docs/coterie-sandbox-fixtures.md](./docs/coterie-sandbox-fixtures.md)** | Redacted Coterie API + ConnectQuote intake examples (E0122, webhook TBD) |
 | **[docs/OPERATOR_DAILY_RUNBOOK.md](./docs/OPERATOR_DAILY_RUNBOOK.md)** | Operator quote → bind → policy flow; **S5 client email** preview/send expectations |
 | **[OPERATOR_SEGMENT_AUDIT.md](./OPERATOR_SEGMENT_AUDIT.md)** | Segment filter audit + **S5 email** behavior (shared backend) |

@@ -69,10 +69,10 @@ Use this as a working checklist (fill names with Ray / Gerry):
 |---------|-------------|-----------|---------------------------------------------|-------------------------|
 | bar | Yes | quote@barinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | Not on ConnectQuote (appetite) |
 | roofer | Yes | quotes@roofingcontractorinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | Not on ConnectQuote (appetite prohibited) |
-| plumber | Yes | quotes@plumberinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | **ConnectQuote** — CO sandbox; prod keys pending |
-| hvac | Yes | quotes@hvacinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | **ConnectQuote** — CO sandbox; prod keys pending |
-| fitness | Yes | quotes@fitnessinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | **ConnectQuote** — CO sandbox (yoga / pilates / trainer) |
-| electrical | Yes | quotes@electricalinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | **ConnectQuote** — CO sandbox (live demo) |
+| plumber | Yes | quotes@plumberinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | **ConnectQuote** — **CO prod live** (owner-only; appetite knockouts) |
+| hvac | Yes | quotes@hvacinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | **ConnectQuote** — **CO prod live** (owner-only) |
+| fitness | Yes | quotes@fitnessinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | **ConnectQuote** — **CO prod live** (yoga / pilates / trainer) |
+| electrical | Yes | quotes@electricalinsurancedirect.com | All Access Insurance (Rick Cline) — paperwork signed | **ConnectQuote** — **CO prod live** |
 
 **Agency block (appointments):** All Access Insurance (CO) · dba Commercial Insurance Direct · Rick Cline · (303) 932-1700 · info@commercialinsurance-direct.com
 
@@ -95,4 +95,5 @@ Use this as a working checklist (fill names with Ray / Gerry):
 | 2026-05-20 | Initial gap analysis P0–P3; segment appointment checklist; Ray inter-company item. |
 | 2026-06-04 | Coterie sandbox credentials issued; applications OK; CO producer license pending for bindable quote. |
 | 2026-06-12 | ConnectQuote E2E in sandbox for electrical + fitness; bindable quotes + demo bind + Connect handoff verified. |
+| 2026-07-07 | ConnectQuote **prod** for electrical, fitness, hvac, plumber (CO); quote emails verified; plumber knockouts; webhook/doc ingest still open. |
 | 2026-06-10 | Coterie / carrier appointment paperwork signed — All Access Insurance, Rick Cline, dba Commercial Insurance Direct. |

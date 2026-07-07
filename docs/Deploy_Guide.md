@@ -252,9 +252,9 @@ When the instant rail is enabled on CID-PDF-API, set on **Render → CID-PDF-API
 | `COTERIE_DEMO_FINALIZE_ENABLED` | `true` to allow skip-payment bind; **auto-on** when prod API + `pk_test_` (interim until David/`pk_live_`) |
 | `COTERIE_INTERIM_DEMO_MODE` | Optional explicit `true` — same as above if you want demo bind without relying on `pk_test_` detection |
 
-**Interim prod (waiting on Coterie Stripe):** Keep **`COTERIE_API_BASE`** on prod for real quotes. Demo bind turns on automatically when **`COTERIE_STRIPE_PUBLISHABLE_KEY`** is still **`pk_test_`**, or set **`COTERIE_DEMO_FINALIZE_ENABLED=true`**. Insureds use **Complete bind — demo (no charge)** on Electrical/Fitness intake. When Coterie delivers **`pk_live_`**, set **`COTERIE_DEMO_FINALIZE_ENABLED=false`** for live card bind only.
+**Interim prod (waiting on Coterie Stripe):** Keep **`COTERIE_API_BASE`** on prod for real quotes. Demo bind turns on automatically when **`COTERIE_STRIPE_PUBLISHABLE_KEY`** is still **`pk_test_`**, or set **`COTERIE_DEMO_FINALIZE_ENABLED=true`**. Insureds use **Complete bind — demo (no charge)** on ConnectQuote intake. When Coterie delivers **`pk_live_`**, set **`COTERIE_DEMO_FINALIZE_ENABLED=false`** for live card bind only.
 
-Spec: [`coterie-integration.md`](./coterie-integration.md) · Shipped: [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md). **v1 pilot:** CO **Electrical** + **Fitness** (prod quotes + interim demo bind).
+Spec: [`coterie-integration.md`](./coterie-integration.md) · Shipped: [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md). **ConnectQuote segments (CO prod):** **Electrical**, **Fitness**, **HVAC**, **Plumber** — prod bindable quotes on Render; live card bind when `pk_live_`; demo bind otherwise.
 
 **Static intake assets** (served from same Render service): `/static/connectquote-intake.js` and `.css` — segment Netlify pages load these; do not duplicate logic in segment repos.
 
