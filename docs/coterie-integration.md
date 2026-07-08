@@ -134,7 +134,7 @@ Full mapping: local file `Coterie AKHash 06-04-2026-V2-10.xlsx` — sheet **BOP 
 1. Coterie policy webhook → `/webhooks/coterie`
 2. Idempotent `createPolicy()` (same outcome as BoldSign completion)
 3. Fetch/store policy docs → R2
-4. `sendBindConfirmationEmail` / `sendWelcomeEmail` + Connect (`CID_APP_URL`)
+4. `sendWelcomeEmail` + Connect (`CID_APP_URL`) — single post-bind email to insured
 5. Same-day Connect invite — carrier bind email does not replace CID welcome
 
 ---

@@ -7,9 +7,9 @@ import { getPool } from "../db.js";
 import { uploadBuffer } from "./r2Service.js";
 import { createPolicy } from "./policyService.js";
 import {
-  sendBindConfirmationEmail,
   sendWelcomeEmail,
   buildCidConnectUrl,
+  bindSignedAttachmentFilename,
 } from "./bindEmailService.js";
 import {
   DocumentRole,
@@ -307,15 +307,10 @@ export async function finalizeCoterieBind({
     );
 
     try {
-      await sendBindConfirmationEmail({
-        client: clientRow,
-        policy,
-        segment,
-      });
       await sendWelcomeEmail({
         client: clientRow,
         policy,
-        cidAppUrl: connectUrl,
+        cidAppUrl: connectBase,
         segment,
       });
     } catch (mailErr) {

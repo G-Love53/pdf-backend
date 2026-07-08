@@ -6,7 +6,6 @@ import { uploadBuffer } from "../services/r2Service.js";
 import { createPolicy } from "../services/policyService.js";
 import {
   bindSignedAttachmentFilename,
-  sendBindConfirmationEmail,
   sendWelcomeEmail,
   buildCidConnectUrl,
 } from "../services/bindEmailService.js";
@@ -533,20 +532,13 @@ router.post("/api/webhooks/hellosign", async (req, res) => {
           last_name: row.last_name,
         };
 
-        await sendBindConfirmationEmail({
-          client: clientObj,
-          policy,
-          segment,
-          signedPdfBuffer: signedBuffer,
-          signedPdfFilename,
-        });
-
-        // Fire-and-forget welcome email (no delay scheduler here; can be added later)
         await sendWelcomeEmail({
           client: clientObj,
           policy,
           cidAppUrl: buildCidConnectUrl(clientObj.primary_email),
           segment,
+          signedPdfBuffer: signedBuffer,
+          signedPdfFilename,
         });
 
         try {

@@ -14,7 +14,6 @@ import { uploadBuffer } from "./r2Service.js";
 import { createPolicy } from "./policyService.js";
 import {
   bindSignedAttachmentFilename,
-  sendBindConfirmationEmail,
   sendWelcomeEmail,
   buildCidConnectUrl,
 } from "./bindEmailService.js";
@@ -261,19 +260,13 @@ export async function processBoldSignDocumentCompleted(docId, meta = {}) {
       last_name: row.last_name,
     };
 
-    await sendBindConfirmationEmail({
-      client: clientObj,
-      policy,
-      segment,
-      signedPdfBuffer: signedBuffer,
-      signedPdfFilename,
-    });
-
     await sendWelcomeEmail({
       client: clientObj,
       policy,
       cidAppUrl: buildCidConnectUrl(clientObj.primary_email),
       segment,
+      signedPdfBuffer: signedBuffer,
+      signedPdfFilename,
     });
 
     await notifyBarBindSigned({

@@ -42,7 +42,7 @@
 2. **Env** — update all `COTERIE_*` on Render (new agency/key; add secret + Stripe pk).
 3. **Bindable payload** — extend `buildBindableQuotePayload` + intake form fields: contact first/last, legal name, `numEmployees`, payroll/sales, business age/start date, BPP deductible ($500–$5000), product type (BOP vs GL from owner question).
 4. **Payment step** — after successful bindable quote, return Coterie payment instructions from API response; intake page renders Coterie/Stripe UI (client uses **their** `pk_test` only).
-5. **`coterieBindCompletion.js`** — on webhook (flexible event parser) OR **demo finalize** endpoint (`POST /api/coterie/demo-finalize` sandbox-only): `createPolicy()`, store quote JSON in `coverage_data`, `bind_source: coterie`, timeline `coterie.policy.bound`, `sendBindConfirmationEmail` + `sendWelcomeEmail` with `CID_APP_URL` + bind token.
+5. **`coterieBindCompletion.js`** — on webhook (flexible event parser) OR **demo finalize** endpoint (`POST /api/coterie/demo-finalize` sandbox-only): `createPolicy()`, store quote JSON in `coverage_data`, `bind_source: coterie`, timeline `coterie.policy.bound`, `sendWelcomeEmail` with `CID_APP_URL` + bind token.
 6. **Docs ingest** — if webhook/API returns policy PDF URL, fetch → R2 → `documents` (`policy_original`) → link `policy_id`.
 7. **Registry v1** — `src/config/coterieAkHash.js` → structured JSON: segment, key, label, akHash, states, defaultProducts.
 8. **Operator (minimal)** — rail badge on submission lists; exclude ConnectQuote from “waiting for carrier outreach”; count instant binds in “Policies bound (today)”.
