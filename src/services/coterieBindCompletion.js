@@ -1,4 +1,3 @@
-import { getPool } from "../db.js";
 import { finalizeCoterieBind } from "./coteriePipelineService.js";
 import {
   bindQuote,
@@ -11,77 +10,11 @@ import {
   loadCoterieSession,
   resolveSubmissionContactEmail,
 } from "./coterieIntakeService.js";
+import { processCoteriePolicyWebhook } from "./coterieDocIngestService.js";
 
-/**
- * Coterie bind webhook → policy path.
- */
+/** @deprecated Use processCoteriePolicyWebhook — bind completes at checkout, webhook is docs-only. */
 export async function processCoterieBindWebhook(payload, meta = {}) {
-  const pool = getPool();
-  if (!pool) {
-    console.warn("[coterie webhook] no DB pool — skipping finalize");
-    return { ok: false, reason: "no_db" };
-  }
-
-  const eventType =
-    payload?.eventType ||
-    payload?.event_type ||
-    payload?.type ||
-    "unknown";
-
-  const applicationId =
-    payload?.applicationId ||
-    payload?.application_id ||
-    payload?.data?.applicationId ||
-    null;
-
-  const quoteId =
-    payload?.quoteId ||
-    payload?.quote_id ||
-    payload?.data?.quoteId ||
-    null;
-
-  const submissionPublicId =
-    payload?.submissionPublicId ||
-    payload?.submission_public_id ||
-    payload?.externalReference ||
-    null;
-
-  console.log("[coterie webhook] received", {
-    eventType,
-    eventId: meta.eventId,
-    applicationId,
-    quoteId,
-    submissionPublicId,
-  });
-
-  const isBindEvent =
-    /bound|bind\.complete|policy\.issued|payment\.complete/i.test(
-      String(eventType),
-    );
-
-  if (!isBindEvent) {
-    return { ok: true, ignored: true, eventType };
-  }
-
-  if (!submissionPublicId || !quoteId) {
-    return { ok: true, acknowledged: true, finalize: "missing_correlation" };
-  }
-
-  const session = await loadCoterieSession(submissionPublicId);
-  const quoteSummary =
-    session?.quoteSummary ||
-    extractQuoteSummary({ quote: payload?.quote || payload, isSuccess: true });
-  quoteSummary.quoteId = quoteSummary.quoteId || quoteId;
-  quoteSummary.applicationId =
-    quoteSummary.applicationId || applicationId;
-
-  const result = await finalizeCoterieBind({
-    submissionPublicId,
-    quoteSummary,
-    bindResult: { result: payload },
-  });
-
-  return { ok: true, ...result };
+  return processCoteriePolicyWebhook(payload, meta);
 }
 
 /**

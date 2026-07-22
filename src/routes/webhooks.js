@@ -16,8 +16,9 @@ import {
 } from "../services/boldsignBindCompletion.js";
 import {
   parseCoterieWebhookPayload,
+  verifyCoterieWebhookAuth,
 } from "../services/coterieService.js";
-import { processCoterieBindWebhook } from "../services/coterieBindCompletion.js";
+import { processCoteriePolicyWebhook } from "../services/coterieDocIngestService.js";
 import { getDocumentProperties } from "../services/boldsignService.js";
 import {
   DocumentRole,
@@ -760,6 +761,11 @@ router.post("/api/webhooks/boldsign", async (req, res) => {
 // Coterie webhook — POST /webhooks/coterie (no /api prefix; mount uses express.raw()).
 router.post("/webhooks/coterie", async (req, res) => {
   try {
+    if (!verifyCoterieWebhookAuth(req)) {
+      console.warn("[coterie webhook] auth mismatch");
+      return res.status(401).json({ ok: false, error: "unauthorized" });
+    }
+
     const payload = parseCoterieWebhookPayload(req);
     if (!payload) {
       return res.status(200).json({ ok: true, ignored: true });
@@ -769,34 +775,17 @@ router.post("/webhooks/coterie", async (req, res) => {
       payload.eventId ||
       payload.event_id ||
       payload.id ||
+      payload.PolicyId ||
       null;
 
-    const webhookSecret = process.env.COTERIE_WEBHOOK_SECRET || null;
-    if (webhookSecret) {
-      const sig =
-        req.headers["x-coterie-signature"] ||
-        req.headers["x-webhook-signature"] ||
-        null;
-      if (sig && sig !== webhookSecret) {
-        console.warn("[coterie webhook] signature mismatch");
-        return res.status(200).json({ ok: true, ignored: true });
-      }
-    }
+    const partnerLeadId =
+      req.headers["x-partnerleadid"] ||
+      req.headers["x-partner-lead-id"] ||
+      payload.ExternalId ||
+      payload.externalId ||
+      null;
 
-    const eventType =
-      payload.eventType ||
-      payload.event_type ||
-      payload.type ||
-      "unknown";
-
-    if (
-      String(eventType).toLowerCase() === "verification" ||
-      String(eventType).toLowerCase() === "ping"
-    ) {
-      return res.status(200).json({ ok: true });
-    }
-
-    await processCoterieBindWebhook(payload, { eventId });
+    await processCoteriePolicyWebhook(payload, { eventId, partnerLeadId });
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error("[coterie webhook] error:", err);

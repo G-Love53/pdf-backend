@@ -3,6 +3,7 @@ import {
   buildCoterieCoverageData,
   indexCoterieCoverageForChat,
 } from "./coterieCoverageData.js";
+import { extractBindPolicyInfo } from "./coterieService.js";
 import { getPool } from "../db.js";
 import { uploadBuffer } from "./r2Service.js";
 import { createPolicy } from "./policyService.js";
@@ -290,6 +291,14 @@ export async function finalizeCoterieBind({
           coterie_quote_id: quoteSummary.quoteId,
           policy_id: policy.id,
           policy_number: policy.policy_number,
+          carrier_policy_number:
+            extractBindPolicyInfo(bindResult).carrierPolicyNumber ||
+            policy.coverage_data?.carrier_policy_number ||
+            null,
+          coterie_policy_id:
+            extractBindPolicyInfo(bindResult).coteriePolicyId ||
+            policy.coverage_data?.coterie_policy_id ||
+            null,
           premium: policy.annual_premium,
         },
       ],

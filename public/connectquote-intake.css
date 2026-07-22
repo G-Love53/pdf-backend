@@ -1,3 +1,20 @@
+.coterie-exclusions {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  font-size: .88rem;
+  line-height: 1.45;
+  color: #78350f;
+}
+.coterie-exclusions ul {
+  margin: 8px 0 0;
+  padding-left: 1.2rem;
+}
+.coterie-exclusions-title {
+  margin: 0;
+}
 .interim-demo-notice {
   margin: 0 0 14px;
   padding: 12px 14px;

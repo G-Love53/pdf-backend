@@ -1,8 +1,9 @@
 /**
  * Coterie ConnectQuote policies: build chat/COI-friendly coverage_data from bindable quote + intake.
- * Full policy PDF ingest from Coterie webhook is still TBD — until then, quote summary + intake is authoritative.
+ * Policy PDF ingest runs via Coterie webhook + GET docs/links; quote summary + intake remain authoritative for limits.
  */
 import crypto from "crypto";
+import { extractBindPolicyInfo } from "./coterieService.js";
 
 function parseNum(v) {
   if (v == null || v === "") return null;
@@ -90,6 +91,7 @@ export function buildCoterieCoverageData({ quoteSummary = {}, submission = {}, b
   const bppLimit = parseNum(form.bpp_limit || form.bppLimit || nested.bppLimit);
   const bppDeductible = parseNum(form.bpp_deductible || form.bppDeductible) ?? 1000;
   const buildingLimit = parseNum(form.building_limit || form.buildingLimit);
+  const bindPolicy = extractBindPolicyInfo(bindResult);
 
   const coverage = {
     bind_source: "coterie",
@@ -104,10 +106,13 @@ export function buildCoterieCoverageData({ quoteSummary = {}, submission = {}, b
     expiration_date: String(expiration || effective).slice(0, 10),
     coterie_quote_id: quoteSummary.quoteId || null,
     coterie_application_id: quoteSummary.applicationId || null,
+    coterie_policy_id: bindPolicy.coteriePolicyId,
+    carrier_policy_number: bindPolicy.carrierPolicyNumber,
     coterie_bind: bindResult?.result || null,
     summary_source: "coterie_bindable_quote",
-    summary_note:
-      "Coverage limits from ConnectQuote bindable quote and intake selections. Declarations PDF indexing pending Coterie policy document ingest.",
+    summary_note: bindPolicy.carrierPolicyNumber
+      ? "Coverage limits from ConnectQuote bindable quote and intake. Policy documents ingest via Coterie webhook."
+      : "Coverage limits from ConnectQuote bindable quote and intake selections. Policy documents pending Coterie webhook.",
     insured_name:
       form.insured_name || form.business_name || form.legalBusinessName || null,
     business_class: form.business_class || form.coterie_business_class || null,

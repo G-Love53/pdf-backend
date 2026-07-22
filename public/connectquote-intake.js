@@ -976,6 +976,56 @@
     setPaymentPlan(hasMonthly ? selectedPaymentPlan() : "Annual");
   }
 
+  function escapeHtml(text) {
+    return String(text || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function exclusionLabel(item) {
+    if (item == null || item === "") return "";
+    if (typeof item === "string") return item;
+    return (
+      item.label ||
+      item.name ||
+      item.description ||
+      item.text ||
+      item.title ||
+      JSON.stringify(item)
+    );
+  }
+
+  function renderCoterieExclusions(exclusions) {
+    let host = $("coterie-exclusions");
+    if (!host) {
+      host = document.createElement("div");
+      host.id = "coterie-exclusions";
+      host.className = "coterie-exclusions";
+      const anchor = $("premium-detail");
+      if (anchor?.parentNode) {
+        anchor.parentNode.insertBefore(host, anchor.nextSibling);
+      }
+    }
+
+    const list = (Array.isArray(exclusions) ? exclusions : [])
+      .map(exclusionLabel)
+      .filter(Boolean);
+    if (!list.length) {
+      host.style.display = "none";
+      host.innerHTML = "";
+      return;
+    }
+
+    host.style.display = "block";
+    host.innerHTML =
+      '<p class="coterie-exclusions-title"><strong>Excluded operations</strong> — informational; you can still bind and pay below.</p>' +
+      "<ul>" +
+      list.map((line) => "<li>" + escapeHtml(line) + "</li>").join("") +
+      "</ul>";
+  }
+
   function updatePremiumSummary() {
     const q = session.quote;
     if (!q) return;
@@ -1004,6 +1054,7 @@
   function updatePremiumDisplay() {
     renderPaymentPlanPicker();
     updatePremiumSummary();
+    renderCoterieExclusions(session.exclusions);
     updatePayButtonLabel();
   }
 
@@ -1156,6 +1207,7 @@
         session.quote_id = q.quoteId;
         session.email = formPayload().contact_email;
         session.quote = q;
+        session.exclusions = data.coterie?.exclusions || [];
         updatePremiumDisplay();
         $("quote-box").classList.add("show");
         $("payment-section").classList.add("show");

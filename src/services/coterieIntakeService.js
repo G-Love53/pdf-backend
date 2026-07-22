@@ -196,7 +196,10 @@ export async function processConnectQuoteIntake(body, reqMeta = {}) {
   let applicationResponse;
   try {
     applicationResponse = await createApplication(
-      buildApplicationPayload(form, { akHash }),
+      buildApplicationPayload(form, {
+        akHash,
+        applicationExternalId: submissionPublicId,
+      }),
     );
   } catch (err) {
     console.error("[coterie intake] createApplication failed:", err);

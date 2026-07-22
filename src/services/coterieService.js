@@ -251,11 +251,14 @@ function formatPolicyStartDate(form) {
   return String(raw);
 }
 
-export function buildApplicationPayload(form, { akHash }) {
+export function buildApplicationPayload(
+  form,
+  { akHash, applicationExternalId = null },
+) {
   const { street, city, state, zip } = buildMailingAddress(form);
   const phone = pickContactPhone(form);
 
-  return {
+  const payload = {
     legalBusinessName:
       form.insured_name ||
       form.business_name ||
@@ -269,6 +272,128 @@ export function buildApplicationPayload(form, { akHash }) {
     ...(phone ? { contactPhone: phone } : {}),
     locations: [buildLocationRow(form)],
   };
+
+  if (applicationExternalId) {
+    payload.applicationExternalId = applicationExternalId;
+  }
+
+  return payload;
+}
+
+/** Server-side Coterie auth — secretKey for doc GET; falls back to publishable key until David confirms separate secret. */
+export function getCoterieSecretKey() {
+  const secret = process.env.COTERIE_SECRET_KEY || process.env.COTERIE_PUBLISHABLE_KEY;
+  return secret ? String(secret).trim() : null;
+}
+
+function normalizeCoterieWebhookToken(secret) {
+  const raw = String(secret || "").trim();
+  if (!raw) return "";
+  return raw.toLowerCase().startsWith("token ") ? raw : `token ${raw}`;
+}
+
+/** Verify Coterie webhook `Authentication: token …` header against COTERIE_WEBHOOK_SECRET. */
+export function verifyCoterieWebhookAuth(req) {
+  const secret = process.env.COTERIE_WEBHOOK_SECRET;
+  if (!secret) return true;
+
+  const expected = normalizeCoterieWebhookToken(secret);
+  const auth =
+    req.headers.authentication ||
+    req.headers.authorization ||
+    req.headers["x-coterie-signature"] ||
+    req.headers["x-webhook-signature"] ||
+    null;
+  if (!auth) return false;
+  return String(auth).trim() === expected;
+}
+
+export function extractBindPolicyInfo(bindResult) {
+  const r = bindResult?.result || bindResult || {};
+  return {
+    coteriePolicyId:
+      r.PolicyId || r.policyId || r.policy_id || r.id || null,
+    carrierPolicyNumber:
+      r.PolicyNumber || r.policyNumber || r.policy_number || null,
+  };
+}
+
+async function coterieSecretFetch(path, { method = "GET", body } = {}) {
+  const { apiBase } = getCoterieConfig();
+  const secretKey = getCoterieSecretKey();
+  if (!secretKey) {
+    throw new CoterieApiError("Coterie secret key not configured", {
+      code: "COTERIE_NOT_CONFIGURED",
+    });
+  }
+
+  const url = `${apiBase}${path.startsWith("/") ? path : `/${path}`}`;
+  const headers = {
+    Authorization: `token ${secretKey}`,
+    Accept: "application/json",
+  };
+  if (body !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+  return parseCoterieResponse(res);
+}
+
+/** GET issued-policy document links for a carrier policy number. */
+export async function getPolicyDocLinks(policyNumber) {
+  const num = String(policyNumber || "").trim();
+  if (!num) {
+    throw new CoterieApiError("PolicyNumber required for doc links", {
+      code: "POLICY_NUMBER_REQUIRED",
+    });
+  }
+  return coterieSecretFetch(
+    `/v1.6/commercial/policies/docs/links/${encodeURIComponent(num)}`,
+    { method: "GET" },
+  );
+}
+
+export function normalizeCoterieDocLinks(responseBody) {
+  if (!responseBody) return [];
+  if (Array.isArray(responseBody)) {
+    return responseBody.map((item, i) =>
+      typeof item === "string"
+        ? { url: item, name: `document-${i + 1}.pdf` }
+        : {
+            url: item.url || item.link || item.href || item.downloadUrl || null,
+            name:
+              item.name ||
+              item.fileName ||
+              item.filename ||
+              item.documentType ||
+              `document-${i + 1}.pdf`,
+          },
+    ).filter((d) => d.url);
+  }
+
+  const nested =
+    responseBody.links ||
+    responseBody.documents ||
+    responseBody.docs ||
+    responseBody.data ||
+    [];
+  if (Array.isArray(nested)) {
+    return normalizeCoterieDocLinks(nested);
+  }
+
+  const singleUrl =
+    responseBody.url || responseBody.link || responseBody.href || null;
+  if (singleUrl) {
+    return [{ url: singleUrl, name: responseBody.name || "policy.pdf" }];
+  }
+
+  return [];
 }
 
 function parseBusinessAgeMonths(form) {
