@@ -121,14 +121,37 @@ export async function buildEnrichedChatInput(pool, clientId, body) {
   const clientPolicy =
     body?.policyContext && typeof body.policyContext === "object" ? body.policyContext : {};
 
-  // SELECT * only — do not JOIN on policies.carrier_slug; many DBs have no carrier_slug column yet.
-  const pol = await pool.query(
-    `SELECT * FROM policies
-     WHERE client_id = $1::uuid AND status = 'active'
-     ORDER BY effective_date DESC NULLS LAST
-     LIMIT 1`,
-    [clientId],
-  );
+  const requestedPolicyId =
+    body?.policyId ||
+    clientPolicy?.id ||
+    clientPolicy?.policy_id ||
+    null;
+
+  let pol;
+  if (requestedPolicyId) {
+    pol = await pool.query(
+      `SELECT * FROM policies
+       WHERE id = $1::uuid AND client_id = $2::uuid AND status = 'active'
+       LIMIT 1`,
+      [requestedPolicyId, clientId],
+    );
+    if (!pol.rows.length) {
+      pol = await pool.query(
+        `SELECT * FROM policies
+         WHERE id = $1::uuid AND client_id = $2::uuid
+         LIMIT 1`,
+        [requestedPolicyId, clientId],
+      );
+    }
+  } else {
+    pol = await pool.query(
+      `SELECT * FROM policies
+       WHERE client_id = $1::uuid AND status = 'active'
+       ORDER BY effective_date DESC NULLS LAST
+       LIMIT 1`,
+      [clientId],
+    );
+  }
 
   let carrierDisplayName = null;
   let carrierSlug = null;
