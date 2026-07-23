@@ -21,6 +21,7 @@ import {
   SubmissionStatus,
 } from "../constants/postgresEnums.js";
 import { normalizeSegment } from "../utils/rss.js";
+import { getCidConnectUrl } from "../config/cidConnectUrl.js";
 
 /**
  * Create minimal S4–S6 spine rows for Coterie instant bind (no carrier email / BoldSign).
@@ -307,9 +308,7 @@ export async function finalizeCoterieBind({
     await client.query("COMMIT");
 
     const segment = normalizeSegment(submission.segment);
-    const connectBase = (
-      process.env.CID_APP_URL || "https://cid-connect.netlify.app"
-    ).replace(/\/$/, "");
+    const connectBase = getCidConnectUrl();
     const connectUrl = buildCidConnectUrl(
       clientRow.primary_email,
       connectBase,

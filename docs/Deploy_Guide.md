@@ -134,7 +134,7 @@ Use **Secret Files** in Render for private keys if you prefer file-based config.
 | R2 (`R2_*` / project-specific) | Object storage for PDFs; see `src/services/r2Service.js`. |
 | BoldSign | `BOLD_SIGN_API_KEY` or aliases noted in `src/services/boldsignService.js`; webhook URL registered to `https://<api>/api/webhooks/boldsign`. |
 | `CARRIER_EMAIL` / `UW_EMAIL_BAR` | Routing for intake and notifications. |
-| `CID_APP_URL` | Public **CID Connect** origin for welcome/bind emails (e.g. `https://cid-connect.netlify.app`). **Render only** — read by `bindEmailService.js` and bind flows; not a Netlify `VITE_*` var. |
+| `CID_APP_URL` | Public **CID Connect** origin for welcome/bind emails (e.g. `https://connect.commercialinsurance-direct.com`). **Render only** — read by `bindEmailService.js` and bind flows; not a Netlify `VITE_*` var. See **`cid-connect/docs/CUSTOM_DOMAIN.md`**. |
 | `ENABLE_POLICY_INDEXER` | Enable policy chunk index cron (`true`/`false`) |
 | `POLICY_INDEXER_CRON` | Cron for policy indexer (default `*/5 * * * *`) |
 | `POLICY_INDEXER_BATCH_SIZE` | Docs scanned per index run (optional) |

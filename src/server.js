@@ -19,6 +19,7 @@ import { connectAuthMiddleware } from "./middleware/connectAuth.js";
 import connectApiRouter from "./routes/connectApi.js";
 import { renewalPrefillHandler } from "./routes/renewalIntakePublic.js";
 import { getSegmentProducerDefaults } from "./config/segmentAgentInbox.js";
+import { getCidConnectUrl } from "./config/cidConnectUrl.js";
 import { applyFormFieldRouting } from "./services/formFieldRoutingService.js";
 // Note: Ensure your enricher import matches the file name in your 'src' folder
 // import enrichFormData from '../mapping/data-enricher.js'; 
@@ -208,7 +209,7 @@ APP.get("/signed", async (req, res) => {
     console.warn("[/signed] carrier lookup failed:", err?.message || err);
   }
 
-  const appUrl = "https://cid-connect.netlify.app";
+  const appUrl = getCidConnectUrl();
   const safeCarrier = htmlEscape(carrierName);
   const safeSid = htmlEscape(sid);
 

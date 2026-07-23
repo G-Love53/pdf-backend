@@ -1,10 +1,10 @@
 import { sendWithGmail } from "../email.js";
 import { getSegmentAgentInboxEmail } from "../config/segmentAgentInbox.js";
+import { getCidConnectUrl } from "../config/cidConnectUrl.js";
 
 /** @param {string} [email] @param {string} [baseUrl] */
 export function buildCidConnectUrl(email, baseUrl) {
-  const raw =
-    baseUrl || process.env.CID_APP_URL || "https://cid-connect.netlify.app";
+  const raw = baseUrl || getCidConnectUrl();
   const base = raw.split("?")[0].replace(/\/$/, "");
   if (email) return `${base}/?email=${encodeURIComponent(email)}`;
   return base;
