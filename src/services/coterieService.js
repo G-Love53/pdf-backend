@@ -29,6 +29,22 @@ export function isCoterieSandboxApi() {
   return coterieApiBase().includes("sandbox");
 }
 
+/** User-facing hint when Coterie returns 401 (common: prod keys on sandbox host). */
+export function coterieAuthFailureMessage(err) {
+  const status = err instanceof CoterieApiError ? err.status : null;
+  if (status !== 401) {
+    return err?.message || "Coterie application failed";
+  }
+  if (isCoterieSandboxApi()) {
+    return (
+      "Coterie API 401 — prod keys do not work on api-sandbox.coterieinsurance.com. " +
+      "On cid-pdf-api-sandbox set COTERIE_API_BASE=https://api.coterieinsurance.com " +
+      "(keep demo bind on), or install separate sandbox Coterie keys."
+    );
+  }
+  return err?.message || "Coterie API 401 — check COTERIE_PUBLISHABLE_KEY on Render.";
+}
+
 function coterieStripePublishableKey() {
   const raw = process.env.COTERIE_STRIPE_PUBLISHABLE_KEY;
   if (raw == null || raw === "") return "";

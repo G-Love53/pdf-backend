@@ -14,6 +14,7 @@ import {
   extractApplicationSummary,
   extractQuoteSummary,
   isProducerNotLicensedError,
+  coterieAuthFailureMessage,
   CoterieApiError,
 } from "./coterieService.js";
 
@@ -208,7 +209,7 @@ export async function processConnectQuoteIntake(body, reqMeta = {}) {
       status: err instanceof CoterieApiError ? err.status || 502 : 502,
       error: "COTERIE_APPLICATION_FAILED",
       submission_public_id: submissionPublicId,
-      message: err.message || "Coterie application failed",
+      message: coterieAuthFailureMessage(err),
       coterie: {
         code: err instanceof CoterieApiError ? err.code : undefined,
       },

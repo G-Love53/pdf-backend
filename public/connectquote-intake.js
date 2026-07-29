@@ -3,7 +3,22 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260729b";
+  const ASSET_V = "20260729c";
+
+  const MONTH_LABELS = [
+    ["01", "January"],
+    ["02", "February"],
+    ["03", "March"],
+    ["04", "April"],
+    ["05", "May"],
+    ["06", "June"],
+    ["07", "July"],
+    ["08", "August"],
+    ["09", "September"],
+    ["10", "October"],
+    ["11", "November"],
+    ["12", "December"],
+  ];
 
   const FALLBACK_CLASSES = {
     electrical: [
@@ -239,6 +254,30 @@
     return j.schema || null;
   }
 
+  function bindMonthYearFields() {
+    document.querySelectorAll("[data-month-year-field]").forEach((wrap) => {
+      if (wrap.dataset.monthYearBound === "1") return;
+      wrap.dataset.monthYearBound = "1";
+      const hidden = wrap.querySelector('input[type="hidden"]');
+      const monthSel = wrap.querySelector("[data-bsm-month]");
+      const yearSel = wrap.querySelector("[data-bsm-year]");
+      if (!hidden || !monthSel || !yearSel) return;
+
+      function sync() {
+        if (monthSel.value && yearSel.value) {
+          hidden.value = yearSel.value + "-" + monthSel.value;
+          wrap.classList.remove("prefilled");
+        } else {
+          hidden.value = "";
+        }
+      }
+
+      monthSel.addEventListener("change", sync);
+      yearSel.addEventListener("change", sync);
+      sync();
+    });
+  }
+
   function bindLocationTypeUi() {
     const loc = document.getElementById("f_location_type");
     if (!loc) return;
@@ -464,24 +503,66 @@
       );
     }
     if (field.type === "month") {
-      const dv = val || "";
-      const prefilled = pre ? ' class="cq-ext-field prefilled"' : ' class="cq-ext-field"';
-      return (
+      let yearVal = "";
+      let monthVal = "";
+      if (val && /^\d{4}-\d{2}$/.test(String(val))) {
+        const parts = String(val).split("-");
+        yearVal = parts[0];
+        monthVal = parts[1];
+      }
+      let monthOpts =
+        '<option value="" disabled' + (!monthVal ? " selected" : "") + ">Select month…</option>";
+      MONTH_LABELS.forEach(([v, label]) => {
+        monthOpts +=
+          '<option value="' +
+          v +
+          '"' +
+          (v === monthVal ? " selected" : "") +
+          ">" +
+          label +
+          "</option>";
+      });
+      const nowYear = new Date().getFullYear();
+      let yearOpts =
+        '<option value="" disabled' + (!yearVal ? " selected" : "") + ">Select year…</option>";
+      for (let y = nowYear; y >= 1980; y--) {
+        yearOpts +=
+          '<option value="' +
+          y +
+          '"' +
+          (String(y) === yearVal ? " selected" : "") +
+          ">" +
+          y +
+          "</option>";
+      }
+      const prefilled = pre ? " prefilled" : "";
+      return wrapConditionalField(
+        field,
         '<label for="f_' +
-        field.name +
-        '">' +
-        field.label +
-        '</label><input type="month" name="' +
-        field.name +
-        '" id="f_' +
-        field.name +
-        '"' +
-        prefilled +
-        ' data-section="' +
-        field.section +
-        '" value="' +
-        dv +
-        '" required/>'
+          field.name +
+          '_month">' +
+          field.label +
+          '</label><div class="cq-month-year' +
+          prefilled +
+          '" data-month-year-field data-field="' +
+          field.name +
+          '"><input type="hidden" name="' +
+          field.name +
+          '" id="f_' +
+          field.name +
+          '" value="' +
+          (val || "") +
+          '" data-section="' +
+          field.section +
+          '"/><select id="f_' +
+          field.name +
+          '_month" data-bsm-month class="cq-ext-field" aria-label="Month business started" required>' +
+          monthOpts +
+          '</select><select id="f_' +
+          field.name +
+          '_year" data-bsm-year class="cq-ext-field" aria-label="Year business started" required>' +
+          yearOpts +
+          "</select></div>",
       );
     }
     if (field.type === "date") {
@@ -753,6 +834,7 @@
     host.innerHTML = renderSections(currentSchema);
     bindCoverageUi();
     bindCurrencyInputs();
+    bindMonthYearFields();
     bindLocationTypeUi();
     applyCoveragePrefill();
   }

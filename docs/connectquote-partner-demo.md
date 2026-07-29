@@ -27,17 +27,31 @@ Same repo (`pdf-backend` `main`), different env.
 
 ### Sandbox env (minimum)
 
-| Variable | Sandbox value |
-|----------|----------------|
-| `COTERIE_API_BASE` | `https://api-sandbox.coterieinsurance.com` |
-| `COTERIE_PUBLISHABLE_KEY` | Sandbox publishable key |
-| `COTERIE_SECRET_KEY` | Sandbox secret |
-| `COTERIE_STRIPE_PUBLISHABLE_KEY` | Sandbox `pk_test_…` |
+**Important:** `cid-pdf-api-sandbox` is a **CID demo service** (demo bind on, no marketing traffic). It does **not** require Coterie’s sandbox API host unless you have separate sandbox Coterie keys.
+
+**Recommended (copied prod keys — what you have today):**
+
+| Variable | Value |
+|----------|--------|
+| `COTERIE_API_BASE` | **`https://api.coterieinsurance.com`** (prod Coterie — same keys as prod) |
+| `COTERIE_PUBLISHABLE_KEY` | Same as prod |
+| `COTERIE_SECRET_KEY` | Same as prod |
+| `COTERIE_STRIPE_PUBLISHABLE_KEY` | Same as prod (`pk_live_` OK — demo bind skips card) |
 | `COTERIE_DEMO_FINALIZE_ENABLED` | **`true`** |
-| `COTERIE_AGENCY_EXTERNAL_ID` | Same or sandbox agency id |
-| `DATABASE_URL` | Prod DB *or* staging DB (see note below) |
-| `CID_APP_URL` | `https://connect.commercialinsurance-direct.com` |
-| Other `COTERIE_*` / Gmail / R2 | Match prod or staging as needed |
+| `PUBLIC_API_BASE_URL` | `https://cid-pdf-api-sandbox.onrender.com` |
+| `ENABLE_GMAIL_POLLING` | **`false`** |
+| `DATABASE_URL` / `CID_APP_URL` / Gmail | Same as prod |
+
+**401 fix:** If `COTERIE_API_BASE` is `https://api-sandbox.coterieinsurance.com` but keys are prod → **Coterie API 401**. Either switch API base to **prod** (above) or install Coterie sandbox keys from partner setup (`docs/connectquote-build-day.md`).
+
+**Alternate (Coterie sandbox API):**
+
+| Variable | Value |
+|----------|--------|
+| `COTERIE_API_BASE` | `https://api-sandbox.coterieinsurance.com` |
+| `COTERIE_PUBLISHABLE_KEY` | Sandbox publishable key (not prod) |
+| `COTERIE_SECRET_KEY` | Sandbox secret |
+| `COTERIE_STRIPE_PUBLISHABLE_KEY` | `pk_test_…` |
 
 **DB note:** Demo-finalize writes real `policies` rows. Submissions use `traffic_source=demo` and `campaign_id=partner-demo` for filtering. Prefer a **staging Postgres** later; shared prod DB is OK for low-volume partner demos if emails are yours.
 

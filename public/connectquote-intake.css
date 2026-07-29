@@ -89,7 +89,19 @@ select.cq-ext-field:required:invalid {
   border-color: #e5e7eb;
 }
 
-.cq-money-wrap {
+.cq-month-year {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.cq-month-year.prefilled select {
+  background: #fff7ed;
+  border-color: #fdba74;
+}
+@media (max-width: 600px) {
+  .cq-month-year { grid-template-columns: 1fr; }
+}
+
   display: flex;
   align-items: stretch;
   width: 100%;
