@@ -1,7 +1,7 @@
 # ConnectQuote — shipped summary (2026-06-10 → 2026-07-07)
 
 > **Canonical “what we built” doc** for investors, Claude context, and team handoff.  
-> **Technical spec:** [`coterie-integration.md`](./coterie-integration.md) · **Demo script:** [`connectquote-build-day.md`](./connectquote-build-day.md)
+> **Technical spec:** [`coterie-integration.md`](./coterie-integration.md) · **Demo script:** [`connectquote-build-day.md`](./connectquote-build-day.md) · **Operator learning (saved spec):** [`connectquote-operator-learning.md`](./connectquote-operator-learning.md)
 
 ---
 
