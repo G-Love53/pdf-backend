@@ -274,6 +274,19 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 
 ---
 
+## Partner demo (sandbox, Fitness only)
+
+**Prod:** `COTERIE_DEMO_FINALIZE_ENABLED=false` on live marketing. **Sandbox Render:** demo on, sandbox Coterie keys.
+
+| Asset | URL |
+|-------|-----|
+| Partner demo page (PWA tile) | `https://cid-pdf-api.onrender.com/connectquote/fitness-demo.html` |
+| Setup + script | [`connectquote-partner-demo.md`](./connectquote-partner-demo.md) |
+
+Flow: home-screen tile → quote (owner/employee, BOP+GL on Pilates) → **Complete bind — demo** → welcome email → **connect.commercialinsurance-direct.com**.
+
+---
+
 ## Changelog
 
 | Date | Change |
@@ -286,3 +299,4 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 | 2026-07-07 | **HVAC + plumber** ConnectQuote nationwide launch (CO prod quotes verified); plumber appetite knockouts; owner-only copy; commits `98791af`, `2fee64b`, `6e4ca14` |
 | 2026-07-23 | Branded Connect; live bind E2E; webhook doc ingest service. |
 | 2026-07-29 | Marketing launch prep — geography gates documented; Operator learning spec. |
+| 2026-07-29 | **Partner demo:** `fitness-demo.html` + sandbox Render guide; prod demo off for marketing. |

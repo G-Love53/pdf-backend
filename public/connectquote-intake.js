@@ -119,9 +119,38 @@
     });
     if (p.get("src")) $("traffic_source").value = p.get("src");
     if (p.get("cid")) $("campaign_id").value = p.get("cid");
+    const io = p.get("io") || p.get("is_owner");
+    if (io && $("is_owner") && (io === "yes" || io === "no")) {
+      $("is_owner").value = io;
+    }
     if (count >= 3 && $("bridge-text")) {
       $("bridge-text").textContent = "We've loaded your info — confirm details and choose coverages.";
     }
+  }
+
+  function applyPartnerDemoDefaults() {
+    if (!cfg.partnerDemo) return;
+    const p = new URLSearchParams(location.search);
+    if (p.get("fn") || p.get("em")) return;
+    const defaults = {
+      first_name: "Alex",
+      last_name: "Demo",
+      insured_name: "Peak Pilates Denver LLC",
+      premise_street: "1234 Blake St",
+      premise_city: "Denver",
+      state: "CO",
+      zip: "80202",
+      contact_phone: "3035550100",
+    };
+    Object.entries(defaults).forEach(([id, value]) => {
+      const el = $(id);
+      if (el && !String(el.value || "").trim()) {
+        el.value = value;
+        el.classList.add("prefilled");
+      }
+    });
+    if ($("is_owner") && !$("is_owner").value) $("is_owner").value = "yes";
+    if ($("num_employees") && !$("num_employees").value) $("num_employees").value = "1";
   }
 
   async function loadRegistry() {
@@ -1318,7 +1347,14 @@
   async function init() {
     ensureContactPhoneField();
     applyPrefill();
+    applyPartnerDemoDefaults();
     await loadBusinessClasses();
+    if (cfg.partnerDemo && !new URLSearchParams(location.search).get("bc")) {
+      const sel = $("business_class");
+      if (sel && [...sel.options].some((o) => o.value === "pilates_studio")) {
+        sel.value = "pilates_studio";
+      }
+    }
     wireForm();
     await refreshDynamicForm();
     if (selectedBusinessClass() && !$("is_owner").value) {
