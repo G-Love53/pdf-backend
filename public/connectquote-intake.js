@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260707";
+  const ASSET_V = "20260729b";
 
   const FALLBACK_CLASSES = {
     electrical: [
@@ -149,8 +149,6 @@
         el.classList.add("prefilled");
       }
     });
-    if ($("is_owner") && !$("is_owner").value) $("is_owner").value = "yes";
-    if ($("num_employees") && !$("num_employees").value) $("num_employees").value = "1";
   }
 
   async function loadRegistry() {
@@ -283,11 +281,20 @@
       .map((el) => el.dataset.covId);
   }
 
+  function isExclusiveCoverageSelection(schema) {
+    const instant = schema.coverage?.instant || [];
+    if (instant.length <= 1) return false;
+    const ids = instant.map((c) => c.id);
+    if (cfg.partnerDemo && ids.includes("BOP") && ids.includes("GL")) {
+      return true;
+    }
+    return schema.coverage?.instantSelection === "one";
+  }
+
   function renderCoverageToggles(schema) {
     const instant = schema.coverage?.instant || [];
     const extras = schema.coverage?.extras || [];
-    const exclusive =
-      schema.coverage?.instantSelection === "one" && instant.length > 1;
+    const exclusive = isExclusiveCoverageSelection(schema);
     if (!instant.length && !extras.length) return "";
 
     let html =
@@ -1349,12 +1356,6 @@
     applyPrefill();
     applyPartnerDemoDefaults();
     await loadBusinessClasses();
-    if (cfg.partnerDemo && !new URLSearchParams(location.search).get("bc")) {
-      const sel = $("business_class");
-      if (sel && [...sel.options].some((o) => o.value === "pilates_studio")) {
-        sel.value = "pilates_studio";
-      }
-    }
     wireForm();
     await refreshDynamicForm();
     if (selectedBusinessClass() && !$("is_owner").value) {

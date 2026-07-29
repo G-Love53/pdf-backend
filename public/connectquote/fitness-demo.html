@@ -74,7 +74,12 @@
         </div>
       </div>
       <label>Email</label>
-      <input name="contact_email" id="contact_email" type="email" required/>
+      <select name="contact_email" id="contact_email" required>
+        <option value="" selected disabled>Select…</option>
+        <option value="g@commercialinsurance-direct.com">g@commercialinsurance-direct.com</option>
+        <option value="ray@commercialinsurance-direct.com">ray@commercialinsurance-direct.com</option>
+        <option value="rick@commercialinsurance-direct.com">rick@commercialinsurance-direct.com</option>
+      </select>
       <label>Business name</label>
       <input name="insured_name" id="insured_name" required/>
       <div class="row">
@@ -99,20 +104,18 @@
       </div>
       <label>Do you own or operate this business?</label>
       <select name="is_owner" id="is_owner" required>
-        <option value="" disabled>Select…</option>
-        <option value="yes" selected>Yes — owner / studio operator (BOP + GL on Pilates)</option>
+        <option value="" selected disabled>Select…</option>
+        <option value="yes">Yes — owner / studio operator (BOP + GL on Pilates)</option>
         <option value="no">No — employee / instructor (GL path)</option>
       </select>
       <label>Business type</label>
       <select name="business_class" id="business_class" required>
-        <option value="" disabled>Select…</option>
-        <option value="pilates_studio" selected>Pilates / mind-body studio (owner: BOP + GL)</option>
-        <option value="yoga_studio">Yoga studio (GL)</option>
-        <option value="personal_trainer">Personal trainer (GL)</option>
+        <option value="" selected disabled>Select…</option>
       </select>
       <label>Employees (including yourself)</label>
       <select name="num_employees" id="num_employees" required>
-        <option value="1" selected>1</option>
+        <option value="" selected disabled>Select…</option>
+        <option value="1">1</option>
         <option value="2">2</option>
         <option value="3">3</option>
         <option value="4">4</option>
@@ -163,9 +166,9 @@
   ).replace(/\/$/, "");
   window.CONNECTQUOTE = { segment: "fitness", api: api, partnerDemo: true };
   var css = document.querySelector('link[rel="stylesheet"]');
-  if (css) css.href = api + "/static/connectquote-intake.css?v=20260729";
+  if (css) css.href = api + "/static/connectquote-intake.css?v=20260729b";
   var s = document.createElement("script");
-  s.src = api + "/static/connectquote-intake.js?v=20260729";
+  s.src = api + "/static/connectquote-intake.js?v=20260729b";
   document.body.appendChild(s);
 })();
 </script>
