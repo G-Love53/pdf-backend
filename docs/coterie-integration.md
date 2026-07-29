@@ -1,7 +1,7 @@
 # CID × Coterie — ConnectQuote integration
 
 > **Canonical location (RSS):** `pdf-backend/docs/coterie-integration.md`  
-> **As of:** 2026-07-07 (America/Denver). Update when API behavior, pilots, or env change.
+> **As of:** 2026-07-29 (America/Denver). Update when API behavior, pilots, or env change.
 >
 > **Shipped summary:** [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md)
 >
@@ -19,14 +19,14 @@
 | API credentials | **Prod on Render** — never commit; sandbox available for dev |
 | Create Application | **Validated** — Electrical, Fitness, HVAC, Plumber AKHashes in `coterieRegistry.js` |
 | Bindable Quote | **Working in CO prod** — premiums returned (e.g. electrical BOP ~$1,448/yr; hvac ~$3,661/yr; plumber ~$9,985/yr smoke, 2026-07-07) |
-| Bind / payment | **Stripe `tok_` bind wired**; **live card bind** when `pk_live_`; **demo-finalize** for investor demos when `pk_test_` or flag |
-| Pilot geography | **CO first** — nationwide architecture; expand via producer licensing + Coterie appetite |
-| ConnectQuote segments | **Electrical**, **Fitness** (yoga, pilates, personal trainer), **HVAC**, **Plumber** |
-| Owner gate | **Owner-only** on ConnectQuote — non-owners redirect to traditional long-form |
+| Bind / payment | **Live card bind** on prod (`pk_live_`); **demo-finalize** optional for walkthroughs |
+| Pilot geography | **Market CO only** — CID `COTERIE_PILOT_STATES` + Coterie producer license + AKHash appetite (see shipped doc **Marketing geography**) |
+| ConnectQuote segments | **Electrical**, **Fitness** (yoga, pilates, personal trainer), **HVAC**, **Plumber** — **not** Bar or Roofer |
+| Owner gate | **Owner-only** on contractor segments — non-owners redirect to traditional long-form |
 | Plumber appetite | **Knockout questions** on intake — any exclusion “Yes” → traditional `index.html` |
-| Intake UI | Segment `connectquote.html` + shared `/static/connectquote-intake.js` (asset version `20260707`) |
-| Webhook | `POST /webhooks/coterie` skeleton — production doc ingest **TBD** (David/Coterie spec) |
-| Connect handoff | **Live** — Open Connect button + bind token / email prefill |
+| Intake UI | Segment `connectquote.html` + shared `/static/connectquote-intake.js` |
+| Webhook | **`POST /webhooks/coterie`** — doc ingest via `coterieDocIngestService.js` (async after bind; register URL with Coterie) |
+| Connect handoff | **Live** — `https://connect.commercialinsurance-direct.com` + welcome email |
 
 ---
 
@@ -178,14 +178,15 @@ See redacted examples in [`coterie-sandbox-fixtures.md`](./coterie-sandbox-fixtu
 
 ## Open items
 
-- [ ] Coterie issued-policy PDF webhook → R2 → Connect vault
-- [ ] Store Coterie `PolicyId` + carrier policy # at bind for webhook correlation
-- [ ] Fitness GL-only bindable — ensure payroll/sales sent when Coterie requires on GL path
-- [ ] Welcome email + PWA install hint on bind success card
+- [x] Coterie webhook doc ingest service → R2 → Connect vault (code shipped; confirm Coterie prod webhook registration)
+- [x] Store Coterie `PolicyId` + carrier policy # at bind for webhook correlation
+- [x] Welcome email + branded Connect (`connect.commercialinsurance-direct.com`)
+- [ ] Fitness GL-only edge cases — monitor payroll/sales on GL path in prod
 - [ ] Partner DPA / multi-state registry expansion
+- [ ] Operator ConnectQuote learning dashboard (spec: `connectquote-operator-learning.md`)
 - [x] CO sandbox bindable quote + demo finalize → Connect
-- [x] CO **prod** bindable quotes — electrical, fitness, hvac, plumber (2026-07-07)
-- [x] Electrical + Fitness + HVAC + Plumber intake on Netlify
+- [x] CO **prod** bindable quotes + live card bind — electrical, fitness, hvac, plumber
+- [x] All four segment intakes on Netlify
 - [x] Plumber appetite knockouts on ConnectQuote intake
 - [x] Extended Coterie fields + coverage toggles on intake
 - [x] Stripe token bind + annual/monthly plan cards
@@ -201,3 +202,4 @@ See redacted examples in [`coterie-sandbox-fixtures.md`](./coterie-sandbox-fixtu
 | 2026-06-12 | **Shipped sandbox E2E:** bindable quotes, demo-finalize, Connect handoff, Fitness segment, extended intake UI, plan cards. See `connectquote-shipped-2026-06.md`. |
 | 2026-06-10 | Carrier appointment signed — All Access Insurance, Rick Cline, dba Commercial Insurance Direct. |
 | 2026-07-07 | **Prod** ConnectQuote for HVAC + Plumber; plumber knockouts; owner-only gate; quote email verified on prod API. |
+| 2026-07-29 | Marketing geography gates; webhook ingest shipped; branded Connect URL in env defaults. |

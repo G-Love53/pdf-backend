@@ -16,6 +16,40 @@ Do not block launch on this UI — data already lands in **`submissions`**, **`t
 
 ---
 
+## C&F (clicks & fills) — launch week (marketing starts)
+
+**What you can measure day 1 without new code:**
+
+| Metric | Marketing name | Signal today | How |
+|--------|----------------|--------------|-----|
+| **Fill + submit** | Fill / conversion | **`submissions`** row | Every successful ConnectQuote POST; filter `quote_rail = coterie` |
+| **Attributed fill** | Fill by campaign | `traffic_source` (`src`), `campaign_id` (`cid`) | **Required on every URL** |
+| **Quote shown** | Soft conversion | `coterie.bindable_quote` / `coterie.session` timeline | SQL in this doc |
+| **Bind** | Purchase | `policies` + `coterie.policy.bound` | Operator Home “Policies bound” |
+
+**What is NOT tracked yet (clicks / opens):**
+
+- Landing on `connectquote.html` without submit → **no server event**
+- Partial form abandon → **no beacon**
+
+**Day-1 C&F workaround:**
+
+1. **Clicks (proxy):** Email/ ad platform click counts (Instantly, Meta) + **`src`/`cid`** on destination URL.
+2. **Fills:** SQL **Submits** and **Attribution** queries below — run daily during launch week.
+3. **Fill rate (rough):** platform clicks → submits with matching `src`/`cid` (not page-level precision).
+
+**URL discipline (non-negotiable):**
+
+```
+…/connectquote.html?st=CO&zp=80202&bc=…&src={channel}&cid={campaign-v1}
+```
+
+Examples: `src=instantly`, `src=fb`, `src=google`, `src=organic` · `cid=aug-electrical-co-v1`
+
+**v2 (after launch):** page-view ping or GA4 on segment Netlify — see **v2** section below.
+
+---
+
 ## What Operator Home does today (ConnectQuote)
 
 | Tile | Useful for CQ? | Caveat |

@@ -1,4 +1,4 @@
-# ConnectQuote — shipped summary (2026-06-10 → 2026-07-07)
+# ConnectQuote — shipped summary (2026-06-10 → 2026-07-29)
 
 > **Canonical “what we built” doc** for investors, Claude context, and team handoff.  
 > **Technical spec:** [`coterie-integration.md`](./coterie-integration.md) · **Demo script:** [`connectquote-build-day.md`](./connectquote-build-day.md) · **Operator learning (saved spec):** [`connectquote-operator-learning.md`](./connectquote-operator-learning.md)
@@ -7,13 +7,35 @@
 
 ## Executive summary
 
-**Investor deck (one line):** ConnectQuote is **nationwide live**, gated only by **carrier appetite** and **state licensing availability** — not by a fixed state pilot.
+**Investor deck (one line):** ConnectQuote architecture is **nationwide-ready**; **marketing and instant bind today are Colorado (CO) only** until CID expands pilot states and Coterie confirms producer licensing + appetite per state.
 
-**ConnectQuote** is CID’s **instant quote-and-bind rail** via **Coterie API v1.6**, deployed on **Electrical**, **Fitness** (yoga, pilates, personal trainer), **HVAC**, and **Plumber**. Insureds complete a **segment-branded** thin intake → receive a **bindable premium** → pay through **Coterie’s Stripe** (**CID is not merchant of record**) → land in **CID Connect** same day with a policy row in **cid-postgres** (`bind_source: coterie`).
+**ConnectQuote** is CID’s **instant quote-and-bind rail** via **Coterie API v1.6**, deployed on **Electrical**, **Fitness** (yoga, pilates, personal trainer), **HVAC**, and **Plumber**. Insureds complete a **segment-branded** thin intake → receive a **bindable premium** → pay through **Coterie’s Stripe** (**CID is not merchant of record**) → land in **CID Connect** at **`https://connect.commercialinsurance-direct.com`** same day with a policy row in **cid-postgres** (`bind_source: coterie`).
 
-**Geography:** Product and architecture are **nationwide-ready**. Coterie **`AKHash`** appetite and **producer licensing per state** determine where bindable quotes succeed. Sandbox demos use **CO**; expanding states is configuration + licensing, not a rebuild.
+**Geography:** Product code supports adding states via config (`COTERIE_PILOT_STATES` in `src/config/coterieAkHash.js`). **Do not market outside CO** until both CID and Coterie gates are cleared for that state (see **Marketing geography** below).
 
-**Traditional S6 (BoldSign)** is unchanged for full supplement / non-appetite risks.
+**Traditional S6 (BoldSign)** is unchanged for full supplement / non-appetite risks. **Bar** and **Roofer** are **not** on ConnectQuote (traditional intake only).
+
+---
+
+## Marketing geography — who decides eligible states?
+
+**Three layers — all must pass for a successful instant quote + bind:**
+
+| Layer | Who controls it | What it is | Today (Jul 2026) |
+|-------|-----------------|------------|------------------|
+| **1. CID marketing gate** | **CID** (code + ops decision) | `COTERIE_PILOT_STATES` in `src/config/coterieAkHash.js` — intake API returns `CONNECTQUOTE_STATE_NOT_SUPPORTED` for other states | **`CO` only** |
+| **2. Producer licensing** | **Coterie + agency** (Rick Cline / All Access) | Coterie error **`E0122`** if producer license not attached to agency for that state | **CO** confirmed for appointment; expand per state with Coterie |
+| **3. Carrier appetite** | **Coterie** (AKHash + UW) | Business class hash + state + answers → bindable quote or declination / traditional rail | Per class in `coterieRegistry.js`; plumber has intake knockouts |
+
+**For marketing creative (Claude, Instantly, FB, etc.):**
+
+- **Target geography:** **Colorado only** — use `st=CO` and CO zips in every ConnectQuote URL until CID explicitly expands layer 1.
+- **Do not** promise instant bind in other states based on “nationwide-ready architecture” alone.
+- **To add a state later:** (a) Coterie attaches Rick’s producer license for that state, (b) smoke bindable quote in sandbox/prod, (c) CID adds state to `COTERIE_PILOT_STATES`, redeploy API, (d) update campaign geo.
+
+**Segments on ConnectQuote rail:** Electrical, Fitness (3 classes), HVAC, Plumber — **not** Bar, **not** Roofer.
+
+**Contractor segments (Electrical, HVAC, Plumber):** market to **business owners / operators** only (see `ownerOnly` in registry). Fitness is not owner-gated.
 
 ---
 
@@ -37,7 +59,7 @@ Campaign URL prefill → segment Netlify connectquote.html
 | **Customer ownership** | Connect vault, COI, Am I Covered — **not** Coterie insured portal |
 | **Payment** | Coterie Stripe embed; bind payload uses **`stripeToken`** (`tok_…`), not PaymentMethod `pm_…` |
 | **Merchant of record** | **Coterie / their Stripe** collects premium — see **Payment & merchant of record** below |
-| **Geography** | **Nationwide live**, gated by **AKHash appetite** + **state producer licensing** (see Executive summary) |
+| **Geography** | **Nationwide-ready code**; **market CO only** until `COTERIE_PILOT_STATES` + Coterie licensing expanded (see **Marketing geography** above) |
 
 ---
 
@@ -229,10 +251,12 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 - [x] HVAC + plumber **quote email** on prod (2026-07-07)
 - [x] Plumber appetite knockout questions on intake (Coterie exclusion list)
 - [x] Owner-only gate + non-owner redirect to traditional long-form
-- [ ] Fitness GL-only bindable (may need always-send payroll/sales on API — next session)
-- [ ] Coterie issued-policy PDF webhook ingest → Connect vault
 - [x] Post-bind welcome email to insured (Connect + PWA + policy summary; single email)
-- [ ] Multi-state beyond CO (producer licensing + Coterie appetite)
+- [x] Branded Connect domain `connect.commercialinsurance-direct.com` + live bind E2E (Jul 2026)
+- [x] Coterie webhook doc ingest **wired** (`coterieDocIngestService.js`); prod webhook registration with Coterie ongoing
+- [x] Store Coterie `PolicyId` + carrier policy # at bind (`coverage_data`) for webhook correlation
+- [ ] Multi-state beyond CO — Coterie producer license per state + add to `COTERIE_PILOT_STATES`
+- [ ] Operator ConnectQuote learning cards (spec saved — build when volume warrants)
 
 ---
 
@@ -245,7 +269,7 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 | `fitness-pdf-backend` | `Netlify/connectquote.html` + index banner |
 | `hvac-pdf-backend` | `Netlify/connectquote.html` — owner copy, `/` → ConnectQuote |
 | `plumber-pdf-backend` | `Netlify/connectquote.html` — owner copy, `/` → ConnectQuote |
-| `cid-connect` | **`BrandLogo`** + **`public/logo-nav.png`**; header/login prominence; PWA post-bind hint |
+| `cid-connect` | **`BrandLogo`**, policy switcher, **`connect.commercialinsurance-direct.com`**, custom domain docs |
 | `CID Website/Netlify` | Nav + hero phone mockups with enlarged logo (manual deploy) |
 
 ---
@@ -260,3 +284,5 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 | 2026-06-12 | Nationwide investor positioning; yoga GL rating fields; GL $1M/$2M defaults; PL rationale |
 | 2026-07-01 | Coterie **prod** keys on Render; **KB migrations 009–013** (63 rows); **interim demo bind** on prod when Stripe is `pk_test_`; Connect + marketing logo refresh |
 | 2026-07-07 | **HVAC + plumber** ConnectQuote nationwide launch (CO prod quotes verified); plumber appetite knockouts; owner-only copy; commits `98791af`, `2fee64b`, `6e4ca14` |
+| 2026-07-23 | Branded Connect; live bind E2E; webhook doc ingest service. |
+| 2026-07-29 | Marketing launch prep — geography gates documented; Operator learning spec. |

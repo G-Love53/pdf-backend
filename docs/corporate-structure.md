@@ -1,7 +1,7 @@
 # CID — Corporate structure and segment brands
 
 > **Canonical location (RSS):** `pdf-backend/docs/corporate-structure.md` — versioned with **CID-PDF-API** (`main`).  
-> **As of:** 2026-06-10 (America/Denver). Update when segments, domains, or partner-facing narrative change.
+> **As of:** 2026-07-29 (America/Denver). Update when segments, domains, or partner-facing narrative change.
 >
 > **Purpose:** One reference for **legal entity**, **umbrella vs segment brands**, **domains and ops inboxes**, and **what we tell partners** (e.g. carriers, MGAs) vs internal stack details. For deploy steps see [`Deploy_Guide.md`](./Deploy_Guide.md). For vendors see [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md).
 
@@ -21,7 +21,7 @@
 
 **On carrier paperwork and ACORD/COI:** use **All Access Insurance, dba Commercial Insurance Direct** (or the exact string carriers require). Customers and campaigns use the **Commercial Insurance Direct** brand and **segment** domains; ops mail uses **`quotes@…`** per trade. **`info@commercialinsurance-direct.com`** is the general agency contact.
 
-**ConnectQuote v1 geography:** CO is both domicile and first pilot state — aligns with Coterie producer licensing and `COTERIE_PILOT_STATES`.
+**ConnectQuote marketing geography (Jul 2026):** **Colorado only.** CID enforces via `COTERIE_PILOT_STATES`; Coterie enforces producer licensing (`E0122`) and AKHash appetite. See [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) § Marketing geography.
 
 ---
 
