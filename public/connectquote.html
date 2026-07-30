@@ -115,7 +115,7 @@
         <option value="Annual">Annual</option>
         <option value="Monthly">Monthly</option>
       </select>
-      <label>Pay to bind (secure payment via Coterie)</label>
+      <label>Pay to bind (secure payment)</label>
       <div id="card-element"></div>
       <button type="button" id="pay-btn">Pay &amp; bind coverage</button>
       <button type="button" class="secondary" id="demo-btn" style="display:none">Demo: simulate bind (sandbox)</button>
@@ -159,11 +159,11 @@ function updatePremiumDisplay() {
   if (plan === "Monthly" && mo) {
     document.getElementById("premium-display").textContent = "$" + mo.toFixed(2) + " / mo";
     document.getElementById("premium-detail").textContent =
-      "About $" + yr.toLocaleString() + "/yr total · " + (q.policyType || "BOP") + " · " + (q.carrier || "Coterie");
+      "About $" + yr.toLocaleString() + "/yr total · " + (q.policyType || "BOP") + (q.carrier ? " · " + q.carrier : "");
   } else {
     document.getElementById("premium-display").textContent = "$" + yr.toLocaleString() + " / yr";
     document.getElementById("premium-detail").textContent =
-      (mo ? "Or $" + mo.toFixed(2) + "/mo · " : "") + (q.policyType || "BOP") + " · " + (q.carrier || "Coterie");
+      (mo ? "Or $" + mo.toFixed(2) + "/mo · " : "") + (q.policyType || "BOP") + (q.carrier ? " · " + q.carrier : "");
   }
 }
 

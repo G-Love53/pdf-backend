@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260730a";
+  const ASSET_V = "20260730b";
 
   const MONTH_LABELS = [
     ["01", "January"],
@@ -65,12 +65,11 @@
   function quoteMetaSuffix(q) {
     const policy = q.policyType || "GL";
     if (q.carrier) return policy + " · " + q.carrier;
-    if (isPartnerDemo()) return policy;
-    return policy + " · Coterie";
+    return policy;
   }
 
-  function partnerSanitizeError(msg) {
-    if (!isPartnerDemo() || !msg) return msg;
+  function sanitizeQuoteError(msg) {
+    if (!msg) return msg;
     return String(msg)
       .replace(/Coterie API \d+[^.]*\.?/gi, "Unable to get a quote right now. ")
       .replace(/\bCoterie\b/gi, "quote service")
@@ -78,8 +77,7 @@
       .trim();
   }
 
-  function applyPartnerDemoPaymentLabels() {
-    if (!isPartnerDemo()) return;
+  function applyPaymentSectionLabels() {
     const paySection = $("payment-section");
     if (!paySection) return;
     paySection.querySelectorAll("label").forEach((label) => {
@@ -107,7 +105,7 @@
   function showErr(msg) {
     const el = $("err-box");
     if (!el) return;
-    el.textContent = partnerSanitizeError(msg);
+    el.textContent = sanitizeQuoteError(msg);
     el.classList.add("show");
   }
 
@@ -752,11 +750,7 @@
     const items = schema?.appetiteKnockouts || [];
     if (!items.length) return "";
     let html =
-      '<details class="cq-section" id="section-appetite" open><summary>Eligibility <span class="cq-hint">' +
-      (isPartnerDemo()
-        ? "Instant quote — business owners only"
-        : "Coterie instant quote — business owners only") +
-      '</span></summary><div class="cq-section-body">';
+      '<details class="cq-section" id="section-appetite" open><summary>Eligibility <span class="cq-hint">Instant quote — business owners only</span></summary><div class="cq-section-body">';
     html +=
       '<p class="cq-knockout-intro">Answer <strong>Yes</strong> or <strong>No</strong> for each. If any activity applies, we will route you to our full application.</p>';
     items.forEach((item) => {
@@ -805,11 +799,7 @@
 
     if (schema.sections?.rating) {
       html +=
-        '<details class="cq-section" id="section-rating" open><summary>Business rating details <span class="cq-hint">' +
-        (isPartnerDemo()
-          ? "Revenue, payroll &amp; month started — required for your quote"
-          : "Revenue, payroll &amp; month started — required by Coterie") +
-        '</span></summary><div class="cq-section-body">';
+        '<details class="cq-section" id="section-rating" open><summary>Business rating details <span class="cq-hint">Revenue, payroll &amp; month started — required for your quote</span></summary><div class="cq-section-body">';
       schema.fields
         .filter((f) => f.section === "rating")
         .forEach((f) => {
@@ -1123,9 +1113,7 @@
         '<span class="plan-period">per month</span>' +
         '<span class="plan-note">About $' +
         yr.toLocaleString() +
-        (isPartnerDemo()
-          ? "/yr total · billed monthly</span>"
-          : "/yr total · billed monthly through Coterie</span>") +
+        "/yr total · billed monthly</span>" +
         "</button>";
     }
 
@@ -1238,7 +1226,7 @@
       }
     }
     onConfigReady();
-    applyPartnerDemoPaymentLabels();
+    applyPaymentSectionLabels();
   }
 
   function applyInterimDemoPaymentUi() {
@@ -1271,7 +1259,7 @@
           ? "Skip payment — demo only"
           : "Complete bind — demo (no charge)";
     }
-    applyPartnerDemoPaymentLabels();
+    applyPaymentSectionLabels();
   }
 
   async function callDemoFinalize() {
@@ -1375,7 +1363,7 @@
         if (demoEnabled && !paymentBindReady) {
           applyInterimDemoPaymentUi();
         } else {
-          applyPartnerDemoPaymentLabels();
+          applyPaymentSectionLabels();
         }
         $("quote-box").scrollIntoView({ behavior: "smooth", block: "start" });
       } catch (err) {
@@ -1489,9 +1477,7 @@
       const host = $("cq-dynamic");
       if (host) {
         host.innerHTML =
-          '<p class="cq-placeholder">Select ownership above to see coverage options' +
-          (isPartnerDemo() ? "." : " and Coterie rating questions.") +
-          "</p>";
+          '<p class="cq-placeholder">Select ownership above to see coverage options.</p>';
       }
     }
     await loadConfig().catch(() => {});
