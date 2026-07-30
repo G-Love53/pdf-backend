@@ -49,7 +49,7 @@
 <body>
 <div class="wrap">
   <div class="demo-banner">
-    <strong>Partner demo</strong> — Sandbox API, no card charge. Toggle <strong>Owner vs employee</strong> and
+    <strong>Partner demo</strong> — Demo mode, no card charge. Toggle <strong>Owner vs employee</strong> and
     <strong>Pilates (BOP + GL)</strong> vs yoga/trainer (GL). Use <strong>Complete bind — demo</strong>, then check welcome email →
     <strong>connect.commercialinsurance-direct.com</strong>.
   </div>
@@ -60,7 +60,7 @@
 
   <div class="card">
     <h1>Fitness — ConnectQuote Demo</h1>
-    <p class="sub">Colorado fitness studios &amp; trainers (sandbox)</p>
+    <p class="sub">Colorado fitness studios &amp; trainers</p>
 
     <form id="cq-form">
       <div class="row">
@@ -139,7 +139,7 @@
     <p id="premium-detail"></p>
     <p style="font-size:.85rem;color:#555" id="state-notice"></p>
     <div id="payment-section">
-      <label>Card details (live bind — sandbox only if testing card)</label>
+      <label>Card details (secure payment)</label>
       <div id="card-element"></div>
       <button type="button" id="pay-btn">Pay &amp; bind coverage</button>
       <button type="button" class="secondary" id="demo-btn" style="display:none">Complete bind — demo (no charge)</button>
@@ -153,7 +153,7 @@
     <p style="font-size:.85rem;margin-top:12px">Connect PWA: Share → Add to Home Screen at connect.commercialinsurance-direct.com</p>
   </div>
 
-  <p class="footer">© Commercial Insurance Direct · Partner sandbox demo</p>
+  <p class="footer">© Commercial Insurance Direct · Partner demo</p>
 </div>
 
 <script>
@@ -166,9 +166,9 @@
   ).replace(/\/$/, "");
   window.CONNECTQUOTE = { segment: "fitness", api: api, partnerDemo: true };
   var css = document.querySelector('link[rel="stylesheet"]');
-  if (css) css.href = api + "/static/connectquote-intake.css?v=20260729c";
+  if (css) css.href = api + "/static/connectquote-intake.css?v=20260730a";
   var s = document.createElement("script");
-  s.src = api + "/static/connectquote-intake.js?v=20260729c";
+  s.src = api + "/static/connectquote-intake.js?v=20260730a";
   document.body.appendChild(s);
 })();
 </script>

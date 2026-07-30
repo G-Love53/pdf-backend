@@ -1,7 +1,7 @@
 {
   "name": "CID ConnectQuote Demo",
   "short_name": "CQ Demo",
-  "description": "Partner demo — Fitness ConnectQuote sandbox (no charge)",
+  "description": "Partner demo — Fitness ConnectQuote (no charge)",
   "start_url": "/connectquote/fitness-demo.html?src=demo&cid=partner-home",
   "display": "standalone",
   "background_color": "#f3f4f6",

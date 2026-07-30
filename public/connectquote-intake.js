@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260729c";
+  const ASSET_V = "20260730a";
 
   const MONTH_LABELS = [
     ["01", "January"],
@@ -58,6 +58,38 @@
     return document.getElementById(id);
   }
 
+  function isPartnerDemo() {
+    return !!cfg.partnerDemo;
+  }
+
+  function quoteMetaSuffix(q) {
+    const policy = q.policyType || "GL";
+    if (q.carrier) return policy + " · " + q.carrier;
+    if (isPartnerDemo()) return policy;
+    return policy + " · Coterie";
+  }
+
+  function partnerSanitizeError(msg) {
+    if (!isPartnerDemo() || !msg) return msg;
+    return String(msg)
+      .replace(/Coterie API \d+[^.]*\.?/gi, "Unable to get a quote right now. ")
+      .replace(/\bCoterie\b/gi, "quote service")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+
+  function applyPartnerDemoPaymentLabels() {
+    if (!isPartnerDemo()) return;
+    const paySection = $("payment-section");
+    if (!paySection) return;
+    paySection.querySelectorAll("label").forEach((label) => {
+      const t = label.textContent || "";
+      if (/card details/i.test(t)) {
+        label.textContent = "Card details (secure payment)";
+      }
+    });
+  }
+
   function defaultStartDate() {
     const d = new Date();
     d.setDate(d.getDate() + 14);
@@ -75,7 +107,7 @@
   function showErr(msg) {
     const el = $("err-box");
     if (!el) return;
-    el.textContent = msg;
+    el.textContent = partnerSanitizeError(msg);
     el.classList.add("show");
   }
 
@@ -720,7 +752,11 @@
     const items = schema?.appetiteKnockouts || [];
     if (!items.length) return "";
     let html =
-      '<details class="cq-section" id="section-appetite" open><summary>Eligibility <span class="cq-hint">Coterie instant quote — business owners only</span></summary><div class="cq-section-body">';
+      '<details class="cq-section" id="section-appetite" open><summary>Eligibility <span class="cq-hint">' +
+      (isPartnerDemo()
+        ? "Instant quote — business owners only"
+        : "Coterie instant quote — business owners only") +
+      '</span></summary><div class="cq-section-body">';
     html +=
       '<p class="cq-knockout-intro">Answer <strong>Yes</strong> or <strong>No</strong> for each. If any activity applies, we will route you to our full application.</p>';
     items.forEach((item) => {
@@ -769,7 +805,11 @@
 
     if (schema.sections?.rating) {
       html +=
-        '<details class="cq-section" id="section-rating" open><summary>Business rating details <span class="cq-hint">Revenue, payroll &amp; month started — required by Coterie</span></summary><div class="cq-section-body">';
+        '<details class="cq-section" id="section-rating" open><summary>Business rating details <span class="cq-hint">' +
+        (isPartnerDemo()
+          ? "Revenue, payroll &amp; month started — required for your quote"
+          : "Revenue, payroll &amp; month started — required by Coterie") +
+        '</span></summary><div class="cq-section-body">';
       schema.fields
         .filter((f) => f.section === "rating")
         .forEach((f) => {
@@ -1083,7 +1123,9 @@
         '<span class="plan-period">per month</span>' +
         '<span class="plan-note">About $' +
         yr.toLocaleString() +
-        "/yr total · billed monthly through Coterie</span>" +
+        (isPartnerDemo()
+          ? "/yr total · billed monthly</span>"
+          : "/yr total · billed monthly through Coterie</span>") +
         "</button>";
     }
 
@@ -1156,16 +1198,11 @@
         "About $" +
         yr.toLocaleString() +
         "/yr total · " +
-        (q.policyType || "GL") +
-        " · " +
-        (q.carrier || "Coterie");
+        quoteMetaSuffix(q);
     } else {
       $("premium-display").textContent = yr ? "$" + yr.toLocaleString() + " / yr" : "—";
       $("premium-detail").textContent =
-        (mo ? "Or $" + mo.toFixed(2) + "/mo available · " : "") +
-        (q.policyType || "GL") +
-        " · " +
-        (q.carrier || "Coterie");
+        (mo ? "Or $" + mo.toFixed(2) + "/mo available · " : "") + quoteMetaSuffix(q);
     }
   }
 
@@ -1190,15 +1227,18 @@
       const demoBtn = $("demo-btn");
       if (demoBtn) {
         demoBtn.style.display = "block";
-        demoBtn.textContent = paymentBindReady
-          ? "Skip payment — demo only"
-          : "Complete bind — demo (no charge)";
+        demoBtn.textContent = isPartnerDemo()
+          ? "Complete bind — demo (no charge)"
+          : paymentBindReady
+            ? "Skip payment — demo only"
+            : "Complete bind — demo (no charge)";
       }
       if (!paymentBindReady) {
         applyInterimDemoPaymentUi();
       }
     }
     onConfigReady();
+    applyPartnerDemoPaymentLabels();
   }
 
   function applyInterimDemoPaymentUi() {
@@ -1225,10 +1265,13 @@
     const demoBtn = $("demo-btn");
     if (demoBtn) {
       demoBtn.style.display = "block";
-      demoBtn.textContent = paymentBindReady
-        ? "Skip payment — demo only"
-        : "Complete bind — demo (no charge)";
+      demoBtn.textContent = isPartnerDemo()
+        ? "Complete bind — demo (no charge)"
+        : paymentBindReady
+          ? "Skip payment — demo only"
+          : "Complete bind — demo (no charge)";
     }
+    applyPartnerDemoPaymentLabels();
   }
 
   async function callDemoFinalize() {
@@ -1331,6 +1374,8 @@
         $("payment-section").classList.add("show");
         if (demoEnabled && !paymentBindReady) {
           applyInterimDemoPaymentUi();
+        } else {
+          applyPartnerDemoPaymentLabels();
         }
         $("quote-box").scrollIntoView({ behavior: "smooth", block: "start" });
       } catch (err) {
@@ -1444,7 +1489,9 @@
       const host = $("cq-dynamic");
       if (host) {
         host.innerHTML =
-          '<p class="cq-placeholder">Select ownership above to see coverage options and Coterie rating questions.</p>';
+          '<p class="cq-placeholder">Select ownership above to see coverage options' +
+          (isPartnerDemo() ? "." : " and Coterie rating questions.") +
+          "</p>";
       }
     }
     await loadConfig().catch(() => {});
