@@ -3,7 +3,7 @@
 > **Canonical location (RSS):** `pdf-backend/docs/partnerships.md`  
 > **As of:** 2026-07-07 (America/Denver). Update when vendors, carriers, or status change.
 >
-> **Related:** Coterie ConnectQuote spec → [`coterie-integration.md`](./coterie-integration.md). Technical vendor-by-stage → [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md). Entity/brands → [`corporate-structure.md`](./corporate-structure.md). Diligence backlog → [`partnership-gaps.md`](./partnership-gaps.md). Compliance → [`compliance-roadmap.md`](./compliance-roadmap.md).
+> **Related:** Coterie ConnectQuote spec → [`coterie-integration.md`](./coterie-integration.md). **Direct partner discovery (RSS)** → [`direct-partner-discovery-rss.md`](./direct-partner-discovery-rss.md). Technical vendor-by-stage → [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md). Entity/brands → [`corporate-structure.md`](./corporate-structure.md). Diligence backlog → [`partnership-gaps.md`](./partnership-gaps.md). Compliance → [`compliance-roadmap.md`](./compliance-roadmap.md).
 
 ---
 
@@ -38,6 +38,7 @@
 | **Cohesive AI** | Marketing | Planned | Warm leads → segment `quotes@` | Referral partner | Email forward (planned) | N/A | Written lead-referral agreement before prod | Rick |
 | **Coterie Insurance** | MGA / API carrier | **Prod live (CO)** | ConnectQuote instant rail — Electrical, Fitness, HVAC, Plumber | Distribution / API volume | API + webhooks (+ Stripe bind) | Coterie states compliant; confirm | DPA; issued-policy webhook + doc ingest; multi-state licensing | Gerry |
 | **Stripe** (via Coterie) | API | **Live (prod + sandbox paths)** | Payment on Coterie instant bind | Payment volume | Embedded (Coterie) | Stripe Type II (standard) | PCI: insured pays Coterie/Stripe; CID not MoR; `pk_live_` for live card bind | Gerry |
+| **USLI / CoverSmart** | Carrier | **Appointment** (small business + special events) | Optional second instant rail; COI/docs if no API | Distribution / premium | TBD — discovery | Verify USLI trust / DPA | Send RSS discovery (`direct-partner-discovery-rss.md`); API vs hosted; Connect handoff | Rick / Gerry |
 | **Traditional carriers** (per segment) | Carrier | Live | Placement for non-instant risks | Submissions / premium | ACORD/SUPP + email (S1–S6) | Varies by carrier | **Named appointment matrix** (see gaps doc) | Gerry / Rick |
 | **Coterie admitted insurers** (Spinnaker, Clear Spring, Benchmark) | Carrier | Via Coterie | Paper behind Coterie BOP/GL/PL | N/A | Via Coterie API | Carrier NAIC per Coterie FAQ | Document as Coterie paper, not direct CID API | Gerry |
 | **CID_HomeBase** (repo / submodule) | Other | Live | Templates, mapping, PDF truth | Internal IP | Git submodule | N/A | Access control | Gerry |
@@ -69,3 +70,4 @@
 | 2026-06-04 | Coterie sandbox auth + applications validated; bindable blocked on CO producer license; see `coterie-integration.md`. |
 | 2026-06-12 | ConnectQuote sandbox E2E shipped — bindable quotes, demo bind, Connect; see `connectquote-shipped-2026-06.md`. |
 | 2026-07-07 | ConnectQuote **prod** expanded to HVAC + Plumber (CO); Coterie + Stripe rows updated; diligence docs aligned. |
+| 2026-07-30 | USLI / CoverSmart row added; RSS direct-partner discovery template (`direct-partner-discovery-rss.md`). |

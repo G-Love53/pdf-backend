@@ -303,11 +303,12 @@ ORDER BY n DESC;
 
 ## Build checklist (when implementing v1)
 
-- [ ] `GET /api/operator/connectquote-learning?days=7&segment=` — JSON for cards A–E  
-- [ ] Section on `home.ejs` or `/operator/connectquote`  
-- [ ] Exclude `src=demo` / test emails via env allowlist  
-- [ ] Fix “waiting for carrier outreach” to exclude `quote_rail = coterie` with bindable timeline  
-- [ ] Optional: link each row to submission detail + timeline viewer  
+- [x] ConnectQuote learning on **`/operator/home`** — funnel, revenue, quoted-not-bound + binds tables (`connectQuoteLearningService.js`, 2026-08-01)
+- [x] Exclude `src=demo` / partner-demo from marketing KPIs
+- [x] Fix “waiting for carrier outreach” to exclude ConnectQuote with bindable timeline
+- [x] Requote tracking — same `submission_public_id` on repeat Get quote + `coterie.bindable_quote` count
+- [ ] `GET /api/operator/connectquote-learning` standalone endpoint (optional — bundled in dashboard)
+- [ ] Optional: link each row to submission detail + timeline viewer
 
 ---
 

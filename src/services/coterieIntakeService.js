@@ -157,6 +157,33 @@ export async function processConnectQuoteIntake(body, reqMeta = {}) {
         [submissionPublicId],
       );
       submissionId = r.rows[0]?.submission_id || null;
+      if (submissionId) {
+        try {
+          await pool.query(
+            `
+              UPDATE submissions
+              SET raw_submission_json = raw_submission_json || $2::jsonb
+              WHERE submission_id = $1
+            `,
+            [
+              submissionId,
+              JSON.stringify({
+                ...form,
+                segment,
+                business_class: businessClassKey,
+                quote_rail: "coterie",
+                traffic_source: form.traffic_source || form.src || null,
+                campaign_id: form.campaign_id || form.cid || null,
+              }),
+            ],
+          );
+        } catch (updErr) {
+          console.warn(
+            "[coterie intake] requote submission merge:",
+            updErr.message || updErr,
+          );
+        }
+      }
     }
   }
 
@@ -288,6 +315,14 @@ export async function processConnectQuoteIntake(body, reqMeta = {}) {
           applicationId: appSummary.applicationId,
           quoteId: quoteSummary.quoteId,
           premium: quoteSummary.premium,
+          business_class: businessClassKey,
+          application_types: applicationTypes,
+          form_snapshot: {
+            annual_sales: form.annual_sales ?? form.sales ?? null,
+            payroll: form.payroll ?? form.annual_payroll ?? null,
+            is_owner: form.is_owner ?? null,
+            premise_state: state,
+          },
         });
         await persistCoterieSession(submissionId, {
           submission_public_id: submissionPublicId,

@@ -1331,6 +1331,7 @@
             segment: SEGMENT,
             business_class: selectedBusinessClass(),
             site_domain: location.hostname,
+            submission_public_id: session.submission_public_id || undefined,
             formData: formPayload(),
           }),
         });

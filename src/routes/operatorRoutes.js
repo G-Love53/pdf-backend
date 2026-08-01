@@ -13,6 +13,7 @@ import {
   segmentQuerySuffix,
   sqlSegmentFilter,
 } from "../utils/operatorSegment.js";
+import { getConnectQuoteLearning, parseDays } from "../services/connectQuoteLearningService.js";
 import { dedupeCarrierMessagesForGmail } from "../jobs/gmailPoller.js";
 import {
   addManualCarrierQuote,
@@ -212,6 +213,14 @@ router.get("/api/operator/dashboard", async (req, res) => {
             LEFT JOIN quotes q ON q.submission_id = s.submission_id
             WHERE s.status = 'received'
               AND q.submission_id IS NULL
+              AND NOT (
+                s.raw_submission_json->>'quote_rail' = 'coterie'
+                AND EXISTS (
+                  SELECT 1 FROM timeline_events te
+                  WHERE te.submission_id = s.submission_id
+                    AND te.event_type IN ('coterie.bindable_quote', 'coterie.session')
+                )
+              )
               ${segSql}
             ORDER BY s.submitted_at ASC
             LIMIT 50
@@ -383,6 +392,16 @@ router.get("/api/operator/dashboard", async (req, res) => {
 
     const countsRow = countsResult.rows[0] || {};
 
+    let connectquote = null;
+    try {
+      connectquote = await getConnectQuoteLearning(pool, {
+        segment,
+        days: parseDays(req.query.cq_days),
+      });
+    } catch (cqErr) {
+      console.error("[operator/dashboard] connectquote learning:", cqErr.message || cqErr);
+    }
+
     res.json({
       segment,
       counts: {
@@ -405,6 +424,7 @@ router.get("/api/operator/dashboard", async (req, res) => {
         connect_bind_confirmation_stored: connectBindQueueResult.rows,
         connect_policy_documents_stored: connectPolicyDocsQueueResult.rows,
       },
+      connectquote,
     });
   } catch (err) {
     console.error("[operator/dashboard] error:", err.message || err);

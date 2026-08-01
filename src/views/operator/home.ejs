@@ -123,6 +123,10 @@
         font-size: 11px;
         color: #9ca3af;
       }
+      .pill-warn {
+        border-color: #854d0e;
+        color: #fcd34d;
+      }
       a {
         color: #38bdf8;
         text-decoration: none;
@@ -303,6 +307,92 @@
             <div class="card-metric-cta">Open list →</div>
           </div>
         </a>
+      </div>
+
+      <div class="section-title" style="margin-top: 4px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+        <span>ConnectQuote — quoted vs bound</span>
+        <label for="cq-days" style="font-size: 12px; font-weight: 400; color: #6b7280; margin: 0">
+          Window
+          <select id="cq-days" aria-label="ConnectQuote learning window (days)" style="margin-left: 6px; background: #020617; color: #e5e7eb; border: 1px solid #1f2937; border-radius: 6px; padding: 4px 8px; font-size: 12px">
+            <option value="7" selected>7 days</option>
+            <option value="14">14 days</option>
+            <option value="30">30 days</option>
+          </select>
+        </label>
+      </div>
+      <p style="font-size: 12px; color: #6b7280; margin: 0 0 10px; line-height: 1.45; max-width: 920px">
+        Instant Coterie rail only (excludes <code style="color:#cbd5e1">src=demo</code> and partner-demo campaigns).
+        <strong style="color:#d1d5db">Quoted, not bound</strong> = saw premium, no policy row — use for price follow-up and requote behavior.
+        <strong style="color:#d1d5db">Requotes</strong> = extra <code style="color:#cbd5e1">Get quote</code> clicks on the same submission (field changes).
+      </p>
+      <div class="grid" id="cq-funnel-metrics">
+        <div class="card">
+          <h2>CQ submits</h2>
+          <div class="metric" id="cq-metric-submits">—</div>
+        </div>
+        <div class="card">
+          <h2>CQ quoted</h2>
+          <div class="metric" id="cq-metric-quoted">—</div>
+          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-quote-rate">—</div>
+        </div>
+        <div class="card">
+          <h2>CQ bound</h2>
+          <div class="metric" id="cq-metric-bound">—</div>
+          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-bind-rate">—</div>
+        </div>
+        <div class="card">
+          <h2>Open quoted premium</h2>
+          <div class="metric" id="cq-metric-open-premium-sum">—</div>
+          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-open-premium-avg">—</div>
+        </div>
+        <div class="card">
+          <h2>Bound premium</h2>
+          <div class="metric" id="cq-metric-bound-premium-sum">—</div>
+          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-bound-premium-avg">—</div>
+        </div>
+        <div class="card">
+          <h2>With requotes</h2>
+          <div class="metric" id="cq-metric-requotes">—</div>
+          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-traditional">—</div>
+        </div>
+      </div>
+
+      <div class="layout" style="margin-bottom: 24px">
+        <div>
+          <div class="section-title">Quoted, not bound</div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Submission</th>
+                  <th>Client</th>
+                  <th>Last premium</th>
+                  <th>Δ first→last</th>
+                  <th>Requotes</th>
+                  <th>src / cid</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-cq-quoted-not-bound"></tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div class="section-title">Recent binds (compare)</div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Submission</th>
+                  <th>Bound premium</th>
+                  <th>Last quote</th>
+                  <th>Requotes</th>
+                  <th>Min to bind</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-cq-recent-binds"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <div class="layout">
@@ -491,6 +581,103 @@
         const v = document.getElementById("operator-segment").value;
         if (!v || v === "all") return "";
         return "?segment=" + encodeURIComponent(v);
+      }
+
+      function dashboardFetchQS() {
+        const p = new URLSearchParams();
+        const v = document.getElementById("operator-segment").value;
+        if (v && v !== "all") p.set("segment", v);
+        const daysEl = document.getElementById("cq-days");
+        p.set("cq_days", daysEl?.value || "7");
+        const s = p.toString();
+        return s ? "?" + s : "";
+      }
+
+      function fmtMoney(n) {
+        const x = Number(n);
+        if (!Number.isFinite(x)) return "—";
+        return "$" + x.toLocaleString(undefined, { maximumFractionDigits: 0 });
+      }
+
+      function renderConnectQuoteLearning(cq) {
+        if (!cq) return;
+        const f = cq.funnel || {};
+        const r = cq.revenue || {};
+        document.getElementById("cq-metric-submits").textContent = f.submits ?? "0";
+        document.getElementById("cq-metric-quoted").textContent = f.quoted ?? "0";
+        document.getElementById("cq-metric-bound").textContent = f.bound ?? "0";
+        document.getElementById("cq-metric-quote-rate").textContent =
+          f.quote_rate != null ? f.quote_rate + "% submit → quote" : "—";
+        document.getElementById("cq-metric-bind-rate").textContent =
+          f.bind_rate != null ? f.bind_rate + "% quote → bind" : "—";
+        document.getElementById("cq-metric-open-premium-sum").textContent =
+          fmtMoney(r.open_quoted_premium_sum);
+        document.getElementById("cq-metric-open-premium-avg").textContent =
+          r.open_quoted_count
+            ? "avg " + fmtMoney(r.open_quoted_premium_avg) + " · " + r.open_quoted_count + " open"
+            : "no open quotes";
+        document.getElementById("cq-metric-bound-premium-sum").textContent =
+          fmtMoney(r.bound_premium_sum);
+        document.getElementById("cq-metric-bound-premium-avg").textContent =
+          r.bound_count
+            ? "avg " + fmtMoney(r.bound_premium_avg) + " · " + r.bound_count + " bound"
+            : "no binds";
+        document.getElementById("cq-metric-requotes").textContent =
+          f.with_requotes ?? "0";
+        document.getElementById("cq-metric-traditional").textContent =
+          (f.traditional_exits ?? 0) + " traditional exits";
+
+        const openTbody = document.getElementById("tbody-cq-quoted-not-bound");
+        openTbody.innerHTML = "";
+        const openRows = cq.quoted_not_bound || [];
+        if (!openRows.length) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td colspan="6" style="color:#6b7280">None in this window — all quoted submissions bound, or no quotes yet.</td>`;
+          openTbody.appendChild(tr);
+        }
+        openRows.forEach((item) => {
+          const tr = document.createElement("tr");
+          const delta = item.premium_delta;
+          let deltaLabel = "—";
+          if (delta != null && delta !== 0) {
+            deltaLabel =
+              (delta > 0 ? "+" : "") +
+              fmtMoney(delta).replace("$", "$");
+          } else if (delta === 0) {
+            deltaLabel = "0";
+          }
+          const requotes = item.requote_changes ?? 0;
+          tr.innerHTML = `
+            <td>${escapeHtml(item.submission_public_id || "—")}<br><span class="pill">${escapeHtml(item.segment || "")}</span></td>
+            <td>${escapeHtml(item.client_name || "")}<br><span style="font-size:11px;color:#6b7280">${escapeHtml(item.client_email || "")}</span></td>
+            <td>${fmtMoney(item.last_quoted_premium)}</td>
+            <td>${deltaLabel}</td>
+            <td>${requotes > 0 ? `<span class="pill pill-warn">${requotes}</span>` : "0"}</td>
+            <td style="font-size:11px">${escapeHtml(item.src || "—")}<br>${escapeHtml(item.cid || "—")}</td>
+          `;
+          openTbody.appendChild(tr);
+        });
+
+        const bindTbody = document.getElementById("tbody-cq-recent-binds");
+        bindTbody.innerHTML = "";
+        const bindRows = cq.recent_binds || [];
+        if (!bindRows.length) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td colspan="5" style="color:#6b7280">No binds in this window.</td>`;
+          bindTbody.appendChild(tr);
+        }
+        bindRows.forEach((item) => {
+          const tr = document.createElement("tr");
+          const requotes = item.requote_changes ?? 0;
+          tr.innerHTML = `
+            <td>${escapeHtml(item.submission_public_id || "—")}<br><span class="pill">${escapeHtml(item.segment || "")}</span></td>
+            <td>${fmtMoney(item.bound_premium)}</td>
+            <td>${fmtMoney(item.last_quoted_premium)}</td>
+            <td>${requotes > 0 ? `<span class="pill">${requotes}</span>` : "0"}</td>
+            <td>${item.minutes_to_bind != null ? item.minutes_to_bind + " min" : "—"}</td>
+          `;
+          bindTbody.appendChild(tr);
+        });
       }
 
       function syncSegmentNav() {
@@ -687,7 +874,7 @@
       async function loadDashboard() {
         try {
           const res = await fetch(
-            "/api/operator/dashboard" + currentSegmentQS(),
+            "/api/operator/dashboard" + dashboardFetchQS(),
           );
           if (!res.ok) return;
           const data = await res.json();
@@ -712,6 +899,8 @@
           document.getElementById(
             "metric-connect-policy-docs-today",
           ).textContent = counts.connect_policy_docs_stored_today ?? "0";
+
+          renderConnectQuoteLearning(data.connectquote);
 
           const queues = data.queues || {};
 
@@ -868,6 +1057,10 @@
           syncSegmentNav();
           loadDashboard();
         });
+
+      document.getElementById("cq-days")?.addEventListener("change", () => {
+        loadDashboard();
+      });
 
       loadDashboard();
       setInterval(loadDashboard, 30000);
