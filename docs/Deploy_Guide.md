@@ -369,36 +369,160 @@ Goal: public quote form at `https://<segment>insurancedirect.com` pointing to th
   - DNS verified
   - HTTPS enabled
 
+**Do not add a manual A record** for the apex domain — Netlify creates **NETLIFY** alias records (`@` and `www` → `*.netlify.app`). An empty A-record modal is not needed.
+
+### 4. Placeholder site (before ConnectQuote HTML)
+
+- OK to deploy a **temporary** `index.html` (e.g. copy from another segment) to stand up the Netlify project.
+- Replace with segment-branded **`connectquote.html`** when the ConnectQuote build ships.
+- Placeholder must **not** keep another segment’s name (e.g. “Electrical”) if the domain is public.
+
+---
+
+## New segment — domain + `quotes@` email launch (2026 playbook)
+
+> **Validated:** beautyinsurancedirect.com, cleaninginsurancedirect.com, petserviceinsurancedirect.com (Aug 2026).  
+> **DNS lives in Netlify** after NS cutover — **not** GoDaddy DNS. **Gmail poller tokens** go on **CID-PDF-API** only.
+
+### Order of operations (do not skip)
+
+| Step | Where | Done when |
+|------|--------|-----------|
+| 1 | Netlify site + custom domain | `*.netlify.app` + domain added |
+| 2 | GoDaddy → Netlify **nameservers** (4 NS) | Netlify: DNS verified + HTTPS |
+| 3 | Google Workspace → add domain | Domain in Admin |
+| 4 | Netlify DNS → **MX** only (see below) | MX in zone |
+| 5 | Workspace → Activate Gmail → **Other verification options** → manual MX → **Confirm** | “Gmail is activated!” |
+| 6 | Create **`quotes@<domain>`** user | User in Directory |
+| 7 | **2-Step Verification** on that mailbox (see § 2SV trick) | Admin shows 2SV **ON** |
+| 8 | Netlify DNS → **SPF**, **DKIM**, **DMARC** | Records in zone |
+| 9 | Admin → DKIM → **Start authentication** | DKIM success |
+| 10 | **Postmaster Tools** + Search Console (domain) | Postmaster **Verified** |
+| 11 | Test email **to** `quotes@…` from outside Gmail | Inbox receives |
+| 12 | **App password** + OAuth **refresh token** → Render **`GMAIL_REFRESH_TOKEN_*`** on **cid-pdf-api** | Deploy API |
+| 13 | ConnectQuote code + `connectquote.html` | Separate build (see checklist below) |
+
+**Do not create `quotes@` until Gmail is activated** for that domain (step 5).  
+**Do not click “Sign in to GoDaddy”** on Workspace Gmail setup — use **Other verification options** and enter MX in **Netlify DNS**.
+
+### Netlify DNS records (per domain)
+
+| Type | Name | Value / notes |
+|------|------|----------------|
+| *(auto)* | `@`, `www` | **NETLIFY** → `yoursite.netlify.app` — do not duplicate with A |
+| **MX** | `@` | Priority **1** → **`SMTP.GOOGLE.COM`** (Google’s current single-MX setup) |
+| **TXT** | `@` | `v=spf1 include:_spf.google.com ~all` |
+| **TXT** | `google._domainkey` | From Admin → Apps → Gmail → **Authenticate email** → full `v=DKIM1;…` |
+| **TXT** | `_dmarc` | `v=DMARC1; p=none; rua=mailto:dmarc@<domain>` |
+| **TXT** | `@` | Postmaster / Search Console: **`google-site-verification=…`** (full string incl. prefix) |
+
+**Legacy MX (still valid if Google shows five records):** `ASPMX.L.GOOGLE.COM` (1), `ALT1/ALT2` (5), `ALT3/ALT4` (10).
+
+**MX propagation check:** [dnschecker.org](https://dnschecker.org) → MX lookup → should show Google globally before Workspace **Confirm**.
+
+### Google Workspace — Gmail activation (manual path)
+
+1. Workspace setup → **Activate Gmail** → **Other verification options** (not GoDaddy sign-in).
+2. Add **one MX** in Netlify (table above); remove any other MX.
+3. Wait for dnschecker → check box → **Confirm**.
+4. Optional steps on success screen: **Authenticate outgoing email** (DKIM) — or do DKIM from Admin later.
+
+### Postmaster Tools
+
+1. [postmaster.google.com](https://postmaster.google.com) → add `<domain>`.
+2. If no TXT is shown, domain may already verify via **Search Console** (same Google account) — check **Manage domains** for **Verified**.
+3. If verification TXT is required, add on Netlify `@` → wait 15–60 min → **Verify**.
+
+### 2-Step Verification — org enforced, user shows OFF (workaround)
+
+Symptom: Admin → User → Security shows **2-Step Verification: OFF** but **Enforced across your organization**.
+
+**Fix (Aug 2026 — reliable path):**
+
+1. **Admin** → open the `quotes@…` user → **Security** → **2-Step Verification** → **Get backup verification codes** (generate + save codes).
+2. Open **incognito** → [mail.google.com](https://mail.google.com) → sign in as **`quotes@<domain>`** (temp password).
+3. When Google prompts for **2-Step Verification**, choose **Enter one of your 8-digit backup codes** and paste a code from step 1.
+4. Complete any remaining prompts (password change, enroll phone/app if asked).
+5. Return to Admin → Security should show 2SV **ON** → then create **App password** ([myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)).
+
+This avoids getting stuck on Admin showing OFF while enrollment is still required.
+
+### OAuth refresh token (poller) — use Render + Playground, not new Cloud project
+
+**Do not** create a new Google Cloud project for segment mailboxes.
+
+1. **Render** → **cid-pdf-api** → copy existing **`GMAIL_CLIENT_ID`** + **`GMAIL_CLIENT_SECRET`**.
+2. [OAuth 2.0 Playground](https://developers.google.com/oauthplayground) → gear → **Use your own OAuth credentials** → paste ID/secret → **Offline** + **Consent screen**.
+3. Step 1 → Gmail API v1 → **`gmail.modify`** only → **Authorize** → sign in as **`quotes@<domain>`**.
+4. Step 2 → **Exchange** → copy **Refresh token** (`1//…`).
+5. **Render** → **cid-pdf-api** → add **`GMAIL_REFRESH_TOKEN_<SEGKEY>`** (see naming below) → deploy.
+
+Poller code must list the segment in **`src/config/segmentAgentInbox.js`** before the inbox is polled (ConnectQuote build).
+
+**Refresh token env naming (Aug 2026 segments):**
+
+| Domain | Inbox | Render env var |
+|--------|--------|----------------|
+| beautyinsurancedirect.com | quotes@beautyinsurancedirect.com | `GMAIL_REFRESH_TOKEN_BEAUTY` |
+| cleaninginsurancedirect.com | quotes@cleaninginsurancedirect.com | `GMAIL_REFRESH_TOKEN_CLEANING` |
+| petserviceinsurancedirect.com | quotes@petserviceinsurancedirect.com | `GMAIL_REFRESH_TOKEN_PET` |
+
+(App password → segment Render **`GMAIL_APP_PASSWORD`** override if that segment Web Service sends mail; poller uses refresh token on CID-PDF-API only.)
+
+### Launch checklist (copy per domain)
+
+```
+□ Netlify site + domain + NS at GoDaddy → Netlify (HTTPS on)
+□ MX @ → 1 SMTP.GOOGLE.COM
+□ Workspace Gmail activated (manual MX, not GoDaddy button)
+□ quotes@<domain> user created
+□ 2SV ON (backup-code sign-in trick if needed)
+□ SPF, DKIM, DMARC in Netlify DNS; DKIM authenticated in Admin
+□ Postmaster Verified
+□ Test receive at quotes@
+□ App password saved
+□ GMAIL_REFRESH_TOKEN_* on cid-pdf-api + deploy
+□ connectquote.html + backend registry (ConnectQuote build — separate)
+```
+
 ---
 
 ## Email infrastructure (Google Workspace)
 
 Goal: `quotes@<segment>insurancedirect.com` stays working while DNS moves and is trusted by carriers.
 
-### 1. Preserve MX records
+> **Full step-by-step:** see **New segment — domain + quotes@ email launch** above. This section is reference detail.
 
-- Before changing nameservers, note the existing 5 Google MX records at the registrar.
-- After NS points to Netlify, recreate those MX records in **Netlify DNS** (same priority and targets) so mail flow continues.
+### 1. MX records (Netlify DNS)
+
+- After NS points to Netlify, add MX on **`@`** in **Netlify DNS** (not GoDaddy).
+- **Current Google setup (2026):** one record — priority **1**, **`SMTP.GOOGLE.COM`**.
+- **Legacy:** five Google MX hosts (see playbook table) — use if Workspace wizard lists them.
 
 ### 2. SPF
 
-- In Netlify DNS, add a TXT record on the root (`@`) like:
+- In Netlify DNS, add a TXT record on the root (`@`):
   - `v=spf1 include:_spf.google.com ~all`
 
 ### 3. DKIM
 
 - In Google Admin → Apps → Gmail → Authenticate email:
   - Generate a DKIM key for the domain.
-  - Add the DKIM TXT record in Netlify DNS with the selector and value from Google.
+  - **Netlify:** Type TXT, Name **`google._domainkey`**, Value = full `v=DKIM1;…` string from Google.
+  - **Start authentication** in Admin after the TXT propagates.
 
-### 4. App password for the quotes@ account
+### 4. DMARC
 
-- In the Google account that owns `quotes@<segment>insurancedirect.com`:
-  - Turn on 2‑Step Verification.
-  - Create a Mail **App Password**.
-- This 16‑character value is used by the backend to authenticate to Gmail.
+- Netlify DNS → TXT → Name **`_dmarc`** → Value:
+  - `v=DMARC1; p=none; rua=mailto:dmarc@<your-domain>`
 
-### 5. Google Postmaster Tools (outbound campaigns — RSS)
+### 5. App password for the quotes@ account
+
+- Requires **2-Step Verification ON** on that user (see **2SV trick** in playbook).
+- [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) → create → 16-character password.
+- Used for **`GMAIL_APP_PASSWORD`** on segment Render services (outbound send).
+
+### 6. Google Postmaster Tools (outbound campaigns — RSS)
 
 **Reliable:** see spam rate, authentication failures, and reputation signals for **Gmail recipients** before small issues become inbox placement problems. **Scalable:** same checklist for every segment sending domain. **Sellable:** third‑party audit trail that DNS + authentication are monitored, not guessed.
 
@@ -573,3 +697,4 @@ Details and division of labor (Famous vs `pdf-backend`): [CID_CONNECT.md](./CID_
 | 2026-05-07 | Pipeline DB vs Connect/Famous Supabase: canonical **`DATABASE_URL`** (cid-postgres), where to run **`psql`** / migrations, segment enum verification query. |
 | 2026-05-14 | **`[CID][Submission]`** plain-text ping after **`recordSubmission`** for **all** segments (**`notifySubmissionReceived`** → **`getSegmentAgentInboxEmail`**); Phase 2 / flow / checklist updates in this guide. |
 | 2026-05-21 | Render **Environment Groups** (`cid-segment-template`); shared vs segment-specific env table (12 vars per segment service); **`GMAIL_REFRESH_TOKEN_*`** on CID-PDF-API; Electrical segment example; DB migration via Node in API Shell. |
+| 2026-08-04 | **New segment domain + email launch playbook** (Netlify NS, manual Gmail MX, SPF/DKIM/DMARC/Postmaster, 2SV backup-code workaround, OAuth via Playground + Render — beauty/cleaning/pet validated). |

@@ -44,6 +44,20 @@
       { key: "pilates_studio", label: "Pilates / mind-body studio" },
       { key: "personal_trainer", label: "Personal trainer / fitness instructor" },
     ],
+    beauty: [
+      { key: "hair_salon", label: "Hair salon / beauty shop" },
+      { key: "barber_shop", label: "Barber shop" },
+      { key: "nail_salon", label: "Nail salon" },
+      { key: "esthetician", label: "Esthetician / skin care" },
+    ],
+    cleaning: [
+      { key: "home_cleaning", label: "Home / residential cleaning" },
+      { key: "carpet_cleaning", label: "Carpet / upholstery cleaning" },
+    ],
+    pet: [
+      { key: "pet_grooming", label: "Pet grooming" },
+      { key: "pet_sitting", label: "Pet sitting / boarding" },
+    ],
   };
 
   let stripe = null;

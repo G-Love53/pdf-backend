@@ -57,6 +57,9 @@ const CONNECTQUOTE_SEGMENTS = new Set([
   "fitness",
   "plumber",
   "hvac",
+  "beauty",
+  "cleaning",
+  "pet",
 ]);
 
 export async function processConnectQuoteIntake(body, reqMeta = {}) {

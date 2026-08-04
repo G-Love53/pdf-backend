@@ -47,6 +47,30 @@ const SEGMENT_BRANDING = {
     segmentDisplayName: "Electrical Contractor",
     logoPath: null,
   },
+  beauty: {
+    segmentColor: "#db2777",
+    segmentIcon: "B",
+    segmentBrandName: "Beauty Insurance Direct",
+    segmentDomain: "beautyinsurancedirect.com",
+    segmentDisplayName: "Beauty & Personal Care",
+    logoPath: null,
+  },
+  cleaning: {
+    segmentColor: "#0891b2",
+    segmentIcon: "C",
+    segmentBrandName: "Cleaning Insurance Direct",
+    segmentDomain: "cleaninginsurancedirect.com",
+    segmentDisplayName: "Cleaning Services",
+    logoPath: null,
+  },
+  pet: {
+    segmentColor: "#7c3aed",
+    segmentIcon: "P",
+    segmentBrandName: "Pet Service Insurance Direct",
+    segmentDomain: "petserviceinsurancedirect.com",
+    segmentDisplayName: "Pet Services",
+    logoPath: null,
+  },
 };
 
 export function getSegmentBranding(segment) {

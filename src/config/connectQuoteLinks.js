@@ -10,6 +10,9 @@ export const SEGMENT_DOMAINS = {
   hvac: "https://hvacinsurancedirect.com",
   fitness: "https://fitnessinsurancedirect.com",
   electrical: "https://electricalinsurancedirect.com",
+  beauty: "https://beautyinsurancedirect.com",
+  cleaning: "https://cleaninginsurancedirect.com",
+  pet: "https://petserviceinsurancedirect.com",
 };
 
 /** Segments on the Coterie ConnectQuote rail — default `bc` when not passed. */
@@ -18,6 +21,9 @@ export const CONNECTQUOTE_SEGMENT_DEFAULTS = {
   plumber: { bc: "plumbing_contractor" },
   hvac: { bc: "hvac_contractor" },
   fitness: {},
+  beauty: {},
+  cleaning: {},
+  pet: {},
 };
 
 export const FITNESS_BUSINESS_CLASSES = {

@@ -9,6 +9,9 @@ const SEGMENT_DISPLAY = {
   hvac: "HVAC Contractor",
   fitness: "Fitness Facility",
   electrical: "Electrical Contractor",
+  beauty: "Beauty & Personal Care",
+  cleaning: "Cleaning Services",
+  pet: "Pet Services",
 };
 
 const SEGMENT_SUBJECT_DISPLAY = {
@@ -18,6 +21,9 @@ const SEGMENT_SUBJECT_DISPLAY = {
   hvac: "HVAC",
   fitness: "Fitness Facility",
   electrical: "Electrical",
+  beauty: "Beauty",
+  cleaning: "Cleaning",
+  pet: "Pet Services",
 };
 
 const SEGMENT_LINE = {
@@ -27,6 +33,9 @@ const SEGMENT_LINE = {
   hvac: "This quote includes pollution liability and refrigerant coverage designed for HVAC contractors.",
   fitness: "This quote is structured for fitness facilities and studios — verify participant and professional coverages against the carrier terms attached.",
   electrical: "This quote is structured for electrical contractors — verify completed operations, tools, and subcontractor coverages against the carrier terms attached.",
+  beauty: "This quote is structured for beauty and personal care businesses — verify professional and premises coverages against the carrier terms attached.",
+  cleaning: "This quote is structured for residential and carpet cleaning businesses — verify premises and completed operations coverages against the carrier terms attached.",
+  pet: "This quote is structured for pet grooming and care businesses — verify animal bailee and premises coverages against the carrier terms attached.",
 };
 
 function escapeHtml(v) {

@@ -117,6 +117,206 @@ export const COTERIE_BUSINESS_CLASSES = {
       },
     },
   ],
+  beauty: [
+    {
+      key: "hair_salon",
+      label: "Hair salon / beauty shop",
+      akHash: "b50d64f01419e62603cccb1e17249c5e",
+      defaultApplicationTypes: ["BOP"],
+      employeeApplicationTypes: ["GL"],
+      coverage: {
+        owner: {
+          selection: "one",
+          options: [
+            {
+              id: "BOP",
+              label: "Businessowners Policy (BOP)",
+              defaultOn: true,
+              required: true,
+            },
+            {
+              id: "GL",
+              label: "General liability only",
+              defaultOn: false,
+            },
+          ],
+        },
+      },
+    },
+    {
+      key: "barber_shop",
+      label: "Barber shop",
+      akHash: "94d267f1d06212835761d6fbf6c67619",
+      defaultApplicationTypes: ["BOP"],
+      employeeApplicationTypes: ["GL"],
+      coverage: {
+        owner: {
+          selection: "one",
+          options: [
+            {
+              id: "BOP",
+              label: "Businessowners Policy (BOP)",
+              defaultOn: true,
+              required: true,
+            },
+            {
+              id: "GL",
+              label: "General liability only",
+              defaultOn: false,
+            },
+          ],
+        },
+      },
+    },
+    {
+      key: "nail_salon",
+      label: "Nail salon",
+      akHash: "2e98be8563bdf7ec2dcfff196d8eb8d9",
+      defaultApplicationTypes: ["BOP"],
+      employeeApplicationTypes: ["GL"],
+      coverage: {
+        owner: {
+          selection: "one",
+          options: [
+            {
+              id: "BOP",
+              label: "Businessowners Policy (BOP)",
+              defaultOn: true,
+              required: true,
+            },
+            {
+              id: "GL",
+              label: "General liability only",
+              defaultOn: false,
+            },
+          ],
+        },
+      },
+    },
+    {
+      key: "esthetician",
+      label: "Esthetician / skin care",
+      akHash: "1c42c5afe9ed0e7d75a7dd041fe7dcb0",
+      defaultApplicationTypes: ["BOP"],
+      employeeApplicationTypes: ["GL"],
+      coverage: {
+        owner: {
+          selection: "one",
+          options: [
+            {
+              id: "BOP",
+              label: "Businessowners Policy (BOP)",
+              defaultOn: true,
+              required: true,
+            },
+            {
+              id: "GL",
+              label: "General liability only",
+              defaultOn: false,
+            },
+          ],
+        },
+      },
+    },
+  ],
+  cleaning: [
+    {
+      key: "home_cleaning",
+      label: "Home / residential cleaning",
+      akHash: "bf7a1d00b682b407747c005f3d6eb644",
+      defaultApplicationTypes: ["BOP"],
+      employeeApplicationTypes: ["GL"],
+      coverage: {
+        owner: {
+          selection: "one",
+          options: [
+            {
+              id: "BOP",
+              label: "Businessowners Policy (BOP)",
+              defaultOn: true,
+              required: true,
+            },
+            {
+              id: "GL",
+              label: "General liability only",
+              defaultOn: false,
+            },
+          ],
+        },
+      },
+    },
+    {
+      key: "carpet_cleaning",
+      label: "Carpet / upholstery cleaning",
+      akHash: "250f33d275377510389ad2c9e24863e4",
+      defaultApplicationTypes: ["BOP"],
+      employeeApplicationTypes: ["GL"],
+      coverage: {
+        owner: {
+          selection: "one",
+          options: [
+            {
+              id: "BOP",
+              label: "Businessowners Policy (BOP)",
+              defaultOn: true,
+              required: true,
+            },
+            {
+              id: "GL",
+              label: "General liability only",
+              defaultOn: false,
+            },
+          ],
+        },
+      },
+    },
+  ],
+  pet: [
+    {
+      key: "pet_grooming",
+      label: "Pet grooming",
+      akHash: "84f0c9c2999638e1533a06a41415f2be",
+      defaultApplicationTypes: ["BOP"],
+      employeeApplicationTypes: ["GL"],
+      coverage: {
+        owner: {
+          selection: "one",
+          options: [
+            {
+              id: "BOP",
+              label: "Businessowners Policy (BOP)",
+              defaultOn: true,
+              required: true,
+            },
+            {
+              id: "GL",
+              label: "General liability only",
+              defaultOn: false,
+            },
+          ],
+        },
+      },
+    },
+    {
+      key: "pet_sitting",
+      label: "Pet sitting / boarding",
+      akHash: "7ac0ae0270657fecf5ed809b28ef15a2",
+      defaultApplicationTypes: ["GL"],
+      employeeApplicationTypes: ["GL"],
+      coverage: {
+        owner: {
+          options: [
+            {
+              id: "GL",
+              label: "General liability (GL)",
+              defaultOn: true,
+              required: true,
+            },
+          ],
+        },
+      },
+    },
+  ],
   fitness: [
     {
       key: "yoga_studio",
