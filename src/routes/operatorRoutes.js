@@ -461,7 +461,10 @@ router.get("/api/operator/dashboard", async (req, res) => {
     });
   } catch (err) {
     console.error("[operator/dashboard] error:", err.message || err);
-    res.status(500).json({ error: "internal_error" });
+    res.status(500).json({
+      error: "internal_error",
+      message: err?.message || String(err),
+    });
   }
 });
 
