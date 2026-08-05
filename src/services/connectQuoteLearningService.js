@@ -4,6 +4,7 @@
  */
 
 import { parseOperatorWindow, sqlWindowFilter } from "./operatorWindow.js";
+import { sqlSegmentFilter } from "../utils/operatorSegment.js";
 
 const DEMO_SRC_BLOCK = new Set(["demo", "coterie-demo"]);
 
@@ -42,10 +43,6 @@ function sqlCqBaseFilter(alias = "s", window, daysParamIndex = 2) {
     ${sqlIsConnectQuoteSubmission(alias)}
     AND ${timeFilter}
   `;
-}
-
-function sqlSegmentFilter(alias, paramIndex) {
-  return `AND ($${paramIndex}::text = 'all' OR ${alias}.segment = $${paramIndex}::segment_type)`;
 }
 
 function sqlQuotedExists(subAlias = "s") {

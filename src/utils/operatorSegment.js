@@ -18,11 +18,12 @@ export function parseOperatorSegmentQuery(value) {
 
 /**
  * Postgres: filter submissions alias `s` (or any table with `.segment` of type segment_type).
- * Bind $1 to the string 'all' or a segment enum label.
+ * Bind `$paramIndex` to the string 'all' or a segment enum label.
  * @param {string} [alias='s'] - table alias for submissions
+ * @param {number} [paramIndex=1] - `$N` placeholder index
  */
-export function sqlSegmentFilter(alias = "s") {
-  return `AND ($1::text = 'all' OR ${alias}.segment = $1::segment_type)`;
+export function sqlSegmentFilter(alias = "s", paramIndex = 1) {
+  return `AND ($${paramIndex}::text = 'all' OR ${alias}.segment = $${paramIndex}::segment_type)`;
 }
 
 /** Append `&segment=` for redirects when operator had a segment filter (req.query.segment). */
