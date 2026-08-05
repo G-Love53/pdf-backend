@@ -3,13 +3,9 @@
  * Data: submissions, timeline_events (coterie.*), policies.
  */
 
-const DEMO_SRC_BLOCK = new Set(["demo", "coterie-demo"]);
+import { parseOperatorWindow, sqlWindowFilter } from "./operatorWindow.js";
 
-function parseDays(value) {
-  const n = Number.parseInt(String(value ?? "7"), 10);
-  if (!Number.isFinite(n) || n < 1) return 7;
-  return Math.min(n, 90);
-}
+const DEMO_SRC_BLOCK = new Set(["demo", "coterie-demo"]);
 
 function isDemoSubmission(row) {
   const src = String(
@@ -27,12 +23,24 @@ function isDemoSubmission(row) {
   return false;
 }
 
-function sqlCqBaseFilter(alias = "s", daysParamIndex = 2) {
+/** ConnectQuote intake rows (quote_rail, source_form, or segment landing domain). */
+function sqlIsConnectQuoteSubmission(alias = "s") {
   return `
-    ${alias}.raw_submission_json->>'quote_rail' = 'coterie'
-    AND ${alias}.submitted_at >= NOW() - ($${daysParamIndex}::int * INTERVAL '1 day')
+    (
+      ${alias}.raw_submission_json->>'quote_rail' = 'coterie'
+      OR ${alias}.source_form = 'connectquote'
+      OR COALESCE(${alias}.source_domain, '') ILIKE '%insurancedirect.com%'
+    )
     AND COALESCE(${alias}.raw_submission_json->>'traffic_source', '') NOT IN ('demo', 'coterie-demo')
     AND COALESCE(${alias}.raw_submission_json->>'campaign_id', '') NOT ILIKE '%partner-demo%'
+  `;
+}
+
+function sqlCqBaseFilter(alias = "s", window, daysParamIndex = 2) {
+  const timeFilter = sqlWindowFilter(`${alias}.submitted_at`, window, daysParamIndex);
+  return `
+    ${sqlIsConnectQuoteSubmission(alias)}
+    AND ${timeFilter}
   `;
 }
 
@@ -82,14 +90,64 @@ function sqlRequoteCount(subAlias = "s") {
   `;
 }
 
+function sqlCoterieApplicationId(subAlias = "s") {
+  return `
+    (
+      SELECT NULLIF(te.event_payload_json->>'applicationId', '')
+      FROM timeline_events te
+      WHERE te.submission_id = ${subAlias}.submission_id
+        AND te.event_type IN (
+          'coterie.application_created',
+          'coterie.bindable_quote',
+          'coterie.session'
+        )
+        AND NULLIF(te.event_payload_json->>'applicationId', '') IS NOT NULL
+      ORDER BY te.created_at DESC
+      LIMIT 1
+    )
+  `;
+}
+
+function sqlConnectQuoteStatus(subAlias = "s") {
+  return `
+    CASE
+      WHEN EXISTS (
+        SELECT 1 FROM policies p WHERE p.submission_id = ${subAlias}.submission_id
+      ) THEN 'bound'
+      WHEN ${sqlQuotedExists(subAlias)} THEN 'quoted'
+      WHEN EXISTS (
+        SELECT 1 FROM timeline_events te
+        WHERE te.submission_id = ${subAlias}.submission_id
+          AND te.event_type IN ('coterie.rail_traditional', 'coterie.appetite_excluded')
+      ) THEN 'traditional'
+      WHEN EXISTS (
+        SELECT 1 FROM timeline_events te
+        WHERE te.submission_id = ${subAlias}.submission_id
+          AND te.event_type = 'coterie.bindable_blocked'
+      ) THEN 'blocked'
+      WHEN EXISTS (
+        SELECT 1 FROM timeline_events te
+        WHERE te.submission_id = ${subAlias}.submission_id
+          AND te.event_type = 'coterie.application_created'
+      ) THEN 'in_coterie'
+      ELSE 'submitted'
+    END
+  `;
+}
+
 /**
  * @param {import('pg').Pool} pool
- * @param {{ segment?: string, days?: number|string }} opts
+ * @param {{ segment?: string, window?: unknown, days?: number|string }} opts
  */
 export async function getConnectQuoteLearning(pool, opts = {}) {
   const segment = String(opts.segment || "all").toLowerCase();
-  const days = parseDays(opts.days);
+  const window = parseOperatorWindow(opts.window ?? opts.days ?? "7");
   const segParam = segment === "all" ? "all" : segment;
+  const daysParamIndex = 1;
+  const segParamIndex = window.isToday ? 1 : 2;
+  const params = window.isToday ? [segParam] : [window.days, segParam];
+  const cqFilter = (alias = "s") =>
+    `${sqlCqBaseFilter(alias, window, daysParamIndex)} ${sqlSegmentFilter(alias, segParamIndex)}`;
 
   const funnelSql = `
     SELECT
@@ -109,8 +167,7 @@ export async function getConnectQuoteLearning(pool, opts = {}) {
       )::int AS with_requotes
     FROM submissions s
     LEFT JOIN policies p ON p.submission_id = s.submission_id
-    WHERE ${sqlCqBaseFilter("s", 1)}
-      ${sqlSegmentFilter("s", 2)}
+    WHERE ${cqFilter("s")}
   `;
 
   const revenueSql = `
@@ -132,8 +189,7 @@ export async function getConnectQuoteLearning(pool, opts = {}) {
       COUNT(DISTINCT p.submission_id)::int AS bound_count
     FROM submissions s
     LEFT JOIN policies p ON p.submission_id = s.submission_id
-    WHERE ${sqlCqBaseFilter("s", 1)}
-      ${sqlSegmentFilter("s", 2)}
+    WHERE ${cqFilter("s")}
   `;
 
   const quotedNotBoundSql = `
@@ -165,12 +221,40 @@ export async function getConnectQuoteLearning(pool, opts = {}) {
       ) AS first_quoted_premium
     FROM submissions s
     JOIN clients c ON c.client_id = s.client_id
-    WHERE ${sqlCqBaseFilter("s", 1)}
-      ${sqlSegmentFilter("s", 2)}
+    WHERE ${cqFilter("s")}
       AND ${sqlQuotedExists("s")}
       AND NOT EXISTS (SELECT 1 FROM policies p WHERE p.submission_id = s.submission_id)
     ORDER BY s.submitted_at DESC
     LIMIT 40
+  `;
+
+  const recentSubmissionsSql = `
+    SELECT
+      s.submission_public_id,
+      s.submission_public_id AS coterie_external_id,
+      s.segment::text AS segment,
+      s.submitted_at,
+      c.primary_email AS client_email,
+      COALESCE(
+        NULLIF(TRIM(s.raw_submission_json->>'business_name'), ''),
+        NULLIF(TRIM(CONCAT_WS(' ', c.first_name, c.last_name)), ''),
+        c.primary_email
+      ) AS client_name,
+      s.raw_submission_json->>'traffic_source' AS src,
+      s.raw_submission_json->>'campaign_id' AS cid,
+      ${sqlConnectQuoteStatus("s")} AS cq_status,
+      ${sqlCoterieApplicationId("s")} AS coterie_application_id,
+      ${sqlLastQuotedPremium("s")} AS last_quoted_premium,
+      ${sqlRequoteCount("s")} AS requote_events,
+      GREATEST(${sqlRequoteCount("s")} - 1, 0)::int AS requote_changes,
+      EXISTS (
+        SELECT 1 FROM quotes q WHERE q.submission_id = s.submission_id
+      ) AS has_traditional_quote_row
+    FROM submissions s
+    JOIN clients c ON c.client_id = s.client_id
+    WHERE ${cqFilter("s")}
+    ORDER BY s.submitted_at DESC
+    LIMIT 50
   `;
 
   const recentBindsSql = `
@@ -196,8 +280,7 @@ export async function getConnectQuoteLearning(pool, opts = {}) {
     FROM policies p
     JOIN submissions s ON s.submission_id = p.submission_id
     JOIN clients c ON c.client_id = s.client_id
-    WHERE ${sqlCqBaseFilter("s", 1)}
-      ${sqlSegmentFilter("s", 2)}
+    WHERE ${cqFilter("s")}
       AND (
         p.coverage_data->>'bind_source' = 'coterie'
         OR EXISTS (
@@ -210,12 +293,11 @@ export async function getConnectQuoteLearning(pool, opts = {}) {
     LIMIT 25
   `;
 
-  const params = [days, segParam];
-
-  const [funnelRes, revenueRes, openRes, bindsRes] = await Promise.all([
+  const [funnelRes, revenueRes, openRes, recentRes, bindsRes] = await Promise.all([
     pool.query(funnelSql, params),
     pool.query(revenueSql, params),
     pool.query(quotedNotBoundSql, params),
+    pool.query(recentSubmissionsSql, params),
     pool.query(recentBindsSql, params),
   ]);
 
@@ -227,7 +309,13 @@ export async function getConnectQuoteLearning(pool, opts = {}) {
   const revenueRow = revenueRes.rows[0] || {};
 
   return {
-    days,
+    window: {
+      key: window.key,
+      label: window.label,
+      isToday: window.isToday,
+      days: window.days,
+    },
+    days: window.days,
     segment: segParam,
     funnel: {
       submits,
@@ -246,6 +334,12 @@ export async function getConnectQuoteLearning(pool, opts = {}) {
       bound_premium_sum: Number(revenueRow.bound_premium_sum ?? 0),
       bound_premium_avg: Number(revenueRow.bound_premium_avg ?? 0),
     },
+    recent_submissions: recentRes.rows.map((row) => ({
+      ...row,
+      last_quoted_premium:
+        row.last_quoted_premium != null ? Number(row.last_quoted_premium) : null,
+      has_traditional_quote_row: Boolean(row.has_traditional_quote_row),
+    })),
     quoted_not_bound: openRes.rows.map((row) => ({
       ...row,
       last_quoted_premium: row.last_quoted_premium != null ? Number(row.last_quoted_premium) : null,
@@ -264,4 +358,4 @@ export async function getConnectQuoteLearning(pool, opts = {}) {
   };
 }
 
-export { parseDays, isDemoSubmission };
+export { isDemoSubmission, sqlIsConnectQuoteSubmission };

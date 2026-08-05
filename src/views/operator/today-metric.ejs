@@ -63,13 +63,13 @@
     <header>
       <h1><%= title %></h1>
       <div class="sub">
-        <%= typeof segmentLabel !== "undefined" && segmentLabel ? segmentLabel : "All segments" %> · same “today” window as Operator Home (UTC calendar day, server time)
+        <%= typeof segmentLabel !== "undefined" && segmentLabel ? segmentLabel : "All segments" %> · <%= typeof windowLabel !== "undefined" && windowLabel ? windowLabel : "Last 7 days" %> · same window as Operator Home
       </div>
       <%- include('../partials/operator-nav', { segmentQuery: typeof segmentQuery !== 'undefined' ? segmentQuery : '', segment: typeof segment !== 'undefined' ? segment : 'all' }) %>
     </header>
     <main>
       <% if (!rows || rows.length === 0) { %>
-      <p class="empty">No rows for this metric in the current UTC day.</p>
+      <p class="empty">No rows for this metric in the selected window.</p>
       <% } else { %>
       <table>
         <thead>

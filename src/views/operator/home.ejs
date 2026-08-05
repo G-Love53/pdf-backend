@@ -127,6 +127,28 @@
         border-color: #854d0e;
         color: #fcd34d;
       }
+      .pill-ok {
+        border-color: #166534;
+        color: #86efac;
+      }
+      .pill-info {
+        border-color: #1e40af;
+        color: #93c5fd;
+      }
+      .pill-muted {
+        border-color: #374151;
+        color: #9ca3af;
+      }
+      #dashboard-error {
+        display: none;
+        margin-bottom: 16px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        border: 1px solid #991b1b;
+        background: #450a0a;
+        color: #fecaca;
+      }
       a {
         color: #38bdf8;
         text-decoration: none;
@@ -233,7 +255,7 @@
     <header>
       <div>
         <h1>Operator Home</h1>
-        <span id="operator-subtitle">Today at a glance — all segments (UTC day, server time)</span>
+        <span id="operator-subtitle">All segments · Last 7 days — metrics &amp; ConnectQuote (queues below are open backlog, not time-filtered)</span>
       </div>
       <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #6b7280">
         <label for="operator-segment" style="margin: 0">Segment</label>
@@ -249,6 +271,13 @@
           <option value="cleaning">Cleaning</option>
           <option value="pet">Pet</option>
         </select>
+        <label for="operator-window" style="margin: 0">Window</label>
+        <select id="operator-window" aria-label="Metrics time window">
+          <option value="today">Today (UTC)</option>
+          <option value="7" selected>7 days</option>
+          <option value="14">14 days</option>
+          <option value="30">30 days</option>
+        </select>
         <span>|</span>
         <a id="link-s4" href="/operator/extraction-review">S4 queue</a> ·
         <a id="link-s5" href="/operator/packet-builder">S5 packets</a> ·
@@ -260,77 +289,71 @@
         id="bind-toast"
         style="display: none; margin-bottom: 16px; padding: 12px 14px; border-radius: 8px; font-size: 14px; border: 1px solid #1f2937;"
       ></div>
+      <div id="dashboard-error" role="alert"></div>
       <div class="grid" id="today-metrics">
-        <a class="card-metric-link" href="/operator/today/submissions" title="Open list: submissions received today (UTC)" aria-label="Submissions today: open full list">
+        <a class="card-metric-link" href="/operator/today/submissions" data-metric-path="/operator/today/submissions" title="Open list: submissions in selected window" aria-label="Submissions: open full list">
           <div class="card">
-            <h2>Submissions (today)</h2>
+            <h2>Submissions <span class="metric-window-suffix">(7 days)</span></h2>
             <div class="metric" id="metric-submissions-today">—</div>
             <div class="card-metric-cta">Open list →</div>
           </div>
         </a>
-        <a class="card-metric-link" href="/operator/today/approved-quotes" title="Open list: quotes approved in S4 today" aria-label="Approved quotes today: open full list">
+        <a class="card-metric-link" href="/operator/today/approved-quotes" data-metric-path="/operator/today/approved-quotes" title="Open list: quotes approved in S4 in selected window" aria-label="Approved quotes: open full list">
           <div class="card">
-            <h2>Approved quotes (S4)</h2>
+            <h2>Approved quotes (S4) <span class="metric-window-suffix">(7 days)</span></h2>
             <div class="metric" id="metric-approved-quotes-today">—</div>
             <div class="card-metric-cta">Open list →</div>
           </div>
         </a>
-        <a class="card-metric-link" href="/operator/today/packets-sent" title="Open list: packets marked sent today" aria-label="Packets sent today: open full list">
+        <a class="card-metric-link" href="/operator/today/packets-sent" data-metric-path="/operator/today/packets-sent" title="Open list: packets sent in selected window" aria-label="Packets sent: open full list">
           <div class="card">
-            <h2>Packets sent (S5)</h2>
+            <h2>Packets sent (S5) <span class="metric-window-suffix">(7 days)</span></h2>
             <div class="metric" id="metric-packets-sent-today">—</div>
             <div class="card-metric-cta">Open list →</div>
           </div>
         </a>
-        <a class="card-metric-link" href="/operator/today/binds-initiated" title="Open list: bind requests created today" aria-label="Binds initiated today: open full list">
+        <a class="card-metric-link" href="/operator/today/binds-initiated" data-metric-path="/operator/today/binds-initiated" title="Open list: bind requests in selected window" aria-label="Binds initiated: open full list">
           <div class="card">
-            <h2>Binds initiated (S6)</h2>
+            <h2>Binds initiated (S6) <span class="metric-window-suffix">(7 days)</span></h2>
             <div class="metric" id="metric-binds-initiated-today">—</div>
             <div class="card-metric-cta">Open list →</div>
           </div>
         </a>
-        <a class="card-metric-link" href="/operator/today/policies-bound" title="Open list: policy rows created today" aria-label="Policies bound today: open full list">
+        <a class="card-metric-link" href="/operator/today/policies-bound" data-metric-path="/operator/today/policies-bound" title="Open list: policies bound in selected window" aria-label="Policies bound: open full list">
           <div class="card">
-            <h2>Policies bound (today)</h2>
+            <h2>Policies bound <span class="metric-window-suffix">(7 days)</span></h2>
             <div class="metric" id="metric-policies-bound-today">—</div>
             <div class="card-metric-cta">Open list →</div>
           </div>
         </a>
-        <a class="card-metric-link" href="/operator/today/connect-bind-stored" title="Bind confirmation PDF rows stored today (cid-postgres / Connect documents API)" aria-label="Connect bind PDF stored today: open full list">
+        <a class="card-metric-link" href="/operator/today/connect-bind-stored" data-metric-path="/operator/today/connect-bind-stored" title="Bind confirmation PDF rows stored in selected window" aria-label="Connect bind PDF stored: open full list">
           <div class="card">
-            <h2>Connect: bind PDF stored (today)</h2>
+            <h2>Connect: bind PDF stored <span class="metric-window-suffix">(7 days)</span></h2>
             <div class="metric" id="metric-connect-bind-pdf-today">—</div>
             <div class="card-metric-cta">Open list →</div>
           </div>
         </a>
-        <a class="card-metric-link" href="/operator/today/connect-policy-docs-stored" title="Policy or declarations PDF rows stored today (Connect)" aria-label="Connect policy docs stored today: open full list">
+        <a class="card-metric-link" href="/operator/today/connect-policy-docs-stored" data-metric-path="/operator/today/connect-policy-docs-stored" title="Policy or declarations PDF rows stored in selected window" aria-label="Connect policy docs stored: open full list">
           <div class="card">
-            <h2>Connect: policy / dec PDFs (today)</h2>
+            <h2>Connect: policy / dec PDFs <span class="metric-window-suffix">(7 days)</span></h2>
             <div class="metric" id="metric-connect-policy-docs-today">—</div>
             <div class="card-metric-cta">Open list →</div>
           </div>
         </a>
       </div>
 
-      <div class="section-title" style="margin-top: 4px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
-        <span>ConnectQuote — quoted vs bound</span>
-        <label for="cq-days" style="font-size: 12px; font-weight: 400; color: #6b7280; margin: 0">
-          Window
-          <select id="cq-days" aria-label="ConnectQuote learning window (days)" style="margin-left: 6px; background: #020617; color: #e5e7eb; border: 1px solid #1f2937; border-radius: 6px; padding: 4px 8px; font-size: 12px">
-            <option value="7" selected>7 days</option>
-            <option value="14">14 days</option>
-            <option value="30">30 days</option>
-          </select>
-        </label>
+      <div class="section-title" style="margin-top: 4px">
+        ConnectQuote — funnel &amp; pipeline
       </div>
       <p style="font-size: 12px; color: #6b7280; margin: 0 0 10px; line-height: 1.45; max-width: 920px">
         Instant Coterie rail only (excludes <code style="color:#cbd5e1">src=demo</code> and partner-demo campaigns).
-        <strong style="color:#d1d5db">Quoted, not bound</strong> = saw premium, no policy row — use for price follow-up and requote behavior.
-        <strong style="color:#d1d5db">Requotes</strong> = extra <code style="color:#cbd5e1">Get quote</code> clicks on the same submission (field changes).
+        <strong style="color:#d1d5db">CID</strong> (e.g. <code style="color:#cbd5e1">CID-ELC-…</code>) is the Coterie <strong style="color:#d1d5db">application external ID</strong> — use it to search in Coterie when the dashboard does not show it.
+        <strong style="color:#d1d5db">Quoted, not bound</strong> = bindable premium in our pipeline, no policy row.
+        <strong style="color:#d1d5db">Recent submissions</strong> includes submit-only and in-Coterie rows (quote may exist only in Coterie agent UI).
       </p>
       <div class="grid" id="cq-funnel-metrics">
         <div class="card">
-          <h2>CQ submits</h2>
+          <h2>CQ submits <span class="metric-window-suffix">(7 days)</span></h2>
           <div class="metric" id="cq-metric-submits">—</div>
         </div>
         <div class="card">
@@ -358,6 +381,24 @@
           <div class="metric" id="cq-metric-requotes">—</div>
           <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-traditional">—</div>
         </div>
+      </div>
+
+      <div class="section-title">Recent ConnectQuote submissions</div>
+      <div class="card" style="margin-bottom: 24px">
+        <table>
+          <thead>
+            <tr>
+              <th>CID / external ID</th>
+              <th>Status</th>
+              <th>Client</th>
+              <th>Coterie app ID</th>
+              <th>Premium</th>
+              <th>Submitted</th>
+              <th>src / cid</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-cq-recent-submissions"></tbody>
+        </table>
       </div>
 
       <div class="layout" style="margin-bottom: 24px">
@@ -401,10 +442,13 @@
       <div class="layout">
         <div>
           <div class="section-title">
+            Work queues <span style="font-weight:400;color:#6b7280">(open items — not filtered by window)</span>
+          </div>
+          <div class="section-title" style="margin-top:0;font-size:13px">
             Submissions waiting for carrier outreach
           </div>
           <p style="font-size: 12px; color: #6b7280; margin: 0 0 10px; line-height: 1.4">
-            Only submissions with no quote row yet (nothing matched from carrier). If a quote exists, the submission is not listed here. The 6-digit suffix is one global sequence for all segments, not per inbox. Oldest-waiting first. Use <strong style="color:#d1d5db">Add quote</strong> when you have a carrier PDF but the poller did not ingest it (missing CID in email, Forward instead of compose, etc.).
+            Traditional pipeline only — submissions with no quote row yet. ConnectQuote rows appear here when not yet quoted in our pipeline (check <strong style="color:#d1d5db">Recent ConnectQuote submissions</strong> above for Coterie rail). Oldest-waiting first. Use <strong style="color:#d1d5db">Add quote</strong> for carrier PDFs (missing CID in email, etc.).
           </p>
           <div class="card">
             <table>
@@ -580,18 +624,29 @@
         });
       }
 
-      function currentSegmentQS() {
-        const v = document.getElementById("operator-segment").value;
-        if (!v || v === "all") return "";
-        return "?segment=" + encodeURIComponent(v);
+      function currentWindowValue() {
+        return document.getElementById("operator-window")?.value || "7";
+      }
+
+      function windowSuffixLabel(w) {
+        if (!w) return "(7 days)";
+        if (w.isToday) return "(today UTC)";
+        return `(${w.days} days)`;
       }
 
       function dashboardFetchQS() {
         const p = new URLSearchParams();
-        const v = document.getElementById("operator-segment").value;
-        if (v && v !== "all") p.set("segment", v);
-        const daysEl = document.getElementById("cq-days");
-        p.set("cq_days", daysEl?.value || "7");
+        const seg = document.getElementById("operator-segment").value;
+        if (seg && seg !== "all") p.set("segment", seg);
+        p.set("window", currentWindowValue());
+        return "?" + p.toString();
+      }
+
+      function operatorListQS() {
+        const p = new URLSearchParams();
+        const seg = document.getElementById("operator-segment").value;
+        if (seg && seg !== "all") p.set("segment", seg);
+        p.set("window", currentWindowValue());
         const s = p.toString();
         return s ? "?" + s : "";
       }
@@ -600,6 +655,19 @@
         const x = Number(n);
         if (!Number.isFinite(x)) return "—";
         return "$" + x.toLocaleString(undefined, { maximumFractionDigits: 0 });
+      }
+
+      function cqStatusPill(status) {
+        const map = {
+          bound: ["pill-ok", "Bound"],
+          quoted: ["pill-info", "Quoted"],
+          in_coterie: ["pill-warn", "In Coterie"],
+          submitted: ["pill-muted", "Submitted"],
+          traditional: ["pill-muted", "Traditional exit"],
+          blocked: ["pill-warn", "Blocked"],
+        };
+        const [cls, label] = map[status] || ["pill-muted", status || "—"];
+        return `<span class="pill ${cls}">${escapeHtml(label)}</span>`;
       }
 
       function renderConnectQuoteLearning(cq) {
@@ -629,6 +697,31 @@
           f.with_requotes ?? "0";
         document.getElementById("cq-metric-traditional").textContent =
           (f.traditional_exits ?? 0) + " traditional exits";
+
+        const recentTbody = document.getElementById("tbody-cq-recent-submissions");
+        if (recentTbody) {
+          recentTbody.innerHTML = "";
+          const recentRows = cq.recent_submissions || [];
+          if (!recentRows.length) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td colspan="7" style="color:#6b7280">No ConnectQuote submissions in this window.</td>`;
+            recentTbody.appendChild(tr);
+          }
+          recentRows.forEach((item) => {
+            const tr = document.createElement("tr");
+            const cid = item.submission_public_id || item.coterie_external_id || "—";
+            tr.innerHTML = `
+              <td>${escapeHtml(cid)}<br><span class="pill">${escapeHtml(item.segment || "")}</span></td>
+              <td>${cqStatusPill(item.cq_status)}</td>
+              <td>${escapeHtml(item.client_name || "")}<br><span style="font-size:11px;color:#6b7280">${escapeHtml(item.client_email || "")}</span></td>
+              <td style="font-size:11px;font-family:ui-monospace,monospace">${escapeHtml(item.coterie_application_id || "—")}</td>
+              <td>${fmtMoney(item.last_quoted_premium)}</td>
+              <td>${fmtDateTime(item.submitted_at)}</td>
+              <td style="font-size:11px">${escapeHtml(item.src || "—")}<br>${escapeHtml(item.cid || "—")}</td>
+            `;
+            recentTbody.appendChild(tr);
+          });
+        }
 
         const openTbody = document.getElementById("tbody-cq-quoted-not-bound");
         openTbody.innerHTML = "";
@@ -683,39 +776,59 @@
         });
       }
 
-      function syncSegmentNav() {
-        const qs = currentSegmentQS();
+      function currentSegmentQS() {
+        const p = new URLSearchParams();
         const v = document.getElementById("operator-segment").value;
+        if (v && v !== "all") p.set("segment", v);
+        const s = p.toString();
+        return s ? "?" + s : "";
+      }
+
+      function applyWindowLabels(w) {
+        const suffix = windowSuffixLabel(w);
+        document.querySelectorAll(".metric-window-suffix").forEach((el) => {
+          el.textContent = suffix;
+        });
+      }
+
+      function syncSegmentNav() {
+        const qs = operatorListQS();
+        const v = document.getElementById("operator-segment").value;
+        const win = currentWindowValue();
         const sub = document.getElementById("operator-subtitle");
         if (sub) {
-          const labels = {
-            all: "Today at a glance — all segments (UTC day, server time)",
-            bar: "Today at a glance — Bar segment only (UTC day, server time)",
-            roofer: "Today at a glance — Roofer segment only (UTC day, server time)",
-            plumber: "Today at a glance — Plumber segment only (UTC day, server time)",
-            hvac: "Today at a glance — HVAC segment only (UTC day, server time)",
-            fitness: "Today at a glance — Fitness segment only (UTC day, server time)",
-            electrical: "Today at a glance — Electrical segment only (UTC day, server time)",
-            beauty: "Today at a glance — Beauty segment only (UTC day, server time)",
-            cleaning: "Today at a glance — Cleaning segment only (UTC day, server time)",
-            pet: "Today at a glance — Pet segment only (UTC day, server time)",
+          const winLabel =
+            win === "today" ? "Today (UTC)" : `Last ${win} days`;
+          const segLabels = {
+            all: "All segments",
+            bar: "Bar",
+            roofer: "Roofer",
+            plumber: "Plumber",
+            hvac: "HVAC",
+            fitness: "Fitness",
+            electrical: "Electrical",
+            beauty: "Beauty",
+            cleaning: "Cleaning",
+            pet: "Pet",
           };
-          sub.textContent = labels[v] || labels.all;
+          const segLabel = segLabels[v] || segLabels.all;
+          sub.textContent = `${segLabel} · ${winLabel} — metrics & ConnectQuote (queues below are open backlog, not time-filtered)`;
         }
-        document.querySelectorAll("a.card-metric-link").forEach((a) => {
-          try {
-            const path = a.pathname || new URL(a.href, window.location.origin).pathname;
-            a.href = path + qs;
-          } catch (e) {
-            /* ignore */
-          }
+        document.querySelectorAll("a.card-metric-link[data-metric-path]").forEach((a) => {
+          a.href = (a.getAttribute("data-metric-path") || a.pathname) + qs;
         });
         const s4 = document.getElementById("link-s4");
         const s5 = document.getElementById("link-s5");
         const s6 = document.getElementById("link-s6");
-        if (s4) s4.href = "/operator/extraction-review" + qs;
-        if (s5) s5.href = "/operator/packet-builder" + qs;
-        if (s6) s6.href = "/operator/bind" + qs;
+        const segOnly = (() => {
+          const p = new URLSearchParams();
+          if (v && v !== "all") p.set("segment", v);
+          const s = p.toString();
+          return s ? "?" + s : "";
+        })();
+        if (s4) s4.href = "/operator/extraction-review" + segOnly;
+        if (s5) s5.href = "/operator/packet-builder" + segOnly;
+        if (s6) s6.href = "/operator/bind" + segOnly;
       }
 
       function escapeHtml(s) {
@@ -878,35 +991,71 @@
       }
 
       async function loadDashboard() {
+        const errEl = document.getElementById("dashboard-error");
+        if (errEl) {
+          errEl.style.display = "none";
+          errEl.textContent = "";
+        }
         try {
           const res = await fetch(
             "/api/operator/dashboard" + dashboardFetchQS(),
           );
-          if (!res.ok) return;
-          const data = await res.json();
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            const msg =
+              data.error === "database_not_configured"
+                ? "Database not configured — dashboard unavailable."
+                : "Dashboard failed to load (" + (data.error || res.status) + ").";
+            if (errEl) {
+              errEl.textContent = msg;
+              errEl.style.display = "block";
+            }
+            return;
+          }
 
           const counts = data.counts || {};
+          const win = data.window || null;
+          applyWindowLabels(win);
+          syncSegmentNav();
+
           document.getElementById("metric-submissions-today").textContent =
-            counts.submissions_today ?? "0";
+            counts.submissions_in_window ?? "0";
           document.getElementById(
             "metric-approved-quotes-today",
-          ).textContent = counts.approved_quotes_today ?? "0";
+          ).textContent = counts.approved_quotes_in_window ?? "0";
           document.getElementById("metric-packets-sent-today").textContent =
-            counts.packets_sent_today ?? "0";
+            counts.packets_sent_in_window ?? "0";
           document.getElementById(
             "metric-binds-initiated-today",
-          ).textContent = counts.binds_initiated_today ?? "0";
+          ).textContent = counts.binds_initiated_in_window ?? "0";
           document.getElementById(
             "metric-policies-bound-today",
-          ).textContent = counts.policies_bound_today ?? "0";
+          ).textContent = counts.policies_bound_in_window ?? "0";
           document.getElementById(
             "metric-connect-bind-pdf-today",
-          ).textContent = counts.connect_bind_pdf_stored_today ?? "0";
+          ).textContent = counts.connect_bind_pdf_stored_in_window ?? "0";
           document.getElementById(
             "metric-connect-policy-docs-today",
-          ).textContent = counts.connect_policy_docs_stored_today ?? "0";
+          ).textContent = counts.connect_policy_docs_stored_in_window ?? "0";
 
-          renderConnectQuoteLearning(data.connectquote);
+          if (data.connectquote) {
+            renderConnectQuoteLearning(data.connectquote);
+          } else {
+            const cqIds = [
+              "cq-metric-submits",
+              "cq-metric-quoted",
+              "cq-metric-bound",
+            ];
+            cqIds.forEach((id) => {
+              const el = document.getElementById(id);
+              if (el) el.textContent = "—";
+            });
+            const recentTbody = document.getElementById("tbody-cq-recent-submissions");
+            if (recentTbody) {
+              recentTbody.innerHTML =
+                `<tr><td colspan="7" style="color:#6b7280">ConnectQuote data unavailable.</td></tr>`;
+            }
+          }
 
           const queues = data.queues || {};
 
@@ -915,14 +1064,17 @@
           (queues.submissions_waiting_outreach || []).forEach((item) => {
             const tr = document.createElement("tr");
             const cid = item.submission_public_id || "";
+            const isCq = item.is_connectquote === true;
             tr.innerHTML = `
-              <td>${escapeHtml(cid || "—")}</td>
+              <td>${escapeHtml(cid || "—")}${item.segment ? `<br><span class="pill">${escapeHtml(item.segment)}</span>` : ""}${isCq ? `<br><span class="pill pill-info">ConnectQuote</span>` : ""}</td>
               <td>${escapeHtml(item.client_name || "")}</td>
               <td>${fmtDate(item.created_at)}</td>
               <td>${
-                cid
-                  ? `<button type="button" class="btn-sm btn-add-quote" data-cid="${escapeHtml(cid)}">Add quote</button>`
-                  : ""
+                isCq
+                  ? `<span style="font-size:11px;color:#6b7280" title="Search Coterie by CID external ID">Coterie rail — see table above</span>`
+                  : cid
+                    ? `<button type="button" class="btn-sm btn-add-quote" data-cid="${escapeHtml(cid)}">Add quote</button>`
+                    : ""
               }</td>
             `;
             subTbody.appendChild(tr);
@@ -1038,18 +1190,28 @@
             });
           }
         } catch (err) {
-          // swallow for operator UI; console is enough
           console.error("dashboard load error", err);
+          if (errEl) {
+            errEl.textContent =
+              "Dashboard failed to load: " + (err.message || "network error");
+            errEl.style.display = "block";
+          }
         }
       }
 
-      (function initSegmentFromUrl() {
+      (function initFiltersFromUrl() {
         const p = new URLSearchParams(window.location.search);
         const raw = (p.get("segment") || "all").toLowerCase();
         const allowed = ["all", "bar", "roofer", "plumber", "hvac", "fitness", "electrical", "beauty", "cleaning", "pet"];
         const seg = allowed.includes(raw) ? raw : "all";
         const sel = document.getElementById("operator-segment");
         if (sel) sel.value = seg;
+
+        const winRaw = p.get("window") || p.get("cq_days") || "7";
+        const winAllowed = ["today", "7", "14", "30"];
+        const win = winAllowed.includes(String(winRaw)) ? String(winRaw) : "7";
+        const winSel = document.getElementById("operator-window");
+        if (winSel) winSel.value = win;
       })();
       syncSegmentNav();
       document
@@ -1064,7 +1226,12 @@
           loadDashboard();
         });
 
-      document.getElementById("cq-days")?.addEventListener("change", () => {
+      document.getElementById("operator-window")?.addEventListener("change", function () {
+        const u = new URL(window.location.href);
+        u.searchParams.set("window", this.value || "7");
+        u.searchParams.delete("cq_days");
+        history.replaceState({}, "", u);
+        syncSegmentNav();
         loadDashboard();
       });
 

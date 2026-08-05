@@ -61,7 +61,7 @@ Examples: `src=instantly`, `src=fb`, `src=google`, `src=organic` · `cid=aug-ele
 | Approved quotes (S4) | Weak | Coterie extraction row created **at bind**, not at quote |
 | Packets sent (S5) | No | Coterie uses `quote_packets.status = approved`, not `sent` |
 | Connect bind PDF stored | No | BoldSign `signed_bind_docs` only |
-| Waiting for carrier outreach | Misleading | Pre-bind CQ subs may appear without a `quotes` row |
+| Waiting for carrier outreach | Misleading | Pre-bind CQ subs listed with ConnectQuote pill; use **Recent ConnectQuote submissions** for Coterie rail |
 
 ---
 
@@ -304,6 +304,9 @@ ORDER BY n DESC;
 ## Build checklist (when implementing v1)
 
 - [x] ConnectQuote learning on **`/operator/home`** — funnel, revenue, quoted-not-bound + binds tables (`connectQuoteLearningService.js`, 2026-08-01)
+- [x] **Recent ConnectQuote submissions** table — all CQ rows in window with status (submitted / in Coterie / quoted / bound), CID as Coterie external ID, Coterie `applicationId` from timeline (2026-06)
+- [x] **Unified Operator window** — single header control (`Today`, `7`, `14`, `30` days) drives top KPI cards, ConnectQuote funnel/tables, and drill-down lists (`operatorWindow.js`, 2026-06). Work queues stay open-backlog (no time filter).
+- [x] CQ submits (today UTC) metric + dashboard error banner when API fails
 - [x] Exclude `src=demo` / partner-demo from marketing KPIs
 - [x] Fix “waiting for carrier outreach” to exclude ConnectQuote with bindable timeline
 - [x] Requote tracking — same `submission_public_id` on repeat Get quote + `coterie.bindable_quote` count

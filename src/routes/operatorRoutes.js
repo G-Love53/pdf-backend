@@ -13,7 +13,12 @@ import {
   segmentQuerySuffix,
   sqlSegmentFilter,
 } from "../utils/operatorSegment.js";
-import { getConnectQuoteLearning, parseDays } from "../services/connectQuoteLearningService.js";
+import { getConnectQuoteLearning, sqlIsConnectQuoteSubmission } from "../services/connectQuoteLearningService.js";
+import {
+  parseOperatorWindow,
+  sqlWindowFilter,
+  operatorWindowQuerySuffix,
+} from "../services/operatorWindow.js";
 import { dedupeCarrierMessagesForGmail } from "../jobs/gmailPoller.js";
 import {
   addManualCarrierQuote,
@@ -110,8 +115,19 @@ router.get("/api/operator/dashboard", async (req, res) => {
   }
 
   const segment = parseOperatorSegmentQuery(req.query.segment);
+  const window = parseOperatorWindow(req.query);
   const segSql = ` ${sqlSegmentFilter("s")} `;
   const segParams = [segment];
+  const metricSegParamIndex = window.isToday ? 1 : 2;
+  const metricParams = window.isToday ? [segment] : [window.days, segment];
+  const metricSegSql = ` ${sqlSegmentFilter("s", metricSegParamIndex)} `;
+
+  const wfSubmitted = sqlWindowFilter("s.submitted_at", window, 1);
+  const wfReviewed = sqlWindowFilter("qe.reviewed_at", window, 1);
+  const wfSent = sqlWindowFilter("qp.sent_at", window, 1);
+  const wfBindCreated = sqlWindowFilter("br.created_at", window, 1);
+  const wfPolicyCreated = sqlWindowFilter("p.created_at", window, 1);
+  const wfDocCreated = sqlWindowFilter("d.created_at", window, 1);
 
   try {
     const [
@@ -132,43 +148,42 @@ router.get("/api/operator/dashboard", async (req, res) => {
                 SELECT COUNT(*)::int
                 FROM submissions s
                 WHERE s.submitted_at IS NOT NULL
-                  AND s.submitted_at >= CURRENT_DATE
-                  AND s.submitted_at < CURRENT_DATE + INTERVAL '1 day'
-                  ${segSql}
-              ) AS submissions_today,
+                  AND ${wfSubmitted}
+                  ${metricSegSql}
+              ) AS submissions_in_window,
               (
                 SELECT COUNT(*)::int
                 FROM quote_extractions qe
                 JOIN quotes q ON q.quote_id = qe.quote_id
                 JOIN submissions s ON s.submission_id = q.submission_id
                 WHERE qe.review_status = 'approved'
-                  AND qe.reviewed_at >= CURRENT_DATE
-                  ${segSql}
-              ) AS approved_quotes_today,
+                  AND ${wfReviewed}
+                  ${metricSegSql}
+              ) AS approved_quotes_in_window,
               (
                 SELECT COUNT(*)::int
                 FROM quote_packets qp
                 JOIN quotes q ON q.quote_id = qp.quote_id
                 JOIN submissions s ON s.submission_id = q.submission_id
                 WHERE qp.status = 'sent'
-                  AND qp.sent_at >= CURRENT_DATE
-                  ${segSql}
-              ) AS packets_sent_today,
+                  AND ${wfSent}
+                  ${metricSegSql}
+              ) AS packets_sent_in_window,
               (
                 SELECT COUNT(*)::int
                 FROM bind_requests br
                 JOIN quotes q ON q.quote_id = br.quote_id
                 JOIN submissions s ON s.submission_id = q.submission_id
-                WHERE br.created_at >= CURRENT_DATE
-                  ${segSql}
-              ) AS binds_initiated_today,
+                WHERE ${wfBindCreated}
+                  ${metricSegSql}
+              ) AS binds_initiated_in_window,
               (
                 SELECT COUNT(*)::int
                 FROM policies p
                 JOIN submissions s ON s.submission_id = p.submission_id
-                WHERE p.created_at >= CURRENT_DATE
-                  ${segSql}
-              ) AS policies_bound_today,
+                WHERE ${wfPolicyCreated}
+                  ${metricSegSql}
+              ) AS policies_bound_in_window,
               (
                 SELECT COUNT(*)::int
                 FROM documents d
@@ -176,9 +191,9 @@ router.get("/api/operator/dashboard", async (req, res) => {
                 JOIN submissions s ON s.submission_id = p.submission_id
                 WHERE d.document_role = 'signed_bind_docs'
                   AND d.policy_id IS NOT NULL
-                  AND d.created_at >= CURRENT_DATE
-                  ${segSql}
-              ) AS connect_bind_pdf_stored_today,
+                  AND ${wfDocCreated}
+                  ${metricSegSql}
+              ) AS connect_bind_pdf_stored_in_window,
               (
                 SELECT COUNT(*)::int
                 FROM documents d
@@ -186,16 +201,25 @@ router.get("/api/operator/dashboard", async (req, res) => {
                 JOIN submissions s ON s.submission_id = p.submission_id
                 WHERE d.document_role IN ('policy_original', 'declarations_original')
                   AND d.policy_id IS NOT NULL
-                  AND d.created_at >= CURRENT_DATE
-                  ${segSql}
-              ) AS connect_policy_docs_stored_today
+                  AND ${wfDocCreated}
+                  ${metricSegSql}
+              ) AS connect_policy_docs_stored_in_window,
+              (
+                SELECT COUNT(*)::int
+                FROM submissions s
+                WHERE s.submitted_at IS NOT NULL
+                  AND ${wfSubmitted}
+                  AND ${sqlIsConnectQuoteSubmission("s")}
+                  ${metricSegSql}
+              ) AS connectquote_submissions_in_window
           `,
-          segParams,
+          metricParams,
         ),
         pool.query(
           `
             SELECT
               s.submission_public_id,
+              s.segment::text AS segment,
               s.submitted_at AS created_at,
               c.primary_email AS client_email,
               COALESCE(
@@ -206,7 +230,8 @@ router.get("/api/operator/dashboard", async (req, res) => {
                 NULLIF(TRIM(s.raw_submission_json->>'business_name'), ''),
                 NULLIF(TRIM(s.raw_submission_json->>'applicant_name'), ''),
                 c.primary_email
-              ) AS client_name
+              ) AS client_name,
+              ${sqlIsConnectQuoteSubmission("s")} AS is_connectquote
             FROM submissions s
             JOIN clients c ON c.client_id = s.client_id
             LEFT JOIN businesses b ON b.business_id = s.business_id
@@ -214,7 +239,7 @@ router.get("/api/operator/dashboard", async (req, res) => {
             WHERE s.status = 'received'
               AND q.submission_id IS NULL
               AND NOT (
-                s.raw_submission_json->>'quote_rail' = 'coterie'
+                ${sqlIsConnectQuoteSubmission("s")}
                 AND EXISTS (
                   SELECT 1 FROM timeline_events te
                   WHERE te.submission_id = s.submission_id
@@ -396,7 +421,7 @@ router.get("/api/operator/dashboard", async (req, res) => {
     try {
       connectquote = await getConnectQuoteLearning(pool, {
         segment,
-        days: parseDays(req.query.cq_days),
+        window: req.query,
       });
     } catch (cqErr) {
       console.error("[operator/dashboard] connectquote learning:", cqErr.message || cqErr);
@@ -404,16 +429,24 @@ router.get("/api/operator/dashboard", async (req, res) => {
 
     res.json({
       segment,
+      window: {
+        key: window.key,
+        label: window.label,
+        isToday: window.isToday,
+        days: window.days,
+      },
       counts: {
-        submissions_today: countsRow.submissions_today ?? 0,
-        approved_quotes_today: countsRow.approved_quotes_today ?? 0,
-        packets_sent_today: countsRow.packets_sent_today ?? 0,
-        binds_initiated_today: countsRow.binds_initiated_today ?? 0,
-        policies_bound_today: countsRow.policies_bound_today ?? 0,
-        connect_bind_pdf_stored_today:
-          countsRow.connect_bind_pdf_stored_today ?? 0,
-        connect_policy_docs_stored_today:
-          countsRow.connect_policy_docs_stored_today ?? 0,
+        submissions_in_window: countsRow.submissions_in_window ?? 0,
+        approved_quotes_in_window: countsRow.approved_quotes_in_window ?? 0,
+        packets_sent_in_window: countsRow.packets_sent_in_window ?? 0,
+        binds_initiated_in_window: countsRow.binds_initiated_in_window ?? 0,
+        policies_bound_in_window: countsRow.policies_bound_in_window ?? 0,
+        connect_bind_pdf_stored_in_window:
+          countsRow.connect_bind_pdf_stored_in_window ?? 0,
+        connect_policy_docs_stored_in_window:
+          countsRow.connect_policy_docs_stored_in_window ?? 0,
+        connectquote_submissions_in_window:
+          countsRow.connectquote_submissions_in_window ?? 0,
       },
       queues: {
         submissions_waiting_outreach: submissionsQueueResult.rows,
@@ -558,20 +591,30 @@ router.get("/api/admin/index-status/:policyId", async (req, res) => {
   }
 });
 
-/** Drill-down for dashboard “today” tiles — same segment + UTC-day filters as /api/operator/dashboard. */
+/** Drill-down for dashboard metric tiles — same segment + window as /api/operator/dashboard. */
 router.get("/operator/today/:metric", async (req, res) => {
   if (!pool) {
     return res.status(503).send("database_not_configured");
   }
 
   const segment = parseOperatorSegmentQuery(req.query.segment);
-  const segSql = ` ${sqlSegmentFilter("s")} `;
-  const segParams = [segment];
+  const window = parseOperatorWindow(req.query);
+  const metricSegParamIndex = window.isToday ? 1 : 2;
+  const queryParams = window.isToday ? [segment] : [window.days, segment];
+  const segSql = ` ${sqlSegmentFilter("s", metricSegParamIndex)} `;
+
+  const wfSubmitted = sqlWindowFilter("s.submitted_at", window, 1);
+  const wfReviewed = sqlWindowFilter("qe.reviewed_at", window, 1);
+  const wfSent = sqlWindowFilter("qp.sent_at", window, 1);
+  const wfBindCreated = sqlWindowFilter("br.created_at", window, 1);
+  const wfPolicyCreated = sqlWindowFilter("p.created_at", window, 1);
+  const wfDocCreated = sqlWindowFilter("d.created_at", window, 1);
 
   const metric = String(req.params.metric || "").toLowerCase();
+  const windowTitle = window.isToday ? "today" : `last ${window.days} days`;
   const configs = {
     submissions: {
-      title: "Submissions (today)",
+      title: `Submissions (${windowTitle})`,
       sql: `
         SELECT
           s.submission_public_id,
@@ -591,8 +634,7 @@ router.get("/operator/today/:metric", async (req, res) => {
         JOIN clients c ON c.client_id = s.client_id
         LEFT JOIN businesses b ON b.business_id = s.business_id
         WHERE s.submitted_at IS NOT NULL
-          AND s.submitted_at >= CURRENT_DATE
-          AND s.submitted_at < CURRENT_DATE + INTERVAL '1 day'
+          AND ${wfSubmitted}
           ${segSql}
         ORDER BY s.submitted_at DESC
         LIMIT 200
@@ -606,7 +648,7 @@ router.get("/operator/today/:metric", async (req, res) => {
       ],
     },
     "approved-quotes": {
-      title: "Approved quotes (S4, today)",
+      title: `Approved quotes (S4, ${windowTitle})`,
       sql: `
         SELECT
           s.submission_public_id,
@@ -632,7 +674,7 @@ router.get("/operator/today/:metric", async (req, res) => {
           LIMIT 1
         ) pkt ON TRUE
         WHERE qe.review_status = 'approved'
-          AND qe.reviewed_at >= CURRENT_DATE
+          AND ${wfReviewed}
           ${segSql}
         ORDER BY qe.reviewed_at DESC
         LIMIT 200
@@ -647,7 +689,7 @@ router.get("/operator/today/:metric", async (req, res) => {
       ],
     },
     "packets-sent": {
-      title: "Packets sent (S5, today)",
+      title: `Packets sent (S5, ${windowTitle})`,
       sql: `
         SELECT
           s.submission_public_id,
@@ -661,7 +703,7 @@ router.get("/operator/today/:metric", async (req, res) => {
         LEFT JOIN businesses b ON b.business_id = s.business_id
         LEFT JOIN clients c ON c.client_id = s.client_id
         WHERE qp.status = 'sent'
-          AND qp.sent_at >= CURRENT_DATE
+          AND ${wfSent}
           ${segSql}
         ORDER BY qp.sent_at DESC
         LIMIT 200
@@ -675,7 +717,7 @@ router.get("/operator/today/:metric", async (req, res) => {
       ],
     },
     "binds-initiated": {
-      title: "Binds initiated (S6, today)",
+      title: `Binds initiated (S6, ${windowTitle})`,
       sql: `
         SELECT
           s.submission_public_id,
@@ -688,7 +730,7 @@ router.get("/operator/today/:metric", async (req, res) => {
         JOIN submissions s ON s.submission_id = q.submission_id
         LEFT JOIN businesses b ON b.business_id = s.business_id
         LEFT JOIN clients c ON c.client_id = s.client_id
-        WHERE br.created_at >= CURRENT_DATE
+        WHERE ${wfBindCreated}
           ${segSql}
         ORDER BY br.created_at DESC
         LIMIT 200
@@ -702,7 +744,7 @@ router.get("/operator/today/:metric", async (req, res) => {
       ],
     },
     "policies-bound": {
-      title: "Policies bound (today)",
+      title: `Policies bound (${windowTitle})`,
       sql: `
         SELECT
           p.policy_number,
@@ -715,7 +757,7 @@ router.get("/operator/today/:metric", async (req, res) => {
         JOIN submissions s ON s.submission_id = p.submission_id
         LEFT JOIN businesses b ON b.business_id = s.business_id
         LEFT JOIN clients c ON c.client_id = s.client_id
-        WHERE p.created_at >= CURRENT_DATE
+        WHERE ${wfPolicyCreated}
           ${segSql}
         ORDER BY p.created_at DESC
         LIMIT 200
@@ -730,7 +772,7 @@ router.get("/operator/today/:metric", async (req, res) => {
       ],
     },
     "connect-bind-stored": {
-      title: "Bind confirmation PDF stored (Connect, today)",
+      title: `Bind confirmation PDF stored (Connect, ${windowTitle})`,
       sql: `
         SELECT
           d.document_id,
@@ -749,7 +791,7 @@ router.get("/operator/today/:metric", async (req, res) => {
         LEFT JOIN clients c ON c.client_id = s.client_id
         WHERE d.document_role = 'signed_bind_docs'
           AND d.policy_id IS NOT NULL
-          AND d.created_at >= CURRENT_DATE
+          AND ${wfDocCreated}
           ${segSql}
         ORDER BY d.created_at DESC
         LIMIT 200
@@ -765,7 +807,7 @@ router.get("/operator/today/:metric", async (req, res) => {
       ],
     },
     "connect-policy-docs-stored": {
-      title: "Policy / declarations stored (Connect, today)",
+      title: `Policy / declarations stored (Connect, ${windowTitle})`,
       sql: `
         SELECT
           d.document_id,
@@ -784,7 +826,7 @@ router.get("/operator/today/:metric", async (req, res) => {
         LEFT JOIN clients c ON c.client_id = s.client_id
         WHERE d.document_role IN ('policy_original', 'declarations_original', 'endorsement')
           AND d.policy_id IS NOT NULL
-          AND d.created_at >= CURRENT_DATE
+          AND ${wfDocCreated}
           ${segSql}
         ORDER BY d.created_at DESC
         LIMIT 200
@@ -807,7 +849,7 @@ router.get("/operator/today/:metric", async (req, res) => {
   }
 
   try {
-    const result = await pool.query(cfg.sql, segParams);
+    const result = await pool.query(cfg.sql, queryParams);
     const rows = result.rows.map((row) => {
       const out = { ...row };
       if (out.submitted_at) out.submitted_at = new Date(out.submitted_at).toISOString();
@@ -822,7 +864,12 @@ router.get("/operator/today/:metric", async (req, res) => {
         ? "All segments"
         : `${segment.charAt(0).toUpperCase() + segment.slice(1)} segment`;
     const segmentQuery =
-      segment === "all" ? "" : `?segment=${encodeURIComponent(segment)}`;
+      segment === "all"
+        ? operatorWindowQuerySuffix("", window)
+        : operatorWindowQuerySuffix(
+            `?segment=${encodeURIComponent(segment)}`,
+            window,
+          );
 
     res.render("operator/today-metric", {
       title: cfg.title,
@@ -831,6 +878,7 @@ router.get("/operator/today/:metric", async (req, res) => {
       segmentLabel,
       segmentQuery,
       segment: segment === "all" ? "all" : segment,
+      windowLabel: window.label,
     });
   } catch (err) {
     console.error("[operator/today] error:", err.message || err);
