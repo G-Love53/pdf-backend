@@ -28,6 +28,20 @@ import {
 const router = express.Router();
 const pool = getPool();
 
+/** Optional queue types may be absent until a migration runs on cid-postgres. */
+async function queryOptionalQueue(poolRef, sql, params, label) {
+  try {
+    return await poolRef.query(sql, params);
+  } catch (err) {
+    const msg = err?.message || String(err);
+    if (/invalid input value for enum queue_type/i.test(msg)) {
+      console.warn(`[operator/dashboard] ${label} skipped (run migrations/012):`, msg);
+      return { rows: [] };
+    }
+    throw err;
+  }
+}
+
 /** Segment filter for shared operator nav (?segment=all|bar|…). */
 function operatorNavLocals(req) {
   const segment = parseOperatorSegmentQuery(req.query.segment);
@@ -284,7 +298,8 @@ router.get("/api/operator/dashboard", async (req, res) => {
           `,
           segParams,
         ),
-        pool.query(
+        queryOptionalQueue(
+          pool,
           `
             SELECT
               wqi.work_queue_item_id,
@@ -306,6 +321,7 @@ router.get("/api/operator/dashboard", async (req, res) => {
             LIMIT 20
           `,
           segParams,
+          "quote_needs_cid",
         ),
         // Binds awaiting signature (avoid policy_type dependency for older schemas)
         pool.query(
@@ -461,10 +477,7 @@ router.get("/api/operator/dashboard", async (req, res) => {
     });
   } catch (err) {
     console.error("[operator/dashboard] error:", err.message || err);
-    res.status(500).json({
-      error: "internal_error",
-      message: err?.message || String(err),
-    });
+    res.status(500).json({ error: "internal_error" });
   }
 });
 
