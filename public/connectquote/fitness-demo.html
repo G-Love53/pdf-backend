@@ -44,6 +44,83 @@
     .footer { text-align: center; font-size: .85rem; color: #666; margin-top: 24px; }
     .success { background: #ecfdf5; border: 2px solid #6ee7b7; padding: 20px; border-radius: 10px; display: none; }
     .success.show { display: block; }
+    .connect-benefits {
+      background: var(--navy);
+      color: #fff;
+      border-radius: 10px;
+      padding: 14px 14px 12px;
+      margin: 0 0 16px;
+    }
+    .connect-benefits-head {
+      margin: 0 0 4px;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: #cbd5e1;
+    }
+    .connect-benefits-head strong {
+      color: #fff;
+      letter-spacing: .02em;
+      text-transform: none;
+      font-size: .95rem;
+    }
+    .connect-benefits-sub {
+      margin: 0 0 12px;
+      font-size: .82rem;
+      line-height: 1.4;
+      color: #fdba74;
+    }
+    .connect-benefits-grid {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+    @media (max-width: 640px) {
+      .connect-benefits-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    .connect-benefits-grid li {
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 8px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+    .connect-benefits-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      margin: 0 auto 6px;
+      border-radius: 999px;
+      background: rgba(234, 88, 12, .18);
+      color: #fdba74;
+      font-size: .95rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .connect-benefits-title {
+      display: block;
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      line-height: 1.25;
+      margin-bottom: 3px;
+      color: #fff;
+    }
+    .connect-benefits-desc {
+      display: block;
+      font-size: .68rem;
+      line-height: 1.35;
+      color: #94a3b8;
+    }
   </style>
 </head>
 <body>
@@ -132,6 +209,37 @@
 
   <div class="card quote-box" id="quote-box">
     <h2 style="margin-top:0">Your quote</h2>
+    <div class="connect-benefits" id="connect-benefits" aria-label="Included with CID Connect">
+      <p class="connect-benefits-head">Included with <strong>Connect</strong></p>
+      <p class="connect-benefits-sub">Bind today — your Connect login is ready same day.</p>
+      <ul class="connect-benefits-grid">
+        <li>
+          <span class="connect-benefits-icon" aria-hidden="true">COI</span>
+          <span class="connect-benefits-title">Instant COIs</span>
+          <span class="connect-benefits-desc">Send certificates in seconds</span>
+        </li>
+        <li>
+          <span class="connect-benefits-icon" aria-hidden="true">?</span>
+          <span class="connect-benefits-title">Am I Covered?</span>
+          <span class="connect-benefits-desc">Clear answers to real questions</span>
+        </li>
+        <li>
+          <span class="connect-benefits-icon" aria-hidden="true">DOC</span>
+          <span class="connect-benefits-title">Policy Home</span>
+          <span class="connect-benefits-desc">All docs in one secure place</span>
+        </li>
+        <li>
+          <span class="connect-benefits-icon" aria-hidden="true">✓</span>
+          <span class="connect-benefits-title">Claims Help</span>
+          <span class="connect-benefits-desc">Start a claim quickly</span>
+        </li>
+        <li>
+          <span class="connect-benefits-icon" aria-hidden="true">↻</span>
+          <span class="connect-benefits-title">Easy Renewals</span>
+          <span class="connect-benefits-desc">We remind you — you stay covered</span>
+        </li>
+      </ul>
+    </div>
     <p class="plan-picker-label">Choose how you want to pay</p>
     <div id="payment-plan-picker" class="plan-picker"></div>
     <input type="hidden" id="payment_plan" value="Annual"/>
