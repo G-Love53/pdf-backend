@@ -3,7 +3,70 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260730b";
+  const ASSET_V = "20260806a";
+
+  const CONNECT_BENEFITS_HTML = `<div class="connect-benefits" id="connect-benefits" aria-label="Included with CID Connect">
+      <p class="connect-benefits-head">Included with <strong>Connect</strong></p>
+      <p class="connect-benefits-sub">Bind today — your Connect login is ready same day.</p>
+      <ul class="connect-benefits-grid">
+        <li class="benefit-coi">
+          <span class="connect-benefits-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg>
+          </span>
+          <span class="connect-benefits-copy">
+            <span class="connect-benefits-title">Instant COIs</span>
+            <span class="connect-benefits-desc">Your COI, sent in seconds</span>
+          </span>
+        </li>
+        <li class="benefit-covered">
+          <span class="connect-benefits-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M9.5 9a2.5 2.5 0 0 1 4.2 1.8c0 1.5-2.2 1.8-2.2 3.2"/><path d="M12 17h.01"/></svg>
+          </span>
+          <span class="connect-benefits-copy">
+            <span class="connect-benefits-title">Am I Covered?</span>
+            <span class="connect-benefits-desc">Answers to your policy questions</span>
+          </span>
+        </li>
+        <li class="benefit-home">
+          <span class="connect-benefits-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/></svg>
+          </span>
+          <span class="connect-benefits-copy">
+            <span class="connect-benefits-title">Policy Home</span>
+            <span class="connect-benefits-desc">Your docs, one secure place</span>
+          </span>
+        </li>
+        <li class="benefit-claims">
+          <span class="connect-benefits-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+          </span>
+          <span class="connect-benefits-copy">
+            <span class="connect-benefits-title">Claims Help</span>
+            <span class="connect-benefits-desc">Get your claim moving fast</span>
+          </span>
+        </li>
+        <li class="benefit-renewals">
+          <span class="connect-benefits-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-9-9 9 9 0 0 1 9-9c2.4 0 4.6.9 6.3 2.4"/><path d="M21 3v6h-6"/></svg>
+          </span>
+          <span class="connect-benefits-copy">
+            <span class="connect-benefits-title">Easy Renewals</span>
+            <span class="connect-benefits-desc">We\u2019ll remind you \u2014 you stay covered</span>
+          </span>
+        </li>
+      </ul>
+    </div>`;
+
+  function ensureConnectBenefits() {
+    const box = $("quote-box");
+    if (!box || $("connect-benefits")) return;
+    const heading = box.querySelector("h2");
+    if (!heading) return;
+    const wrap = document.createElement("div");
+    wrap.innerHTML = CONNECT_BENEFITS_HTML.trim();
+    const band = wrap.firstElementChild;
+    if (band) heading.insertAdjacentElement("afterend", band);
+  }
 
   const MONTH_LABELS = [
     ["01", "January"],
@@ -1482,6 +1545,7 @@
   }
 
   async function init() {
+    ensureConnectBenefits();
     ensureContactPhoneField();
     applyPrefill();
     applyPartnerDemoDefaults();

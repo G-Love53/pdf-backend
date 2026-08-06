@@ -167,3 +167,127 @@ select.cq-ext-field:required:invalid {
 .cq-knockout legend { font-size: .88rem; font-weight: 600; color: #374151; padding: 0 4px; }
 .cq-knockout label { display: inline-block; font-weight: 500; margin: 6px 12px 0 0; width: auto; }
 .cq-knockout input { width: auto; margin-right: 4px; }
+
+/* Connect benefits band — pre-bind quote step (all segments) */
+.connect-benefits {
+  background: var(--navy, #1B3A5F);
+  color: #fff;
+  border-radius: 12px;
+  padding: 16px 16px 14px;
+  margin: 0 0 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+.connect-benefits-head {
+  margin: 0 0 4px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+.connect-benefits-head strong {
+  color: #fff;
+  letter-spacing: .01em;
+  text-transform: none;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.connect-benefits-sub {
+  margin: 0 0 14px;
+  font-size: .84rem;
+  line-height: 1.45;
+  color: #fdba74;
+}
+.connect-benefits-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+.connect-benefits-grid li {
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
+}
+.connect-benefits-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+.connect-benefits-icon svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+.benefit-coi .connect-benefits-icon { background: #fff7ed; color: #ea580c; }
+.benefit-covered .connect-benefits-icon { background: #e0f2fe; color: #0284c7; }
+.benefit-home .connect-benefits-icon { background: #e8eef4; color: #1B3A5F; }
+.benefit-claims .connect-benefits-icon { background: #ecfdf5; color: #059669; }
+.benefit-renewals .connect-benefits-icon { background: #fffbeb; color: #d97706; }
+.connect-benefits-copy {
+  min-width: 0;
+  flex: 1;
+}
+.connect-benefits-title {
+  display: block;
+  font-size: .9rem;
+  font-weight: 800;
+  letter-spacing: .01em;
+  line-height: 1.25;
+  margin-bottom: 3px;
+  color: var(--navy, #1B3A5F);
+}
+.connect-benefits-desc {
+  display: block;
+  font-size: .76rem;
+  line-height: 1.35;
+  color: #64748b;
+}
+@media (min-width: 640px) {
+  .connect-benefits-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+  }
+  .connect-benefits-grid li {
+    grid-column: span 2;
+    padding: 11px 10px;
+  }
+  .connect-benefits-grid li:nth-child(4) {
+    grid-column: 2 / span 2;
+  }
+  .connect-benefits-grid li:nth-child(5) {
+    grid-column: 4 / span 2;
+  }
+  .connect-benefits-title {
+    font-size: .84rem;
+  }
+  .connect-benefits-desc {
+    font-size: .72rem;
+  }
+}
+@media (max-width: 639px) {
+  .connect-benefits {
+    padding: 14px 12px 12px;
+    margin: 0 0 14px;
+  }
+  .connect-benefits-sub {
+    font-size: .8rem;
+    margin-bottom: 12px;
+  }
+  .quote-box {
+    padding: 14px;
+  }
+}
