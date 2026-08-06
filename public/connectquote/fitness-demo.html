@@ -101,21 +101,24 @@
       margin: 0;
       flex-shrink: 0;
       border-radius: 10px;
-      background: #fff7ed;
-      color: var(--brand);
     }
     .connect-benefits-icon svg {
       width: 22px;
       height: 22px;
       display: block;
     }
+    .benefit-coi .connect-benefits-icon { background: #fff7ed; color: #ea580c; }
+    .benefit-covered .connect-benefits-icon { background: #e0f2fe; color: #0284c7; }
+    .benefit-home .connect-benefits-icon { background: #e8eef4; color: #1B3A5F; }
+    .benefit-claims .connect-benefits-icon { background: #ecfdf5; color: #059669; }
+    .benefit-renewals .connect-benefits-icon { background: #fffbeb; color: #d97706; }
     .connect-benefits-copy {
       min-width: 0;
       flex: 1;
     }
     .connect-benefits-title {
       display: block;
-      font-size: .82rem;
+      font-size: .9rem;
       font-weight: 800;
       letter-spacing: .01em;
       line-height: 1.25;
@@ -128,29 +131,29 @@
       line-height: 1.35;
       color: #64748b;
     }
-    @media (min-width: 520px) {
+    @media (min-width: 640px) {
       .connect-benefits-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(6, 1fr);
         gap: 10px;
       }
       .connect-benefits-grid li {
-        flex-direction: column;
-        align-items: center;
-        gap: 0;
-        padding: 12px 10px 11px;
-        text-align: center;
+        grid-column: span 2;
+        padding: 11px 10px;
       }
-      .connect-benefits-icon {
-        margin: 0 auto 8px;
+      .connect-benefits-grid li:nth-child(4) {
+        grid-column: 2 / span 2;
+      }
+      .connect-benefits-grid li:nth-child(5) {
+        grid-column: 4 / span 2;
       }
       .connect-benefits-title {
-        font-size: .72rem;
+        font-size: .84rem;
       }
       .connect-benefits-desc {
-        font-size: .68rem;
+        font-size: .72rem;
       }
     }
-    @media (max-width: 519px) {
+    @media (max-width: 639px) {
       .connect-benefits {
         padding: 14px 12px 12px;
         margin: 0 0 14px;
@@ -258,49 +261,49 @@
       <p class="connect-benefits-head">Included with <strong>Connect</strong></p>
       <p class="connect-benefits-sub">Bind today — your Connect login is ready same day.</p>
       <ul class="connect-benefits-grid">
-        <li>
+        <li class="benefit-coi">
           <span class="connect-benefits-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg>
           </span>
           <span class="connect-benefits-copy">
             <span class="connect-benefits-title">Instant COIs</span>
-            <span class="connect-benefits-desc">Send certificates in seconds</span>
+            <span class="connect-benefits-desc">Your COI, sent in seconds</span>
           </span>
         </li>
-        <li>
+        <li class="benefit-covered">
           <span class="connect-benefits-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M9.5 9a2.5 2.5 0 0 1 4.2 1.8c0 1.5-2.2 1.8-2.2 3.2"/><path d="M12 17h.01"/></svg>
           </span>
           <span class="connect-benefits-copy">
             <span class="connect-benefits-title">Am I Covered?</span>
-            <span class="connect-benefits-desc">Clear answers to real questions</span>
+            <span class="connect-benefits-desc">Answers to your policy questions</span>
           </span>
         </li>
-        <li>
+        <li class="benefit-home">
           <span class="connect-benefits-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 10h18"/></svg>
           </span>
           <span class="connect-benefits-copy">
             <span class="connect-benefits-title">Policy Home</span>
-            <span class="connect-benefits-desc">All docs in one secure place</span>
+            <span class="connect-benefits-desc">Your docs, one secure place</span>
           </span>
         </li>
-        <li>
+        <li class="benefit-claims">
           <span class="connect-benefits-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
           </span>
           <span class="connect-benefits-copy">
             <span class="connect-benefits-title">Claims Help</span>
-            <span class="connect-benefits-desc">Start a claim quickly</span>
+            <span class="connect-benefits-desc">Get your claim moving fast</span>
           </span>
         </li>
-        <li>
+        <li class="benefit-renewals">
           <span class="connect-benefits-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-9-9 9 9 0 0 1 9-9c2.4 0 4.6.9 6.3 2.4"/><path d="M21 3v6h-6"/></svg>
           </span>
           <span class="connect-benefits-copy">
             <span class="connect-benefits-title">Easy Renewals</span>
-            <span class="connect-benefits-desc">We remind you — you stay covered</span>
+            <span class="connect-benefits-desc">We’ll remind you — you stay covered</span>
           </span>
         </li>
       </ul>
