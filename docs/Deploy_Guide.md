@@ -538,6 +538,7 @@ Goal: `quotes@<segment>insurancedirect.com` stays working while DNS moves and is
 **Reliable:** scheduled wake checks must hit a **real liveness route** on the service you deploy. **CID-PDF-API** (`pdf-backend` on Render, e.g. `cid-pdf-api`) exposes **`GET /healthz`** — use that in `.github/workflows/heartbeat.yml`.
 
 - **Do not** point the unified API heartbeat at **`POST /check-quotes`** — that route exists on some **legacy segment-only** Render services, not on CID-PDF-API (returns **404**, fails `curl --fail`, spams failure email).
+- **One heartbeat only:** keep `.github/workflows/heartbeat.yml` on **`pdf-backend`** (pokes `GET /healthz` on CID-PDF-API). **Remove** the same workflow from segment repos (`*-pdf-backend`) — duplicate crons spam GitHub failure email and are unnecessary after ConnectQuote intake moved to CID-PDF-API.
 - **Hardening:** concurrency group, job timeout, and `curl` retries/backoff reduce noise during GitHub Actions incidents; transient platform outages still require checking [GitHub Status](https://www.githubstatus.com/).
 
 ---
