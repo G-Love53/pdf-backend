@@ -5,58 +5,57 @@
 
 ## Active creatives (2026-08-connect-v1)
 
-| Segment | Repo | Public JPEG URL | Instantly HTML (repo path) | Status |
-|---------|------|-----------------|----------------------------|--------|
-| **fitness** | `fitness-pdf-backend` | https://fitnessinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Fitness_Creative.jpg | `Netlify/email/archive/2026-08-connect-v1/instantly_step3.html` | Live (+ legacy root URL) |
-| **electrical** | `electrical-pdf-backend` | https://electricalinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Electrical_Creative.jpg | same pattern | Deploy after push |
-| **hvac** | `hvac-pdf-backend` | https://hvacinsurancedirect.com/email/archive/2026-08-connect-v1/CID_HVAC_Creative.jpg | same pattern | Deploy after push |
-| **plumber** | `plumber-pdf-backend` | https://plumberinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Plumber_Creative.jpg | same pattern | Deploy after push |
-| **bar** | `bar-pdf-backend` | — | structure only | Add creative |
-| **roofer** | `roofing-pdf-backend` | — | structure only | Add creative |
-| **beauty** | `beauty-pdf-backend` | — | structure only | Add creative |
-| **cleaning** | `cleaning-pdf-backend` | — | structure only | Add creative |
-| **pet** | `pet-pdf-backend` | — | structure only | Add creative |
+| Segment | Repo | Public JPEG URL | Instantly HTML | Status |
+|---------|------|-----------------|----------------|--------|
+| **fitness** | `fitness-pdf-backend` | [archive JPEG](https://fitnessinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Fitness_Creative.jpg) | `instantly_html_step.html` | Live (+ legacy root) |
+| **electrical** | `electrical-pdf-backend` | [archive JPEG](https://electricalinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Electrical_Creative.jpg) | same | Deployed |
+| **hvac** | `hvac-pdf-backend` | [archive JPEG](https://hvacinsurancedirect.com/email/archive/2026-08-connect-v1/CID_HVAC_Creative.jpg) | same | Deployed |
+| **plumber** | `plumber-pdf-backend` | [archive JPEG](https://plumberinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Plumber_Creative.jpg) | same | Deployed |
+| **bar, roofer, beauty, cleaning, pet** | respective repos | — | HTML template only | Add JPEG when ready |
 
-**Legacy (do not break):** Fitness campaigns may still use  
-`https://fitnessinsurancedirect.com/email/CID_Fitness_Creative.jpg` (root copy kept).
+**Legacy (do not break):**  
+`https://fitnessinsurancedirect.com/email/CID_Fitness_Creative.jpg` + root `instantly_fitness_step3.html`
 
-## Folder convention (every segment)
+## Folder convention
 
 ```text
-{segment}-pdf-backend/Netlify/email/
-  README.md                          ← which version is active
-  archive/
-    YYYY-MM-slug/
-      CID_{Segment}_Creative.jpg     ← hosted hero (600px JPEG)
-      instantly_step3.html           ← paste into Instantly Step 3
-      source_embedded.html           ← optional design source
-  CID_*_Creative.jpg                 ← legacy root mirror (optional)
-  instantly_*_step3.html             ← legacy root mirror (optional)
+Netlify/email/
+  README.md
+  archive/YYYY-MM-slug/
+    CID_{Segment}_Creative.jpg
+    instantly_html_step.html       ← text Step 1 → HTML Step 2
+    source_embedded.html
 ```
 
-**Rule:** Never delete archive folders used in live Instantly steps. Add new version folders for A/B or refreshes.
+Never delete archive folders referenced by live Instantly campaigns.
 
-## Scripts (run from `pdf-backend`)
+## JPEG spec
+
+| Property | Value |
+|----------|--------|
+| Width | **1200 px** |
+| Format | JPEG, quality ~82, progressive |
+| Target size | 250–400 KB |
+| Email `<img width>` | 600 (display); file is 2× for retina |
+
+Extract with `extract-creative-jpg.mjs` — verify hosted `src` is `https://`, never `data:image`.
+
+## Instantly paste checklist
+
+See **`outreach-claude-playbook.md` §C** — re-apply `{{connectquote_url}}` on image + CTA after every paste.
+
+## Scripts
 
 | Script | Purpose |
 |--------|---------|
-| `scripts/extract-creative-jpg.mjs` | Embedded HTML → JPEG |
-| `scripts/generate-instantly-email.mjs` | Template → `instantly_step3.html` |
-| `scripts/bootstrap-segment-email.mjs` | Create layout + ingest creative (`--all` or `--segment`) |
-| `scripts/clean-apollo-instantly.mjs` | Apollo/list CSV → Instantly CSV + `connectquote_url` |
+| `extract-creative-jpg.mjs` | Embedded HTML → JPEG |
+| `generate-instantly-email.mjs` | → `instantly_html_step.html` |
+| `bootstrap-segment-email.mjs` | Layout + ingest |
+| `clean-apollo-instantly.mjs` | List clean; default **2 contacts/company** |
 
-Config: `marketing/segmentEmailConfig.js`  
-Template: `marketing/templates/instantly_step3.base.html`
+Template: `marketing/templates/instantly_html_step.base.html`  
+Friction lines: `marketing/segmentEmailConfig.js`
 
-## Instantly campaign wiring
+## Related
 
-1. Import cleaned CSV (`connectquote_url` column).
-2. Map custom variable **`connectquote_url`**.
-3. Paste **`instantly_step3.html`** from repo (Step 3, `<>` source mode).
-4. Insert unsubscribe link once in footer placeholder.
-5. Replace `[LICENSE NUMBER]` with CO producer license when known.
-
-## Related docs
-
-- [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) — agent instructions (lists + creatives)
-- [`connectquote-partner-demo.md`](./connectquote-partner-demo.md) — Fitness demo bind → Connect
+- [`outreach-claude-playbook.md`](./outreach-claude-playbook.md)

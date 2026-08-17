@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /**
  * Extract JPEG from CID embedded HTML (data:image/jpeg;base64,...).
+ * Output must be hosted at https:// — never use data: URIs in Instantly email.
+ * Target: 1200px wide, JPEG q~82, 250–400 KB (see docs/outreach-creatives.md).
  *
  * Usage:
  *   node scripts/extract-creative-jpg.mjs \

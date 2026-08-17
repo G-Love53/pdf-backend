@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Generate Instantly Step 3 HTML for a segment creative version.
+ * Generate Instantly HTML step (text Step 1 → HTML Step 2) for a segment creative version.
  *
  * Usage:
  *   node scripts/generate-instantly-email.mjs --segment electrical --version 2026-08-connect-v1
@@ -13,7 +13,9 @@ import {
   altText,
   creativePublicUrl,
   DEFAULT_CREATIVE_VERSION,
+  frictionLine,
   getSegmentEmailConfig,
+  INSTANTLY_HTML_FILENAME,
   introLine,
   segmentEmailRoot,
 } from '../marketing/segmentEmailConfig.js';
@@ -46,17 +48,18 @@ if (!segment) {
 
 const { key, creativeFile } = getSegmentEmailConfig(segment);
 const template = fs.readFileSync(
-  path.join(ROOT, 'marketing/templates/instantly_step3.base.html'),
+  path.join(ROOT, 'marketing/templates/instantly_html_step.base.html'),
   'utf-8',
 );
 
 const html = template
   .replace(/\{\{INTRO_LINE\}\}/g, introLine(key))
+  .replace(/\{\{FRICTION_LINE\}\}/g, frictionLine(key))
   .replace(/\{\{CREATIVE_URL\}\}/g, creativePublicUrl(key, version))
   .replace(/\{\{ALT_TEXT\}\}/g, altText(key));
 
 const outDir = path.join(segmentEmailRoot(key, githubRoot), 'archive', version);
-const outFile = path.join(outDir, 'instantly_step3.html');
+const outFile = path.join(outDir, INSTANTLY_HTML_FILENAME);
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(outFile, html, 'utf-8');
 

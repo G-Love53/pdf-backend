@@ -183,16 +183,23 @@ const TITLE_PRIORITY = [
 ];
 
 function parseArgs(argv) {
-  const args = { skipDomainCheck: false };
+  const args = { skipDomainCheck: false, maxPerCompany: 2 };
   for (let i = 2; i < argv.length; i += 1) {
     const key = argv[i];
     if (key === '--skip-domain-check') {
       args.skipDomainCheck = true;
       continue;
     }
+    if (key === '--one-per-company') {
+      args.maxPerCompany = 1;
+      continue;
+    }
     if (!key?.startsWith('--')) continue;
     args[key.slice(2)] = argv[i + 1];
     i += 1;
+  }
+  if (args['max-per-company']) {
+    args.maxPerCompany = Number.parseInt(args['max-per-company'], 10) || 2;
   }
   return args;
 }
@@ -317,6 +324,23 @@ function pickPhone(row) {
   return cleanPhone(row.workDirectPhone || row.mobilePhone || row.corporatePhone || row.companyPhone);
 }
 
+const OPS_SECOND =
+  /\b(office manager|director of operations|operations manager|general manager|manager)\b/i;
+
+function pickCompanyContacts(candidates, maxPerCompany) {
+  const sorted = [...candidates].sort((a, b) => titleScore(a.title) - titleScore(b.title));
+  if (!sorted.length) return [];
+  const picked = [sorted[0]];
+  if (maxPerCompany < 2) return picked;
+
+  const rest = sorted.filter((r) => r.email !== picked[0].email);
+  if (!rest.length) return picked;
+
+  const ops = rest.find((r) => OPS_SECOND.test(r.title));
+  picked.push(ops || rest[0]);
+  return picked.slice(0, maxPerCompany);
+}
+
 function domainsAlign(row) {
   const webDomain = registrableDomain(row.website);
   const mailDomain = emailDomain(row.email);
@@ -330,24 +354,24 @@ export function cleanApolloRows(records, options = {}) {
     targetState = 'CO',
     requireDecisionMaker = true,
     requireDomainMatch = true,
+    maxPerCompany = 2,
   } = options;
 
   const skipped = {
     no_email: 0,
     role_email: 0,
     not_verified: 0,
-    missing_first_name: 0,
     not_in_target_state: 0,
     not_decision_maker: 0,
     off_appetite: 0,
     not_fitness_class: 0,
     domain_mismatch: 0,
     duplicate_email: 0,
-    duplicate_company: 0,
+    extra_company_contacts: 0,
   };
 
   const seenEmails = new Set();
-  const bestByCompany = new Map();
+  const byCompany = new Map();
 
   for (const record of records) {
     const row = mapApolloRow(record);
@@ -363,10 +387,6 @@ export function cleanApolloRows(records, options = {}) {
     }
     if (row.emailStatus !== 'Verified') {
       skipped.not_verified += 1;
-      continue;
-    }
-    if (!row.firstName) {
-      skipped.missing_first_name += 1;
       continue;
     }
 
@@ -407,22 +427,20 @@ export function cleanApolloRows(records, options = {}) {
     row.businessClass = businessClass;
 
     const companyKey = normalizeCompanyKey(row.companyName);
-    const existing = bestByCompany.get(companyKey);
-    if (existing) {
-      const keepNew = titleScore(row.title) < titleScore(existing.title);
-      if (keepNew) {
-        bestByCompany.set(companyKey, row);
-      } else {
-        skipped.duplicate_company += 1;
-      }
-      continue;
-    }
-
-    bestByCompany.set(companyKey, row);
+    const bucket = byCompany.get(companyKey) || [];
+    bucket.push(row);
+    byCompany.set(companyKey, bucket);
   }
 
-  const rows = Array.from(bestByCompany.values());
-  for (const row of rows) seenEmails.add(row.email);
+  const rows = [];
+  for (const candidates of byCompany.values()) {
+    const picked = pickCompanyContacts(candidates, maxPerCompany);
+    skipped.extra_company_contacts += Math.max(0, candidates.length - picked.length);
+    for (const row of picked) {
+      seenEmails.add(row.email);
+      rows.push(row);
+    }
+  }
 
   return { rows, skipped };
 }
@@ -495,6 +513,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const { rows, skipped } = cleanApolloRows(records, {
     targetState,
     requireDomainMatch: !args.skipDomainCheck,
+    maxPerCompany: args.maxPerCompany,
   });
   const csv = toInstantlyCsv(rows, { segment, campaignTag, targetState, channelSource });
 

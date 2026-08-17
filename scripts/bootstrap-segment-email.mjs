@@ -54,7 +54,7 @@ Hosted on **${domain}** via \`${repo}/Netlify/email/\`.
 |-------|--------|
 | **Version folder** | \`archive/${version}/\` |
 | **JPEG** | \`${creativeFile}\` |
-| **Instantly HTML** | \`instantly_step3.html\` |
+| **Instantly HTML** | \`instantly_html_step.html\` |
 | **Public JPEG URL** | ${creativeUrl} |
 | **Prefill variable** | \`{{connectquote_url}}\` on image + CTA |
 

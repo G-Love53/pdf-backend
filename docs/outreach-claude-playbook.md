@@ -1,7 +1,8 @@
 # Outreach Claude playbook
 
-> **Audience:** Claude (or any agent) helping Rick with Instantly campaigns, list cleaning, and segment email creatives.  
-> **RSS:** Reliable, Scalable, Sellable — one pattern for all segments.
+> **Audience:** Claude (or any agent) helping with Instantly campaigns, list cleaning, and segment email creatives.  
+> **RSS:** Reliable, Scalable, Sellable — one pattern for all segments.  
+> **Verified failure modes:** Aug 2026 Fitness + Electrical builds — see §C below.
 
 ---
 
@@ -10,11 +11,13 @@
 | Pipeline | Input | Output | Where code & files live |
 |----------|--------|--------|-------------------------|
 | **A. List → prefill** | Apollo export, LocalProspects Advanced, manual CSV | Instantly CSV with `connectquote_url`, `src=instantly-{st}-{segment}` | **`pdf-backend`** only |
-| **B. Creative → email** | Embedded HTML (`CID_Creative_*_Embedded.html`) | JPEG on segment domain + `instantly_step3.html` | **Each `{segment}-pdf-backend/Netlify/email/`** |
+| **B. Creative → email** | Embedded HTML (`CID_Creative_*_Embedded.html`) | JPEG on segment domain + `instantly_html_step.html` | **Each `{segment}-pdf-backend/Netlify/email/`** |
 
 **Do not** host campaign JPEGs on Render (`cid-pdf-api`). Instantly must load images from `{segment}insurancedirect.com`.
 
 **Do not** use Zywave — removed from CID; poor email yield.
+
+**Never ship base64 in email HTML.** Gmail strips `data:image` URIs. `extract-creative-jpg.mjs` must produce a hosted `https://` URL.
 
 ---
 
@@ -30,7 +33,7 @@ LocalProspects is **not** the primary email source for Instantly. Use `has_email
 
 ### Cleaning rules (Apollo → Instantly)
 
-Run **`pdf-backend/scripts/clean-apollo-instantly.mjs`** (do not hand-roll unless fixing edge cases):
+Run **`pdf-backend/scripts/clean-apollo-instantly.mjs`**:
 
 ```bash
 cd ~/GitHub/pdf-backend
@@ -43,11 +46,24 @@ node scripts/clean-apollo-instantly.mjs \
   --campaign electrical-co-2026-08
 ```
 
-**Strict mode (default):** CO company address only, fitness/trade allowlist, one contact per company, email domain matches website, verified emails, decision-maker titles.
+**Default:** CO company address, segment allowlist (fitness-tuned today — extend for trades), **up to 2 contacts per company** (owner + ops/office manager when available), verified emails, decision-maker titles, email domain matches website.
 
-**Relaxed:** add `--skip-domain-check` (more rows, more bounce risk).
+**Flags:**
+- `--skip-domain-check` — more rows, more bounce risk
+- `--one-per-company` or `--max-per-company 1` — strict single contact
 
-**Electrical / trades:** extend allowlist in script if segment ≠ fitness (today’s script is fitness-tuned; add segment-specific filters or a `--segment` allowlist block when cleaning non-fitness lists).
+**Instantly campaign:** when using 2 contacts per company, enable **`stop_for_company`** (stop on company reply).
+
+### Merge variables and Step 1 copy
+
+Instantly substitutes **`""`** for missing variables — no error.
+
+| Variable missing | Effect |
+|------------------|--------|
+| `connectquote_url` | `href=""` → dead links (common in preview without lead selected) |
+| `firstName` | Subject/body degrades: `"Hey ,"` |
+
+**~37% of Electrical rows had no first name.** Step 1 text must use **`companyName`** or neutral openers unless the list is filtered to named contacts only. Do not depend on `{{firstName}}` alone.
 
 ### Output columns (Instantly)
 
@@ -56,21 +72,25 @@ node scripts/clean-apollo-instantly.mjs \
 ### Prefill URL rules
 
 - Built by `src/outreach/urlBuilder.js` → `{domain}/connectquote.html?fn=&em=&st=&bn=&src=&cid=&bc=`
-- **`src` must be** `instantly-{state}-{segment}` (e.g. `instantly-co-electrical`) — **not** `apollo`. Ops Home attributes binds to channel.
-- **`cid`** = campaign tag (e.g. `electrical-co-2026-08`).
+- **`src` must be** `instantly-{state}-{segment}` (e.g. `instantly-co-electrical`) — **not** `apollo`
+- **`cid`** = campaign tag (e.g. `electrical-co-2026-08`)
 
 ### Claude review checklist (before upload)
 
 - [ ] 100% target state (company address, not person location)
-- [ ] No duplicate companies or emails
+- [ ] No duplicate emails; ≤2 per company if running dual-contact campaigns
 - [ ] No role inboxes (`info@`, `hello@`)
-- [ ] Segment-appropriate businesses (no chiro/dental in fitness/electrical lists)
-- [ ] Every row has `connectquote_url` and `business_class` when Coterie dropdown applies
-- [ ] Recommend ZeroBounce/MillionVerifier before first large send on warmed domain
+- [ ] Segment-appropriate businesses
+- [ ] Every row has `connectquote_url`
+- [ ] ZeroBounce/MillionVerifier before large send on warmed domain
 
 ---
 
 ## B. Creative pipeline
+
+### Campaign shape (active pattern)
+
+**Text Step 1** → **HTML Step 2** (not “Step 3”). Files are named **`instantly_html_step.html`** to match.
 
 ### Folder layout (every segment repo)
 
@@ -79,57 +99,121 @@ Netlify/email/
   README.md
   archive/YYYY-MM-slug/
     CID_{Segment}_Creative.jpg
-    instantly_step3.html
-    source_embedded.html   (optional)
+    instantly_html_step.html      ← paste into Instantly HTML step
+    source_embedded.html          (optional)
+  CID_*_Creative.jpg              ← Fitness legacy only; do not break
+  instantly_fitness_step3.html    ← Fitness legacy only
 ```
 
-See **`docs/outreach-creatives.md`** for registry of active versions.
+See **`docs/outreach-creatives.md`** for registry and JPEG spec.
+
+### JPEG spec (required)
+
+| Property | Value |
+|----------|--------|
+| Width | **1200 px** (2× for 600px email container) |
+| Format | **JPEG, quality ~82, progressive** |
+| Target size | **250–400 KB** |
+| Height | Free (2:1 and 3:2 both OK) |
+
+Reference: Fitness 1200×1800 / ~296 KB. Electrical 1200×2400 / ~347 KB.  
+Source below 1200px wide upscales soft — request 1200px+ from design.
 
 ### Add or refresh a creative
 
 ```bash
 cd ~/GitHub/pdf-backend
 
-# One segment (embedded HTML from Downloads/design)
 node scripts/bootstrap-segment-email.mjs \
   --segment electrical \
   --embedded ~/Downloads/CID_Creative_Electrical_Embedded.html \
   --version 2026-08-connect-v2
 
-# Regenerate HTML only (after template change)
 node scripts/generate-instantly-email.mjs --segment electrical --version 2026-08-connect-v2
-
-# Extract JPG only
-node scripts/extract-creative-jpg.mjs \
-  --input ~/Downloads/CID_Creative_Electrical_Embedded.html \
-  --output ~/GitHub/electrical-pdf-backend/Netlify/email/archive/2026-08-connect-v2/CID_Electrical_Creative.jpg
 ```
 
-Then: **commit segment repo → Netlify deploy → smoke URL in browser.**
+Then: **commit segment repo → Netlify deploy → smoke JPEG URL in browser.**
 
-### Instantly Step 3 setup (once per campaign variant)
+Template includes **intro line + segment friction line** (spam score / word balance). Friction copy lives in `marketing/segmentEmailConfig.js`.
 
-1. Open `archive/{version}/instantly_step3.html` from segment repo — copy all.
-2. Instantly → Step 3 → `<>` HTML mode → paste.
-3. **`{{connectquote_url}}`** is already on image + CTA — do not hardcode domains.
+---
+
+## C. Verified Instantly failure modes (Aug 2026)
+
+### 1. Editor strips anchor tags on paste — ALWAYS re-apply
+
+**#1 silent failure.** Pasting `instantly_html_step.html` into `<>` mode often **removes** `<a href="{{connectquote_url}}">` from the image and CTA. The email looks fine; links are dead.
+
+**Required after every paste:**
+1. Click image → link icon → paste `{{connectquote_url}}`
+2. Highlight `START MY QUOTE →` → link icon → paste `{{connectquote_url}}`
+
+**Visual check:** live links render **blue** in the editor. If the CTA is black while unsubscribe is blue, anchors were stripped.
+
+The table-wrapped orange button may flatten to plain text on paste — **acceptable**; the creative JPEG includes a button. Do not fight with more HTML.
+
+### 2. Missing merge variables → empty strings
+
+Preview without **Load data for lead** selected → dead links even when HTML is correct. Not a file bug.
+
+### 3. Mandatory pre-send verification
+
+1. **Preview → select a real lead** → hover image and CTA. Must show full URL with `fn=…&em=…&src=…`, not raw `{{connectquote_url}}` or empty.
+2. **Send live test to Gmail** → click through → ConnectQuote prefill loads. Unsubscribe will not work in preview-only tests — ignore.
+
+### 4. Campaign settings that strip HTML
+
+**Options → Delivery Optimization:**
+
+| Setting | Required |
+|---------|----------|
+| Send emails as text-only (no HTML) | **OFF** |
+| Send first email as text-only | **ON** (Step 1 only) |
+
+Note: workspace **Advanced Deliverability → always send first email as text-only** overrides campaign settings.
+
+**Also per campaign:**
+- `stop_for_company` — **ON** when ≤2 contacts per company
+- Duplicate check — **OFF** when loading a fresh list into an existing campaign; **ON** when adding net-new leads only
+
+### 5. Body text is required
+
+Measured Fitness spam score **2.6** / 5.0. Short HTML + linked image adds ~+1.0 fixable with friction line in template (already in generated HTML). Keep 2–3 lines of real copy above the image.
+
+### 6. Custom tracking domain (per segment)
+
+Shared Instantly unsubscribe domains (e.g. `inreg1.net`) can hit URIBL (+1.7 spam score).
+
+Per sending domain:
+1. DNS: CNAME `inst` → `prox.itrackly.com`
+2. Instantly → Email Account → Custom tracking domain → `inst.{segment}insurancedirect.com`
+3. Verify after 24–72h; confirm unsubscribe moved off shared domain in test send
+
+**One CTD per segment domain** — not one shared across segments.
+
+### 7. Scale path (future)
+
+Manual editor paste does not scale (8 segments × many states). **Instantly API V2** `POST /api/v2/campaigns` accepts `sequences` HTML directly and bypasses the paste sanitizer. Build when standing up Beauty/Cleaning/Pet batches.
+
+---
+
+## Instantly HTML step setup (after paste)
+
+1. Open `archive/{version}/instantly_html_step.html` from segment repo — copy all.
+2. Instantly → **HTML step** (Step 2 in text→HTML pattern) → `<>` mode → paste.
+3. **Re-apply both links** (§C.1) — do not skip.
 4. Replace `[LICENSE NUMBER]` once.
-5. Footer: Instantly **+ → Insert Unsubscribe Link** (replace placeholder line).
+5. Footer: Instantly **+ → Insert Unsubscribe Link**.
 6. Campaign custom variable: **`connectquote_url`** ← CSV column.
 
 **Do not** use Instantly built-in prefill — CSV prefill is richer and matches Ops attribution.
-
-### New version vs overwrite
-
-- **New Instantly creative test** → new folder `archive/2026-09-speed-v2/` + new JPEG filename or slug.
-- **Never delete** old archive folders referenced by live steps.
-- Update segment `Netlify/email/README.md` + `docs/outreach-creatives.md` when active version changes.
 
 ---
 
 ## Segment reference
 
-| Segment key | Repo | Domain |
-|-------------|------|--------|
+| Segment | Repo | Domain |
+|---------|------|--------|
 | bar | bar-pdf-backend | barinsurancedirect.com |
 | roofer | roofing-pdf-backend | roofingcontractorinsurancedirect.com |
 | plumber | plumber-pdf-backend | plumberinsurancedirect.com |
@@ -140,32 +224,30 @@ Then: **commit segment repo → Netlify deploy → smoke URL in browser.**
 | cleaning | cleaning-pdf-backend | cleaninginsurancedirect.com |
 | pet | pet-pdf-backend | petserviceinsurancedirect.com |
 
-Config source of truth: `marketing/segmentEmailConfig.js` (keep in sync with `src/config/connectQuoteLinks.js`).
+Config: `marketing/segmentEmailConfig.js`
 
 ---
 
 ## What Claude should NOT do
 
-- Commit `.env`, API keys, or raw Apollo exports with PII to public repos without Rick asking.
-- Deploy Connect to Render (Connect is Vite SPA elsewhere).
-- Put outreach list tooling in segment repos (keep in `pdf-backend`).
-- Suggest Zywave integration (removed).
+- Commit `.env`, API keys, or raw Apollo exports without Rick asking.
+- Deploy Connect to Render.
+- Put list tooling in segment repos.
+- Suggest Zywave.
 - Break legacy Fitness URL: `https://fitnessinsurancedirect.com/email/CID_Fitness_Creative.jpg`.
+- Tell Rick links are pre-wired after Instantly paste without re-apply step.
 
 ---
 
 ## Connect demo note (post-bind)
 
-Policy Home works after bind; **Am I Covered** scenario buttons need policy PDF indexed. For live demos use process questions (*How do I file a claim?*, *How do I request a COI?*) or a golden demo account with backfilled dec page. See partner demo doc.
+Policy Home works after bind; **Am I Covered** scenario buttons need policy PDF indexed. Use process questions (*How do I file a claim?*, *How do I request a COI?*) or a golden demo account with backfilled dec page.
 
 ---
 
 ## Quick smoke test (after deploy)
 
 ```bash
-# Creative loads
 open "https://electricalinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Electrical_Creative.jpg"
-
-# Prefill (sample)
-open "https://electricalinsurancedirect.com/connectquote.html?fn=Demo&ln=Test&em=demo@example.com&st=CO&src=instantly-co-electrical&cid=test"
+open "https://electricalinsurancedirect.com/connectquote.html?fn=Demo&em=demo@example.com&st=CO&src=instantly-co-electrical&cid=test"
 ```

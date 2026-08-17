@@ -2,12 +2,13 @@
 
 When Rick asks about **Instantly campaigns**, **Apollo/LocalProspects lists**, **prefill CSV**, or **segment email creatives**, read:
 
-**`docs/outreach-claude-playbook.md`**
+**`docs/outreach-claude-playbook.md`** — includes verified Instantly failure modes (Aug 2026)
 
-Registry of active creatives: **`docs/outreach-creatives.md`**
+Registry: **`docs/outreach-creatives.md`**
 
-Quick rules:
+Critical:
 - **Lists / prefill** → `pdf-backend/scripts/` (never segment repos)
-- **Hosted JPEG + Step 3 HTML** → `{segment}-pdf-backend/Netlify/email/archive/`
-- **`src=`** on prefill URLs → `instantly-{state}-{segment}` (not `apollo`)
-- **Do not** use Zywave; **do not** host campaign images on Render
+- **Hosted JPEG + HTML step** → `{segment}-pdf-backend/Netlify/email/archive/` → file **`instantly_html_step.html`**
+- **`src=`** → `instantly-{state}-{segment}` (not `apollo`)
+- **After Instantly HTML paste:** re-apply `{{connectquote_url}}` on image + CTA (editor strips anchors)
+- **Do not** use Zywave; **do not** host campaign images on Render; **never** `data:image` in email
