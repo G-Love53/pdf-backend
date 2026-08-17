@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  ALL_ACCESS_LICENSE_NUMBER,
   altText,
   creativePublicUrl,
   DEFAULT_CREATIVE_VERSION,
@@ -56,7 +57,8 @@ const html = template
   .replace(/\{\{INTRO_LINE\}\}/g, introLine(key))
   .replace(/\{\{FRICTION_LINE\}\}/g, frictionLine(key))
   .replace(/\{\{CREATIVE_URL\}\}/g, creativePublicUrl(key, version))
-  .replace(/\{\{ALT_TEXT\}\}/g, altText(key));
+  .replace(/\{\{ALT_TEXT\}\}/g, altText(key))
+  .replace(/\{\{LICENSE_NUMBER\}\}/g, ALL_ACCESS_LICENSE_NUMBER);
 
 const outDir = path.join(segmentEmailRoot(key, githubRoot), 'archive', version);
 const outFile = path.join(outDir, INSTANTLY_HTML_FILENAME);

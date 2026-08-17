@@ -233,9 +233,8 @@ Manual editor paste does not scale (8 segments × many states). **Instantly API 
 1. Open `archive/{version}/instantly_html_step.html` from segment repo — copy all.
 2. Instantly → **HTML step** (Step 2 in text→HTML pattern) → `<>` mode → paste.
 3. **Re-apply both links** (§C.1) — do not skip.
-4. Replace `[LICENSE NUMBER]` once.
-5. Footer: Instantly **+ → Insert Unsubscribe Link**.
-6. Campaign custom variable: **`connectquote_url`** ← CSV column.
+4. Footer license is pre-filled (**#6784587**); insert unsubscribe via editor.
+5. Campaign custom variable: **`connectquote_url`** ← CSV column.
 
 **Do not** use Instantly built-in prefill — CSV prefill is richer and matches Ops attribution.
 

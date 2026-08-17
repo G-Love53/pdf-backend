@@ -83,6 +83,9 @@ export const INSTANTLY_HTML_FILENAME = 'instantly_html_step.html';
 
 export const DEFAULT_CREATIVE_VERSION = '2026-08-connect-v1';
 
+/** All Access Insurance LLC — footer on every Instantly HTML step. */
+export const ALL_ACCESS_LICENSE_NUMBER = '6784587';
+
 export function getSegmentEmailConfig(segment) {
   const key = String(segment || '').toLowerCase();
   const cfg = SEGMENT_EMAIL_CONFIG[key];
