@@ -142,7 +142,7 @@ Template includes **intro line + segment friction line** (spam score / word bala
 
 ### 1. Editor strips anchor tags on paste — ALWAYS re-apply
 
-**#1 silent failure.** Pasting `instantly_html_step.html` into `<>` mode often **removes** `<a href="{{connectquote_url}}">` from the image and CTA. The email looks fine; links are dead.
+**#1 silent failure.** Pasting `instantly_html_step.html` into `<>` mode **always strips** `<a href="{{connectquote_url}}">` from the image and CTA (observed on every Fitness + Electrical build). The email looks fine; links are dead. **Always assume stripped; verify before save.**
 
 **Required after every paste:**
 1. Click image → link icon → paste `{{connectquote_url}}`
@@ -191,7 +191,14 @@ Per sending domain:
 
 **One CTD per segment domain** — not one shared across segments.
 
-### 7. Scale path (future)
+### 7. Scale path and plan limits (future)
+
+**Instantly plan cap** binds before inbox count or list supply. Verify tier before multi-segment launch:
+
+| Plan | Emails / month |
+|------|----------------|
+| Growth | **5,000** |
+| Hypergrowth | **125,000** |
 
 Manual editor paste does not scale (8 segments × many states). **Instantly API V2** `POST /api/v2/campaigns` accepts `sequences` HTML directly and bypasses the paste sanitizer. Build when standing up Beauty/Cleaning/Pet batches.
 
