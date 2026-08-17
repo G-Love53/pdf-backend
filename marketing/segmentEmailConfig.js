@@ -118,3 +118,100 @@ export function segmentRepoPath(segment, githubRoot = process.env.CID_GITHUB_ROO
 export function segmentEmailRoot(segment, githubRoot) {
   return `${segmentRepoPath(segment, githubRoot)}/Netlify/email`;
 }
+
+/**
+ * Step 1 copy — typed into Instantly subject + body editor (text only).
+ * Not hosted, not in HTML fragment, not in CSV.
+ *
+ * Only segments in CONNECTQUOTE_MARKETING_READY (connectQuoteLinks.js):
+ * electrical, fitness, beauty, cleaning, pet — NOT hvac, plumber, bar, roofer.
+ *
+ * Assembly order in Instantly body:
+ *   hook → friction → offer → cta (hyperlink to {{connectquote_url}}) → proof → — Gerry, CID
+ *
+ * Rules:
+ *   - Never depend on {{firstName}} (~37% blank on Electrical CO)
+ *   - {{displayName}} in body only, never subject
+ *   - Don't say "what we know about you" — reads like surveillance
+ */
+export const step1Copy = {
+  electrical: {
+    subject: 'Your electrical quote, already started',
+    subjectVariant: 'A quote for {{displayName}}, already started',
+    hook: 'Click to coverage in less than a minute.',
+    friction:
+      'Most electrical contractors spend 20 minutes on forms just to find out a price. ' +
+      'No payroll reports. No job schedules. No callback.',
+    offer:
+      "We've started a quote for {{displayName}} — confirm a few details and you're covered.",
+    cta: 'Click to coverage →',
+    proof: 'A-rated carrier. Bind and get certificates the same day.',
+  },
+
+  fitness: {
+    subject: 'Your studio quote, already started',
+    subjectVariant: 'A quote for {{displayName}}, already started',
+    hook: 'Click to coverage in less than a minute.',
+    friction:
+      'Most studio owners spend 20 minutes on forms just to find out a price. ' +
+      'No class schedules. No instructor certifications. No participant waivers to dig up.',
+    offer:
+      "We've started a quote for {{displayName}} — confirm a few details and you're covered.",
+    cta: 'Click to coverage →',
+    proof:
+      'A-rated carrier. Bind and send your landlord a certificate the same day.',
+  },
+
+  beauty: {
+    subject: 'Your salon quote, already started',
+    subjectVariant: 'A quote for {{displayName}}, already started',
+    hook: 'Click to coverage in less than a minute.',
+    friction:
+      'Most salon and spa owners spend 20 minutes on forms just to find out a price. ' +
+      'No service menu. No booth renter roster. No treatment logs.',
+    offer:
+      "We've started a quote for {{displayName}} — confirm a few details and you're covered.",
+    cta: 'Click to coverage →',
+    proof: 'A-rated carrier. Bind and get certificates the same day.',
+  },
+
+  cleaning: {
+    subject: 'Your cleaning quote, already started',
+    subjectVariant: 'A quote for {{displayName}}, already started',
+    hook: 'Click to coverage in less than a minute.',
+    friction:
+      'Most cleaning companies spend 20 minutes on forms just to find out a price. ' +
+      'No payroll reports. No client contract schedules. No job site lists.',
+    offer:
+      "We've started a quote for {{displayName}} — confirm a few details and you're covered.",
+    cta: 'Click to coverage →',
+    proof:
+      'A-rated carrier. Bind and send a client their certificate the same day.',
+  },
+
+  pet: {
+    subject: 'Your grooming quote, already started',
+    subjectVariant: 'A quote for {{displayName}}, already started',
+    hook: 'Click to coverage in less than a minute.',
+    friction:
+      'Most groomers and pet care owners spend 20 minutes on forms just to find out a price. ' +
+      'No incident history to write up. No vaccination policy to attach. No callback.',
+    offer:
+      "We've started a quote for {{displayName}} — confirm a few details and you're covered.",
+    cta: 'Click to coverage →',
+    proof: 'A-rated carrier. Bind and get certificates the same day.',
+  },
+};
+
+export function getStep1Copy(segment) {
+  const key = String(segment || '').toLowerCase();
+  const copy = step1Copy[key];
+  if (!copy) throw new Error(`No Step 1 copy for segment: ${segment}`);
+  return copy;
+}
+
+/** Plain-text body for Instantly Step 1 (CTA line is not hyperlinked here). */
+export function formatStep1Body(segment) {
+  const { hook, friction, offer, cta, proof } = getStep1Copy(segment);
+  return [hook, '', friction, '', offer, '', cta, '', proof, '', '— Gerry, CID'].join('\n');
+}

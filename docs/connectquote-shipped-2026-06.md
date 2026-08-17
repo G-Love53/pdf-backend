@@ -9,7 +9,9 @@
 
 **Investor deck (one line):** ConnectQuote architecture is **nationwide-ready**; **marketing and instant bind today are Colorado (CO) only** until CID expands pilot states and Coterie confirms producer licensing + appetite per state.
 
-**ConnectQuote** is CID’s **instant quote-and-bind rail** via **Coterie API v1.6**, deployed on **Electrical**, **Fitness** (yoga, pilates, personal trainer), **HVAC**, and **Plumber**. Insureds complete a **segment-branded** thin intake → receive a **bindable premium** → pay through **Coterie’s Stripe** (**CID is not merchant of record**) → land in **CID Connect** at **`https://connect.commercialinsurance-direct.com`** same day with a policy row in **cid-postgres** (`bind_source: coterie`).
+**ConnectQuote** is CID’s **instant quote-and-bind rail** via **Coterie API v1.6**, deployed on **Electrical**, **Fitness** (yoga, pilates, personal trainer), **Beauty**, **Cleaning**, and **Pet** for **Colorado (CO) marketing**. Insureds complete a **segment-branded** thin intake → receive a **bindable premium** → pay through **Coterie’s Stripe** (**CID is not merchant of record**) → land in **CID Connect** at **`https://connect.commercialinsurance-direct.com`** same day with a policy row in **cid-postgres** (`bind_source: coterie`).
+
+**HVAC** and **Plumber** have backend intake templates in `pdf-backend/public/connectquote/` but are **not marketing-ready** (Netlify `connectquote.html` + verified CO bind path not live). **Bar** and **Roofer** are **not** on ConnectQuote (traditional intake only).
 
 **Geography:** Product code supports adding states via config (`COTERIE_PILOT_STATES` in `src/config/coterieAkHash.js`). **Do not market outside CO** until both CID and Coterie gates are cleared for that state (see **Marketing geography** below).
 
@@ -33,7 +35,7 @@
 - **Do not** promise instant bind in other states based on “nationwide-ready architecture” alone.
 - **To add a state later:** (a) Coterie attaches Rick’s producer license for that state, (b) smoke bindable quote in sandbox/prod, (c) CID adds state to `COTERIE_PILOT_STATES`, redeploy API, (d) update campaign geo.
 
-**Segments on ConnectQuote rail:** Electrical, Fitness (3 classes), HVAC, Plumber — **not** Bar, **not** Roofer.
+**Segments on ConnectQuote marketing rail (CO):** Electrical, Fitness (3 classes), Beauty, Cleaning, Pet — **not** Bar, **not** Roofer, **not** HVAC or Plumber until Netlify intake + bind smoke pass.
 
 **Contractor segments (Electrical, HVAC, Plumber):** market to **business owners / operators** only (see `ownerOnly` in registry). Fitness is not owner-gated.
 
@@ -108,8 +110,8 @@ See also: [`coterie-integration.md`](./coterie-integration.md) · [`partnerships
 | **Intake assets** | `public/connectquote-intake.js` + `.css` at `/static/…` | Same Render deploy |
 | **Electrical intake** | `electricalinsurancedirect.com/connectquote.html` | `electrical-pdf-backend` → Netlify |
 | **Fitness intake** | `fitnessinsurancedirect.com/connectquote.html` | `fitness-pdf-backend` → Netlify (git-connected `netlify.toml`) |
-| **HVAC intake** | `hvacinsurancedirect.com/connectquote.html` | `hvac-pdf-backend` → Netlify (git-connected `netlify.toml`) |
-| **Plumber intake** | `plumberinsurancedirect.com/connectquote.html` | `plumber-pdf-backend` → Netlify (GitHub Actions or git-connected) |
+| **HVAC intake** | `hvacinsurancedirect.com/connectquote.html` | **Not marketing-ready** — deploy when bind smoke passes |
+| **Plumber intake** | `plumberinsurancedirect.com/connectquote.html` | **Not marketing-ready** — deploy when bind smoke passes |
 | **Connect PWA** | Netlify (`cid-connect`) | Git push → auto deploy |
 | **Marketing site** | `commercialinsurance-direct.com` | Manual Netlify deploy from **`CID Website/Netlify/`** (not git-connected) |
 

@@ -19,7 +19,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse as parseCsv } from 'csv-parse/sync';
 import { stringify as stringifyCsv } from 'csv-stringify/sync';
+import { normalizeDisplayName } from '../marketing/normalizeDisplayName.js';
+import { isConnectQuoteMarketingReady } from '../src/config/connectQuoteLinks.js';
 import { buildPrefilledUrl } from '../src/outreach/urlBuilder.js';
+
+export { normalizeDisplayName } from '../marketing/normalizeDisplayName.js';
 
 const STATE_ABBR = {
   alabama: 'AL',
@@ -468,13 +472,14 @@ export function toInstantlyCsv(rows, { segment, campaignTag, targetState, channe
       src: channelSource,
       businessClass: row.businessClass,
     });
-    const displayName = contact.first_name || contact.business_name || 'there';
+    const displayName = normalizeDisplayName(contact.business_name);
     return {
       Email: contact.email,
       'First Name': contact.first_name,
       'Last Name': contact.last_name,
       Title: row.title,
       'Company Name': contact.business_name,
+      displayName,
       Phone: contact.phone,
       Website: row.website,
       City: contact.city,
@@ -504,6 +509,16 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   if (!inputFile || !outputFile) {
     console.error(
       'Usage: node scripts/clean-apollo-instantly.mjs --file <apollo.csv> --output <instantly.csv> [--state CO] [--segment fitness] [--campaign tag] [--skip-domain-check]',
+    );
+    process.exit(1);
+  }
+
+  if (!isConnectQuoteMarketingReady(segment)) {
+    console.error(
+      `Segment "${segment}" is not ConnectQuote-ready for Instantly (no live connectquote.html + bind rail).`,
+    );
+    console.error(
+      'Marketing-ready: electrical, fitness, beauty, cleaning, pet. Traditional only: bar, roofer, plumber, hvac.',
     );
     process.exit(1);
   }

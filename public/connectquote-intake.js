@@ -3,7 +3,9 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260806a";
+  const ASSET_V = "20260817a";
+
+  const CHANNEL_QUERY_KEYS = ["ch", "src", "utm_source"];
 
   const CONNECT_BENEFITS_HTML = `<div class="connect-benefits" id="connect-benefits" aria-label="Included with CID Connect">
       <p class="connect-benefits-head">Included with <strong>Connect</strong></p>
@@ -195,6 +197,41 @@
     return raw;
   }
 
+  function readChannelParam(p) {
+    for (const key of CHANNEL_QUERY_KEYS) {
+      const v = p.get(key);
+      if (v) return v;
+    }
+    return "";
+  }
+
+  function applyAttributionFromQuery(p) {
+    const channel = readChannelParam(p);
+    if (channel) $("traffic_source").value = channel;
+    if (p.get("cid")) $("campaign_id").value = p.get("cid");
+  }
+
+  /** Keep ch + cid in address bar — src is often stripped by Safari LTP / click trackers. */
+  function persistAttributionQuery() {
+    const channel = String($("traffic_source")?.value || "").trim();
+    const campaign = String($("campaign_id")?.value || "").trim();
+    if ((!channel || channel === "direct") && !campaign) return;
+
+    const p = new URLSearchParams(location.search);
+    if (channel && channel !== "direct") {
+      p.set("ch", channel);
+      if (!p.get("src")) p.set("src", channel);
+    }
+    if (campaign) p.set("cid", campaign);
+
+    const qs = p.toString();
+    const next = qs ? `${location.pathname}?${qs}` : location.pathname;
+    const current = location.pathname + location.search;
+    if (next !== current) {
+      history.replaceState(null, "", next);
+    }
+  }
+
   function ensureContactPhoneField() {
     if ($("contact_phone")) return;
     const emailInput = $("contact_email");
@@ -239,8 +276,8 @@
         count++;
       }
     });
-    if (p.get("src")) $("traffic_source").value = p.get("src");
-    if (p.get("cid")) $("campaign_id").value = p.get("cid");
+    applyAttributionFromQuery(p);
+    persistAttributionQuery();
     const io = p.get("io") || p.get("is_owner");
     if (io && $("is_owner") && (io === "yes" || io === "no")) {
       $("is_owner").value = io;

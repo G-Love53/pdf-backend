@@ -1,11 +1,18 @@
 import { URLSearchParams } from "node:url";
+import { setAttributionParams } from "./attributionParams.js";
 import {
   SEGMENT_DOMAINS,
   buildConnectQuoteUrl,
+  isConnectQuoteMarketingReady,
   isConnectQuoteSegment,
 } from "../config/connectQuoteLinks.js";
 
-export { SEGMENT_DOMAINS, buildConnectQuoteUrl, isConnectQuoteSegment };
+export {
+  SEGMENT_DOMAINS,
+  buildConnectQuoteUrl,
+  isConnectQuoteMarketingReady,
+  isConnectQuoteSegment,
+};
 
 // URL parameter mapping (short keys to save URL length)
 export const URL_PARAM_MAP = {
@@ -23,15 +30,17 @@ export const URL_PARAM_MAP = {
 export function buildPrefilledUrl(contact, segment, campaignTag, opts = {}) {
   const key = String(segment || "").toLowerCase();
 
-  if (isConnectQuoteSegment(key)) {
+  if (isConnectQuoteMarketingReady(key)) {
     const params = new URLSearchParams();
     for (const [field, param] of Object.entries(URL_PARAM_MAP)) {
       if (contact[field]) {
         params.set(param, String(contact[field]));
       }
     }
-    params.set("src", opts.src || "instantly");
-    params.set("cid", campaignTag);
+    setAttributionParams(params, {
+      channel: opts.src || "instantly",
+      campaign: campaignTag,
+    });
     if (opts.businessClass) {
       params.set("bc", opts.businessClass);
     }
@@ -52,8 +61,10 @@ export function buildPrefilledUrl(contact, segment, campaignTag, opts = {}) {
     }
   }
 
-  params.set("src", opts.src || "instantly");
-  params.set("cid", campaignTag);
+  setAttributionParams(params, {
+    channel: opts.src || "instantly",
+    campaign: campaignTag,
+  });
 
   return `${domain}/quote?${params.toString()}`;
 }

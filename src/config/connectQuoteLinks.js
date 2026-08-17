@@ -3,6 +3,8 @@
  * Traditional-only segments (bar, roofer) keep domain root / long-form index.html.
  */
 
+import { setAttributionParams } from "../outreach/attributionParams.js";
+
 export const SEGMENT_DOMAINS = {
   bar: "https://barinsurancedirect.com",
   roofer: "https://roofingcontractorinsurancedirect.com",
@@ -15,11 +17,21 @@ export const SEGMENT_DOMAINS = {
   pet: "https://petserviceinsurancedirect.com",
 };
 
-/** Segments on the Coterie ConnectQuote rail — default `bc` when not passed. */
+/**
+ * Segments live on Netlify connectquote.html and approved for Instantly outreach.
+ * HVAC, Plumber, Bar, and Roofer are NOT ready — use traditional intake only.
+ */
+export const CONNECTQUOTE_MARKETING_READY = new Set([
+  "electrical",
+  "fitness",
+  "beauty",
+  "cleaning",
+  "pet",
+]);
+
+/** Default `bc` when not passed (marketing-ready segments only). */
 export const CONNECTQUOTE_SEGMENT_DEFAULTS = {
   electrical: {},
-  plumber: { bc: "plumbing_contractor" },
-  hvac: { bc: "hvac_contractor" },
   fitness: {},
   beauty: {},
   cleaning: {},
@@ -32,11 +44,13 @@ export const FITNESS_BUSINESS_CLASSES = {
   personal_trainer: "Personal trainer",
 };
 
+export function isConnectQuoteMarketingReady(segment) {
+  return CONNECTQUOTE_MARKETING_READY.has(String(segment || "").toLowerCase());
+}
+
+/** @deprecated Prefer isConnectQuoteMarketingReady — same set for link generation. */
 export function isConnectQuoteSegment(segment) {
-  return Object.prototype.hasOwnProperty.call(
-    CONNECTQUOTE_SEGMENT_DEFAULTS,
-    String(segment || "").toLowerCase(),
-  );
+  return isConnectQuoteMarketingReady(segment);
 }
 
 /**
@@ -50,7 +64,7 @@ export function buildConnectQuoteUrl(segment, opts = {}) {
     throw new Error(`No domain configured for segment: ${segment}`);
   }
 
-  if (!isConnectQuoteSegment(key)) {
+  if (!isConnectQuoteMarketingReady(key)) {
     return `${domain}/`;
   }
 
@@ -59,14 +73,13 @@ export function buildConnectQuoteUrl(segment, opts = {}) {
   const bc = opts.businessClass || defaults.bc;
   if (bc) params.set("bc", bc);
 
-  const src = opts.src || opts.query?.src;
-  if (src) params.set("src", src);
-  const cid = opts.cid || opts.query?.cid;
-  if (cid) params.set("cid", cid);
+  const channel = opts.src || opts.query?.src || opts.query?.ch;
+  const campaign = opts.cid || opts.query?.cid;
+  setAttributionParams(params, { channel, campaign });
 
   if (opts.query) {
     for (const [k, v] of Object.entries(opts.query)) {
-      if (v != null && v !== "" && k !== "src" && k !== "cid" && k !== "bc") {
+      if (v != null && v !== "" && k !== "src" && k !== "ch" && k !== "cid" && k !== "bc") {
         params.set(k, String(v));
       }
     }
@@ -79,7 +92,7 @@ export function buildConnectQuoteUrl(segment, opts = {}) {
 /** Primary marketing / dropdown link — ConnectQuote when supported, else segment home. */
 export function primaryIntakeUrl(segment, opts = {}) {
   const key = String(segment || "").toLowerCase();
-  if (isConnectQuoteSegment(key)) {
+  if (isConnectQuoteMarketingReady(key)) {
     return buildConnectQuoteUrl(key, opts);
   }
   const domain = SEGMENT_DOMAINS[key];

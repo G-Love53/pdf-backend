@@ -23,6 +23,19 @@
 
 ## A. List pipeline
 
+### ConnectQuote-ready segments (Instantly)
+
+Only these segments have **live `connectquote.html` on Netlify** and a **bindable CO rail** — safe for `connectquote_url` in CSV and Step 1 copy:
+
+| Ready | Segment |
+|-------|---------|
+| ✅ | **electrical**, **fitness**, **beauty**, **cleaning**, **pet** |
+| ❌ | **hvac**, **plumber** — intake shell / API in progress; **do not** run Instantly ConnectQuote campaigns |
+| ❌ | **bar**, **roofer** — traditional supplement only (segment home / long-form) |
+
+Source of truth: `src/config/connectQuoteLinks.js` → `CONNECTQUOTE_MARKETING_READY`.  
+`clean-apollo-instantly.mjs` **exits with error** if `--segment` is not marketing-ready.
+
 ### Preferred sources (in order)
 
 1. **Apollo people search** (by segment + state) — best email yield for B2B outreach.
@@ -62,17 +75,28 @@ Instantly substitutes **`""`** for missing variables — no error.
 |------------------|--------|
 | `connectquote_url` | `href=""` → dead links (common in preview without lead selected) |
 | `firstName` | Subject/body degrades: `"Hey ,"` |
+| `displayName` | Offer line reads without business name (~1% blank after normalizer) |
 
-**~37% of Electrical rows had no first name.** Step 1 text must use **`companyName`** or neutral openers unless the list is filtered to named contacts only. Do not depend on `{{firstName}}` alone.
+**~37% of Electrical rows had no first name.** Do not depend on `{{firstName}}`. Use **`{{displayName}}` in body only** (never subject). Canonical copy lives in **`marketing/segmentEmailConfig.js`** → `step1Copy`; print with `node scripts/print-step1-copy.mjs --segment electrical`.
+
+**Step 1 is text only** — typed into Instantly subject + body editor. Not in CSV, not in HTML step. Structure: hook → friction → offer → CTA (link to `{{connectquote_url}}`) → proof → signature.
+
+### displayName normalizer
+
+Raw `Company Name` can hit 124 chars (SEO-stuffed Google Business names). Cleaner emits **`displayName`** via `marketing/normalizeDisplayName.js`:
+
+- Strip pipe segments (`|`), location suffixes (` - Colorado Springs`), parentheticals, legal suffixes (Inc/LLC)
+- If still **>45 chars**, emit `''` — blank beats a broken sentence
+- Electrical CO benchmark: 436 rows → 432 clean, median 17 chars
 
 ### Output columns (Instantly)
 
-`Email`, `First Name`, `Last Name`, `Title`, `Company Name`, `Phone`, `Website`, `City`, `State`, `Zip`, `Personalization`, **`connectquote_url`**, `business_class`, `segment`, `campaign_tag`, `src`
+`Email`, `First Name`, `Last Name`, `Title`, `Company Name`, **`displayName`**, `Phone`, `Website`, `City`, `State`, `Zip`, `Personalization`, **`connectquote_url`**, `business_class`, `segment`, `campaign_tag`, `src`
 
 ### Prefill URL rules
 
-- Built by `src/outreach/urlBuilder.js` → `{domain}/connectquote.html?fn=&em=&st=&bn=&src=&cid=&bc=`
-- **`src` must be** `instantly-{state}-{segment}` (e.g. `instantly-co-electrical`) — **not** `apollo`
+- Built by `src/outreach/urlBuilder.js` → `{domain}/connectquote.html?fn=&em=&st=&bn=&ch=&src=&cid=&bc=`
+- **Channel:** set **`ch` and `src`** to the same value (e.g. `instantly-co-electrical`). Intake reads `ch` → `src` → `utm_source`. Safari Link Tracking Protection and some click trackers **strip `src`** (known tracking name); **`ch` and `cid` usually survive** — Ops attribution depends on `ch`/`traffic_source`, not URL `src` alone.
 - **`cid`** = campaign tag (e.g. `electrical-co-2026-08`)
 
 ### Claude review checklist (before upload)
@@ -219,17 +243,17 @@ Manual editor paste does not scale (8 segments × many states). **Instantly API 
 
 ## Segment reference
 
-| Segment | Repo | Domain |
-|---------|------|--------|
-| bar | bar-pdf-backend | barinsurancedirect.com |
-| roofer | roofing-pdf-backend | roofingcontractorinsurancedirect.com |
-| plumber | plumber-pdf-backend | plumberinsurancedirect.com |
-| hvac | hvac-pdf-backend | hvacinsurancedirect.com |
-| fitness | fitness-pdf-backend | fitnessinsurancedirect.com |
-| electrical | electrical-pdf-backend | electricalinsurancedirect.com |
-| beauty | beauty-pdf-backend | beautyinsurancedirect.com |
-| cleaning | cleaning-pdf-backend | cleaninginsurancedirect.com |
-| pet | pet-pdf-backend | petserviceinsurancedirect.com |
+| Segment | Repo | Domain | ConnectQuote (Instantly) |
+|---------|------|--------|--------------------------|
+| bar | bar-pdf-backend | barinsurancedirect.com | ❌ traditional |
+| roofer | roofing-pdf-backend | roofingcontractorinsurancedirect.com | ❌ traditional |
+| plumber | plumber-pdf-backend | plumberinsurancedirect.com | ❌ not yet |
+| hvac | hvac-pdf-backend | hvacinsurancedirect.com | ❌ not yet |
+| fitness | fitness-pdf-backend | fitnessinsurancedirect.com | ✅ |
+| electrical | electrical-pdf-backend | electricalinsurancedirect.com | ✅ |
+| beauty | beauty-pdf-backend | beautyinsurancedirect.com | ✅ |
+| cleaning | cleaning-pdf-backend | cleaninginsurancedirect.com | ✅ |
+| pet | pet-pdf-backend | petserviceinsurancedirect.com | ✅ |
 
 Config: `marketing/segmentEmailConfig.js`
 
@@ -256,5 +280,5 @@ Policy Home works after bind; **Am I Covered** scenario buttons need policy PDF 
 
 ```bash
 open "https://electricalinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Electrical_Creative.jpg"
-open "https://electricalinsurancedirect.com/connectquote.html?fn=Demo&em=demo@example.com&st=CO&src=instantly-co-electrical&cid=test"
+open "https://electricalinsurancedirect.com/connectquote.html?fn=Demo&em=demo@example.com&st=CO&ch=instantly-co-electrical&src=instantly-co-electrical&cid=test"
 ```
