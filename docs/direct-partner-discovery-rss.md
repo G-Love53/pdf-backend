@@ -2,7 +2,7 @@
 
 > **Canonical location (RSS):** `pdf-backend/docs/direct-partner-discovery-rss.md`  
 > **Use for:** Any **direct** carrier/MGA partner where CID owns intake and **Connect** owns post-bind servicing (Coterie today; CoverSmart/USLI; future instant rails).  
-> **Related:** [`partnerships.md`](./partnerships.md) · [`coterie-integration.md`](./coterie-integration.md) · [`connectquote-zywave-prefill-partner.md`](./connectquote-zywave-prefill-partner.md)
+> **Related:** [`partnerships.md`](./partnerships.md) · [`coterie-integration.md`](./coterie-integration.md)
 
 ---
 

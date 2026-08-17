@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { parse as parseCsv } from 'csv-parse/sync';
 import { stringify as stringifyCsv } from 'csv-stringify/sync';
 import { buildPrefilledUrl } from './urlBuilder.js';
+import { CONNECTQUOTE_SEGMENT_DEFAULTS } from '../config/connectQuoteLinks.js';
 import * as apolloAdapter from './adapters/apolloAdapter.js';
 import * as licenseBoardAdapter from './adapters/licenseBoardAdapter.js';
 import * as yelpGoogleAdapter from './adapters/yelpGoogleAdapter.js';
@@ -18,6 +19,25 @@ const ADAPTERS = {
   yelp_google: yelpGoogleAdapter,
   manual: manualAdapter,
 };
+
+function segmentBusinessClass(segment) {
+  return CONNECTQUOTE_SEGMENT_DEFAULTS[String(segment || '').toLowerCase()]?.bc || null;
+}
+
+function finalizeContact(normalized, segment, campaignTag, sourceType) {
+  normalized.segment = segment;
+  normalized.campaign_tag = campaignTag;
+  normalized.prefilled_url = buildPrefilledUrl(normalized, segment, campaignTag, {
+    src: normalized.data_source || sourceType || 'instantly',
+    businessClass: segmentBusinessClass(segment),
+  });
+  normalized.display_name = normalized.first_name
+    ? `${normalized.first_name}`
+    : normalized.business_name
+      ? `${normalized.business_name} team`
+      : 'there';
+  return normalized;
+}
 
 function normalizeContacts({ sourceFile, sourceType, segment, campaignTag }) {
   const raw = fs.readFileSync(sourceFile, 'utf-8');
@@ -34,8 +54,6 @@ function normalizeContacts({ sourceFile, sourceType, segment, campaignTag }) {
 
   for (const record of records) {
     const normalized = adapter.normalize(record);
-    normalized.segment = segment;
-    normalized.campaign_tag = campaignTag;
 
     if (!normalized.email) {
       skipped.no_email += 1;
@@ -54,18 +72,11 @@ function normalizeContacts({ sourceFile, sourceType, segment, campaignTag }) {
     }
     seenEmails.add(normalized.email);
 
-    normalized.prefilled_url = buildPrefilledUrl(normalized, segment, campaignTag);
-
-    normalized.display_name = normalized.first_name
-      ? `${normalized.first_name}`
-      : normalized.business_name
-      ? `${normalized.business_name} team`
-      : 'there';
-
+    finalizeContact(normalized, segment, campaignTag, sourceType);
     contacts.push(normalized);
   }
 
-  return { contacts, skipped };
+  return { contacts, skipped, inputRows: records.length };
 }
 
 function toInstantlyCsv(contacts) {
@@ -115,7 +126,7 @@ if (process.argv[1] === __filename) {
   const absInput = path.resolve(__dirname, '..', '..', sourceFile);
   const absOutput = path.resolve(__dirname, '..', '..', output);
 
-  const { contacts, skipped } = normalizeContacts({
+  const { contacts, skipped, inputRows } = normalizeContacts({
     sourceFile: absInput,
     sourceType,
     segment,
@@ -128,13 +139,12 @@ if (process.argv[1] === __filename) {
 
   // eslint-disable-next-line no-console
   console.log(
-    `Processed: ${contacts.length + skipped.no_email + skipped.duplicate} records\n  Valid: ${
+    `Input rows: ${inputRows ?? contacts.length}\n  Sendable: ${
       contacts.length
-    }\n  Skipped — no email: ${skipped.no_email}\n  Skipped — duplicate: ${
+    }\n  Skipped — no email: ${skipped.no_email}\n  Skipped — duplicate email: ${
       skipped.duplicate
     }\n  Output: ${output}`,
   );
 }
 
 export { normalizeContacts, toInstantlyCsv };
-
