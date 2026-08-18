@@ -52,6 +52,7 @@ Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-20
 
 | Document | Topic |
 |----------|--------|
+| **board-resolution-officer-titles-2026.md** | Board resolution — officer title amendment (Aug 2026) |
 | **00 PARTNER_README.md** | This file — start here |
 | **AUDIT_READINESS.md** | Audit posture: Postgres, R2, timeline, bind artifacts (S1–S6) |
 | **CID_ARCHITECTURE.md** | Platform architecture: intake → operator → bind → service |
@@ -75,7 +76,9 @@ Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-20
 
 | Topic | Today (Aug 2026) |
 |-------|------------------|
-| **Legal entity** | All Access Insurance dba Commercial Insurance Direct (CO) |
+| **Platform company** | Commercial Insurance Direct, Inc. (CO C Corp, EIN 42-3060315) |
+| **Agency of record** | All Access Insurance dba Commercial Insurance Direct (CO) · Rick Cline, producer |
+| **Officers** | Ray — Executive Chairman · Gerry — CEO · Rick — CRO (see `board-resolution-officer-titles-2026.md`) |
 | **Pipeline backend** | Single service: **CID-PDF-API** on Render (`pdf-backend` repo) |
 | **Insured app** | **CID Connect** at `connect.commercialinsurance-direct.com` |
 | **Instant bind rail** | **Coterie API** — marketing **Colorado (CO) only** |

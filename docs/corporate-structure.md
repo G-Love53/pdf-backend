@@ -1,7 +1,7 @@
 # CID — Corporate structure and segment brands
 
 > **Canonical location (RSS):** `pdf-backend/docs/corporate-structure.md` — versioned with **CID-PDF-API** (`main`).  
-> **As of:** 2026-07-29 (America/Denver). Update when segments, domains, or partner-facing narrative change.
+> **As of:** 2026-08-18 (America/Denver). Update when segments, domains, governance, or partner-facing narrative change.
 >
 > **Purpose:** One reference for **legal entity**, **umbrella vs segment brands**, **domains and ops inboxes**, and **what we tell partners** (e.g. carriers, MGAs) vs internal stack details. For deploy steps see [`Deploy_Guide.md`](./Deploy_Guide.md). For vendors see [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md).
 
@@ -21,7 +21,23 @@
 
 **On carrier paperwork and ACORD/COI:** use **All Access Insurance, dba Commercial Insurance Direct** (or the exact string carriers require). Customers and campaigns use the **Commercial Insurance Direct** brand and **segment** domains; ops mail uses **`quotes@…`** per trade. **`info@commercialinsurance-direct.com`** is the general agency contact.
 
-**ConnectQuote marketing geography (Jul 2026):** **Colorado only.** CID enforces via `COTERIE_PILOT_STATES`; Coterie enforces producer licensing (`E0122`) and AKHash appetite. See [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) § Marketing geography.
+**ConnectQuote marketing geography (Aug 2026):** **Colorado only.** CID enforces via `COTERIE_PILOT_STATES`; Coterie enforces producer licensing (`E0122`) and AKHash appetite. See [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) § Marketing geography.
+
+---
+
+## Platform company — officers and governance
+
+**Commercial Insurance Direct, Inc.** — Colorado **C Corporation**, EIN **42-3060315**, incorporated **June 9, 2026**.
+
+Unanimous Board resolution (officer title amendment, effective **August 2026**). Equity unchanged: **3,000,000 shares each**, fully vested (Stock Purchase Agreements dated June 9, 2026). Full text: [`board-resolution-officer-titles-2026.md`](./board-resolution-officer-titles-2026.md).
+
+| Co-Founder | Title | Primary scope |
+|------------|-------|----------------|
+| **Raymond Schiavone** | **Executive Chairman & Co-Founder** | Capital, fundraising, investor/SAFE relationships, exit/M&A, strategic partnerships, board governance, financial strategy, corporate development |
+| **Gerry Jones** | **Chief Executive Officer & Co-Founder** | Day-to-day operations, platform architecture, ConnectQuote / Connect / RSS, segment launches, GTM, carrier API integrations, customer acquisition, platform marketing |
+| **Richard “Rick” Cline** | **Chief Revenue Officer & Co-Founder** | Insurance licensing/compliance, carrier appointments, distribution, **producer of record**, Coterie MGA relationship, GUARD WC program, revenue relationships |
+
+**Agency vs platform:** **All Access Insurance** (below) remains **agency of record** on carrier paperwork and appointments; **Rick Cline** remains **named producer**. CID Inc. is the platform/governance entity for technology, operations, and corporate transactions.
 
 ---
 
@@ -137,3 +153,4 @@ Use this with partners who do **not** need product architecture detail.
 | 2026-06-12 | Electrical + Fitness `connectquote.html` intake; link to `connectquote-shipped-2026-06.md`. |
 | 2026-07-07 | HVAC + Plumber ConnectQuote live (CO prod quotes); owner-only positioning; plumber appetite knockouts. |
 | 2026-06-10 | Legal structure: All Access Insurance (CO) · Commercial Insurance Direct DBA; Rick Cline appointment. |
+| 2026-08-18 | **CID Inc. officer titles:** Ray → Executive Chairman; Gerry → CEO; Rick → CRO (unchanged). Board resolution recorded; see `board-resolution-officer-titles-2026.md`. |

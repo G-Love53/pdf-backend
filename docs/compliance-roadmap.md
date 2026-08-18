@@ -29,7 +29,7 @@
 | Area | Status | Notes |
 |------|--------|-------|
 | **Legal entity** | **All Access Insurance** (CO) · dba **Commercial Insurance Direct** | Segment brands under umbrella; see `corporate-structure.md` |
-| **C-Corp filing** | In progress / planned | Align cap table, bylaws, and **inter-company** agreements with Ray |
+| **C-Corp filing** | **Filed** — Commercial Insurance Direct, Inc. (CO), EIN 42-3060315, incorporated June 9, 2026 | Inter-company agreement with All Access (agency) — align with Ray |
 | **CID SOC 2 audit** | **Not started** | No Type I or Type II report for CID as organization |
 | **Infrastructure vendors** | **Strong foundation** | Render, Netlify, GitHub commonly provide SOC 2 Type II; verify current trust pages annually |
 | **Coterie** | **Sandbox live (CO)** | API + sandbox bind; ConnectQuote E2E; partner DPA + prod keys TBD |

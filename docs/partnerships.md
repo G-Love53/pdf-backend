@@ -9,7 +9,7 @@
 
 ## Summary
 
-**All Access Insurance** (dba **Commercial Insurance Direct**, Colorado) operates a multi-segment commercial insurance platform: segment intake (Netlify), single pipeline backend (**CID-PDF-API** on Render), and insured service (**CID Connect**). This registry is the **business and exit-facing** view—who we depend on, integration type, SOC posture of vendors, and next actions. It extends (does not replace) the S1–S6 vendor matrix in `VENDORS_S1_S6_CONNECT.md`.
+**Commercial Insurance Direct, Inc.** (Colorado C Corporation, EIN 42-3060315) operates the platform; **All Access Insurance** (dba **Commercial Insurance Direct** on carrier paperwork, Colorado) is **agency of record** for insurance operations. Multi-segment commercial platform: segment intake (Netlify), single pipeline backend (**CID-PDF-API** on Render), insured service (**CID Connect**). Officer roster: [`corporate-structure.md`](./corporate-structure.md) · Board resolution: [`board-resolution-officer-titles-2026.md`](./board-resolution-officer-titles-2026.md).
 
 **CID is not SOC 2 certified.** Several infrastructure partners publish SOC 2 Type II attestations we inherit in diligence; formal CID audit is planned—see [`compliance-roadmap.md`](./compliance-roadmap.md).
 
@@ -19,7 +19,8 @@
 
 | Partner / service | Category | Status | Our dependency (if this ends) | Their dependency on us | Integration type | SOC 2 / security (vendor) | Next action | Owner |
 |-------------------|----------|--------|-------------------------------|-------------------------|------------------|----------------------------|-------------|-------|
-| **All Access Insurance** (dba Commercial Insurance Direct, CO) | Legal / Compliance | Live | Legal entity for agency ops | N/A | N/A | N/A (entity governance) | Cap table, filings, inter-company docs | Gerry / Rick / Ray |
+| **Commercial Insurance Direct, Inc.** | Legal / Compliance | Live | Platform company; cap table, bylaws, board governance | N/A | N/A | N/A (entity governance) | Corporate records; officer titles per board resolution Aug 2026 | Ray / Gerry / Rick |
+| **All Access Insurance** (dba Commercial Insurance Direct, CO) | Legal / Compliance | Live | **Agency of record** — appointments, producer, carrier paperwork | N/A | N/A | N/A (entity governance) | Appointments, filings, inter-company docs | Rick / Gerry |
 | **Render** (Web Service + Postgres) | Infrastructure | Live | CID-PDF-API, operator, S4–S6, poller, Connect bridge down | Hosting revenue | Infrastructure hosting | Type II (verify trust page) | DPA on file; MFA on Render; env access list | Gerry |
 | **Netlify** | Infrastructure | Live | Segment sites + typical Connect host | Hosting revenue | Infrastructure hosting | Type II (verify) | MFA; site access list | Gerry |
 | **GitHub** | Infrastructure | Live | Source control, deploy path | N/A | Infrastructure / change mgmt | Type II (verify) | MFA; branch protection | Gerry |

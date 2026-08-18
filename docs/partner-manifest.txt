@@ -2,6 +2,7 @@
 # All paths repo-relative. Synced by scripts/sync-partner-docs-drive.mjs on push to main.
 # As of 2026-08-18
 
+docs/board-resolution-officer-titles-2026.md
 docs/00 PARTNER_README.md
 docs/AUDIT_READINESS.md
 docs/CID_ARCHITECTURE.md
