@@ -1,0 +1,23 @@
+# Partner Shared Drive upload manifest (CID Partner Docs)
+# Source paths relative to ~/GitHub/
+# As of 2026-08-18
+
+# --- pdf-backend/docs/ (copy these) ---
+docs/00 PARTNER_README.md
+docs/connectquote-shipped-2026-06.md
+docs/corporate-structure.md
+docs/partnerships.md
+docs/partnership-gaps.md
+docs/compliance-roadmap.md
+docs/coterie-integration.md
+docs/VENDORS_S1_S6_CONNECT.md
+docs/connectquote-partner-demo.md
+docs/connectquote-build-day.md
+docs/direct-partner-discovery-rss.md
+docs/coterie-sandbox-fixtures.md
+
+# --- CID-docs/ (copy these — audit + architecture for Ray) ---
+AUDIT_READINESS.md
+CID_ARCHITECTURE.md
+System_Flow.md
+CID_CONNECT.md
