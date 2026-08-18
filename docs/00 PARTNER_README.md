@@ -85,8 +85,8 @@ Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-20
 | **Pipeline backend** | Single service: **CID-PDF-API** on Render (`pdf-backend` repo) |
 | **Insured app** | **CID Connect** at `connect.commercialinsurance-direct.com` |
 | **Instant bind rail** | **Coterie API** — marketing **Colorado (CO) only** |
-| **ConnectQuote marketing segments** | Electrical, Fitness, Beauty, Cleaning, Pet |
-| **Traditional only (no ConnectQuote marketing)** | Bar, Roofer; HVAC/Plumber intake exists but not on marketing rail |
+| **ConnectQuote marketing segments** | Electrical, Fitness (3 segments), Beauty, Cleaning, Pet, HVAC, Plumer |
+| **Traditional only (no ConnectQuote marketing)** | Bar, Roofer; intake exists - long form - but not on marketing rail |
 | **CID SOC 2** | Not certified — roadmap in `compliance-roadmap.md` |
 
 ---
