@@ -1,14 +1,14 @@
 # ConnectQuote — Operator learning cards (saved spec)
 
 > **Status:** Spec only — build after marketing launch when patterns emerge.  
-> **As of:** 2026-07-29 · **Operator today:** [`/operator`](https://cid-pdf-api.onrender.com/operator) (generic S4–S6; partial Coterie signal).  
+> **As of:** 2026-08-18 · **Operator today:** [`/operator`](https://cid-pdf-api.onrender.com/operator) (generic S4–S6; partial Coterie signal).  
 > **Related:** [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) · [`coterie-integration.md`](./coterie-integration.md)
 
 ---
 
 ## Plan
 
-1. **Launch marketing** with disciplined `src` + `cid` on every ConnectQuote URL.  
+1. **Launch marketing** with disciplined **`ch` + `src` + `cid`** on every ConnectQuote URL (see **URL discipline** below).  
 2. **Watch** submissions, binds, and campaigns for 2–4 weeks (Operator Home + ad-hoc SQL below).  
 3. **Build Operator Learning cards** when volume makes manual SQL painful or a specific funnel question repeats.
 
@@ -23,7 +23,7 @@ Do not block launch on this UI — data already lands in **`submissions`**, **`t
 | Metric | Marketing name | Signal today | How |
 |--------|----------------|--------------|-----|
 | **Fill + submit** | Fill / conversion | **`submissions`** row | Every successful ConnectQuote POST; filter `quote_rail = coterie` |
-| **Attributed fill** | Fill by campaign | `traffic_source` (`src`), `campaign_id` (`cid`) | **Required on every URL** |
+| **Attributed fill** | Fill by campaign | `traffic_source` (`ch`/`src`), `campaign_id` (`cid`) | **Required on every URL** — stored on submit, not inferred from URL bar alone |
 | **Quote shown** | Soft conversion | `coterie.bindable_quote` / `coterie.session` timeline | SQL in this doc |
 | **Bind** | Purchase | `policies` + `coterie.policy.bound` | Operator Home “Policies bound” |
 
@@ -41,10 +41,14 @@ Do not block launch on this UI — data already lands in **`submissions`**, **`t
 **URL discipline (non-negotiable):**
 
 ```
-…/connectquote.html?st=CO&zp=80202&bc=…&src={channel}&cid={campaign-v1}
+…/connectquote.html?st=CO&zp=80202&bc=…&ch={channel}&src={channel}&cid={campaign-v1}
 ```
 
-Examples: `src=instantly`, `src=fb`, `src=google`, `src=organic` · `cid=aug-electrical-co-v1`
+- **`ch` and `src`** — same value (e.g. `instantly-co-electrical`). List cleaner and `urlBuilder.js` emit both.
+- **Intake JS** (`connectquote-intake.js`) reads **`ch` → `src` → `utm_source`**, persists to hidden `#traffic_source` / `#campaign_id`, and submits with the form.
+- **Safari Link Tracking Protection** and some email click trackers **strip `src`** (known tracking param). **`ch` and `cid` usually survive** — Ops attribution depends on **`traffic_source` on submit**, not the URL bar after click.
+
+Examples: `ch=instantly-co-electrical&src=instantly-co-electrical` · `cid=electrical-co-2026-08`
 
 **v2 (after launch):** page-view ping or GA4 on segment Netlify — see **v2** section below.
 
@@ -95,12 +99,12 @@ Examples: `src=instantly`, `src=fb`, `src=google`, `src=organic` · `cid=aug-ele
 Every campaign URL should include:
 
 ```
-…/connectquote.html?st=CO&zp=…&bc=…&src={channel}&cid={campaign-slug}
+…/connectquote.html?st=CO&zp=…&bc=…&ch={channel}&src={channel}&cid={campaign-slug}
 ```
 
-Examples: `src=instantly`, `src=fb`, `src=organic` · `cid=july-hvac-co-v1`
+Examples: `ch=instantly-co-beauty&src=instantly-co-beauty` · `cid=beauty-co-2026-08`
 
-Stored in `submissions.raw_submission_json` as `traffic_source` and `campaign_id`.
+Stored in `submissions.raw_submission_json` as `traffic_source` and `campaign_id` (from hidden fields after intake JS runs — see **`docs/outreach-claude-playbook.md`** § attribution).
 
 ---
 

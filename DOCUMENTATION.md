@@ -14,6 +14,9 @@
 | **[docs/compliance-roadmap.md](./docs/compliance-roadmap.md)** | **Dated** — SOC 2 / security roadmap for founder & counsel review (download/share with Ray) |
 | **[docs/coterie-integration.md](./docs/coterie-integration.md)** | **Dated** — Coterie ConnectQuote technical spec (AKHash, API, prod CO segments, env — no secrets) |
 | **[docs/connectquote-shipped-2026-06.md](./docs/connectquote-shipped-2026-06.md)** | **Dated** — ConnectQuote shipped summary (investor/handoff): architecture, segments, demo URLs, verification checklist |
+| **[docs/outreach-claude-playbook.md](./docs/outreach-claude-playbook.md)** | **Dated** — Instantly campaigns: list cleaning, attribution (`ch`/`src`/`cid`), HTML paste checklist, verified failure modes |
+| **[docs/outreach-creatives.md](./docs/outreach-creatives.md)** | **Dated** — Segment email JPEG + HTML registry; Netlify deploy methods (Drop vs git) |
+| **[docs/connectquote-operator-learning.md](./docs/connectquote-operator-learning.md)** | **Dated** — ConnectQuote C&F metrics, attribution SQL, Operator Learning cards (spec) |
 | **[docs/connectquote-build-day.md](./docs/connectquote-build-day.md)** | Demo script (5–7 min) for ConnectQuote walkthroughs |
 | **[docs/coterie-sandbox-fixtures.md](./docs/coterie-sandbox-fixtures.md)** | Redacted Coterie API + ConnectQuote intake examples (E0122, webhook TBD) |
 | **[docs/OPERATOR_DAILY_RUNBOOK.md](./docs/OPERATOR_DAILY_RUNBOOK.md)** | Operator quote → bind → policy flow; **S5 client email** preview/send expectations |
@@ -29,5 +32,5 @@
 ## Repo-local notes (`pdf-backend`)
 
 - **`README.md`** — Bar segment + **Gmail poller / `DATABASE_URL` / optional dedupe** (short operational summary).
-- **Outbound marketing (Instantly, etc.):** verify sending domains in **Google Postmaster Tools** and keep **SPF/DKIM/DMARC** aligned with the same identities — see **`docs/Deploy_Guide.md`** § Email infrastructure.
+- **Outbound marketing (Instantly, etc.):** verify sending domains in **Google Postmaster Tools** and keep **SPF/DKIM/DMARC** aligned with the same identities — see **`docs/Deploy_Guide.md`** § Email infrastructure. Campaign runbook: **`docs/outreach-claude-playbook.md`** · asset registry: **`docs/outreach-creatives.md`**.
 - **`cid-connect`** (sibling repo): **`docs/ARCHITECTURE.md`**, **`docs/WORKFLOW_HANDOFF.md`**, **`docs/STAGING_INTEGRATION_TEST_PLAN_DRAFT.md`** — Connect vs pipeline DB, staging E2E.

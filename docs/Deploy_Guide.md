@@ -353,6 +353,8 @@ Goal: public quote form at `https://<segment>insurancedirect.com` pointing to th
 - Connect it to the frontend repo (for example `hvac-pdf-backend` with `Netlify/` as the publish directory).
 - Prefer GitHub-backed deploys so every deploy is tied to a commit.
 
+**Exception — electrical:** `electricalinsurancedirect.com` uses **Netlify Drop** (manual folder upload), **not** Git auto-deploy. After changing `Netlify/` assets (including `email/archive/…` JPEGs), **Drop-deploy** the folder — `git push` on `electrical-pdf-backend` does **not** update live. Other marketing segments (fitness, beauty, cleaning, pet, hvac, plumber) are Git-connected. See **`docs/outreach-creatives.md`** § Netlify deploy.
+
 **Important runtime check:** After Netlify deploy, verify browser Network tab shows `POST https://<segment-backend>/submit-quote` (not only local domain `thankyou.html` navigation). This confirms frontend is actually calling backend intake.
 
 ### 2. Delegate DNS to Netlify

@@ -10,7 +10,7 @@
 
 | Pipeline | Input | Output | Where code & files live |
 |----------|--------|--------|-------------------------|
-| **A. List → prefill** | Apollo export, LocalProspects Advanced, manual CSV | Instantly CSV with `connectquote_url`, `src=instantly-{st}-{segment}` | **`pdf-backend`** only |
+| **A. List → prefill** | Apollo export, LocalProspects Advanced, manual CSV | Instantly CSV with `connectquote_url`, **`ch` + `src`** = `instantly-{st}-{segment}`, `cid` | **`pdf-backend`** only |
 | **B. Creative → email** | Embedded HTML (`CID_Creative_*_Embedded.html`) | JPEG on segment domain + `instantly_html_step.html` | **Each `{segment}-pdf-backend/Netlify/email/`** |
 
 **Do not** host campaign JPEGs on Render (`cid-pdf-api`). Instantly must load images from `{segment}insurancedirect.com`.

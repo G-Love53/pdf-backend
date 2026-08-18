@@ -9,6 +9,6 @@ Registry: **`docs/outreach-creatives.md`**
 Critical:
 - **Lists / prefill** → `pdf-backend/scripts/` (never segment repos)
 - **Hosted JPEG + HTML step** → `{segment}-pdf-backend/Netlify/email/archive/` → file **`instantly_html_step.html`**
-- **`src=`** → `instantly-{state}-{segment}` (not `apollo`)
+- **`ch=` + `src=`** — same value, e.g. `instantly-co-electrical` (not `apollo`); intake reads `ch` first
 - **After Instantly HTML paste:** re-apply `{{connectquote_url}}` on image + CTA (editor strips anchors)
 - **Do not** use Zywave; **do not** host campaign images on Render; **never** `data:image` in email

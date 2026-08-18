@@ -1,7 +1,7 @@
-# ConnectQuote — shipped summary (2026-06-10 → 2026-07-29)
+# ConnectQuote — shipped summary (2026-06-10 → 2026-08-18)
 
 > **Canonical “what we built” doc** for investors, Claude context, and team handoff.  
-> **Technical spec:** [`coterie-integration.md`](./coterie-integration.md) · **Demo script:** [`connectquote-build-day.md`](./connectquote-build-day.md) · **Operator learning (saved spec):** [`connectquote-operator-learning.md`](./connectquote-operator-learning.md)
+> **Technical spec:** [`coterie-integration.md`](./coterie-integration.md) · **Demo script:** [`connectquote-build-day.md`](./connectquote-build-day.md) · **Operator learning (saved spec):** [`connectquote-operator-learning.md`](./connectquote-operator-learning.md) · **Instantly outreach:** [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) · **Email creatives:** [`outreach-creatives.md`](./outreach-creatives.md)
 
 ---
 
@@ -160,7 +160,7 @@ Yoga’s Coterie **`AKHash`** supports **GL on the instant bindable API** only. 
 
 ## Intake UX (investor-facing)
 
-1. **Campaign prefill** — `fn`, `ln`, `em`, `ad`, `ct`, `st`, `zp`, `bn`, `bc`, `src`, `cid`
+1. **Campaign prefill** — `fn`, `ln`, `em`, `ad`, `ct`, `st`, `zp`, `bn`, `bc`, **`ch`**, **`src`**, `cid` (Instantly list cleaner emits **`ch` + `src`** with the same channel value; intake persists `traffic_source` / `campaign_id` on submit)
 2. **Core questions** — contact, location, owner?, business type, employees
 3. **Smart sections** (after owner + type selected):
    - **Plumber appetite knockouts** — Coterie exclusion questions; any “Yes” → traditional long-form (`index.html`)
@@ -267,8 +267,9 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 | Repo | What shipped |
 |------|----------------|
 | `pdf-backend` | Coterie adapter, registry, intake schema, routes, bind completion, static intake JS |
-| `electrical-pdf-backend` | `Netlify/connectquote.html` + index banner |
+| `electrical-pdf-backend` | `Netlify/connectquote.html` + index banner; **Netlify Drop** deploy (not git-connected) |
 | `fitness-pdf-backend` | `Netlify/connectquote.html` + index banner |
+| `beauty-pdf-backend`, `cleaning-pdf-backend`, `pet-pdf-backend` | ConnectQuote shell + **`Netlify/email/archive/2026-08-connect-v1/`** creatives (Aug 2026) |
 | `hvac-pdf-backend` | `Netlify/connectquote.html` — owner copy, `/` → ConnectQuote |
 | `plumber-pdf-backend` | `Netlify/connectquote.html` — owner copy, `/` → ConnectQuote |
 | `cid-connect` | **`BrandLogo`**, policy switcher, **`connect.commercialinsurance-direct.com`**, custom domain docs |
@@ -302,3 +303,5 @@ Flow: home-screen tile → quote (owner/employee, BOP+GL on Pilates) → **Compl
 | 2026-07-23 | Branded Connect; live bind E2E; webhook doc ingest service. |
 | 2026-07-29 | Marketing launch prep — geography gates documented; Operator learning spec. |
 | 2026-07-29 | **Partner demo:** `fitness-demo.html` + sandbox Render guide; prod demo off for marketing. |
+| 2026-08-10 | **Instantly outreach pipeline:** list cleaner (`ch`/`src`/`cid`), `displayName`, marketing-ready gate in `connectQuoteLinks.js`. |
+| 2026-08-17 | **Email creatives:** archive `2026-08-connect-v1` JPEG + `instantly_html_step.html` for all segments; beauty/cleaning/pet JPEGs live; license **#6784587** in generator; intake JS `v20260817a` attribution persistence. |
