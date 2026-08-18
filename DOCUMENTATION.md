@@ -17,7 +17,8 @@
 | **[docs/outreach-claude-playbook.md](./docs/outreach-claude-playbook.md)** | **Dated** — Instantly campaigns: list cleaning, attribution (`ch`/`src`/`cid`), HTML paste checklist, verified failure modes |
 | **[docs/outreach-creatives.md](./docs/outreach-creatives.md)** | **Dated** — Segment email JPEG + HTML registry; Netlify deploy methods (Drop vs git) |
 | **[docs/connectquote-operator-learning.md](./docs/connectquote-operator-learning.md)** | **Dated** — ConnectQuote C&F metrics, attribution SQL, Operator Learning cards (spec) |
-| **[docs/00 PARTNER_README.md](./docs/00%20PARTNER_README.md)** | **Partner Shared drive** index (Ray/Rick) — synced to Google Drive via GitHub Action |
+| **[docs/CID_INVESTMENT_THESIS.md](./docs/CID_INVESTMENT_THESIS.md)** | **Partner Shared drive** — investor thesis (Ray/Rick); auto-synced on push |
+| **[docs/00 PARTNER_README.md](./docs/00%20PARTNER_README.md)** | Partner Shared drive index |
 | **[docs/PARTNER_DOCS_SETUP.md](./docs/PARTNER_DOCS_SETUP.md)** | One-time Google service account + GitHub secrets for Drive sync (internal) |
 | **[docs/connectquote-build-day.md](./docs/connectquote-build-day.md)** | Demo script (5–7 min) for ConnectQuote walkthroughs |
 | **[docs/coterie-sandbox-fixtures.md](./docs/coterie-sandbox-fixtures.md)** | Redacted Coterie API + ConnectQuote intake examples (E0122, webhook TBD) |

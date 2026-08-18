@@ -9,7 +9,7 @@
 
 ## What this folder is
 
-Partner-facing documentation for **Commercial Insurance Direct / All Access Insurance**: platform architecture, audit posture, compliance roadmap, partnerships registry, and ConnectQuote (instant quote-and-bind) summary.
+Partner-facing documentation for **Commercial Insurance Direct / All Access Insurance**: **investment thesis**, platform architecture, audit posture, compliance roadmap, partnerships registry, and ConnectQuote summary.
 
 **No secrets** — env var names may appear; no keys, tokens, or credentials.
 
@@ -29,22 +29,24 @@ If a doc looks stale, ask Gerry — **Git is always the source of truth.** Setup
 
 ### Ray (counsel / diligence)
 
-1. **[AUDIT_READINESS.md](./AUDIT_READINESS.md)** — what is auditable today (S1–S6): submissions, timeline, R2 docs, bind trail  
-2. **[CID_ARCHITECTURE.md](./CID_ARCHITECTURE.md)** — single-backend rule, end-to-end pipeline, operator surfaces  
-3. **[compliance-roadmap.md](./compliance-roadmap.md)** — SOC 2 / security roadmap  
-4. **[partnership-gaps.md](./partnership-gaps.md)** — diligence backlog P0–P3  
-5. **[corporate-structure.md](./corporate-structure.md)** — legal entity, segment brands, partner narrative  
-6. **[partnerships.md](./partnerships.md)** — vendor/carrier registry and SOC vendor status  
+1. **[CID_INVESTMENT_THESIS.md](./CID_INVESTMENT_THESIS.md)** — investor narrative, market, platform layers, exit thesis  
+2. **[AUDIT_READINESS.md](./AUDIT_READINESS.md)** — what is auditable today (S1–S6): submissions, timeline, R2 docs, bind trail  
+3. **[CID_ARCHITECTURE.md](./CID_ARCHITECTURE.md)** — single-backend rule, end-to-end pipeline, operator surfaces  
+4. **[compliance-roadmap.md](./compliance-roadmap.md)** — SOC 2 / security roadmap  
+5. **[partnership-gaps.md](./partnership-gaps.md)** — diligence backlog P0–P3  
+6. **[corporate-structure.md](./corporate-structure.md)** — legal entity, segment brands, partner narrative  
+7. **[partnerships.md](./partnerships.md)** — vendor/carrier registry and SOC vendor status  
 
 Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-2026-06.md** (ConnectQuote product summary).
 
 ### Rick (ops / partner)
 
-1. **[connectquote-shipped-2026-06.md](./connectquote-shipped-2026-06.md)** — what shipped, CO geography, segments on marketing rail  
-2. **[corporate-structure.md](./corporate-structure.md)** — brands, domains, inboxes  
-3. **[partnerships.md](./partnerships.md)** — who we depend on (Coterie, Render, Instantly, etc.)  
-4. **[coterie-integration.md](./coterie-integration.md)** — Coterie API rail (technical, no secrets)  
-5. **[connectquote-build-day.md](./connectquote-build-day.md)** — demo walkthrough script  
+1. **[CID_INVESTMENT_THESIS.md](./CID_INVESTMENT_THESIS.md)** — platform story, market, business model, team  
+2. **[connectquote-shipped-2026-06.md](./connectquote-shipped-2026-06.md)** — what shipped, CO geography, segments on marketing rail  
+3. **[corporate-structure.md](./corporate-structure.md)** — brands, domains, inboxes  
+4. **[partnerships.md](./partnerships.md)** — who we depend on (Coterie, Render, Instantly, etc.)  
+5. **[coterie-integration.md](./coterie-integration.md)** — Coterie API rail (technical, no secrets)  
+6. **[connectquote-build-day.md](./connectquote-build-day.md)** — demo walkthrough script  
 
 ---
 
@@ -52,6 +54,7 @@ Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-20
 
 | Document | Topic |
 |----------|--------|
+| **CID_INVESTMENT_THESIS.md** | Investment thesis — market, platform, exit, team |
 | **board-resolution-officer-titles-2026.md** | Board resolution — officer title amendment (Aug 2026) |
 | **00 PARTNER_README.md** | This file — start here |
 | **AUDIT_READINESS.md** | Audit posture: Postgres, R2, timeline, bind artifacts (S1–S6) |
