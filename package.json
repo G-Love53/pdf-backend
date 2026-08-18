@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dedupe:carrier-messages": "node scripts/dedupe-carrier-messages.mjs",
+    "sync:partner-docs": "node scripts/sync-partner-docs-drive.mjs",
     "indexer:policy-docs": "node src/workers/policyIndexer.js",
     "indexer:policy-docs:backfill": "node src/workers/policyIndexer.js --backfill"
   },

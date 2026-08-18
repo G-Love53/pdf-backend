@@ -19,9 +19,9 @@ Partner-facing documentation for **Commercial Insurance Direct / All Access Insu
 
 ## How it stays current
 
-We edit docs in **Git** (`pdf-backend` and related repos). When we ship updates, Gerry refreshes this folder (manual upload today; automated Drive sync planned).
+We edit docs in **Git** (`pdf-backend/docs/`). On push to `main`, a GitHub Action syncs every file in **`partner-manifest.txt`** to this Shared drive folder (same filename → overwrite).
 
-If a doc looks stale, ask Gerry — **Git is always the source of truth.**
+If a doc looks stale, ask Gerry — **Git is always the source of truth.** Setup: **`PARTNER_DOCS_SETUP.md`** (internal, not in this folder).
 
 ---
 
@@ -91,4 +91,4 @@ Reply in email or the shared thread with Gerry (`g@commercialinsurance-direct.co
 
 ---
 
-*Last folder refresh: 2026-08-18 · Next: automated sync from Git on push to `main`.*
+*Last folder refresh: 2026-08-18 · Auto-sync from Git on push to `main` (see manifest in repo).*

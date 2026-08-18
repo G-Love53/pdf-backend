@@ -1,0 +1,38 @@
+name: Sync partner docs to Google Drive
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "docs/partner-manifest.txt"
+      - "scripts/sync-partner-docs-drive.mjs"
+      - ".github/workflows/sync-partner-docs.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: sync-partner-docs
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync to CID Partner Docs (Shared drive)
+        env:
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+          GDRIVE_PARTNER_FOLDER_ID: ${{ secrets.GDRIVE_PARTNER_FOLDER_ID }}
+        run: node scripts/sync-partner-docs-drive.mjs
