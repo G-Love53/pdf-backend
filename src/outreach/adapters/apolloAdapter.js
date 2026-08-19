@@ -1,17 +1,17 @@
-function cleanPhone(raw) {
-  if (!raw) return null;
-  const digits = String(raw).replace(/\D+/g, '');
-  return digits || null;
-}
+import { normalizeUsPhone } from '../normalizeUsPhone.js';
 
 export function normalize(apolloContact) {
+  const rawPhone =
+    apolloContact.phone_numbers?.[0]?.sanitized_number ||
+    apolloContact.phone ||
+    null;
   return {
     email: apolloContact.email || null,
     business_name: apolloContact.organization?.name || null,
     segment: null, // set by campaign config, not Apollo data
     first_name: apolloContact.first_name || null,
     last_name: apolloContact.last_name || null,
-    phone: cleanPhone(apolloContact.phone_numbers?.[0]?.sanitized_number),
+    phone: normalizeUsPhone(rawPhone) || null,
     address: apolloContact.organization?.street_address || null,
     city: apolloContact.organization?.city || null,
     state: apolloContact.organization?.state || null,
@@ -26,4 +26,3 @@ export function normalize(apolloContact) {
     years_in_business: null,
   };
 }
-

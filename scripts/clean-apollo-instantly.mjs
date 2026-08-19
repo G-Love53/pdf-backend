@@ -22,6 +22,7 @@ import { stringify as stringifyCsv } from 'csv-stringify/sync';
 import { normalizeDisplayName } from '../marketing/normalizeDisplayName.js';
 import { isConnectQuoteMarketingReady, CONNECTQUOTE_SEGMENT_DEFAULTS } from '../src/config/connectQuoteLinks.js';
 import { buildPrefilledUrl } from '../src/outreach/urlBuilder.js';
+import { normalizeUsPhone } from '../src/outreach/normalizeUsPhone.js';
 
 export { normalizeDisplayName } from '../marketing/normalizeDisplayName.js';
 
@@ -209,10 +210,7 @@ function parseArgs(argv) {
 }
 
 function cleanPhone(raw) {
-  if (!raw) return '';
-  const digits = String(raw).replace(/\D+/g, '');
-  if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1);
-  return digits;
+  return normalizeUsPhone(raw);
 }
 
 function normalizeState(raw) {

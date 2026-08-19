@@ -1,8 +1,4 @@
-function cleanPhone(raw) {
-  if (!raw) return null;
-  const digits = String(raw).replace(/\D+/g, '');
-  return digits || null;
-}
+import { normalizeUsPhone } from '../normalizeUsPhone.js';
 
 function parseNameFirst(fullName) {
   if (!fullName) return null;
@@ -14,7 +10,7 @@ function parseNameLast(fullName) {
   if (!fullName) return null;
   const parts = String(fullName).trim().split(/\s+/);
   if (parts.length < 2) return null;
-  return parts[parts.length - 1];
+  return parts.slice(-1)[0];
 }
 
 export function normalize(record) {
@@ -24,7 +20,7 @@ export function normalize(record) {
     segment: null, // set by campaign config
     first_name: record.first_name || parseNameFirst(record.full_name) || null,
     last_name: record.last_name || parseNameLast(record.full_name) || null,
-    phone: cleanPhone(record.phone),
+    phone: normalizeUsPhone(record.phone) || null,
     address: record.address || null,
     city: record.city || null,
     state: record.state || null,
@@ -39,4 +35,3 @@ export function normalize(record) {
     years_in_business: null,
   };
 }
-

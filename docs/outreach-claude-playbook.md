@@ -62,6 +62,8 @@ node scripts/clean-apollo-instantly.mjs \
 
 **Default:** CO company address, segment allowlist (fitness-tuned today — extend for trades), **up to 2 contacts per company** (owner + ops/office manager when available), verified emails, decision-maker titles, email domain matches website.
 
+**Phone (`ph` in `connectquote_url`):** normalized to **10-digit US NANP** via `src/outreach/normalizeUsPhone.js` — strips `+1`, rejects truncated `1303…` leftovers. Invalid → **omitted** (blank field beats wrong prefill). Re-export after script updates before adding `ph` back to Instantly.
+
 **Flags:**
 - `--skip-domain-check` — more rows, more bounce risk
 - `--one-per-company` or `--max-per-company 1` — strict single contact

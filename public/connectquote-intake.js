@@ -3,9 +3,20 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260817a";
+  const ASSET_V = "20260819a";
 
   const CHANNEL_QUERY_KEYS = ["ch", "src", "utm_source"];
+
+  /** Keep in sync with src/outreach/normalizeUsPhone.js */
+  function normalizeUsPhone(raw) {
+    if (raw == null || raw === "") return "";
+    let digits = String(raw).replace(/\D+/g, "");
+    if (!digits) return "";
+    if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
+    if (digits.length > 10) digits = digits.slice(-10);
+    if (!/^[2-9]\d{2}[2-9]\d{6}$/.test(digits)) return "";
+    return digits;
+  }
 
   const CONNECT_BENEFITS_HTML = `<div class="connect-benefits" id="connect-benefits" aria-label="Included with CID Connect">
       <p class="connect-benefits-head">Included with <strong>Connect</strong></p>
@@ -193,6 +204,9 @@
     if (param === "em" && raw.includes("@")) {
       const at = raw.indexOf("@");
       return raw.slice(0, at).replace(/ /g, "+") + raw.slice(at);
+    }
+    if (param === "ph" || param === "phone") {
+      return normalizeUsPhone(raw) || "";
     }
     return raw;
   }

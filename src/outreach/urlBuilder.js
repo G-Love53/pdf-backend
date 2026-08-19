@@ -1,5 +1,6 @@
 import { URLSearchParams } from "node:url";
 import { setAttributionParams } from "./attributionParams.js";
+import { normalizeUsPhone } from "./normalizeUsPhone.js";
 import {
   SEGMENT_DOMAINS,
   buildConnectQuoteUrl,
@@ -33,9 +34,10 @@ export function buildPrefilledUrl(contact, segment, campaignTag, opts = {}) {
   if (isConnectQuoteMarketingReady(key)) {
     const params = new URLSearchParams();
     for (const [field, param] of Object.entries(URL_PARAM_MAP)) {
-      if (contact[field]) {
-        params.set(param, String(contact[field]));
-      }
+      const raw = contact[field];
+      if (!raw) continue;
+      const value = field === "phone" ? normalizeUsPhone(raw) : String(raw);
+      if (value) params.set(param, value);
     }
     setAttributionParams(params, {
       channel: opts.src || "instantly",
@@ -56,9 +58,10 @@ export function buildPrefilledUrl(contact, segment, campaignTag, opts = {}) {
   const params = new URLSearchParams();
 
   for (const [field, param] of Object.entries(URL_PARAM_MAP)) {
-    if (contact[field]) {
-      params.set(param, String(contact[field]));
-    }
+    const raw = contact[field];
+    if (!raw) continue;
+    const value = field === "phone" ? normalizeUsPhone(raw) : String(raw);
+    if (value) params.set(param, value);
   }
 
   setAttributionParams(params, {

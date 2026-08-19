@@ -1,3 +1,5 @@
+import { normalizeUsPhone } from '../normalizeUsPhone.js';
+
 const DEFAULT_COLUMN_MAP = {
   email: ['email', 'email_address', 'e-mail', 'contact_email'],
   business_name: ['business_name', 'company', 'company_name', 'business', 'dba'],
@@ -9,12 +11,6 @@ const DEFAULT_COLUMN_MAP = {
   state: ['state', 'st', 'province'],
   zip: ['zip', 'zipcode', 'zip_code', 'postal_code'],
 };
-
-function cleanPhone(raw) {
-  if (!raw) return null;
-  const digits = String(raw).replace(/\D+/g, '');
-  return digits || null;
-}
 
 export function normalize(record, columnMap = DEFAULT_COLUMN_MAP) {
   const resolved = {};
@@ -34,7 +30,7 @@ export function normalize(record, columnMap = DEFAULT_COLUMN_MAP) {
     segment: null,
     first_name: resolved.first_name || null,
     last_name: resolved.last_name || null,
-    phone: cleanPhone(resolved.phone),
+    phone: normalizeUsPhone(resolved.phone) || null,
     address: resolved.address || null,
     city: resolved.city || null,
     state: resolved.state || null,
@@ -49,4 +45,3 @@ export function normalize(record, columnMap = DEFAULT_COLUMN_MAP) {
     years_in_business: null,
   };
 }
-

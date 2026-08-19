@@ -1,8 +1,4 @@
-function cleanPhone(raw) {
-  if (!raw) return null;
-  const digits = String(raw).replace(/\D+/g, '');
-  return digits || null;
-}
+import { normalizeUsPhone } from '../normalizeUsPhone.js';
 
 export function normalize(record) {
   return {
@@ -11,7 +7,7 @@ export function normalize(record) {
     segment: null,
     first_name: null,
     last_name: null,
-    phone: cleanPhone(record.phone),
+    phone: normalizeUsPhone(record.phone) || null,
     address: record.address || null,
     city: record.city || null,
     state: record.state || null,
@@ -26,4 +22,3 @@ export function normalize(record) {
     years_in_business: null,
   };
 }
-
