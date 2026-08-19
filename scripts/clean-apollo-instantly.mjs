@@ -22,7 +22,7 @@ import { stringify as stringifyCsv } from 'csv-stringify/sync';
 import { normalizeDisplayName } from '../marketing/normalizeDisplayName.js';
 import { isConnectQuoteMarketingReady, CONNECTQUOTE_SEGMENT_DEFAULTS } from '../src/config/connectQuoteLinks.js';
 import { buildPrefilledUrl } from '../src/outreach/urlBuilder.js';
-import { normalizeUsPhone } from '../src/outreach/normalizeUsPhone.js';
+import { normalizeUsPhone, pickBestUsPhone, isLikelyTruncatedUsPhone } from '../src/outreach/normalizeUsPhone.js';
 
 export { normalizeDisplayName } from '../marketing/normalizeDisplayName.js';
 
@@ -213,6 +213,32 @@ function cleanPhone(raw) {
   return normalizeUsPhone(raw);
 }
 
+/** Apollo phone columns — order matters: direct/mobile before corporate. */
+const APOLLO_PHONE_FIELDS = ['mobilePhone', 'workDirectPhone', 'corporatePhone', 'companyPhone'];
+
+function pickPhone(row) {
+  return pickBestUsPhone(
+    row.mobilePhone,
+    row.workDirectPhone,
+    row.corporatePhone,
+    row.companyPhone,
+  );
+}
+
+function auditRawPhones(row) {
+  const stats = { truncated_raw: 0, no_valid: 0 };
+  let anyRaw = false;
+  for (const key of APOLLO_PHONE_FIELDS) {
+    const raw = row[key];
+    if (!raw) continue;
+    anyRaw = true;
+    const digits = String(raw).replace(/\D+/g, '');
+    if (isLikelyTruncatedUsPhone(digits)) stats.truncated_raw += 1;
+  }
+  if (anyRaw && !pickPhone(row)) stats.no_valid += 1;
+  return stats;
+}
+
 function normalizeState(raw) {
   if (!raw) return '';
   const trimmed = String(raw).trim();
@@ -322,10 +348,6 @@ function mapApolloRow(record) {
   };
 }
 
-function pickPhone(row) {
-  return cleanPhone(row.workDirectPhone || row.mobilePhone || row.corporatePhone || row.companyPhone);
-}
-
 const OPS_SECOND =
   /\b(office manager|director of operations|operations manager|general manager|manager)\b/i;
 
@@ -371,6 +393,12 @@ export function cleanApolloRows(records, options = {}) {
     domain_mismatch: 0,
     duplicate_email: 0,
     extra_company_contacts: 0,
+  };
+
+  const phoneStats = {
+    with_valid_phone: 0,
+    no_valid_phone: 0,
+    truncated_raw_seen: 0,
   };
 
   const seenEmails = new Set();
@@ -445,11 +473,17 @@ export function cleanApolloRows(records, options = {}) {
     skipped.extra_company_contacts += Math.max(0, candidates.length - picked.length);
     for (const row of picked) {
       seenEmails.add(row.email);
+      const audit = auditRawPhones(row);
+      phoneStats.truncated_raw_seen += audit.truncated_raw;
+      if (pickPhone(row)) phoneStats.with_valid_phone += 1;
+      else if (audit.truncated_raw || row.mobilePhone || row.workDirectPhone || row.corporatePhone || row.companyPhone) {
+        phoneStats.no_valid_phone += 1;
+      }
       rows.push(row);
     }
   }
 
-  return { rows, skipped };
+  return { rows, skipped, phoneStats };
 }
 
 function toContact(row, targetState) {
@@ -528,7 +562,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 
   const raw = fs.readFileSync(inputFile, 'utf-8');
   const records = parseCsv(raw, { columns: true, skip_empty_lines: true, relax_column_count: true });
-  const { rows, skipped } = cleanApolloRows(records, {
+  const { rows, skipped, phoneStats } = cleanApolloRows(records, {
     targetState,
     requireDomainMatch: !args.skipDomainCheck,
     maxPerCompany: args.maxPerCompany,
@@ -541,6 +575,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 
   console.log(`Input rows: ${records.length}`);
   console.log(`Output rows: ${rows.length}`);
+  console.log(`Phones: ${phoneStats.with_valid_phone} valid (ph= in URL), ${phoneStats.no_valid_phone} omitted (bad/truncated), ${phoneStats.truncated_raw_seen} raw fields looked like 1303… truncation`);
   console.log(`Channel src: ${channelSource}`);
   console.log('Skipped:', skipped);
   console.log(`Written: ${outputFile}`);

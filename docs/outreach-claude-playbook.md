@@ -62,7 +62,7 @@ node scripts/clean-apollo-instantly.mjs \
 
 **Default:** CO company address, segment allowlist (fitness-tuned today — extend for trades), **up to 2 contacts per company** (owner + ops/office manager when available), verified emails, decision-maker titles, email domain matches website.
 
-**Phone (`ph` in `connectquote_url`):** normalized to **10-digit US NANP** via `src/outreach/normalizeUsPhone.js` — strips `+1`, rejects truncated `1303…` leftovers. Invalid → **omitted** (blank field beats wrong prefill). Re-export after script updates before adding `ph` back to Instantly.
+**Phone (`ph` in `connectquote_url`):** normalized to **10-digit US NANP** via `src/outreach/normalizeUsPhone.js` — strips `+1` from **11-digit** Apollo values **before** write (never cap at 10 first). Rejects corrupted `1303…` leftovers. Tries **mobile → work direct → corporate → company** — first valid wins. Invalid → **omitted**. Run script **directly on Apollo CSV** — do not open/save in Excel first (Excel can truncate phones). Re-export after script updates before adding `ph` back to Instantly.
 
 **Flags:**
 - `--skip-domain-check` — more rows, more bounce risk
