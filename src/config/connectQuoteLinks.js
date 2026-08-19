@@ -19,11 +19,14 @@ export const SEGMENT_DOMAINS = {
 
 /**
  * Segments live on Netlify connectquote.html and approved for Instantly outreach.
- * HVAC, Plumber, Bar, and Roofer are NOT ready — use traditional intake only.
+ * Fitness counts as three marketing sub-segments (yoga / pilates / trainer) — same domain, different `bc` / policy / price.
+ * Bar and Roofer remain traditional intake only.
  */
 export const CONNECTQUOTE_MARKETING_READY = new Set([
   "electrical",
   "fitness",
+  "hvac",
+  "plumber",
   "beauty",
   "cleaning",
   "pet",
@@ -33,6 +36,8 @@ export const CONNECTQUOTE_MARKETING_READY = new Set([
 export const CONNECTQUOTE_SEGMENT_DEFAULTS = {
   electrical: {},
   fitness: {},
+  hvac: { bc: "hvac_contractor" },
+  plumber: { bc: "plumbing_contractor" },
   beauty: {},
   cleaning: {},
   pet: {},

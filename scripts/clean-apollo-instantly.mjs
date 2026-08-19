@@ -2,8 +2,8 @@
 /**
  * Clean Apollo people export → Instantly CSV with connectquote_url prefill.
  *
- * Filters: verified email, decision-maker title, fitness class allowlist,
- * hard company-in-state, one contact per company, optional email/website domain match.
+ * Filters: verified email, decision-maker title, company in target state.
+ * Fitness only: Coterie class allowlist. HVAC/plumber get default `bc` from connectQuoteLinks.
  *
  * Usage:
  *   node scripts/clean-apollo-instantly.mjs \
@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { parse as parseCsv } from 'csv-parse/sync';
 import { stringify as stringifyCsv } from 'csv-stringify/sync';
 import { normalizeDisplayName } from '../marketing/normalizeDisplayName.js';
-import { isConnectQuoteMarketingReady } from '../src/config/connectQuoteLinks.js';
+import { isConnectQuoteMarketingReady, CONNECTQUOTE_SEGMENT_DEFAULTS } from '../src/config/connectQuoteLinks.js';
 import { buildPrefilledUrl } from '../src/outreach/urlBuilder.js';
 
 export { normalizeDisplayName } from '../marketing/normalizeDisplayName.js';
@@ -359,6 +359,7 @@ export function cleanApolloRows(records, options = {}) {
     requireDecisionMaker = true,
     requireDomainMatch = true,
     maxPerCompany = 2,
+    segment = 'fitness',
   } = options;
 
   const skipped = {
@@ -406,16 +407,20 @@ export function cleanApolloRows(records, options = {}) {
     }
 
     const blob = primaryBlob(row);
-    if (OFF_APPETITE.some((re) => re.test(blob))) {
-      skipped.off_appetite += 1;
-      continue;
-    }
-    if (!isFitnessAppetite(row)) {
-      skipped.not_fitness_class += 1;
-      continue;
+    if (segment === 'fitness') {
+      if (OFF_APPETITE.some((re) => re.test(blob))) {
+        skipped.off_appetite += 1;
+        continue;
+      }
+      if (!isFitnessAppetite(row)) {
+        skipped.not_fitness_class += 1;
+        continue;
+      }
     }
 
-    const businessClass = inferBusinessClass(row);
+    const defaultBc = CONNECTQUOTE_SEGMENT_DEFAULTS[segment]?.bc;
+    const businessClass =
+      segment === 'fitness' ? inferBusinessClass(row) : defaultBc || undefined;
 
     if (requireDomainMatch && !domainsAlign(row)) {
       skipped.domain_mismatch += 1;
@@ -518,7 +523,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       `Segment "${segment}" is not ConnectQuote-ready for Instantly (no live connectquote.html + bind rail).`,
     );
     console.error(
-      'Marketing-ready: electrical, fitness, beauty, cleaning, pet. Traditional only: bar, roofer, plumber, hvac.',
+      'Marketing-ready: electrical, fitness, hvac, plumber, beauty, cleaning, pet. Traditional only: bar, roofer.',
     );
     process.exit(1);
   }
@@ -529,6 +534,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     targetState,
     requireDomainMatch: !args.skipDomainCheck,
     maxPerCompany: args.maxPerCompany,
+    segment,
   });
   const csv = toInstantlyCsv(rows, { segment, campaignTag, targetState, channelSource });
 

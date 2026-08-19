@@ -84,7 +84,7 @@ The fundamental advantage: adding 1,000 policyholders to a traditional agency re
 | ConnectQuote instant-bind | Live — Coterie API, BOP + GL, 10+ segments |
 | CONNECT policyholder app | Live — policy vault, COI hub, Am I Covered?, claims |
 | RSS Engine (dual rail) | Live — API + ACORD S1–S6 |
-| Colorado email marketing campaign | Active — Electrical, Fitness, HVAC, Plumber, Yoga, Pilates, Personal Trainer |
+| Colorado email marketing campaign | Active — Electrical, HVAC, Plumber, Beauty, Cleaning, Pet; Fitness classes Yoga, Pilates, Personal Trainer |
 | GUARD Workers' Comp program | In development for ConnectQuote |
 | First binds | Complete — real policies issued end-to-end on mobile |
 | Segment deployment speed | Under 5 hours from domain to live ConnectQuote intake |

@@ -13,8 +13,8 @@
 | **beauty** | `beauty-pdf-backend` | [archive JPEG](https://beautyinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Beauty_Creative.jpg) | same | Live |
 | **cleaning** | `cleaning-pdf-backend` | [archive JPEG](https://cleaninginsurancedirect.com/email/archive/2026-08-connect-v1/CID_Cleaning_Creative.jpg) | same | Live |
 | **pet** | `pet-pdf-backend` | [archive JPEG](https://petserviceinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Pet_Creative.jpg) | same | Live |
-| **hvac** | `hvac-pdf-backend` | [archive JPEG](https://hvacinsurancedirect.com/email/archive/2026-08-connect-v1/CID_HVAC_Creative.jpg) | same | Deployed (not marketing-ready) |
-| **plumber** | `plumber-pdf-backend` | [archive JPEG](https://plumberinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Plumber_Creative.jpg) | same | Deployed (not marketing-ready) |
+| **hvac** | `hvac-pdf-backend` | [archive JPEG](https://hvacinsurancedirect.com/email/archive/2026-08-connect-v1/CID_HVAC_Creative.jpg) | same | Live |
+| **plumber** | `plumber-pdf-backend` | [archive JPEG](https://plumberinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Plumber_Creative.jpg) | same | Live |
 | **bar, roofer** | respective repos | — | HTML template only | Traditional intake only — no ConnectQuote campaigns |
 
 **License #6784587** (All Access) is baked into all segment `instantly_html_step.html` via `generate-instantly-email.mjs`.

@@ -29,9 +29,10 @@ Only these segments have **live `connectquote.html` on Netlify** and a **bindabl
 
 | Ready | Segment |
 |-------|---------|
-| ✅ | **electrical**, **fitness**, **beauty**, **cleaning**, **pet** |
-| ❌ | **hvac**, **plumber** — intake shell / API in progress; **do not** run Instantly ConnectQuote campaigns |
+| ✅ | **electrical**, **fitness**, **hvac**, **plumber**, **beauty**, **cleaning**, **pet** |
 | ❌ | **bar**, **roofer** — traditional supplement only (segment home / long-form) |
+
+Fitness Instantly/marketing **count:** three sub-segments once class is chosen (`bc=yoga_studio` | `pilates_studio` | `personal_trainer`) — different policy and price. Same domain.
 
 Source of truth: `src/config/connectQuoteLinks.js` → `CONNECTQUOTE_MARKETING_READY`.  
 `clean-apollo-instantly.mjs` **exits with error** if `--segment` is not marketing-ready.
@@ -246,8 +247,8 @@ Manual editor paste does not scale (8 segments × many states). **Instantly API 
 |---------|------|--------|--------------------------|
 | bar | bar-pdf-backend | barinsurancedirect.com | ❌ traditional |
 | roofer | roofing-pdf-backend | roofingcontractorinsurancedirect.com | ❌ traditional |
-| plumber | plumber-pdf-backend | plumberinsurancedirect.com | ❌ not yet |
-| hvac | hvac-pdf-backend | hvacinsurancedirect.com | ❌ not yet |
+| plumber | plumber-pdf-backend | plumberinsurancedirect.com | ✅ |
+| hvac | hvac-pdf-backend | hvacinsurancedirect.com | ✅ |
 | fitness | fitness-pdf-backend | fitnessinsurancedirect.com | ✅ |
 | electrical | electrical-pdf-backend | electricalinsurancedirect.com | ✅ |
 | beauty | beauty-pdf-backend | beautyinsurancedirect.com | ✅ |

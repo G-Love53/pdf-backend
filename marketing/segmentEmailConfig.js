@@ -127,7 +127,7 @@ export function segmentEmailRoot(segment, githubRoot) {
  * Not hosted, not in HTML fragment, not in CSV.
  *
  * Only segments in CONNECTQUOTE_MARKETING_READY (connectQuoteLinks.js):
- * electrical, fitness, beauty, cleaning, pet — NOT hvac, plumber, bar, roofer.
+ * electrical, fitness, hvac, plumber, beauty, cleaning, pet — NOT bar, roofer.
  *
  * Assembly order in Instantly body:
  *   hook → friction → offer → cta (hyperlink to {{connectquote_url}}) → proof → — Gerry, CID
@@ -190,6 +190,32 @@ export const step1Copy = {
     cta: 'Click to coverage →',
     proof:
       'A-rated carrier. Bind and send a client their certificate the same day.',
+  },
+
+  hvac: {
+    subject: 'Your HVAC quote, already started',
+    subjectVariant: 'A quote for {{displayName}}, already started',
+    hook: 'Click to coverage in less than a minute.',
+    friction:
+      'Most HVAC contractors spend 20 minutes on forms just to find out a price. ' +
+      'No payroll reports. No job schedules. No callback.',
+    offer:
+      "We've started a quote for {{displayName}} — confirm a few details and you're covered.",
+    cta: 'Click to coverage →',
+    proof: 'A-rated carrier. Bind and get certificates the same day.',
+  },
+
+  plumber: {
+    subject: 'Your plumbing quote, already started',
+    subjectVariant: 'A quote for {{displayName}}, already started',
+    hook: 'Click to coverage in less than a minute.',
+    friction:
+      'Most plumbing contractors spend 20 minutes on forms just to find out a price. ' +
+      'No payroll reports. No job schedules. No callback.',
+    offer:
+      "We've started a quote for {{displayName}} — confirm a few details and you're covered.",
+    cta: 'Click to coverage →',
+    proof: 'A-rated carrier. Bind and get certificates the same day.',
   },
 
   pet: {
