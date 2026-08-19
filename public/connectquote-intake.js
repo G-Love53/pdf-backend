@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260819a";
+  const ASSET_V = "20260819b";
 
   const CHANNEL_QUERY_KEYS = ["ch", "src", "utm_source"];
 
@@ -16,6 +16,13 @@
     if (digits.length > 10) digits = digits.slice(-10);
     if (!/^[2-9]\d{2}[2-9]\d{6}$/.test(digits)) return "";
     return digits;
+  }
+
+  /** Display-only for prefilled tel field */
+  function formatUsPhoneDisplay(raw) {
+    const d = normalizeUsPhone(raw);
+    if (!d) return "";
+    return d.slice(0, 3) + "-" + d.slice(3, 6) + "-" + d.slice(6);
   }
 
   const CONNECT_BENEFITS_HTML = `<div class="connect-benefits" id="connect-benefits" aria-label="Included with CID Connect">
@@ -206,7 +213,7 @@
       return raw.slice(0, at).replace(/ /g, "+") + raw.slice(at);
     }
     if (param === "ph" || param === "phone") {
-      return normalizeUsPhone(raw) || "";
+      return formatUsPhoneDisplay(raw) || "";
     }
     return raw;
   }
@@ -1150,6 +1157,9 @@
     o.is_owner = isOwnerSelected();
     o.application_types = selectedInstantCoverages();
     o.extra_coverages = selectedExtraCoverages();
+    if (o.contact_phone) {
+      o.contact_phone = normalizeUsPhone(o.contact_phone) || String(o.contact_phone).replace(/\D+/g, "");
+    }
     return o;
   }
 
