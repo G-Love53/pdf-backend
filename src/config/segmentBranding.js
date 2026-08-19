@@ -16,7 +16,7 @@ const SEGMENT_BRANDING = {
     logoPath: null,
   },
   plumber: {
-    segmentColor: "#3b82f6",
+    segmentColor: "#ea580c",
     segmentIcon: "P",
     segmentBrandName: "Plumber Insurance Direct",
     segmentDomain: "plumberinsurancedirect.com",
