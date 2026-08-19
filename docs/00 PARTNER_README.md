@@ -30,12 +30,13 @@ If a doc looks stale, ask Gerry — **Git is always the source of truth.** Setup
 ### Ray (counsel / diligence)
 
 1. **[CID_INVESTMENT_THESIS.md](./CID_INVESTMENT_THESIS.md)** — investor narrative, market, platform layers, exit thesis  
-2. **[AUDIT_READINESS.md](./AUDIT_READINESS.md)** — what is auditable today (S1–S6): submissions, timeline, R2 docs, bind trail  
-3. **[CID_ARCHITECTURE.md](./CID_ARCHITECTURE.md)** — single-backend rule, end-to-end pipeline, operator surfaces  
-4. **[compliance-roadmap.md](./compliance-roadmap.md)** — SOC 2 / security roadmap  
-5. **[partnership-gaps.md](./partnership-gaps.md)** — diligence backlog P0–P3  
-6. **[corporate-structure.md](./corporate-structure.md)** — legal entity, segment brands, partner narrative  
-7. **[partnerships.md](./partnerships.md)** — vendor/carrier registry and SOC vendor status  
+2. **[CID_IP_AND_ACQUIRER_PROTECTION.md](./CID_IP_AND_ACQUIRER_PROTECTION.md)** — IP, AI-assisted build, what a buyer CIO/CTO purchases  
+3. **[AUDIT_READINESS.md](./AUDIT_READINESS.md)** — what is auditable today (S1–S6): submissions, timeline, R2 docs, bind trail  
+4. **[CID_ARCHITECTURE.md](./CID_ARCHITECTURE.md)** — single-backend rule, end-to-end pipeline, operator surfaces  
+5. **[compliance-roadmap.md](./compliance-roadmap.md)** — SOC 2 / security roadmap  
+6. **[partnership-gaps.md](./partnership-gaps.md)** — diligence backlog P0–P3  
+7. **[corporate-structure.md](./corporate-structure.md)** — legal entity, segment brands, partner narrative  
+8. **[partnerships.md](./partnerships.md)** — vendor/carrier registry and SOC vendor status  
 
 Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-2026-06.md** (ConnectQuote product summary).
 
@@ -54,6 +55,7 @@ Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-20
 
 | Document | Topic |
 |----------|--------|
+| **CID_IP_AND_ACQUIRER_PROTECTION.md** | IP, AI-assisted development, buyer CIO/CTO protection  
 | **CID_INVESTMENT_THESIS.md** | Investment thesis — market, platform, exit, team |
 | **board-resolution-officer-titles-2026.md** | Board resolution — officer title amendment (Aug 2026) |
 | **00 PARTNER_README.md** | This file — start here |
