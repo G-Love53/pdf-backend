@@ -24,7 +24,7 @@ const SEGMENT_BRANDING = {
     logoPath: null,
   },
   hvac: {
-    segmentColor: "#0ea5a5",
+    segmentColor: "#ea580c",
     segmentIcon: "H",
     segmentBrandName: "HVAC Insurance Direct",
     segmentDomain: "hvacinsurancedirect.com",
