@@ -38,9 +38,9 @@ export const CONNECTQUOTE_SEGMENT_DEFAULTS = {
   fitness: {},
   hvac: { bc: "hvac_contractor" },
   plumber: { bc: "plumbing_contractor" },
-  beauty: {},
-  cleaning: {},
-  pet: {},
+  beauty: { bc: "hair_salon" },
+  cleaning: { bc: "home_cleaning" },
+  pet: { bc: "pet_grooming" },
 };
 
 export const FITNESS_BUSINESS_CLASSES = {
