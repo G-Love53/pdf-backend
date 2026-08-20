@@ -48,7 +48,7 @@ const SEGMENT_BRANDING = {
     logoPath: null,
   },
   beauty: {
-    segmentColor: "#db2777",
+    segmentColor: "#ea580c",
     segmentIcon: "B",
     segmentBrandName: "Beauty Insurance Direct",
     segmentDomain: "beautyinsurancedirect.com",
@@ -56,7 +56,7 @@ const SEGMENT_BRANDING = {
     logoPath: null,
   },
   cleaning: {
-    segmentColor: "#0891b2",
+    segmentColor: "#ea580c",
     segmentIcon: "C",
     segmentBrandName: "Cleaning Insurance Direct",
     segmentDomain: "cleaninginsurancedirect.com",
@@ -64,7 +64,7 @@ const SEGMENT_BRANDING = {
     logoPath: null,
   },
   pet: {
-    segmentColor: "#7c3aed",
+    segmentColor: "#ea580c",
     segmentIcon: "P",
     segmentBrandName: "Pet Service Insurance Direct",
     segmentDomain: "petserviceinsurancedirect.com",
