@@ -102,7 +102,7 @@ Given a `submission_public_id` or `quote_id`:
 
 ### ConnectQuote — GUARD Workers’ Comp (planning)
 
-**Status:** Packet reviewed 2026-08-20 (`docs/guard-integration.md`). No production adapter yet.
+**Status:** Packet reviewed 2026-08-20 (`docs/guard-integration.md`). **API route stubs** on CID-PDF-API (`/api/guard/wc/*`, commit `af497c8`) — **no production SOAP credentials**; post-bind WC offer UI in intake is gated on `offerWc` config.
 
 **Target (same spine, second policy on the same submission):**
 
@@ -120,6 +120,19 @@ Given a `submission_public_id` or `quote_id`:
 - **ConnectQuote:** Coterie bind audit path not yet in production — traditional BoldSign trail remains canonical today.
 
 ---
+
+**Gaps until implemented:** SOAP client, indication vs NBS split, webhook ingest, operator dual-rail view.
+
+### Outreach / list quality (Aug 2026)
+
+- **Instantly → ConnectQuote** attribution via `ch` / `src` / `cid` on every prefilled URL; persisted on submission.
+- **ZIP prefill:** wrong ZIP worse than blank — `parseUsZip.js` + intake validation (deployed 2026-08-21).
+- **List tooling** in `pdf-backend` only; segment repos host creatives + `connectquote.html` shell.
+
+### 2026-08-21 readiness updates
+
+- Seven CO ConnectQuote Instantly campaigns; LocalProspects pipeline documented (`localprospects-list-design.md`).
+- GUARD WC API stubs on Render; no live SOAP credentials.
 
 ### 2026-06-04 readiness updates
 

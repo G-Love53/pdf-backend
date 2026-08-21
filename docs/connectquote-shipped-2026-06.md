@@ -160,7 +160,7 @@ Yoga’s Coterie **`AKHash`** supports **GL on the instant bindable API** only. 
 
 ## Intake UX (investor-facing)
 
-1. **Campaign prefill** — `fn`, `ln`, `em`, `ad`, `ct`, `st`, `zp`, `bn`, `bc`, **`ch`**, **`src`**, `cid` (Instantly list cleaner emits **`ch` + `src`** with the same channel value; intake persists `traffic_source` / `campaign_id` on submit)
+1. **Campaign prefill** — `em`, `ad`, `ct`, `st`, `zp`, `bn`, `bc`, **`ch`**, **`src`**, `cid`; optional `fn`, `ln`, `ph` when valid. List cleaner emits **`ch` + `src`** with the same channel value; intake persists `traffic_source` / `campaign_id` on submit. **Aug 2026:** invalid **`zp`** / **`em`** omitted from URL; **name optional until bind**; ZIP + email required at quote (see **`outreach-claude-playbook.md`** § ConnectQuote prefill policy).
 2. **Core questions** — contact, location, owner?, business type, employees
 3. **Smart sections** (after owner + type selected):
    - **Plumber appetite knockouts** — Coterie exclusion questions; any “Yes” → traditional long-form (`index.html`)
@@ -305,3 +305,4 @@ Flow: home-screen tile → quote (owner/employee, BOP+GL on Pilates) → **Compl
 | 2026-07-29 | **Partner demo:** `fitness-demo.html` + sandbox Render guide; prod demo off for marketing. |
 | 2026-08-10 | **Instantly outreach pipeline:** list cleaner (`ch`/`src`/`cid`), `displayName`, marketing-ready gate in `connectQuoteLinks.js`. |
 | 2026-08-19 | **HVAC + plumber** on Instantly / ConnectQuote marketing rail (same as Electrical); Fitness classes counted as three marketing sub-segments. List-cleaner gate updated. |
+| 2026-08-21 | **Seven CO Instantly campaigns live** (electrical, fitness, hvac, plumber, beauty, cleaning, pet). **LocalProspects** pull/clean pipeline; **ZIP prefill fix** (`parseUsZip.js`); intake **email/ZIP validation** + **name at bind** (`connectquote-intake.js` `20260821b`). **GUARD WC** routes stubbed on API (planning). Deploy commit `af497c8`. |

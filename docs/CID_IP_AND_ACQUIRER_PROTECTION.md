@@ -1,7 +1,7 @@
 # CID — IP, AI-assisted development, and what a buyer CIO/CTO is purchasing
 
 > **Audience:** Ray (Executive Chairman), counsel, and a future acquirer CIO/CTO  
-> **As of:** 2026-08-19  
+> **As of:** 2026-08-21  
 > **Entity:** Commercial Insurance Direct, Inc. (Colorado C Corp, EIN 42-3060315)  
 > **Related:** [`CID_INVESTMENT_THESIS.md`](./CID_INVESTMENT_THESIS.md) · [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md) · [`AUDIT_READINESS.md`](./AUDIT_READINESS.md) · [`compliance-roadmap.md`](./compliance-roadmap.md) · [`partnerships.md`](./partnerships.md) · [`direct-partner-discovery-rss.md`](./direct-partner-discovery-rss.md)
 

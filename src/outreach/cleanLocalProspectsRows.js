@@ -161,6 +161,12 @@ export function cleanLocalProspectsRows(records, options = {}) {
       continue;
     }
 
+    const cityLower = String(normalized.city || "").toLowerCase();
+    if (/,\s*ca\b|california\b|burlingame/.test(cityLower)) {
+      skipped.wrong_state += 1;
+      continue;
+    }
+
     const bc = resolveBcFromLocalProspects(segment, {
       category: normalized.category,
       keywordBc: keywordBc || record.default_bc,

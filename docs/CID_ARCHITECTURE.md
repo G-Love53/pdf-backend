@@ -29,21 +29,21 @@
 7. **S6 bind**  
    BoldSign bind request is created; signed file finalization creates `policies`.
 
-### ConnectQuote rail (Coterie API — in progress)
+### ConnectQuote rail (Coterie API — CO prod)
 
-Parallel **instant** path for eligible SMB risks (v1: **CO**, **Electrical** pilot). Does not replace steps 3–6 for traditional email-carrier flow.
+Parallel **instant** path for eligible SMB risks (**CO marketing**: Electrical, Fitness, HVAC, Plumber, Beauty, Cleaning, Pet). Does not replace steps 3–6 for traditional email-carrier flow.
 
-1. Segment `/quote` (campaign URL prefill) → business class → **`AKHash`**
+1. Segment `connectquote.html` (campaign URL prefill — **`parseUsZip` + email validation**, name optional until bind) → business class → **`AKHash`**
 2. CID-PDF-API → Coterie `POST /v1.6/commercial/applications` then `POST /v1.6/commercial/quotes/bindable`
 3. Insured bind/pay via Coterie/Stripe
 4. `POST /webhooks/coterie` → same **`policies`** outcome as BoldSign finalize (S6-lite; `bind_source: coterie`)
 5. Connect onboarding via existing welcome/bind email path
 
-Spec: [`coterie-integration.md`](./coterie-integration.md) (canonical copy in `pdf-backend/docs/`). Sandbox validated; bind blocked until CO producer license enabled.
+Shared intake: `/static/connectquote-intake.js` on Render. Lists: **`pull-localprospects-instantly.mjs`** / **`clean-localprospects-instantly.mjs`**. Spec: [`coterie-integration.md`](./coterie-integration.md), [`outreach-claude-playbook.md`](./outreach-claude-playbook.md).
 
 ### ConnectQuote second line (GUARD WC — planning)
 
-Workers’ Comp **in conjunction with** Coterie BOP/GL — same `submission_public_id`; **v1 = Coterie then WC; phase 2 may reverse** (WC standalone test, then BOP/GL). **Per-segment WC switch.** CID-PDF-API SOAP adapter; GUARD **direct bill** (CID not MoR). Spec: [`guard-integration.md`](./guard-integration.md).
+Workers’ Comp **in conjunction with** Coterie BOP/GL — same `submission_public_id`; **v1 = Coterie then WC; phase 2 may reverse** (WC standalone test, then BOP/GL). **Per-segment WC switch.** CID-PDF-API **`/api/guard/wc/*`** routes stubbed (2026-08-21); sandbox env not live. GUARD **direct bill** (CID not MoR). Spec: [`guard-integration.md`](./guard-integration.md).
 
 ## Current Production Invariants
 

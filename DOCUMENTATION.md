@@ -14,7 +14,8 @@
 | **[docs/compliance-roadmap.md](./docs/compliance-roadmap.md)** | **Dated** — SOC 2 / security roadmap for founder & counsel review (download/share with Ray) |
 | **[docs/coterie-integration.md](./docs/coterie-integration.md)** | **Dated** — Coterie ConnectQuote technical spec (AKHash, API, prod CO segments, env — no secrets) |
 | **[docs/connectquote-shipped-2026-06.md](./docs/connectquote-shipped-2026-06.md)** | **Dated** — ConnectQuote shipped summary (investor/handoff): architecture, segments, demo URLs, verification checklist |
-| **[docs/outreach-claude-playbook.md](./docs/outreach-claude-playbook.md)** | **Dated** — Instantly campaigns: list cleaning, attribution (`ch`/`src`/`cid`), HTML paste checklist, verified failure modes |
+| **[docs/outreach-claude-playbook.md](./docs/outreach-claude-playbook.md)** | **Dated** — Instantly campaigns: list cleaning, attribution (`ch`/`src`/`cid`), HTML paste checklist, verified failure modes, **prefill policy** |
+| **[docs/localprospects-list-design.md](./docs/localprospects-list-design.md)** | **Dated** — LocalProspects CO pulls: dedupe, ZIP extraction, category allowlist, credit economics, Instantly upload |
 | **[docs/outreach-creatives.md](./docs/outreach-creatives.md)** | **Dated** — Segment email JPEG + HTML registry; Netlify deploy methods (Drop vs git) |
 | **[docs/connectquote-operator-learning.md](./docs/connectquote-operator-learning.md)** | **Dated** — ConnectQuote C&F metrics, attribution SQL, Operator Learning cards (spec) |
 | **[docs/CID_IP_AND_ACQUIRER_PROTECTION.md](./docs/CID_IP_AND_ACQUIRER_PROTECTION.md)** | **Partner Shared drive** — IP / AI-assisted build / what a buyer CIO purchases |

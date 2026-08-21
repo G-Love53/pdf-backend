@@ -31,6 +31,19 @@ export function resolveUsZip({ address, zip, state } = {}) {
   return null;
 }
 
+/** Street number captured as ZIP when it leads the address line. */
+export function isStreetNumberZip(address, zip) {
+  const z = normalizeZipDigits(zip);
+  if (!z || !address) return false;
+  return new RegExp(`^${z}\\b`).test(String(address).trim());
+}
+
+/** Had a ZIP token but nothing valid for rating territory after extraction. */
+export function hasUnusableZip({ address, zip, state } = {}) {
+  if (resolveUsZip({ address, zip, state })) return false;
+  return Boolean(normalizeZipDigits(zip));
+}
+
 /** @param {string|null|undefined} stateAbbr e.g. CO */
 export function isPlausibleUsZip(zip, stateAbbr) {
   const z = normalizeZipDigits(zip);

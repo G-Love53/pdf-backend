@@ -83,7 +83,39 @@ Segment keywords + Coterie `bc` map: `src/outreach/segmentSearchProfiles.js`. **
 4. **Strict state gate** — row address state must match `--state`; no empty-state pass-through.
 5. **LP export** — dashboard **`Advanced`** CSV + **`With emails`** filter (`format=advanced&has_email=true`) before clean.
 
-Upload: map **`connectquote_url`** → custom variable only (same as Apollo lists).
+Upload: map **`connectquote_url`** and **`displayName`** to custom variables (`stop_for_company` ON when ≤2 contacts/company; duplicate check OFF on fresh upload).
+
+### ConnectQuote prefill policy (Aug 2026 — `parseUsZip.js` + intake `20260821b`)
+
+**Deployed on CID-PDF-API** (`public/connectquote-intake.js`). Segment Netlify pages load `/static/connectquote-intake.js?v=20260821b` (or newer).
+
+| Field | Prefill when | When missing / bad | Required when |
+|-------|----------------|-------------------|---------------|
+| **ZIP (`zp`)** | Valid **CO** ZIP (80001–81699) from LP row or **last** 5-digit match in address | **Blank** — never prefill street numbers (e.g. `12245` on `12245 Main St`) | **Quote step** — soft blue “confirm your ZIP” hint, not red on load |
+| **Email (`em`)** | Passes `outreachEmailValidation.js` | **Blank** — junk/Sentry/Wix/noreply omitted from URL | **Quote step** |
+| **First / last name** | Prefilled when present in list | **Blank OK** | **Bind only** (pay / demo) — do not block quote |
+| **`displayName`** | Always in Instantly CSV (cleaner) | Use in **Step 1 body** — not subject | N/A |
+
+**URL builder:** `src/outreach/urlBuilder.js` omits invalid `zp` and `em` from `connectquote_url` (same rules as cleaner).
+
+**ZIP extraction bug (fixed):** LP exports often put the **street number** in the ZIP column. Extractor uses the **last** `\d{5}` in the full address string, validates against `--state`, and falls back to blank when nothing passes.
+
+**Re-clean before upload** if CSV was built before 2026-08-21:
+
+```bash
+node scripts/clean-localprospects-instantly.mjs --file data/lp-export.csv ...
+# or rebuild connectquote_url from an existing Instantly CSV via urlBuilder (see team notes)
+```
+
+### CO list benchmarks (Aug 2026 — LocalProspects)
+
+| Segment | Sendable | Notes |
+|---------|----------|--------|
+| **Beauty** (hair salon keyword) | **551** | `displayName` 551/551; firstName 337/551; phone in URL ~high; hair-heavy bc mix (522 hair / 16 barber / 9 esthetician / 4 nail) |
+| **Cleaning** (home + carpet keywords merged) | **177** | firstName 61/177; phone in URL **81/177 (~45%)** — mobile ops norm; drop junk email + out-of-state only |
+| **Pet** | **~226** | phone ~99%; pilot reference |
+
+**LP credits:** charged on enrichment/search, not download; ~$0.0039/credit (Starter). Metro searches spill outside city limits; **listing ID dedupe** on export — cross-city overlap still bills. Do not re-run same CO cleaning pull without new keywords (mostly dupes).
 
 ### Cleaning rules (Apollo → Instantly)
 
@@ -114,6 +146,12 @@ node scripts/clean-apollo-instantly.mjs \
 
 Instantly substitutes **`""`** for missing variables — no error.
 
+| Variable | Role |
+|----------|------|
+| **`connectquote_url`** | Image + CTA links (CSV) — **required** |
+| **`displayName`** | Step 1 body — business name (~45 chars max after normalizer); **551/551 beauty**, **177/177 cleaning** |
+| `firstName` | **Do not use** when coverage is low (e.g. cleaning **61/177**, beauty **337/551**, electrical ~63%) |
+
 | Variable missing | Effect |
 |------------------|--------|
 | `connectquote_url` | `href=""` → dead links (common in preview without lead selected) |
@@ -138,7 +176,8 @@ Raw `Company Name` can hit 124 chars (SEO-stuffed Google Business names). Cleane
 
 ### Prefill URL rules
 
-- Built by `src/outreach/urlBuilder.js` → `{domain}/connectquote.html?fn=&em=&st=&bn=&ch=&src=&cid=&bc=`
+- Built by `src/outreach/urlBuilder.js` → `{domain}/connectquote.html?em=&st=&bn=&ch=&src=&cid=&bc=` (+ optional `fn`, `ln`, `ph`, `ad`, `ct`, `zp` when valid)
+- **Invalid `zp` / `em` omitted** — intake requires both at quote; see **ConnectQuote prefill policy** above
 - **Channel:** set **`ch` and `src`** to the same value (e.g. `instantly-co-electrical`). Intake reads `ch` → `src` → `utm_source`. Safari Link Tracking Protection and some click trackers **strip `src`** (known tracking name); **`ch` and `cid` usually survive** — Ops attribution depends on `ch`/`traffic_source`, not URL `src` alone.
 - **`cid`** = campaign tag (e.g. `electrical-co-2026-08`)
 
@@ -148,7 +187,9 @@ Raw `Company Name` can hit 124 chars (SEO-stuffed Google Business names). Cleane
 - [ ] No duplicate emails; ≤2 per company if running dual-contact campaigns
 - [ ] No role inboxes (`info@`, `hello@`)
 - [ ] Segment-appropriate businesses
-- [ ] Every row has `connectquote_url`
+- [ ] Every row has `connectquote_url` with `ch`, `src`, `cid`
+- [ ] No bad CO ZIPs in URL (`zp` blank OK — intake prompts)
+- [ ] Step 1 uses `{{displayName}}`, not `{{firstName}}`, when firstName coverage is under ~80%
 - [ ] ZeroBounce/MillionVerifier before large send on warmed domain
 
 ---
@@ -283,7 +324,7 @@ Manual editor paste does not scale (8 segments × many states). **Instantly API 
 2. Instantly → **HTML step** (Step 2 in text→HTML pattern) → `<>` mode → paste.
 3. **Re-apply both links** (§C.1) — do not skip.
 4. Footer license is pre-filled (**#6784587**); insert unsubscribe via editor.
-5. Campaign custom variable: **`connectquote_url`** ← CSV column.
+5. Campaign custom variables: **`connectquote_url`** + **`displayName`** ← CSV columns.
 
 **Do not** use Instantly built-in prefill — CSV prefill is richer and matches Ops attribution.
 
@@ -330,3 +371,12 @@ Policy Home works after bind; **Am I Covered** scenario buttons need policy PDF 
 open "https://electricalinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Electrical_Creative.jpg"
 open "https://electricalinsurancedirect.com/connectquote.html?fn=Demo&em=demo@example.com&st=CO&ch=instantly-co-electrical&src=instantly-co-electrical&cid=test"
 ```
+
+---
+
+## Changelog
+
+| Date | Change |
+|------|--------|
+| 2026-08-21 | **7 CO Instantly campaigns live** (electrical, fitness, hvac, plumber, beauty, cleaning, pet). **ZIP prefill fix** (`parseUsZip.js` — last match + CO validation). **Email prefill validation** on intake. **Name optional until bind.** LP pull/clean scripts + list design doc. Beauty JPEG committed (`CID_Beauty_Creative.jpg`). Custom vars: `connectquote_url` + `displayName`. |
+| 2026-08-10 | Instantly pipeline: `displayName`, marketing-ready gate, verified paste failure modes. |

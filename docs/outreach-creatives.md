@@ -2,7 +2,7 @@
 
 > **Canonical tooling:** `pdf-backend/marketing/` + `pdf-backend/scripts/`  
 > **Hosted assets:** each `{segment}-pdf-backend/Netlify/email/` (segment domain CDN — not Render)  
-> **As of:** 2026-08-18
+> **As of:** 2026-08-21 (America/Denver). Update when creatives or deploy methods change.
 
 ## Active creatives (2026-08-connect-v1)
 
@@ -10,7 +10,7 @@
 |---------|------|-----------------|----------------|--------|
 | **fitness** | `fitness-pdf-backend` | [archive JPEG](https://fitnessinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Fitness_Creative.jpg) | `instantly_html_step.html` | Live (+ legacy root) |
 | **electrical** | `electrical-pdf-backend` | [archive JPEG](https://electricalinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Electrical_Creative.jpg) | same | Live |
-| **beauty** | `beauty-pdf-backend` | [archive JPEG](https://beautyinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Beauty_Creative.jpg) | same | Live |
+| **beauty** | `beauty-pdf-backend` | [archive JPEG](https://beautyinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Beauty_Creative.jpg) | same | **Live** — JPEG committed 2026-08-21 (`OWN EASIER` footer) |
 | **cleaning** | `cleaning-pdf-backend` | [archive JPEG](https://cleaninginsurancedirect.com/email/archive/2026-08-connect-v1/CID_Cleaning_Creative.jpg) | same | Live |
 | **pet** | `pet-pdf-backend` | [archive JPEG](https://petserviceinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Pet_Creative.jpg) | same | Live |
 | **hvac** | `hvac-pdf-backend` | [archive JPEG](https://hvacinsurancedirect.com/email/archive/2026-08-connect-v1/CID_HVAC_Creative.jpg) | same | Live |
@@ -27,6 +27,8 @@
 | **fitness, hvac, plumber, beauty, cleaning, pet** | Git → Netlify auto-deploy | Commit JPEG + HTML under `Netlify/email/archive/2026-08-connect-v1/` and push. |
 
 Smoke: `curl -I` the archive JPEG URL → **200** before pasting into Instantly.
+
+**Aug 2026:** **Seven CO Instantly campaigns** live — electrical, fitness, hvac, plumber, beauty, cleaning, pet. Step 1 text + Step 2 HTML creative per segment; list vars **`connectquote_url`** + **`displayName`**.
 
 **Instantly CTD (every segment):** Netlify DNS `inst` CNAME → `prox.itrackly.com` + Netlify site env for branded unsubscribe + Instantly email-account setting — see **`Deploy_Guide.md`** § Instantly CTD.
 
@@ -68,7 +70,9 @@ See **`outreach-claude-playbook.md` §C** — re-apply `{{connectquote_url}}` on
 | `extract-creative-jpg.mjs` | Embedded HTML → JPEG |
 | `generate-instantly-email.mjs` | → `instantly_html_step.html` |
 | `bootstrap-segment-email.mjs` | Layout + ingest |
-| `clean-apollo-instantly.mjs` | List clean; **`ch` + `src`** on `connectquote_url`; default **2 contacts/company** |
+| `clean-apollo-instantly.mjs` | Apollo list clean; **`ch` + `src`** on `connectquote_url`; default **2 contacts/company** |
+| `pull-localprospects-instantly.mjs` | LP API statewide pull → Instantly CSV |
+| `clean-localprospects-instantly.mjs` | LP Advanced CSV → Instantly CSV |
 | `print-step1-copy.mjs` | Step 1 plain-text from `segmentEmailConfig.js` |
 
 Template: `marketing/templates/instantly_html_step.base.html`  
@@ -77,3 +81,4 @@ Friction lines: `marketing/segmentEmailConfig.js`
 ## Related
 
 - [`outreach-claude-playbook.md`](./outreach-claude-playbook.md)
+- [`localprospects-list-design.md`](./localprospects-list-design.md)

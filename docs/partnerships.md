@@ -1,7 +1,7 @@
 # CID — Partnerships and integrations registry
 
 > **Canonical location (RSS):** `pdf-backend/docs/partnerships.md`  
-> **As of:** 2026-07-07 (America/Denver). Update when vendors, carriers, or status change.
+> **As of:** 2026-08-21 (America/Denver). Update when vendors, carriers, or status change.
 >
 > **Related:** Coterie ConnectQuote spec → [`coterie-integration.md`](./coterie-integration.md). **Direct partner discovery (RSS)** → [`direct-partner-discovery-rss.md`](./direct-partner-discovery-rss.md). Technical vendor-by-stage → [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md). Entity/brands → [`corporate-structure.md`](./corporate-structure.md). Diligence backlog → [`partnership-gaps.md`](./partnership-gaps.md). Compliance → [`compliance-roadmap.md`](./compliance-roadmap.md).
 
@@ -46,7 +46,8 @@
 | **CID_HomeBase** (repo / submodule) | Other | Live | Templates, mapping, PDF truth | Internal IP | Git submodule | N/A | Access control | Gerry |
 | **Puppeteer / Chrome** (in Render image) | Other | Live | SVG→PDF render | N/A | In-container | N/A | Pin versions in Dockerfile | Gerry |
 | **OpenAI** | API | Not wired | None on API path | N/A | — | — | Intentionally unused (Claude + Gemini) | — |
-| **Apollo** (lead tests) | Marketing | Referenced | Test CSVs only (`src=apollo`) | N/A | UTM / outbound | — | Confirm if production lead source | Rick |
+| **Apollo** (lead tests) | Marketing | Referenced | Test CSVs only (`src=apollo`); trades / decision-maker titles | N/A | UTM / outbound | — | Confirm if production lead source | Rick |
+| **LocalProspects** | Marketing | **Live (Aug 2026)** | Primary list source for service SMB (beauty, cleaning, pet); `LOCALPROSPECTS_API_KEY` local only | API customer | Campaigns API + Advanced CSV | — | Credit yield monitoring; category allowlist maintenance | Rick / Gerry |
 
 ---
 
@@ -74,3 +75,4 @@
 | 2026-07-07 | ConnectQuote **prod** expanded to HVAC + Plumber (CO); Coterie + Stripe rows updated; diligence docs aligned. |
 | 2026-07-30 | USLI / CoverSmart row added; RSS direct-partner discovery template (`direct-partner-discovery-rss.md`). |
 | 2026-08-20 | GUARD WC planning row; see `guard-integration.md`. |
+| 2026-08-21 | **LocalProspects** live for CO Instantly lists; seven ConnectQuote campaigns; prefill/ZIP pipeline shipped (`af497c8`). |

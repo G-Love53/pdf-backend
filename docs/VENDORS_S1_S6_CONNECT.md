@@ -54,6 +54,7 @@
 | **Google Postmaster Tools** | Sending-domain reputation (campaign + transactional DNS alignment) — operational, not app code |
 | **Cohesive AI** | **Planned** — outsourced warm leads forwarded to `quotes@…`; **not in production code** |
 | **Instantly** | **Marketing** — cold outbound / warming; documented with Postmaster/SPF; **not** auto-wired into S1 API |
+| **LocalProspects** | **Marketing** — Google Maps SMB lists for ConnectQuote campaigns (beauty, cleaning, pet); **`pdf-backend` scripts only**; API key local `.env` |
 
 ---
 
@@ -106,3 +107,4 @@
 | 2026-06-04 | Coterie row (ConnectQuote pilot); link to `coterie-integration.md`. |
 | 2026-06-12 | ConnectQuote live in S1+S6-lite; Coterie + Stripe-via-Coterie rows updated. |
 | 2026-07-07 | ConnectQuote expanded to HVAC + Plumber (CO prod quotes); Coterie row updated to prod live. |
+| 2026-08-21 | **LocalProspects** marketing vendor; seven CO Instantly campaigns; intake prefill on Render `/static/`. |

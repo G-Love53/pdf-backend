@@ -1,7 +1,7 @@
 # CID — Corporate structure and segment brands
 
 > **Canonical location (RSS):** `pdf-backend/docs/corporate-structure.md` — versioned with **CID-PDF-API** (`main`).  
-> **As of:** 2026-08-18 (America/Denver). Update when segments, domains, governance, or partner-facing narrative change.
+> **As of:** 2026-08-21 (America/Denver). Update when segments, domains, governance, or partner-facing narrative change.
 >
 > **Purpose:** One reference for **legal entity**, **umbrella vs segment brands**, **domains and ops inboxes**, and **what we tell partners** (e.g. carriers, MGAs) vs internal stack details. For deploy steps see [`Deploy_Guide.md`](./Deploy_Guide.md). For vendors see [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md).
 
@@ -106,7 +106,7 @@ Segment GitHub repos and Netlify sites are **wrappers**. Operational truth lives
 | Rail | When | Customer sees |
 |------|------|-----------------|
 | **Traditional** | Full supplement + carrier quote + S5 packet + S6 (BoldSign) | Segment brand through bind; agency ops via segment inbox |
-| **ConnectQuote (Coterie API)** | Segment passes appetite gate + **AKHash**; **CO prod live** (Electrical, Fitness, HVAC, Plumber) | Segment `connectquote.html` + prefill → Coterie bind/pay → **Connect** same day — see [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) |
+| **ConnectQuote (Coterie API)** | Segment passes appetite gate + **AKHash**; **CO prod live** (Electrical, Fitness, HVAC, Plumber, **Beauty**, **Cleaning**, **Pet**) | Segment `connectquote.html` + prefill → Coterie bind/pay → **Connect** same day — see [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) |
 | **ConnectQuote WC (GUARD)** | Optional second line on the same submission; **planning** | Post-bind / CONNECT opt-in → GUARD indication then bind; **GUARD bills insured** — [`guard-integration.md`](./guard-integration.md) |
 
 Both Coterie and GUARD should write the **same policy shape** in cid-postgres (`bind_source` distinguishes origin: `coterie` \| `guard` \| `boldsign`). Segment **`quotes@…`** remains the ops story even when bind is API-driven (contact, BCC, attribution).
@@ -155,3 +155,4 @@ Use this with partners who do **not** need product architecture detail.
 | 2026-07-07 | HVAC + Plumber ConnectQuote live (CO prod quotes); owner-only positioning; plumber appetite knockouts. |
 | 2026-06-10 | Legal structure: All Access Insurance (CO) · Commercial Insurance Direct DBA; Rick Cline appointment. |
 | 2026-08-18 | **CID Inc. officer titles:** Ray → Executive Chairman; Gerry → CEO; Rick → CRO (unchanged). Board resolution recorded; see `board-resolution-officer-titles-2026.md`. |
+| 2026-08-21 | **Seven CO Instantly campaigns** (ConnectQuote segments); LocalProspects list pipeline; URL prefill quality (ZIP/email). |

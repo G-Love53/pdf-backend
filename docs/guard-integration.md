@@ -1,7 +1,7 @@
 # CID × GUARD — Workers’ Comp (ConnectQuote second rail)
 
 > **Canonical location (RSS):** `pdf-backend/docs/guard-integration.md`  
-> **As of:** 2026-08-20 (America/Denver). **Status: plumbing adapter in code** — P-env credentials + IP whitelist still required before a live indication.  
+> **As of:** 2026-08-21 (America/Denver). **Status: route stubs + intake UI on CID-PDF-API** (`af497c8`) — P-env credentials + IP whitelist still required before a live indication.  
 > **v1 segment:** **Plumber** (`wcEnabled: true`, NCCI 5183). Electrical is coded **off** (15 ft / commercial Digital Decision knockouts).  
 > **Packet:** local `Downloads/GUARD WC API Documentation - 08.19.26` (not in repo).  
 > **Related:** [`coterie-integration.md`](./coterie-integration.md) · [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md) · [`Deploy_Guide.md`](./Deploy_Guide.md) · [`AUDIT_READINESS.md`](./AUDIT_READINESS.md) · [`partnerships.md`](./partnerships.md) · [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md) · [`CID_IP_AND_ACQUIRER_PROTECTION.md`](./CID_IP_AND_ACQUIRER_PROTECTION.md) § multi-carrier roadmap
@@ -232,3 +232,4 @@ Webhook auth (`GUARD_WEBHOOK_AUTH`) is **ours** to invent later and give GUARD f
 | 2026-08-20 | Signatures: prefer ConnectQuote-style clickwrap; **GUARD** confirms if e-sign is required. |
 | 2026-08-20 | Phase 2-ish: WC may be marketed **standalone**, then offer BOP/GL. Adapter must not require Coterie first. |
 | 2026-08-20 | **Build start:** Plumber WC on; Electrical off. SOAP adapter + post-bind indication UI. Live quote needs GUARD P keys + IP whitelist. |
+| 2026-08-21 | Routes mounted on Render (`guardRoutes.js`); intake post-bind WC box wired; env still empty — no live GUARD calls. |

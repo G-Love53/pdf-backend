@@ -256,7 +256,7 @@ When the instant rail is enabled on CID-PDF-API, set on **Render → CID-PDF-API
 
 Spec: [`coterie-integration.md`](./coterie-integration.md) · Shipped: [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md). **ConnectQuote marketing (CO prod):** **Electrical**, **Fitness** (yoga / pilates / trainer), **HVAC**, **Plumber**, **Beauty**, **Cleaning**, **Pet**. **Bar / Roofer** — traditional only.
 
-**Static intake assets** (served from same Render service): `/static/connectquote-intake.js` and `.css` — segment Netlify pages load these; do not duplicate logic in segment repos.
+**Static intake assets** (served from same Render service): `/static/connectquote-intake.js` and `.css` — segment Netlify pages load these with cache-bust query (e.g. `?v=20260821b`); **do not duplicate logic in segment repos**. After intake deploy, bump `?v=` on segment `connectquote.html` files so browsers pick up ZIP/email prefill fixes.
 
 ### GUARD Workers’ Comp (planning — not live)
 
@@ -724,3 +724,4 @@ Details and division of labor (Famous vs `pdf-backend`): [CID_CONNECT.md](./CID_
 | 2026-05-14 | **`[CID][Submission]`** plain-text ping after **`recordSubmission`** for **all** segments (**`notifySubmissionReceived`** → **`getSegmentAgentInboxEmail`**); Phase 2 / flow / checklist updates in this guide. |
 | 2026-05-21 | Render **Environment Groups** (`cid-segment-template`); shared vs segment-specific env table (12 vars per segment service); **`GMAIL_REFRESH_TOKEN_*`** on CID-PDF-API; Electrical segment example; DB migration via Node in API Shell. |
 | 2026-08-04 | **New segment domain + email launch playbook** (Netlify NS, manual Gmail MX, SPF/DKIM/DMARC/Postmaster, 2SV backup-code workaround, OAuth via Playground + Render — beauty/cleaning/pet validated). |
+| 2026-08-21 | **ConnectQuote intake deploy** (`connectquote-intake.js` `20260821b`): ZIP/email prefill validation, name at bind; bump `?v=` on segment `connectquote.html` after Render push. **Seven CO Instantly campaigns** live. LP scripts: `pull-localprospects-instantly.mjs`, `clean-localprospects-instantly.mjs`. |

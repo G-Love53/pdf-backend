@@ -1,7 +1,7 @@
 # CID × Coterie — ConnectQuote integration
 
 > **Canonical location (RSS):** `pdf-backend/docs/coterie-integration.md`  
-> **As of:** 2026-07-29 (America/Denver). Update when API behavior, pilots, or env change.
+> **As of:** 2026-08-21 (America/Denver). Update when API behavior, pilots, or env change.
 >
 > **Shipped summary:** [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md)
 >
@@ -21,7 +21,7 @@
 | Bindable Quote | **Working in CO prod** — premiums returned (e.g. electrical BOP ~$1,448/yr; hvac ~$3,661/yr; plumber ~$9,985/yr smoke, 2026-07-07) |
 | Bind / payment | **Live card bind** on prod (`pk_live_`); **demo-finalize** optional for walkthroughs |
 | Pilot geography | **Market CO only** — CID `COTERIE_PILOT_STATES` + Coterie producer license + AKHash appetite (see shipped doc **Marketing geography**) |
-| ConnectQuote segments | **Electrical**, **Fitness** (yoga, pilates, personal trainer), **HVAC**, **Plumber** — **not** Bar or Roofer |
+| ConnectQuote segments | **Electrical**, **Fitness** (yoga, pilates, personal trainer), **HVAC**, **Plumber**, **Beauty**, **Cleaning**, **Pet** — **not** Bar or Roofer |
 | Owner gate | **Owner-only** on contractor segments — non-owners redirect to traditional long-form |
 | Plumber appetite | **Knockout questions** on intake — any exclusion “Yes” → traditional `index.html` |
 | Intake UI | Segment `connectquote.html` + shared `/static/connectquote-intake.js` |
@@ -45,6 +45,17 @@ Campaign / organic → segment connectquote.html (URL prefill)
 - **Traditional rail** unchanged (full `*_INTAKE` bundle, BoldSign S6).
 - **`bind_source`:** `coterie` vs `boldsign` — Connect reads the same bridge.
 - **No Coterie secrets** in segment repos or markdown.
+
+### URL prefill (Aug 2026)
+
+| Param | Intake behavior |
+|-------|-----------------|
+| `zp` | Prefill only valid CO ZIP; blank + required at quote if missing/invalid |
+| `em` | Prefill only if passes outreach email validation; required at quote |
+| `fn`, `ln` | Prefill when present; **not required for quote** — required at bind |
+| `displayName` | Instantly merge var only (not URL param) — Step 1 copy |
+
+Implementation: `src/outreach/parseUsZip.js`, `outreachEmailValidation.js`, `public/connectquote-intake.js` on Render `/static/`.
 
 ---
 
@@ -203,3 +214,4 @@ See redacted examples in [`coterie-sandbox-fixtures.md`](./coterie-sandbox-fixtu
 | 2026-06-10 | Carrier appointment signed — All Access Insurance, Rick Cline, dba Commercial Insurance Direct. |
 | 2026-07-07 | **Prod** ConnectQuote for HVAC + Plumber; plumber knockouts; owner-only gate; quote email verified on prod API. |
 | 2026-07-29 | Marketing geography gates; webhook ingest shipped; branded Connect URL in env defaults. |
+| 2026-08-21 | Beauty/Cleaning/Pet on marketing rail; URL prefill policy (ZIP/email/name); LP pipeline docs. |
