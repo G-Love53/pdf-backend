@@ -291,3 +291,56 @@ select.cq-ext-field:required:invalid {
     padding: 14px;
   }
 }
+
+.guard-wc-box {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #d1fae5;
+}
+.guard-wc-box h3 {
+  margin: 0 0 6px;
+  color: #065f46;
+  font-size: 1.05rem;
+}
+.guard-wc-lead {
+  margin: 0 0 12px;
+  font-size: .88rem;
+  color: #374151;
+  line-height: 1.4;
+}
+.guard-wc-premium {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1B3A5F;
+  margin: 12px 0 8px;
+}
+.guard-wc-status {
+  font-size: .88rem;
+  line-height: 1.4;
+  margin: 10px 0 0;
+}
+.guard-wc-status.ok { color: #065f46; }
+.guard-wc-status.err { color: #b91c1c; }
+.guard-q { margin-top: 10px; }
+.guard-clickwrap {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-weight: 500;
+  margin: 12px 0 8px;
+}
+.guard-clickwrap input { width: auto; margin-top: 4px; }
+
+input.prefill-needs-confirm,
+input.zip-needs-confirm {
+  border-color: #93c5fd;
+  background: #f8fbff;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.12);
+}
+.prefill-confirm-hint,
+.zip-confirm-hint {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  color: #1d4ed8;
+  line-height: 1.35;
+}

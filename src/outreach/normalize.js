@@ -6,6 +6,7 @@ import { stringify as stringifyCsv } from 'csv-stringify/sync';
 import { buildPrefilledUrl } from './urlBuilder.js';
 import { CONNECTQUOTE_SEGMENT_DEFAULTS } from '../config/connectQuoteLinks.js';
 import * as apolloAdapter from './adapters/apolloAdapter.js';
+import * as localProspectsAdapter from './adapters/localProspectsAdapter.js';
 import * as licenseBoardAdapter from './adapters/licenseBoardAdapter.js';
 import * as yelpGoogleAdapter from './adapters/yelpGoogleAdapter.js';
 import * as manualAdapter from './adapters/manualAdapter.js';
@@ -15,6 +16,7 @@ const __dirname = path.dirname(__filename);
 
 const ADAPTERS = {
   apollo: apolloAdapter,
+  localprospects: localProspectsAdapter,
   license_board: licenseBoardAdapter,
   yelp_google: yelpGoogleAdapter,
   manual: manualAdapter,

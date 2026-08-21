@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260819b";
+  const ASSET_V = "20260821b";
 
   const CHANNEL_QUERY_KEYS = ["ch", "src", "utm_source"];
 
@@ -16,6 +16,116 @@
     if (digits.length > 10) digits = digits.slice(-10);
     if (!/^[2-9]\d{2}[2-9]\d{6}$/.test(digits)) return "";
     return digits;
+  }
+
+  /** Keep in sync with src/outreach/outreachEmailValidation.js */
+  function validateOutreachEmail(email) {
+    const raw = String(email || "").trim().toLowerCase();
+    if (!raw) return { ok: false, reason: "empty" };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) {
+      return { ok: false, reason: "bad_format" };
+    }
+    const blockedLocal = [/^noreply@/i, /^no-reply@/i, /^donotreply@/i, /^mailer-daemon@/i, /^postmaster@/i];
+    const blockedDomains = [
+      /sentry-next\.wixpress\.com$/i,
+      /ingest\.[a-z0-9.-]*sentry\.io$/i,
+      /\.sentry\.io$/i,
+      /^broadly\.com$/i,
+      /review\.broadly\.com$/i,
+      /^nva\.com$/i,
+      /^wixpress\.com$/i,
+      /^example\.com$/i,
+      /^test\.com$/i,
+    ];
+    const blockedSubstrings = [
+      "sentry-next",
+      "ingest.us.sentry",
+      "ingest.sentry",
+      "@sentry.",
+      "wixpress.com",
+      "telemetry",
+      "analytics@",
+      "unsubscribe@",
+    ];
+    for (const re of blockedLocal) {
+      if (re.test(raw)) return { ok: false, reason: "blocked_local" };
+    }
+    const domain = raw.split("@")[1] || "";
+    for (const re of blockedDomains) {
+      if (re.test(domain)) return { ok: false, reason: "blocked_domain" };
+    }
+    for (const sub of blockedSubstrings) {
+      if (raw.includes(sub)) return { ok: false, reason: "blocked_substring" };
+    }
+    const local = raw.split("@")[0] || "";
+    if (local.includes("sentry") && domain.includes("wix")) {
+      return { ok: false, reason: "sentry_wix" };
+    }
+    return { ok: true };
+  }
+
+  function normalizePrefillEmail(raw) {
+    const formatted = prefillValue("em", raw);
+    if (!formatted) return "";
+    const normalized = String(formatted).trim().toLowerCase();
+    return validateOutreachEmail(normalized).ok ? normalized : "";
+  }
+
+  function hasOtherPrefill(excludeId) {
+    return [
+      "first_name",
+      "last_name",
+      "contact_email",
+      "insured_name",
+      "premise_street",
+      "premise_city",
+      "state",
+      "zip",
+      "contact_phone",
+    ].some((id) => {
+      if (id === excludeId) return false;
+      const el = $(id);
+      return el && (el.classList.contains("prefilled") || String(el.value || "").trim());
+    });
+  }
+
+  /** Keep in sync with src/outreach/parseUsZip.js */
+  function normalizeZipDigits(raw) {
+    const s = String(raw || "").trim();
+    if (!s) return "";
+    const m = s.match(/\b(\d{5})(?:-\d{4})?\b/);
+    return m ? m[1] : "";
+  }
+
+  function extractUsZipFromAddress(full) {
+    const matches = [...String(full || "").matchAll(/\b(\d{5})(?:-\d{4})?\b/g)];
+    if (!matches.length) return "";
+    return matches[matches.length - 1][1];
+  }
+
+  function isPlausibleUsZip(zip, stateAbbr) {
+    const z = normalizeZipDigits(zip);
+    if (!z) return false;
+    const n = Number(z);
+    if (!Number.isFinite(n)) return false;
+    const st = String(stateAbbr || "")
+      .trim()
+      .toUpperCase();
+    if (st === "CO") return n >= 80001 && n <= 81699;
+    if (st === "TX") return n >= 73301 && n <= 88595;
+    if (st === "CA") return n >= 90001 && n <= 96162;
+    return n >= 501 && n <= 99950;
+  }
+
+  function resolvePrefillZip(raw, stateAbbr) {
+    const fromParam = normalizeZipDigits(raw) || extractUsZipFromAddress(raw);
+    if (!fromParam) return "";
+    if (isPlausibleUsZip(fromParam, stateAbbr)) return fromParam;
+    const fromAddress = extractUsZipFromAddress(raw);
+    if (fromAddress && fromAddress !== fromParam && isPlausibleUsZip(fromAddress, stateAbbr)) {
+      return fromAddress;
+    }
+    return "";
   }
 
   /** Display-only for prefilled tel field */
@@ -272,8 +382,88 @@
     emailInput.parentNode.insertBefore(input, anchor);
   }
 
+  function ensureZipConfirmHint() {
+    const zipEl = $("zip");
+    if (!zipEl || $("zip-confirm-hint")) return;
+    const hint = document.createElement("p");
+    hint.id = "zip-confirm-hint";
+    hint.className = "prefill-confirm-hint";
+    hint.hidden = true;
+    hint.textContent = "Confirm your ZIP — it sets your rating territory.";
+    zipEl.insertAdjacentElement("afterend", hint);
+  }
+
+  function ensureEmailConfirmHint() {
+    const emailEl = $("contact_email");
+    if (!emailEl || $("email-confirm-hint")) return;
+    const hint = document.createElement("p");
+    hint.id = "email-confirm-hint";
+    hint.className = "prefill-confirm-hint";
+    hint.hidden = true;
+    hint.textContent = "Add your email — we'll send your quote details here.";
+    emailEl.insertAdjacentElement("afterend", hint);
+  }
+
+  function syncZipConfirmUi() {
+    const zipEl = $("zip");
+    const hint = $("zip-confirm-hint");
+    if (!zipEl) return;
+    const empty = !String(zipEl.value || "").trim();
+    const show = empty && hasOtherPrefill("zip");
+    zipEl.classList.toggle("prefill-needs-confirm", show);
+    if (hint) hint.hidden = !show;
+  }
+
+  function syncEmailConfirmUi() {
+    const emailEl = $("contact_email");
+    const hint = $("email-confirm-hint");
+    if (!emailEl) return;
+    const empty = !String(emailEl.value || "").trim();
+    const show = empty && hasOtherPrefill("contact_email");
+    emailEl.classList.toggle("prefill-needs-confirm", show);
+    if (hint) hint.hidden = !show;
+  }
+
+  function bindZipConfirmUi() {
+    ensureZipConfirmHint();
+    const zipEl = $("zip");
+    if (!zipEl || zipEl.dataset.zipConfirmBound === "1") return;
+    zipEl.dataset.zipConfirmBound = "1";
+    zipEl.addEventListener("input", () => {
+      zipEl.classList.remove("prefilled");
+      syncZipConfirmUi();
+    });
+    zipEl.addEventListener("focus", () => {
+      zipEl.classList.remove("prefill-needs-confirm");
+    });
+    syncZipConfirmUi();
+  }
+
+  function bindEmailConfirmUi() {
+    ensureEmailConfirmHint();
+    const emailEl = $("contact_email");
+    if (!emailEl || emailEl.dataset.emailConfirmBound === "1") return;
+    emailEl.dataset.emailConfirmBound = "1";
+    emailEl.addEventListener("input", () => {
+      emailEl.classList.remove("prefilled");
+      syncEmailConfirmUi();
+    });
+    emailEl.addEventListener("focus", () => {
+      emailEl.classList.remove("prefill-needs-confirm");
+    });
+    syncEmailConfirmUi();
+  }
+
+  function relaxNameRequiredFields() {
+    ["first_name", "last_name"].forEach((id) => {
+      const el = $(id);
+      if (el) el.removeAttribute("required");
+    });
+  }
+
   function applyPrefill() {
     const p = new URLSearchParams(location.search);
+    const stateHint = p.get("st") || ($("state") && $("state").value) || "CO";
     const map = {
       fn: "first_name",
       ln: "last_name",
@@ -288,8 +478,20 @@
     };
     let count = 0;
     Object.entries(map).forEach(([param, id]) => {
-      const v = prefillValue(param, p.get(param));
+      let v = prefillValue(param, p.get(param));
       if (!v) return;
+      if (param === "em") {
+        v = normalizePrefillEmail(v);
+        if (!v) return;
+      }
+      if (param === "zp") {
+        v = resolvePrefillZip(v, stateHint);
+        if (!v) {
+          const ad = p.get("ad");
+          if (ad) v = resolvePrefillZip(ad, stateHint);
+        }
+        if (!v) return;
+      }
       const el = $(id);
       if (el) {
         el.value = v;
@@ -306,6 +508,8 @@
     if (count >= 3 && $("bridge-text")) {
       $("bridge-text").textContent = "We've loaded your info — confirm details and choose coverages.";
     }
+    bindZipConfirmUi();
+    bindEmailConfirmUi();
   }
 
   function applyPartnerDemoDefaults() {
@@ -1163,6 +1367,63 @@
     return o;
   }
 
+  function validateEmailForQuote() {
+    const emailEl = $("contact_email");
+    if (!emailEl) return true;
+    const raw = String(emailEl.value || "").trim();
+    if (!raw) {
+      syncEmailConfirmUi();
+      emailEl.classList.add("prefill-needs-confirm");
+      showErr("Email is required — we'll send your quote details here.");
+      emailEl.focus();
+      return false;
+    }
+    const check = validateOutreachEmail(raw);
+    if (!check.ok) {
+      showErr("Please enter a valid email address.");
+      emailEl.classList.add("prefill-needs-confirm");
+      emailEl.focus();
+      return false;
+    }
+    emailEl.value = raw.toLowerCase();
+    return true;
+  }
+
+  function validateZipForQuote() {
+    const zipEl = $("zip");
+    if (!zipEl) return true;
+    const raw = String(zipEl.value || "").trim();
+    if (!raw) {
+      syncZipConfirmUi();
+      zipEl.classList.add("prefill-needs-confirm");
+      showErr("ZIP code is required for an accurate quote in your area.");
+      zipEl.focus();
+      return false;
+    }
+    const st = ($("state") && $("state").value) || "CO";
+    const z = normalizeZipDigits(raw);
+    if (!z || !isPlausibleUsZip(z, st)) {
+      showErr("Please enter a valid ZIP code for your state.");
+      zipEl.classList.add("prefill-needs-confirm");
+      zipEl.focus();
+      return false;
+    }
+    if (z !== raw) zipEl.value = z;
+    return true;
+  }
+
+  function validateBeforeBind() {
+    const fn = String($("first_name")?.value || "").trim();
+    const ln = String($("last_name")?.value || "").trim();
+    if (!fn || !ln) {
+      showErr("Please enter your first and last name before binding.");
+      if (!fn) $("first_name")?.focus();
+      else $("last_name")?.focus();
+      return false;
+    }
+    return true;
+  }
+
   function validateBeforeQuote() {
     if (isOwnerOnlyBlocked()) {
       showErr(
@@ -1190,6 +1451,8 @@
       showErr("Phone number is required.");
       return false;
     }
+    if (!validateEmailForQuote()) return false;
+    if (!validateZipForQuote()) return false;
     return true;
   }
 
@@ -1416,6 +1679,253 @@
     return data;
   }
 
+  function guardWcStatus(box, kind, text) {
+    let el = box.querySelector(".guard-wc-status");
+    if (!el) {
+      el = document.createElement("p");
+      el.className = "guard-wc-status";
+      box.appendChild(el);
+    }
+    el.className = "guard-wc-status" + (kind ? " " + kind : "");
+    el.textContent = text || "";
+    el.style.display = text ? "block" : "none";
+  }
+
+  function renderGuardQuestions(host, questions) {
+    host.innerHTML = "";
+    (questions || []).forEach((q) => {
+      const wrap = document.createElement("div");
+      wrap.className = "guard-q";
+      const lab = document.createElement("label");
+      lab.textContent = q.questionText || q.questionCd || "Question";
+      wrap.appendChild(lab);
+      const type = String(q.type || "SelectOne").toLowerCase();
+      if (type === "number" || type === "percentage") {
+        const input = document.createElement("input");
+        input.type = "number";
+        input.min = "0";
+        input.dataset.qcd = q.questionCd || "";
+        input.dataset.qtype = "num";
+        wrap.appendChild(input);
+      } else if (q.options && q.options.length) {
+        const sel = document.createElement("select");
+        sel.dataset.qcd = q.questionCd || "";
+        sel.dataset.qtype = "choice";
+        const blank = document.createElement("option");
+        blank.value = "";
+        blank.textContent = "Select";
+        sel.appendChild(blank);
+        q.options.forEach((opt) => {
+          const o = document.createElement("option");
+          o.value = opt.value;
+          o.textContent = opt.label || opt.value;
+          sel.appendChild(o);
+        });
+        wrap.appendChild(sel);
+      } else {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.dataset.qcd = q.questionCd || "";
+        input.dataset.qtype = "text";
+        wrap.appendChild(input);
+      }
+      host.appendChild(wrap);
+    });
+  }
+
+  function collectGuardAnswers(host) {
+    const answers = [];
+    host.querySelectorAll("[data-qcd]").forEach((el) => {
+      const cd = el.dataset.qcd;
+      const val = el.value;
+      if (!cd || val === "") return;
+      if (el.dataset.qtype === "num") answers.push({ questionCd: cd, num: val });
+      else answers.push({ questionCd: cd, response: val });
+    });
+    return answers;
+  }
+
+  async function mountGuardWcOffer() {
+    const successBox = $("success-box");
+    if (!successBox || $("guard-wc-box")) return;
+    let cfg;
+    try {
+      const r = await fetch(
+        API +
+          "/api/guard/wc/config?segment=" +
+          encodeURIComponent(SEGMENT) +
+          "&state=" +
+          encodeURIComponent(
+            (formPayload().state || formPayload().premise_state || "CO").slice(
+              0,
+              2,
+            ),
+          ),
+      );
+      cfg = await r.json();
+    } catch (_) {
+      return;
+    }
+    if (!cfg || !cfg.offerWc) return;
+
+    const box = document.createElement("div");
+    box.id = "guard-wc-box";
+    box.className = "guard-wc-box";
+    box.innerHTML =
+      "<h3>Would you like a Workers’ Comp quote as well?</h3>" +
+      "<p class=\"guard-wc-lead\">Same business we just quoted — indication first, no card. GUARD bills you directly if you bind.</p>" +
+      '<div class="row">' +
+      "<div><label>Legal entity</label>" +
+      '<select id="guard-legal">' +
+      '<option value="LL">LLC</option>' +
+      '<option value="SolePrp">Sole proprietor</option>' +
+      '<option value="CP">Corporation</option>' +
+      '<option value="SS">S Corp</option>' +
+      "</select></div>" +
+      "<div><label>Years in business</label>" +
+      '<input id="guard-years" type="number" min="1" max="80" value="3"/></div>' +
+      "</div>" +
+      "<label>Include owner on the WC policy?</label>" +
+      '<select id="guard-owner"><option value="no">No — employees only</option><option value="yes">Yes — include me</option></select>' +
+      '<button type="button" id="guard-indicate-btn">Get WC indication</button>' +
+      '<p class="guard-wc-premium" id="guard-premium" hidden></p>' +
+      '<div id="guard-q-host" hidden></div>' +
+      '<div id="guard-bind-fields" hidden>' +
+      "<label>FEIN (required to bind)</label>" +
+      '<input id="guard-fein" inputmode="numeric" maxlength="10" placeholder="XX-XXXXXXX"/>' +
+      "<label class=\"guard-clickwrap\"><input type=\"checkbox\" id=\"guard-agree\"/> I am authorized and the answers are true and complete.</label>" +
+      '<input id="guard-sign-name" placeholder="Typed name"/>' +
+      '<button type="button" id="guard-quote-btn">Get bindable WC quote</button>' +
+      '<button type="button" class="secondary" id="guard-bind-btn" hidden>Bind Workers’ Comp</button>' +
+      "</div>";
+
+    const connectBtn = $("connect-btn");
+    if (connectBtn && connectBtn.parentNode) {
+      connectBtn.insertAdjacentElement("afterend", box);
+    } else {
+      successBox.appendChild(box);
+    }
+
+    const indicateBtn = $("guard-indicate-btn");
+    indicateBtn.addEventListener("click", async () => {
+      indicateBtn.disabled = true;
+      guardWcStatus(box, "", "Getting indication…");
+      try {
+        const res = await fetch(API + "/api/guard/wc/indicate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            submission_public_id: session.submission_public_id,
+            segment: SEGMENT,
+            legal_entity: $("guard-legal").value,
+            years_in_business: $("guard-years").value,
+            owner_on_wc: $("guard-owner").value === "yes",
+          }),
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.message || data.error || "Indication failed");
+        const prem = data.guard && data.guard.premium;
+        const premEl = $("guard-premium");
+        premEl.hidden = false;
+        premEl.textContent = prem
+          ? "Indication: $" +
+            Number(prem).toLocaleString() +
+            " / yr — not bindable yet."
+          : "Indication returned (see notes).";
+        guardWcStatus(box, "ok", data.disclaimer || "");
+        const qRes = await fetch(API + "/api/guard/wc/questions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            submission_public_id: session.submission_public_id,
+            segment: SEGMENT,
+          }),
+        });
+        const qData = await qRes.json();
+        if (qData.ok && qData.questions && qData.questions.length) {
+          const host = $("guard-q-host");
+          host.hidden = false;
+          renderGuardQuestions(host, qData.questions);
+        }
+        $("guard-bind-fields").hidden = false;
+      } catch (err) {
+        guardWcStatus(box, "err", err.message || String(err));
+      } finally {
+        indicateBtn.disabled = false;
+      }
+    });
+
+    $("guard-quote-btn").addEventListener("click", async () => {
+      const btn = $("guard-quote-btn");
+      btn.disabled = true;
+      guardWcStatus(box, "", "Submitting to GUARD…");
+      try {
+        const res = await fetch(API + "/api/guard/wc/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            submission_public_id: session.submission_public_id,
+            legal_entity: $("guard-legal").value,
+            fein: $("guard-fein").value,
+            answers: collectGuardAnswers($("guard-q-host")),
+          }),
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.message || data.error || "Quote failed");
+        const prem = data.guard && data.guard.premium;
+        if (data.bindable) {
+          guardWcStatus(
+            box,
+            "ok",
+            (prem ? "$" + Number(prem).toLocaleString() + " / yr. " : "") +
+              "Ready to bind. GUARD bills you — we do not take a card.",
+          );
+          $("guard-bind-btn").hidden = false;
+        } else {
+          const uw = (data.guard && data.guard.uwDecision) || "";
+          guardWcStatus(
+            box,
+            "err",
+            uw
+              ? "GUARD decision: " + uw + ". This one is not instant-bind."
+              : "Not bindable yet. We can follow up.",
+          );
+        }
+      } catch (err) {
+        guardWcStatus(box, "err", err.message || String(err));
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    $("guard-bind-btn").addEventListener("click", async () => {
+      if (!$("guard-agree").checked) {
+        guardWcStatus(box, "err", "Please check the attestation to bind.");
+        return;
+      }
+      const btn = $("guard-bind-btn");
+      btn.disabled = true;
+      try {
+        const res = await fetch(API + "/api/guard/wc/bind", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            submission_public_id: session.submission_public_id,
+            clickwrap_agreed: true,
+            clickwrap_name: $("guard-sign-name").value || formPayload().first_name,
+          }),
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.message || data.error || "Bind failed");
+        guardWcStatus(box, "ok", data.message || "Workers’ Comp bound.");
+        btn.hidden = true;
+      } catch (err) {
+        guardWcStatus(box, "err", err.message || String(err));
+        btn.disabled = false;
+      }
+    });
+  }
+
   function showSuccess(connectUrl) {
     $("err-box").classList.remove("show");
     $("err-box").textContent = "";
@@ -1448,6 +1958,7 @@
         location.href = url;
       };
     }
+    mountGuardWcOffer();
   }
 
   function wireForm() {
@@ -1513,6 +2024,7 @@
     });
 
     $("pay-btn").addEventListener("click", async () => {
+      if (!validateBeforeBind()) return;
       if (!stripe || !cardElement) {
         showErr(
           demoEnabled
@@ -1590,6 +2102,7 @@
     });
 
     $("demo-btn").addEventListener("click", async () => {
+      if (!validateBeforeBind()) return;
       $("demo-btn").disabled = true;
       try {
         const data = await callDemoFinalize();
@@ -1608,6 +2121,7 @@
   async function init() {
     ensureConnectBenefits();
     ensureContactPhoneField();
+    relaxNameRequiredFields();
     applyPrefill();
     applyPartnerDemoDefaults();
     await loadBusinessClasses();

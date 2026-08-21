@@ -39,11 +39,51 @@ Source of truth: `src/config/connectQuoteLinks.js` → `CONNECTQUOTE_MARKETING_R
 
 ### Preferred sources (in order)
 
-1. **Apollo people search** (by segment + state) — best email yield for B2B outreach.
-2. **LocalProspects** — discovery, phones, websites; weak on yoga/wellness emails; better on trades.
+1. **LocalProspects** — primary for service SMB (pet, beauty, cleaning). Statewide via **Campaigns API**; Advanced CSV or `pull-localprospects-instantly.mjs`.
+2. **Apollo people search** — commercial/trades when you need verified email + titles.
 3. **License board / manual CSV** — `normalize.js --source manual`.
 
-LocalProspects is **not** the primary email source for Instantly. Use `has_email=true` or Instantly export to see sendable rows before paying for enrichment.
+### LocalProspects → Instantly (statewide)
+
+**Env:** `LOCALPROSPECTS_API_KEY` in `pdf-backend/.env` (never commit).
+
+**Pull (API — one campaign per Coterie keyword, merged export):**
+
+```bash
+cd ~/GitHub/pdf-backend
+
+# Preview credit plan first (no search spend)
+node scripts/pull-localprospects-instantly.mjs \
+  --segment beauty --state CO \
+  --output data/instantly-beauty-co-ready.csv \
+  --preview-only
+
+# Full pull → Instantly CSV
+node scripts/pull-localprospects-instantly.mjs \
+  --segment beauty --state CO \
+  --output ~/Downloads/CID_Beauty_CO_Instantly_READY.csv
+```
+
+**Clean an existing Advanced CSV export:**
+
+```bash
+node scripts/clean-localprospects-instantly.mjs \
+  --file data/lp-beauty-co-advanced.csv \
+  --output ~/Downloads/CID_Beauty_CO_Instantly_READY.csv \
+  --segment beauty --state CO
+```
+
+Segment keywords + Coterie `bc` map: `src/outreach/segmentSearchProfiles.js`. **Google category allowlist** (what rows to keep): `src/outreach/localProspects/googleCategoryAllowlist.js`. Full design: **`docs/localprospects-list-design.md`**.
+
+**List quality rules (encoded in cleaner):**
+
+1. Dedupe on **Google listing ID** (`google_cid` / `place_id`), not email or company name.
+2. **Email validation** — drop Sentry/Wix telemetry, Broadly, NVA, etc. (`outreachEmailValidation.js`).
+3. **Category allowlist** per Coterie sub-segment — not a blocklist.
+4. **Strict state gate** — row address state must match `--state`; no empty-state pass-through.
+5. **LP export** — dashboard **`Advanced`** CSV + **`With emails`** filter (`format=advanced&has_email=true`) before clean.
+
+Upload: map **`connectquote_url`** → custom variable only (same as Apollo lists).
 
 ### Cleaning rules (Apollo → Instantly)
 
@@ -207,16 +247,22 @@ Note: workspace **Advanced Deliverability → always send first email as text-on
 
 Measured Fitness spam score **2.6** / 5.0. Short HTML + linked image adds ~+1.0 fixable with friction line in template (already in generated HTML). Keep 2–3 lines of real copy above the image.
 
-### 6. Custom tracking domain (per segment)
+### 6. Custom tracking domain + unsubscribe (per segment — required at deploy)
 
 Shared Instantly unsubscribe domains (e.g. `inreg1.net`) can hit URIBL (+1.7 spam score).
 
-Per sending domain:
-1. DNS: CNAME `inst` → `prox.itrackly.com`
-2. Instantly → Email Account → Custom tracking domain → `inst.{segment}insurancedirect.com`
-3. Verify after 24–72h; confirm unsubscribe moved off shared domain in test send
+**Every new ConnectQuote segment — add to Netlify deploy checklist:**
+
+| Step | Where | Action |
+|------|--------|--------|
+| 1 | **Netlify DNS** | CNAME **`inst`** → **`prox.itrackly.com`** (TTL 3600) |
+| 2 | **Netlify** → Site configuration → **Environment variables** | Instantly unsubscribe/CTD env — **copy pattern from a live segment** (plumber, pet, etc.) |
+| 3 | **Instantly** → Email account → Settings | Custom tracking domain → **`inst.{segment}insurancedirect.com`** → verify CNAME + SSL |
+| 4 | Test send | Unsubscribe link uses **`inst.{domain}`**, not shared Instantly domain |
 
 **One CTD per segment domain** — not one shared across segments.
+
+If verification asks for **TXT**, add in Netlify DNS. Propagate 24–72h before launch.
 
 ### 7. Scale path and plan limits (future)
 

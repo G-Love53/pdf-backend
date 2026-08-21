@@ -5,7 +5,7 @@
 >
 > **Shipped summary:** [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md)
 >
-> **Related:** [`corporate-structure.md`](./corporate-structure.md) (quote rails) · [`partnerships.md`](./partnerships.md) · [`Deploy_Guide.md`](./Deploy_Guide.md) (Render env) · AKHash workbook (local ops — **not in repo**).
+> **Related:** [`corporate-structure.md`](./corporate-structure.md) (quote rails) · [`partnerships.md`](./partnerships.md) · [`Deploy_Guide.md`](./Deploy_Guide.md) (Render env) · WC second rail (planning) → [`guard-integration.md`](./guard-integration.md) · AKHash workbook (local ops — **not in repo**).
 
 **Purpose:** Technical spec for the **ConnectQuote** instant rail via Coterie API v1.6. Partner-facing story stays segment intake + `quotes@` ops — see `corporate-structure.md`.
 

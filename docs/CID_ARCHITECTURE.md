@@ -41,6 +41,10 @@ Parallel **instant** path for eligible SMB risks (v1: **CO**, **Electrical** pil
 
 Spec: [`coterie-integration.md`](./coterie-integration.md) (canonical copy in `pdf-backend/docs/`). Sandbox validated; bind blocked until CO producer license enabled.
 
+### ConnectQuote second line (GUARD WC — planning)
+
+Workers’ Comp **in conjunction with** Coterie BOP/GL — same `submission_public_id`; **v1 = Coterie then WC; phase 2 may reverse** (WC standalone test, then BOP/GL). **Per-segment WC switch.** CID-PDF-API SOAP adapter; GUARD **direct bill** (CID not MoR). Spec: [`guard-integration.md`](./guard-integration.md).
+
 ## Current Production Invariants
 
 - **Duplicate intake logic (updated):**

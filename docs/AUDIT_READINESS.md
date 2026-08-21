@@ -100,6 +100,19 @@ Given a `submission_public_id` or `quote_id`:
 
 **Gaps until implemented:** webhook handler, idempotent finalize, fixture tests, operator visibility for Coterie-bound policies.
 
+### ConnectQuote — GUARD Workers’ Comp (planning)
+
+**Status:** Packet reviewed 2026-08-20 (`docs/guard-integration.md`). No production adapter yet.
+
+**Target (same spine, second policy on the same submission):**
+
+- Timeline `guard.*` + GUARD `PolicyNumber` as `carrier_quote_ref`
+- `policies` via `createPolicy()` with `coverage_data.bind_source = 'guard'`, `policy_type = WC`
+- Doc push webhook → R2 + `documents` (partner-hosted endpoint; GUARD origin IPs in packet)
+- Bind evidence is GUARD BND + their billing — **not** CID card/ACH, **not** BoldSign
+
+**Gaps until implemented:** SOAP client, indication vs NBS split, webhook ingest, operator dual-rail view.
+
 ### Known operational gaps (audit awareness)
 
 - **Intake `X-API-Key`:** Netlify may send a key; server **does not enforce** it today — public intake by design unless optional middleware is added.

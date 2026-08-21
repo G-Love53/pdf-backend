@@ -8,7 +8,9 @@ Registry: **`docs/outreach-creatives.md`**
 
 Critical:
 - **Lists / prefill** → `pdf-backend/scripts/` (never segment repos)
+- **LocalProspects statewide** → `pull-localprospects-instantly.mjs` + `LOCALPROSPECTS_API_KEY` in `.env`; profiles in `src/outreach/segmentSearchProfiles.js`
 - **Hosted JPEG + HTML step** → `{segment}-pdf-backend/Netlify/email/archive/` → file **`instantly_html_step.html`**
 - **`ch=` + `src=`** — same value, e.g. `instantly-co-electrical` (not `apollo`); intake reads `ch` first
 - **After Instantly HTML paste:** re-apply `{{connectquote_url}}` on image + CTA (editor strips anchors)
+- **New segment Netlify deploy:** CNAME `inst` → `prox.itrackly.com` + **Netlify env** for Instantly unsubscribe (mirror plumber) — see `Deploy_Guide.md` § Instantly CTD
 - **Do not** use Zywave; **do not** host campaign images on Render; **never** `data:image` in email

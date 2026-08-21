@@ -1,6 +1,8 @@
 import { URLSearchParams } from "node:url";
 import { setAttributionParams } from "./attributionParams.js";
 import { normalizeUsPhone } from "./normalizeUsPhone.js";
+import { validateOutreachEmail } from "./outreachEmailValidation.js";
+import { resolveUsZip } from "./parseUsZip.js";
 import {
   SEGMENT_DOMAINS,
   buildConnectQuoteUrl,
@@ -34,10 +36,28 @@ export function buildPrefilledUrl(contact, segment, campaignTag, opts = {}) {
   if (isConnectQuoteMarketingReady(key)) {
     const params = new URLSearchParams();
     for (const [field, param] of Object.entries(URL_PARAM_MAP)) {
-      const raw = contact[field];
+      let raw = contact[field];
       if (!raw) continue;
-      const value = field === "phone" ? normalizeUsPhone(raw) : String(raw);
-      if (value) params.set(param, value);
+      if (field === "phone") {
+        const value = normalizeUsPhone(raw);
+        if (value) params.set(param, value);
+        continue;
+      }
+      if (field === "email") {
+        const check = validateOutreachEmail(String(raw));
+        if (check.ok) params.set(param, String(raw).trim().toLowerCase());
+        continue;
+      }
+      if (field === "zip") {
+        const value = resolveUsZip({
+          address: contact.address,
+          zip: raw,
+          state: contact.state,
+        });
+        if (value) params.set(param, value);
+        continue;
+      }
+      params.set(param, String(raw));
     }
     setAttributionParams(params, {
       channel: opts.src || "instantly",
@@ -60,8 +80,26 @@ export function buildPrefilledUrl(contact, segment, campaignTag, opts = {}) {
   for (const [field, param] of Object.entries(URL_PARAM_MAP)) {
     const raw = contact[field];
     if (!raw) continue;
-    const value = field === "phone" ? normalizeUsPhone(raw) : String(raw);
-    if (value) params.set(param, value);
+    if (field === "phone") {
+      const value = normalizeUsPhone(raw);
+      if (value) params.set(param, value);
+      continue;
+    }
+    if (field === "email") {
+      const check = validateOutreachEmail(String(raw));
+      if (check.ok) params.set(param, String(raw).trim().toLowerCase());
+      continue;
+    }
+    if (field === "zip") {
+      const value = resolveUsZip({
+        address: contact.address,
+        zip: raw,
+        state: contact.state,
+      });
+      if (value) params.set(param, value);
+      continue;
+    }
+    params.set(param, String(raw));
   }
 
   setAttributionParams(params, {

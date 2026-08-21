@@ -28,6 +28,8 @@
 
 Smoke: `curl -I` the archive JPEG URL → **200** before pasting into Instantly.
 
+**Instantly CTD (every segment):** Netlify DNS `inst` CNAME → `prox.itrackly.com` + Netlify site env for branded unsubscribe + Instantly email-account setting — see **`Deploy_Guide.md`** § Instantly CTD.
+
 **Legacy (do not break):**  
 `https://fitnessinsurancedirect.com/email/CID_Fitness_Creative.jpg` + root `instantly_fitness_step3.html`
 

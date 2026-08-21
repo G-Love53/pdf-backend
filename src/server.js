@@ -15,6 +15,7 @@ import documentRoutes from "./routes/documentRoutes.js";
 import operatorRoutes from "./routes/operatorRoutes.js";
 import webhooksRouter from "./routes/webhooks.js";
 import coterieRoutes from "./routes/coterieRoutes.js";
+import guardRoutes from "./routes/guardRoutes.js";
 import { connectAuthMiddleware } from "./middleware/connectAuth.js";
 import connectApiRouter from "./routes/connectApi.js";
 import { renewalPrefillHandler } from "./routes/renewalIntakePublic.js";
@@ -1075,6 +1076,7 @@ APP.post("/submit-quote", async (req, res) => {
 });
 
 APP.use(coterieRoutes);
+APP.use(guardRoutes);
 APP.use(documentRoutes);
 APP.use(operatorRoutes);
 // HelloSign + BoldSign + Coterie webhooks (Coterie raw body mounted above)

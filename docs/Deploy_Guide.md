@@ -258,6 +258,10 @@ Spec: [`coterie-integration.md`](./coterie-integration.md) · Shipped: [`connect
 
 **Static intake assets** (served from same Render service): `/static/connectquote-intake.js` and `.css` — segment Netlify pages load these; do not duplicate logic in segment repos.
 
+### GUARD Workers’ Comp (planning — not live)
+
+Optional second ConnectQuote line. **Do not set until sandbox is ready.** Spec: [`guard-integration.md`](./guard-integration.md). Names only (values from GUARD — **never commit**): `GUARD_API_BASE`, `GUARD_API_KEY`, `GUARD_API_SECRET`, `GUARD_SP_NAME`, `GUARD_CONTRACT_NUMBER`, `GUARD_WEBHOOK_AUTH`, `GUARD_ENABLED_SEGMENTS`, `GUARD_PILOT_STATES`. P/test environment requires **Render outbound IPs whitelisted** by GUARD; prod does not whitelist. CID does **not** take WC payment — GUARD direct bill.
+
 ### Connect identity + CORS checks
 
 - CORS preflight must be handled before `/api/connect` auth routing so browser `OPTIONS` requests succeed and real `GET/POST` follow.
@@ -417,6 +421,7 @@ Goal: public quote form at `https://<segment>insurancedirect.com` pointing to th
 | **TXT** | `google._domainkey` | From Admin → Apps → Gmail → **Authenticate email** → full `v=DKIM1;…` |
 | **TXT** | `_dmarc` | `v=DMARC1; p=none; rua=mailto:dmarc@<domain>` |
 | **TXT** | `@` | Postmaster / Search Console: **`google-site-verification=…`** (full string incl. prefix) |
+| **CNAME** | `inst` | **`prox.itrackly.com`** (TTL 3600) — Instantly custom tracking + branded unsubscribe (see § Instantly CTD below) |
 
 **Legacy MX (still valid if Google shows five records):** `ASPMX.L.GOOGLE.COM` (1), `ALT1/ALT2` (5), `ALT3/ALT4` (10).
 
@@ -485,7 +490,25 @@ Poller code must list the segment in **`src/config/segmentAgentInbox.js`** befor
 □ App password saved
 □ GMAIL_REFRESH_TOKEN_* on cid-pdf-api + deploy
 □ connectquote.html + backend registry (ConnectQuote build — separate)
+□ Instantly CTD: DNS CNAME inst → prox.itrackly.com + Netlify env + Instantly email-account setting (see § Instantly CTD below)
 ```
+
+### Instantly custom tracking + unsubscribe (every ConnectQuote segment)
+
+Shared Instantly unsubscribe domains (e.g. `inreg1.net`) hurt deliverability (~+1.7 URIBL). **Do this for every new segment domain** before sending campaigns (validated on plumber, hvac, beauty, cleaning, pet, etc.).
+
+| Step | Where | Value |
+|------|--------|--------|
+| 1 | **Netlify DNS** | CNAME **`inst`** → **`prox.itrackly.com`** (TTL **3600**) |
+| 2 | **Netlify** → Site → **Environment variables** | Set Instantly unsubscribe/CTD env (mirror a live segment site, e.g. plumber — same keys Rick uses for the branded unsub button) |
+| 3 | **Instantly** → Email account → **Settings** → Custom tracking domain | Enable → **`inst.<segment-domain>`** (e.g. `inst.plumberinsurancedirect.com`) |
+| 4 | Wait + verify | 24–72h DNS; Instantly shows CNAME + SSL verified; test send — unsub link must **not** use shared `inreg1.net` |
+
+**One CTD per segment domain** — do not share `inst.` across segments.
+
+If Instantly prompts for extra **TXT** verification, add it in Netlify DNS for that domain.
+
+Details + paste checklist: **`docs/outreach-claude-playbook.md`** §6.
 
 ---
 

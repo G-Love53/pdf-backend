@@ -107,8 +107,9 @@ Segment GitHub repos and Netlify sites are **wrappers**. Operational truth lives
 |------|------|-----------------|
 | **Traditional** | Full supplement + carrier quote + S5 packet + S6 (BoldSign) | Segment brand through bind; agency ops via segment inbox |
 | **ConnectQuote (Coterie API)** | Segment passes appetite gate + **AKHash**; **CO prod live** (Electrical, Fitness, HVAC, Plumber) | Segment `connectquote.html` + prefill → Coterie bind/pay → **Connect** same day — see [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) |
+| **ConnectQuote WC (GUARD)** | Optional second line on the same submission; **planning** | Post-bind / CONNECT opt-in → GUARD indication then bind; **GUARD bills insured** — [`guard-integration.md`](./guard-integration.md) |
 
-Both rails should write the **same policy shape** in cid-postgres (`bind_source` distinguishes origin). Segment **`quotes@…`** remains the ops story even when bind is API-driven (contact, BCC, attribution).
+Both Coterie and GUARD should write the **same policy shape** in cid-postgres (`bind_source` distinguishes origin: `coterie` \| `guard` \| `boldsign`). Segment **`quotes@…`** remains the ops story even when bind is API-driven (contact, BCC, attribution).
 
 ---
 

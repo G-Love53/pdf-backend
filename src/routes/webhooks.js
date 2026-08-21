@@ -19,6 +19,10 @@ import {
   verifyCoterieWebhookAuth,
 } from "../services/coterieService.js";
 import { processCoteriePolicyWebhook } from "../services/coterieDocIngestService.js";
+import {
+  parseGuardDocWebhook,
+  verifyGuardWebhookAuth,
+} from "../services/guardService.js";
 import { getDocumentProperties } from "../services/boldsignService.js";
 import {
   DocumentRole,
@@ -789,6 +793,24 @@ router.post("/webhooks/coterie", async (req, res) => {
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error("[coterie webhook] error:", err);
+    return res.status(200).json({ ok: true });
+  }
+});
+
+// GUARD document push — POST /webhooks/guard-docs (JSON + base64 PDF). Ack only until ingest lands.
+router.post("/webhooks/guard-docs", async (req, res) => {
+  try {
+    if (!verifyGuardWebhookAuth(req)) {
+      console.warn("[guard webhook] auth mismatch");
+      return res.status(401).json({ ok: false, error: "unauthorized" });
+    }
+    const payload = parseGuardDocWebhook(req);
+    const policyNumber = payload?.policyNumber || null;
+    const fileName = payload?.fileName || null;
+    console.log("[guard webhook] doc", { policyNumber, fileName });
+    return res.status(200).json({ ok: true, received: Boolean(policyNumber) });
+  } catch (err) {
+    console.error("[guard webhook] error:", err);
     return res.status(200).json({ ok: true });
   }
 });
