@@ -278,36 +278,6 @@ export const COTERIE_BUSINESS_CLASSES = {
       akHash: "b8a05e6eaa436028e5348ad732317156",
       defaultApplicationTypes: ["BOP"],
       ownerOnly: true,
-      appetiteKnockouts: [
-        { id: "roof_painting", question: "Roof painting or coating?" },
-        {
-          id: "bridge_structural",
-          question: "Bridge, tank, or structural steel painting?",
-        },
-        {
-          id: "highway_striping",
-          question: "Highway, road, or parking-lot striping / marking?",
-        },
-        {
-          id: "new_construction",
-          question: "New building or ground-up construction?",
-        },
-        {
-          id: "gc_or_paper",
-          question:
-            "General contractor, developer, construction PM, or paper contractor (100% subcontracted)?",
-        },
-        {
-          id: "subs_over_50",
-          question: "Subcontractor cost more than 50% of annual revenue?",
-        },
-        { id: "equipment_rental", question: "Equipment rental to others?" },
-        {
-          id: "exterior_3_story",
-          question: "Exterior work over 3 stories?",
-        },
-        { id: "airport_work", question: "Work performed on airport premises?" },
-      ],
       coverage: {
         owner: {
           selection: "one",
