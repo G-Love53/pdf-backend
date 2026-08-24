@@ -181,6 +181,12 @@ select.cq-ext-field:required:invalid {
 }
 .cq-manual-quote.show { display: block; }
 .cq-manual-quote a { color: var(--brand, #ea580c); font-weight: 700; }
+.cq-field-hint {
+  font-size: .82rem;
+  color: #6b7280;
+  margin: -4px 0 12px;
+  line-height: 1.4;
+}
 
 /* Connect benefits band — pre-bind quote step (all segments) */
 .connect-benefits {

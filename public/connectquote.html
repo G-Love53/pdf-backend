@@ -87,10 +87,9 @@
       <select name="business_class" id="business_class" required>
         <option value="" selected disabled>Select…</option>
       </select>
-      <label>Employees (including yourself)</label>
+      <label for="num_employees">How many people work here?</label>
       <select name="num_employees" id="num_employees" required>
-        <option value="" selected disabled>Select…</option>
-        <option value="1">1</option>
+        <option value="1" selected>1 — just me</option>
         <option value="2">2</option>
         <option value="3">3</option>
         <option value="4">4</option>
@@ -99,6 +98,7 @@
         <option value="11">11–25</option>
         <option value="26">26+</option>
       </select>
+      <p class="cq-field-hint" id="num-employees-hint">Count yourself if you’re on the team. Most owner-operators choose 1.</p>
       <input type="hidden" name="traffic_source" id="traffic_source" value="direct"/>
       <input type="hidden" name="campaign_id" id="campaign_id" value=""/>
       <button type="submit" id="quote-btn">Get instant quote</button>

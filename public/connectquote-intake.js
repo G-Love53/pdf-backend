@@ -3,7 +3,7 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260824a";
+  const ASSET_V = "20260824b";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -538,6 +538,38 @@
       const el = $(id);
       if (el) el.removeAttribute("required");
     });
+  }
+
+  function initEmployeeCountField() {
+    const sel = $("num_employees");
+    if (!sel) return;
+
+    const label =
+      document.querySelector('label[for="num_employees"]') ||
+      (sel.previousElementSibling?.tagName === "LABEL"
+        ? sel.previousElementSibling
+        : null);
+    if (label) {
+      label.textContent = "How many people work here?";
+    }
+
+    if (!$("num-employees-hint")) {
+      const hint = document.createElement("p");
+      hint.id = "num-employees-hint";
+      hint.className = "cq-field-hint";
+      hint.textContent =
+        "Count yourself if you’re on the team. Most owner-operators choose 1.";
+      sel.insertAdjacentElement("afterend", hint);
+    }
+
+    const solo = sel.querySelector('option[value="1"]');
+    if (solo && solo.textContent.trim() === "1") {
+      solo.textContent = "1 — just me";
+    }
+
+    if (!String(sel.value || "").trim()) {
+      sel.value = "1";
+    }
   }
 
   function applyPrefill() {
@@ -2217,6 +2249,7 @@
     ensureConnectBenefits();
     ensureContactPhoneField();
     relaxNameRequiredFields();
+    initEmployeeCountField();
     applyPrefill();
     applyPartnerDemoDefaults();
     await loadBusinessClasses();
