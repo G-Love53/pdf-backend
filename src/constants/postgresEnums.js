@@ -54,6 +54,7 @@ export const SegmentType = Object.freeze({
   BEAUTY: "beauty",
   CLEANING: "cleaning",
   PET: "pet",
+  PAINTER: "painter",
 });
 
 /** @see CREATE TYPE packet_status */

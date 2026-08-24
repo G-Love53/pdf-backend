@@ -15,6 +15,7 @@ export const SEGMENT_DOMAINS = {
   beauty: "https://beautyinsurancedirect.com",
   cleaning: "https://cleaninginsurancedirect.com",
   pet: "https://petserviceinsurancedirect.com",
+  painter: "https://painterinsurancedirect.com",
 };
 
 /**
@@ -30,6 +31,7 @@ export const CONNECTQUOTE_MARKETING_READY = new Set([
   "beauty",
   "cleaning",
   "pet",
+  "painter",
 ]);
 
 /** Default `bc` when not passed (marketing-ready segments only). */
@@ -41,6 +43,7 @@ export const CONNECTQUOTE_SEGMENT_DEFAULTS = {
   beauty: { bc: "hair_salon" },
   cleaning: { bc: "home_cleaning" },
   pet: { bc: "pet_grooming" },
+  painter: { bc: "painting_contractor" },
 };
 
 export const FITNESS_BUSINESS_CLASSES = {

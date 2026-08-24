@@ -52,6 +52,11 @@ export const GMAIL_POLLER_SEGMENTS = [
     email: "quotes@petserviceinsurancedirect.com",
     label: "carrier-quotes",
   },
+  {
+    segment: "painter",
+    email: "quotes@painterinsurancedirect.com",
+    label: "carrier-quotes",
+  },
 ];
 
 /**

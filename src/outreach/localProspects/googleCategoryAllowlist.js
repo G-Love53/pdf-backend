@@ -95,6 +95,15 @@ export const GOOGLE_CATEGORY_ALLOWLIST = {
       "physical fitness program",
     ],
   },
+  painter: {
+    painting_contractor: [
+      "painting",
+      "painter",
+      "painting contractor",
+      "house painter",
+      "commercial painter",
+    ],
+  },
 };
 
 export function normalizeGoogleCategory(raw) {

@@ -9,7 +9,7 @@ export const COTERIE_CONTRACTOR_GL_CAP_STATES = new Set([
   "FL",
 ]);
 
-const CONTRACTOR_SEGMENTS = new Set(["electrical", "plumber", "hvac"]);
+const CONTRACTOR_SEGMENTS = new Set(["electrical", "plumber", "hvac", "painter"]);
 
 /** Coterie bindable fields exposed on ConnectQuote (investor / real-quote mode). */
 export const COTERIE_EXTENDED_FIELDS = {

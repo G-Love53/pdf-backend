@@ -60,6 +60,7 @@ const CONNECTQUOTE_SEGMENTS = new Set([
   "beauty",
   "cleaning",
   "pet",
+  "painter",
 ]);
 
 export async function processConnectQuoteIntake(body, reqMeta = {}) {

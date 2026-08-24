@@ -251,6 +251,12 @@
       { key: "pet_grooming", label: "Pet grooming" },
       { key: "pet_sitting", label: "Pet sitting / boarding" },
     ],
+    painter: [
+      {
+        key: "painting_contractor",
+        label: "Painting contracting (except roof — primary work)",
+      },
+    ],
   };
 
   let stripe = null;

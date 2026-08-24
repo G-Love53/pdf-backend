@@ -71,6 +71,14 @@ const SEGMENT_BRANDING = {
     segmentDisplayName: "Pet Services",
     logoPath: null,
   },
+  painter: {
+    segmentColor: "#ff8c1a",
+    segmentIcon: "N",
+    segmentBrandName: "Painter Insurance Direct",
+    segmentDomain: "painterinsurancedirect.com",
+    segmentDisplayName: "Painting Contractor",
+    logoPath: null,
+  },
 };
 
 export function getSegmentBranding(segment) {

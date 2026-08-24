@@ -46,6 +46,7 @@ function gmailRefreshTokenEnvKey(inboxEmail) {
     .replace("beautyinsurancedirect", "beauty")
     .replace("cleaninginsurancedirect", "cleaning")
     .replace("petserviceinsurancedirect", "pet")
+    .replace("painterinsurancedirect", "painter")
     .replace("barinsurancedirect", "bar")
     .toUpperCase();
   return `GMAIL_REFRESH_TOKEN_${segKey}`;

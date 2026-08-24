@@ -76,6 +76,14 @@ export const SEGMENT_EMAIL_CONFIG = {
     creativeFile: 'CID_Pet_Creative.jpg',
     frictionLine: 'Skip the bite-history binders for now — see if we can quote your pet service business in under a minute.',
   },
+  painter: {
+    repo: 'painter-pdf-backend',
+    domain: 'painterinsurancedirect.com',
+    brandName: 'Painter Insurance Direct',
+    audienceLabel: 'painting contractor',
+    creativeFile: 'CID_Painter_Creative.jpg',
+    frictionLine: 'Built for painting contractors — less back-and-forth than a traditional commercial application.',
+  },
 };
 
 /** Instantly HTML step filename (text Step 1 → HTML Step 2 pattern). */
@@ -127,7 +135,7 @@ export function segmentEmailRoot(segment, githubRoot) {
  * Not hosted, not in HTML fragment, not in CSV.
  *
  * Only segments in CONNECTQUOTE_MARKETING_READY (connectQuoteLinks.js):
- * electrical, fitness, hvac, plumber, beauty, cleaning, pet — NOT bar, roofer.
+ * electrical, fitness, hvac, plumber, beauty, cleaning, pet, painter — NOT bar, roofer.
  *
  * Assembly order in Instantly body:
  *   hook → friction → offer → cta (hyperlink to {{connectquote_url}}) → proof → — Gerry, CID
@@ -225,6 +233,19 @@ export const step1Copy = {
     friction:
       'Most groomers and pet care owners spend 20 minutes on forms just to find out a price. ' +
       'No incident history to write up. No vaccination policy to attach. No callback.',
+    offer:
+      "We've started a quote for {{displayName}} — confirm a few details and you're covered.",
+    cta: 'Click to coverage →',
+    proof: 'A-rated carrier. Bind and get certificates the same day.',
+  },
+
+  painter: {
+    subject: 'Your painting quote, already started',
+    subjectVariant: 'A quote for {{displayName}}, already started',
+    hook: 'Click to coverage in less than a minute.',
+    friction:
+      'Most painting contractors spend 20 minutes on forms just to find out a price. ' +
+      'No payroll reports. No job schedules. No callback.',
     offer:
       "We've started a quote for {{displayName}} — confirm a few details and you're covered.",
     cta: 'Click to coverage →',

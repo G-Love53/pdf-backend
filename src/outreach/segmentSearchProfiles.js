@@ -29,6 +29,9 @@ export const SEGMENT_SEARCH_PROFILES = {
       { keyword: "pet boarding", bc: "pet_sitting" },
     ],
   },
+  painter: {
+    keywords: [{ keyword: "painting contractor", bc: "painting_contractor" }],
+  },
   plumber: {
     keywords: [{ keyword: "plumber", bc: "plumbing_contractor" }],
   },

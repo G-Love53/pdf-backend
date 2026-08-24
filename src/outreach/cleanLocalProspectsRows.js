@@ -272,7 +272,7 @@ export function toInstantlyCsv(rows, { segment, campaignTag, targetState, channe
 export function assertMarketingReady(segment) {
   if (!isConnectQuoteMarketingReady(segment)) {
     throw new Error(
-      `Segment "${segment}" is not ConnectQuote-ready. Marketing-ready: electrical, fitness, hvac, plumber, beauty, cleaning, pet.`,
+      `Segment "${segment}" is not ConnectQuote-ready. Marketing-ready: electrical, fitness, hvac, plumber, beauty, cleaning, pet, painter.`,
     );
   }
 }
