@@ -3,7 +3,39 @@
   const cfg = window.CONNECTQUOTE || {};
   const API = cfg.api || "https://cid-pdf-api.onrender.com";
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260821b";
+  const ASSET_V = "20260824a";
+
+  /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
+  const SEGMENT_AGENT_EMAIL = {
+    bar: "quote@barinsurancedirect.com",
+    roofer: "quotes@roofingcontractorinsurancedirect.com",
+    plumber: "quotes@plumberinsurancedirect.com",
+    hvac: "quotes@hvacinsurancedirect.com",
+    fitness: "quotes@fitnessinsurancedirect.com",
+    electrical: "quotes@electricalinsurancedirect.com",
+    beauty: "quotes@beautyinsurancedirect.com",
+    cleaning: "quotes@cleaninginsurancedirect.com",
+    pet: "quotes@petserviceinsurancedirect.com",
+    painter: "quotes@painterinsurancedirect.com",
+  };
+
+  /** Segments with supplement long-form at index.html (not ConnectQuote-only). */
+  const SEGMENTS_WITH_LONG_FORM = new Set([
+    "plumber",
+    "hvac",
+    "electrical",
+    "fitness",
+  ]);
+
+  function agentInboxEmail() {
+    return cfg.agentEmail || SEGMENT_AGENT_EMAIL[SEGMENT] || null;
+  }
+
+  function hasLongFormIntake() {
+    if (cfg.longForm === true) return true;
+    if (cfg.longForm === false) return false;
+    return SEGMENTS_WITH_LONG_FORM.has(SEGMENT);
+  }
 
   const CHANNEL_QUERY_KEYS = ["ch", "src", "utm_source"];
 
@@ -308,11 +340,52 @@
   }
 
   function redirectTraditional(message, reason) {
+    if (!hasLongFormIntake()) {
+      showManualQuoteContact(message);
+      return;
+    }
     showErr(message || "This needs our detailed application — redirecting…");
     setTimeout(() => {
       const q = location.search ? location.search + "&" : "?";
       location.href = "index.html" + q + "rail=traditional&reason=" + encodeURIComponent(reason || "coterie");
     }, 2500);
+  }
+
+  function showManualQuoteContact(message) {
+    const email = agentInboxEmail();
+    let host = $("cq-manual-quote");
+    if (!host) {
+      host = document.createElement("div");
+      host.id = "cq-manual-quote";
+      host.className = "cq-manual-quote";
+      const anchor = $("err-box");
+      if (anchor?.parentNode) {
+        anchor.parentNode.insertBefore(host, anchor.nextSibling);
+      } else {
+        $("cq-form")?.appendChild(host);
+      }
+    }
+    const intro =
+      message ||
+      "Instant ConnectQuote isn’t available for this situation. Our team can still help with a manual quote.";
+    host.innerHTML =
+      "<p><strong>" +
+      escapeHtml(intro) +
+      "</strong></p>" +
+      (email
+        ? '<p>Email <a href="mailto:' +
+          escapeHtml(email) +
+          "?subject=" +
+          encodeURIComponent("Insurance quote request") +
+          '">' +
+          escapeHtml(email) +
+          "</a> and we’ll follow up.</p>"
+        : "<p>Please contact us and we’ll follow up.</p>");
+    host.classList.add("show");
+    host.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    const btn = $("quote-btn");
+    if (btn) btn.disabled = true;
+    showErr("");
   }
 
   function showErr(msg) {
@@ -593,15 +666,27 @@
   function ownerOnlyNoticeHtml() {
     const label =
       currentSchema?.businessClassLabel || "This business type";
+    const email = agentInboxEmail();
+    const manual =
+      !hasLongFormIntake() && email
+        ? ' Email <a href="mailto:' +
+          escapeHtml(email) +
+          '">' +
+          escapeHtml(email) +
+          "</a> for employee coverage."
+        : !hasLongFormIntake()
+          ? " Contact us for employee coverage."
+          : ' use our <a href="index.html' +
+            (location.search || "") +
+            '">full application</a> instead';
     return (
       '<div class="cq-owner-only-notice" role="alert">' +
       "<strong>Instant quote is for business owners only.</strong> " +
       label +
       " on ConnectQuote requires you to own or operate the business " +
-      "(sole proprietor, LLC, etc.). If you are an employee, use our " +
-      '<a href="index.html' +
-      (location.search || "") +
-      '">full application</a> instead — or change ownership above to "Yes" if you are the owner.' +
+      "(sole proprietor, LLC, etc.). If you are an employee," +
+      manual +
+      ' — or change ownership above to "Yes" if you are the owner.' +
       "</div>"
     );
   }
@@ -1432,8 +1517,12 @@
 
   function validateBeforeQuote() {
     if (isOwnerOnlyBlocked()) {
+      const email = agentInboxEmail();
       showErr(
-        "Instant quotes are for business owners. Select “Yes — I own / operate the business” if you are a sole proprietor, or use our full application for employee coverage.",
+        hasLongFormIntake()
+          ? "Instant quotes are for business owners. Select “Yes — I own / operate the business” if you are a sole proprietor, or use our full application for employee coverage."
+          : "Instant quotes are for business owners. Select “Yes — I own / operate the business” if you are a sole proprietor" +
+            (email ? ", or email " + email + " for employee coverage." : "."),
       );
       return false;
     }
