@@ -13,6 +13,7 @@
 | **beauty** | `beauty-pdf-backend` | [archive JPEG](https://beautyinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Beauty_Creative.jpg) | same | **Live** — JPEG committed 2026-08-21 (`OWN EASIER` footer) |
 | **cleaning** | `cleaning-pdf-backend` | [archive JPEG](https://cleaninginsurancedirect.com/email/archive/2026-08-connect-v1/CID_Cleaning_Creative.jpg) | same | Live |
 | **pet** | `pet-pdf-backend` | [archive JPEG](https://petserviceinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Pet_Creative.jpg) | same | Live |
+| **painter** | `painter-pdf-backend` | [archive JPEG](https://painterinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Painter_Creative.jpg) | same | **Deploy live** — campaign after warmup |
 | **hvac** | `hvac-pdf-backend` | [archive JPEG](https://hvacinsurancedirect.com/email/archive/2026-08-connect-v1/CID_HVAC_Creative.jpg) | same | Live |
 | **plumber** | `plumber-pdf-backend` | [archive JPEG](https://plumberinsurancedirect.com/email/archive/2026-08-connect-v1/CID_Plumber_Creative.jpg) | same | Live |
 | **bar, roofer** | respective repos | — | HTML template only | Traditional intake only — no ConnectQuote campaigns |
@@ -24,7 +25,7 @@
 | Segment | Deploy method | Notes |
 |---------|---------------|-------|
 | **electrical** | **Netlify Drop** (manual) | Site is **not** Git-connected — `git push` does **not** update live assets. Drop the `Netlify/` folder after JPEG/HTML changes. |
-| **fitness, hvac, plumber, beauty, cleaning, pet** | Git → Netlify auto-deploy | Commit JPEG + HTML under `Netlify/email/archive/2026-08-connect-v1/` and push. |
+| **fitness, hvac, plumber, beauty, cleaning, pet, painter** | Git → Netlify auto-deploy | Commit JPEG + HTML under `Netlify/email/archive/2026-08-connect-v1/` and push. |
 
 Smoke: `curl -I` the archive JPEG URL → **200** before pasting into Instantly.
 

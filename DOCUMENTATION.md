@@ -6,6 +6,7 @@
 
 | Document | Description |
 |----------|-------------|
+| **[docs/connectquote-segment-deploy.md](./docs/connectquote-segment-deploy.md)** | **ConnectQuote segment launch** — Netlify, API, Gmail, poller (not outreach) |
 | **[docs/Deploy_Guide.md](./docs/Deploy_Guide.md)** | **Canonical** — Render, Netlify, env, post-deploy checks, intake JSON contract, **Postmaster** + campaign DNS alignment, GitHub heartbeat notes |
 | **[docs/VENDORS_S1_S6_CONNECT.md](./docs/VENDORS_S1_S6_CONNECT.md)** | **Dated** — vendors by S1–S6 stage and Connect; active vs legacy vs marketing-only |
 | **[docs/corporate-structure.md](./docs/corporate-structure.md)** | **Dated** — legal entity, segment brands/domains/inboxes, partner narrative vs internal stack |

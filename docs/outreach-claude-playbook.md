@@ -1,6 +1,7 @@
 # Outreach Claude playbook
 
 > **Audience:** Claude (or any agent) helping with Instantly campaigns, list cleaning, and segment email creatives.  
+> **Segment launch (Netlify, API, Gmail, poller):** **`docs/connectquote-segment-deploy.md`** — not this doc.  
 > **RSS:** Reliable, Scalable, Sellable — one pattern for all segments.  
 > **Verified failure modes:** Aug 2026 Fitness + Electrical builds — see §C below.
 
@@ -29,7 +30,7 @@ Only these segments have **live `connectquote.html` on Netlify** and a **bindabl
 
 | Ready | Segment |
 |-------|---------|
-| ✅ | **electrical**, **fitness**, **hvac**, **plumber**, **beauty**, **cleaning**, **pet** |
+| ✅ | **electrical**, **fitness**, **hvac**, **plumber**, **beauty**, **cleaning**, **pet**, **painter** |
 | ❌ | **bar**, **roofer** — traditional supplement only (segment home / long-form) |
 
 Fitness Instantly/marketing **count:** three sub-segments once class is chosen (`bc=yoga_studio` | `pilates_studio` | `personal_trainer`) — different policy and price. Same domain.

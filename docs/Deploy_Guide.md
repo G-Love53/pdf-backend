@@ -1,5 +1,8 @@
 # CID — Deploy Guide (Render)
 
+> **ConnectQuote segment launch (step-by-step):** **`docs/connectquote-segment-deploy.md`** — Netlify, API, Gmail, poller only. **Not** Instantly, lists, or creatives.  
+> **Outreach / campaigns:** **`docs/outreach-claude-playbook.md`**.
+
 > **Canonical location (RSS):** **`pdf-backend/docs/Deploy_Guide.md`** — versioned with **CID-PDF-API** (`main`), pushed to GitHub, reviewed with pipeline changes. **Reliable:** one source of truth for the team. **Scalable:** no duplicate drift across machines. **Sellable:** audit-ready process in the repo.
 >
 > Optional: keep a **local** copy under `~/GitHub/CID-docs/` for quick reading — sync manually from this file when it changes.
@@ -387,7 +390,7 @@ Goal: public quote form at `https://<segment>insurancedirect.com` pointing to th
 
 ## New segment — domain + `quotes@` email launch (2026 playbook)
 
-> **Validated:** beautyinsurancedirect.com, cleaninginsurancedirect.com, petserviceinsurancedirect.com (Aug 2026).  
+> **Validated:** beautyinsurancedirect.com, cleaninginsurancedirect.com, petserviceinsurancedirect.com, painterinsurancedirect.com (Aug 2026).  
 > **DNS lives in Netlify** after NS cutover — **not** GoDaddy DNS. **Gmail poller tokens** go on **CID-PDF-API** only.
 
 ### Order of operations (do not skip)
@@ -473,6 +476,7 @@ Poller code must list the segment in **`src/config/segmentAgentInbox.js`** befor
 | beautyinsurancedirect.com | quotes@beautyinsurancedirect.com | `GMAIL_REFRESH_TOKEN_BEAUTY` |
 | cleaninginsurancedirect.com | quotes@cleaninginsurancedirect.com | `GMAIL_REFRESH_TOKEN_CLEANING` |
 | petserviceinsurancedirect.com | quotes@petserviceinsurancedirect.com | `GMAIL_REFRESH_TOKEN_PET` |
+| painterinsurancedirect.com | quotes@painterinsurancedirect.com | `GMAIL_REFRESH_TOKEN_PAINTER` |
 
 (App password → segment Render **`GMAIL_APP_PASSWORD`** override if that segment Web Service sends mail; poller uses refresh token on CID-PDF-API only.)
 
