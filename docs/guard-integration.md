@@ -203,6 +203,8 @@ GUARD does **not** put API keys in the packet. Their sequence (Arianna, Jul 2026
 5. Paste key / secret / contract number into Render (sandbox). Redeploy.  
 6. Smoke: `GET /api/guard/wc/config?segment=plumber` → `offerWc: true`. Then a Plumber ConnectQuote bind → WC indication.
 
+**Prod rollout (multi-segment):** [`guard-wc-rollout.md`](./guard-wc-rollout.md)
+
 Webhook auth (`GUARD_WEBHOOK_AUTH`) is **ours** to invent later and give GUARD for doc push — not needed for the first indication.
 
 ## Open with GUARD / Rick
