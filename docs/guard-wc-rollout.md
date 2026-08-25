@@ -21,7 +21,8 @@
 |------|----------|-----------------|---------|--------|
 | **A — service / low knockout** | beauty, cleaning, pet, fitness | 9586, 9014, 0917, 9063 | **Prefer ON** after NBQ smoke each | Doc appetite; no height/roof knockouts |
 | **B — trades (pilot)** | plumber | 5183 | **ON** (v1 test segment) | Commercial/industrial DD note |
-| **C — trades (hold)** | electrical, hvac | 5190, 5537 | **OFF** until appetite | Height, commercial, roof HVAC knockouts |
+| **C — trades (review)** | electrical | 5190 | **Include w/ disclaimer** | One-line 15 ft + light commercial — see appetite notes below |
+| **C — trades (hold)** | hvac | 5537 | **Hold** until Jon confirms | Roof / install-heavy ops; hard to pre-screen in email |
 | **D — not in registry** | painter, bar, roofer | — | **OFF** | Add class + `wcEnabled` when GUARD confirms code |
 
 **Two switches per segment:**
@@ -51,6 +52,30 @@ Both must allow the segment. CO only until **`GUARD_PILOT_STATES`** expands.
 5. **Operator:** Timeline events `guard.indicated` / `guard.bound` visible on submission.
 
 No segment-repo changes — WC is **`pdf-backend` only** (`connectquote-intake.js` post-bind panel).
+
+---
+
+## Tier C — Electrical vs HVAC (outreach / knockouts)
+
+GUARD **Digital Decision** (instant WC) can still decline/refer after NBQ. Question: can we **explain that in one email line**, or does it need intake knockouts?
+
+| Segment | GUARD note (registry) | Coterie pre-quote knockouts | Email / UX verdict |
+|---------|----------------------|----------------------------|-------------------|
+| **Electrical** | Work **above 15 ft**; **commercial/industrial** can decline DD | None (solar = separate prohibited class) | **Include** — one disclaimer line fits Instantly + WC panel |
+| **HVAC** | Class 5537; doc cites **roof HVAC** risk | None | **Hold** — roof/install is core trade; disclaimer gets long or misleading |
+| **Plumber** (ref) | Commercial/industrial DD note | 8 yes/no on BOP intake | Already pilot; WC separate from BOP knockouts |
+
+**Electrical — suggested copy (email Step 1 footnote or post-bind WC lead):**
+
+> BOP/GL instant quote is for owner-operated electrical work. **Workers’ Comp indication** covers typical service & repair — not routine work above **15 feet**, and not heavy commercial/industrial-only shops.
+
+**HVAC — hold until Jon confirms:**
+
+- Is CO **5537** `[E]` for residential/light commercial **install & service**?
+- Does **roof-mounted** work or **new construction** auto-refer/decline?
+- If yes to roof knockout → keep **`wcEnabled: false`** or add 2–3 intake yes/no (cumbersome) before WC offer.
+
+**Do not** add GUARD knockouts to Instantly body for HVAC without Jon — list is owner-operated SMB; roof work is common on real jobs.
 
 ---
 
