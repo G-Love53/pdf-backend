@@ -4,6 +4,7 @@
 > **As of:** 2026-08-21 (America/Denver). **Status: route stubs + intake UI on CID-PDF-API** (`af497c8`) — P-env credentials + IP whitelist still required before a live indication.  
 > **v1 segment:** **Plumber** (`wcEnabled: true`, NCCI 5183). Electrical is coded **off** (15 ft / commercial Digital Decision knockouts).  
 > **Packet:** local `Downloads/GUARD WC API Documentation - 08.19.26` (not in repo).  
+> **Appetite supplement (Aug 2026):** local `Downloads/WC_Appetite_Supplement.pdf` — doc **WCAS081126**; marketing overview + eligible class buckets (not API truth; confirm NCCI + `[E]` with Jon / 60-Second Appetite Check in ASC).
 > **Related:** [`coterie-integration.md`](./coterie-integration.md) · [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md) · [`Deploy_Guide.md`](./Deploy_Guide.md) · [`AUDIT_READINESS.md`](./AUDIT_READINESS.md) · [`partnerships.md`](./partnerships.md) · [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md) · [`CID_IP_AND_ACQUIRER_PROTECTION.md`](./CID_IP_AND_ACQUIRER_PROTECTION.md) § multi-carrier roadmap
 
 **Purpose:** GUARD (W.R. Berkley / WestGUARD) is **Workers’ Comp on the same CID journey as Coterie BOP/GL** — not a replacement, and **not always second**. v1 upsells WC after Coterie. **Phase 2-ish:** we may market **WC standalone**, test, then offer BOP/GL (reverse). CID owns intake + CONNECT; GUARD owns WC rating, bind, and **direct bill**. CID is **not** merchant of record.

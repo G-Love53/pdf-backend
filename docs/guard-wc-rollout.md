@@ -79,6 +79,34 @@ GUARD **Digital Decision** (instant WC) can still decline/refer after NBQ. Quest
 
 ---
 
+## Reference: WC Appetite Supplement (Aug 2026)
+
+Local file: `~/Downloads/WC_Appetite_Supplement.pdf` (WCAS081126, agent/broker marketing — **not in repo**).
+
+Highlights for CID planning:
+
+- **Digital Decision** for most classes, premiums up to **~$50k**
+- **150+** new eligible class codes (state/carrier varies)
+- **60-Second Appetite Check** in ASC before assuming a class
+- Streamlined journey: fewer questions, automated X-mods
+
+**ConnectQuote segment ↔ supplement buckets (marketing alignment — confirm NCCI with Jon):**
+
+| CID segment | GUARD supplement bucket |
+|-------------|-------------------------|
+| beauty | Beauty Parlors/Barber Shops, Nail Salons |
+| cleaning | Janitorial/Commercial Cleaning Services |
+| pet | Pet Supplies (retail); our class 0917 is pet sitting — confirm |
+| fitness | Fitness Centers |
+| plumber | Contractors → Plumbing |
+| electrical | Contractors → Electrical Work (NY: some restrictions) |
+| hvac | Contractors → HVAC Systems |
+| painter | Contractors → Painting & Wall Covering |
+
+Contractors section footnote: restrictions may apply in **New York** (CO pilot unaffected). Final eligibility = underwriting + state law, not this PDF alone.
+
+---
+
 ## Sandbox vs prod
 
 | | Sandbox | Prod |
