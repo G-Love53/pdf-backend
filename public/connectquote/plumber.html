@@ -137,7 +137,14 @@
 <script>
 window.CONNECTQUOTE = {
   segment: "plumber",
-  api: "https://cid-pdf-api.onrender.com"
+  api: (function () {
+    var p = new URLSearchParams(location.search);
+    if (p.get("api")) return p.get("api").replace(/\/$/, "");
+    if (/cid-pdf-api-sandbox/i.test(location.host)) {
+      return location.origin.replace(/\/$/, "");
+    }
+    return "https://cid-pdf-api.onrender.com";
+  })(),
 };
 </script>
 <script src="https://cid-pdf-api.onrender.com/static/connectquote-intake.js?v=20260821b"></script>

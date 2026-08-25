@@ -1,9 +1,13 @@
 /* ConnectQuote extended intake — shared across segment Netlify sites */
 (function () {
   const cfg = window.CONNECTQUOTE || {};
-  const API = cfg.api || "https://cid-pdf-api.onrender.com";
+  const API = (
+    new URLSearchParams(location.search).get("api") ||
+    cfg.api ||
+    "https://cid-pdf-api.onrender.com"
+  ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260824b";
+  const ASSET_V = "20260825a";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
