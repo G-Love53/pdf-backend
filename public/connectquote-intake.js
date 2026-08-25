@@ -7,7 +7,7 @@
     "https://cid-pdf-api.onrender.com"
   ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260825a";
+  const ASSET_V = "20260825b";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -171,9 +171,20 @@
     return d.slice(0, 3) + "-" + d.slice(3, 6) + "-" + d.slice(6);
   }
 
-  const CONNECT_BENEFITS_HTML = `<div class="connect-benefits" id="connect-benefits" aria-label="Included with CID Connect">
-      <p class="connect-benefits-head">Included with <strong>Connect</strong></p>
-      <p class="connect-benefits-sub">Bind today — your Connect login is ready same day.</p>
+  function connectBenefitsBandHtml(context) {
+    const id =
+      context === "success" ? "connect-benefits-success" : "connect-benefits";
+    const head =
+      context === "success"
+        ? "Included with your policy — <strong>Connect</strong>"
+        : "Included with <strong>Connect</strong>";
+    const sub =
+      context === "success"
+        ? "Your login is ready — COIs, policy docs, and coverage Q&amp;A in one place."
+        : "Bind today — your Connect login is ready same day.";
+    return `<div class="connect-benefits" id="${id}" aria-label="Included with CID Connect">
+      <p class="connect-benefits-head">${head}</p>
+      <p class="connect-benefits-sub">${sub}</p>
       <ul class="connect-benefits-grid">
         <li class="benefit-coi">
           <span class="connect-benefits-icon" aria-hidden="true">
@@ -222,6 +233,7 @@
         </li>
       </ul>
     </div>`;
+  }
 
   function ensureConnectBenefits() {
     const box = $("quote-box");
@@ -229,9 +241,24 @@
     const heading = box.querySelector("h2");
     if (!heading) return;
     const wrap = document.createElement("div");
-    wrap.innerHTML = CONNECT_BENEFITS_HTML.trim();
+    wrap.innerHTML = connectBenefitsBandHtml("quote").trim();
     const band = wrap.firstElementChild;
     if (band) heading.insertAdjacentElement("afterend", band);
+  }
+
+  function ensureConnectBenefitsOnSuccess() {
+    const box = $("success-box");
+    if (!box || $("connect-benefits-success")) return;
+    const wrap = document.createElement("div");
+    wrap.innerHTML = connectBenefitsBandHtml("success").trim();
+    const band = wrap.firstElementChild;
+    if (!band) return;
+    const connectBtn = $("connect-btn");
+    if (connectBtn) {
+      connectBtn.insertAdjacentElement("beforebegin", band);
+    } else {
+      box.appendChild(band);
+    }
   }
 
   const MONTH_LABELS = [
@@ -1903,7 +1930,7 @@
     box.id = "guard-wc-box";
     box.className = "guard-wc-box";
     box.innerHTML =
-      "<h3>Would you like a Workers’ Comp quote as well?</h3>" +
+      "<h3>Would you like a <span class=\"guard-wc-em\">Workers\u2019 Comp</span> quote as well?</h3>" +
       "<p class=\"guard-wc-lead\">Same business we just quoted — indication first, no card. GUARD bills you directly if you bind.</p>" +
       '<div class="row">' +
       "<div><label>Legal entity</label>" +
@@ -2089,6 +2116,7 @@
         location.href = url;
       };
     }
+    ensureConnectBenefitsOnSuccess();
     mountGuardWcOffer();
   }
 

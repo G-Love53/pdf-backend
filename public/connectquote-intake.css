@@ -312,6 +312,10 @@ select.cq-ext-field:required:invalid {
   }
 }
 
+#success-box .connect-benefits {
+  margin: 14px 0 16px;
+}
+
 .guard-wc-box {
   margin-top: 18px;
   padding-top: 16px;
@@ -321,6 +325,11 @@ select.cq-ext-field:required:invalid {
   margin: 0 0 6px;
   color: #065f46;
   font-size: 1.05rem;
+  font-weight: 700;
+}
+.guard-wc-em {
+  color: var(--brand, #ea580c);
+  font-weight: 800;
 }
 .guard-wc-lead {
   margin: 0 0 12px;
