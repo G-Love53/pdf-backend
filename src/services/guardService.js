@@ -107,13 +107,20 @@ function allTags(xml, name) {
 
 export function extractAcordFromSoap(soapXml) {
   const src = String(soapXml || "");
+  const serviceResult = src.match(
+    /<ServiceResult[^>]*>([\s\S]*?)<\/ServiceResult>/i,
+  );
+  if (serviceResult) {
+    const inner = unescapeXml(serviceResult[1]).trim();
+    if (inner) return inner;
+  }
   const dataMatch = src.match(/<data[^>]*>([\s\S]*?)<\/data>/i);
   if (dataMatch) {
     const inner = unescapeXml(dataMatch[1]).trim();
     if (inner) return inner;
   }
   if (/<ACORD[\s>]/i.test(src)) return src;
-  if (/<WorkCompPolicyAddRs/i.test(src)) return src;
+  if (/<WorkCompPolicyAddRs/i.test(src)) return unescapeXml(src);
   if (/<SignonRs/i.test(src)) return src;
   return src;
 }
