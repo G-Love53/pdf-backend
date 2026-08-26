@@ -60,6 +60,8 @@ export async function createPolicy({
   extraction,
   txClient, // optional pg client in an open transaction
   boundBy,
+  /** Carrier-assigned number (e.g. GUARD GLWC…) — skips CID-POL-* generation */
+  policyNumberOverride,
 }) {
   const pool = getPool();
   if (!pool) {
@@ -94,11 +96,13 @@ export async function createPolicy({
       return policy;
     }
 
-    const policyNumber = generatePolicyNumber(
-      submission.segment,
-      submission.submission_public_id,
-      quoteId,
-    );
+    const policyNumber =
+      policyNumberOverride ||
+      generatePolicyNumber(
+        submission.segment,
+        submission.submission_public_id,
+        quoteId,
+      );
 
     // SAVEPOINT: INSERT unique violation aborts the txn; without this, recovery SELECT
     // fails with "current transaction is aborted" (bind-details poll / concurrent finalize).

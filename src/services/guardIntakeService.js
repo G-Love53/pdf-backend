@@ -16,6 +16,7 @@ import {
   isGuardConfigured,
   yearsInBusinessFromForm,
 } from "./guardService.js";
+import { finalizeGuardBind } from "./guardPolicyService.js";
 
 function formFromSubmission(row) {
   const raw = row?.raw_submission_json || {};
@@ -467,15 +468,46 @@ export async function processGuardBind(body = {}) {
     clickwrap_name: body.clickwrap_name || null,
   });
 
+  const bound = String(parsed.policyStatusCd || "").includes("Bound");
+  let connectPolicy = null;
+  if (bound) {
+    try {
+      const fin = await finalizeGuardBind({
+        submissionPublicId,
+        session: {
+          ...session,
+          clickwrap: {
+            agreed: true,
+            name: body.clickwrap_name || null,
+            at: new Date().toISOString(),
+          },
+        },
+        parsed,
+        clickwrapName: body.clickwrap_name || null,
+      });
+      if (fin.ok) {
+        connectPolicy = {
+          policy_id: fin.policy_id,
+          policy_number: fin.policy_number,
+        };
+      } else {
+        console.warn("[guard bind] Connect policy skipped", fin);
+      }
+    } catch (err) {
+      console.error("[guard bind] Connect policy create failed", err);
+    }
+  }
+
   return {
     ok: true,
-    bound: String(parsed.policyStatusCd || "").includes("Bound"),
+    bound,
     submission_public_id: submissionPublicId,
     guard: {
       policyNumber: parsed.policyNumber || session.policyNumber,
       policyStatusCd: parsed.policyStatusCd,
       msgStatusCd: parsed.msgStatusCd,
     },
+    connect: connectPolicy,
     message:
       "Workers’ Comp bound with GUARD. Payment options will come from GUARD.",
   };

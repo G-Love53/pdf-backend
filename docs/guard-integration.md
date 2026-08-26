@@ -193,7 +193,7 @@ Offer WC only if employees exist **or** owner elects inclusion (owner-only Coter
 | **File a claim** | GUARD WC → routed to GUARD messaging; claim still stored in Connect. |
 | **Skipped WC at bind** | Policy Home **Add Workers' Comp** card → segment ConnectQuote. |
 
-**Still to wire:** `createPolicy()` on GUARD BND so WC rows appear in Connect automatically (`bind_source: guard`, `policy_type: WC`).
+**Still to wire:** ~~`createPolicy()` on GUARD BND~~ **Done (2026-08-26):** `finalizeGuardBind()` → `policies` row with GUARD policy number, `bind_source: guard`, `policy_type: WC`; chat index for Am I Covered.
 
 ---
 

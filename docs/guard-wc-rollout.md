@@ -15,15 +15,15 @@
 
 ---
 
-## Segment appetite (confirm with Jon before flipping `wcEnabled`)
+## Segment appetite (registry `wcEnabled` — confirm class suffixes with Jon per segment)
 
-| Tier | Segments | NCCI (registry) | Default | Notes |
-|------|----------|-----------------|---------|--------|
-| **A — service / low knockout** | beauty, cleaning, pet, fitness | 9586, 9014, 0917, 9063 | **Prefer ON** after NBQ smoke each | Doc appetite; no height/roof knockouts |
-| **B — trades (pilot)** | plumber | 5183 | **ON** (v1 test segment) | Commercial/industrial DD note |
-| **C — trades (review)** | electrical | 5190 | **Include w/ disclaimer** | One-line 15 ft + light commercial — see appetite notes below |
-| **C — trades (hold)** | hvac | 5537 | **Hold** until Jon confirms | Roof / install-heavy ops; hard to pre-screen in email |
-| **D — not in registry** | painter, bar, roofer | — | **OFF** | Add class + `wcEnabled` when GUARD confirms code |
+| Tier | Segments | NCCI (registry) | `wcEnabled` | Notes |
+|------|----------|-----------------|-------------|--------|
+| **A — service / low knockout** | beauty, cleaning, pet, fitness | 9586, 9014, 0917, 9063 | **ON** | NBQ smoke each in CO before prod traffic |
+| **B — trades (pilot)** | plumber | 5183 + suffix **22** (CO) | **ON** | Jon confirmed `518322` |
+| **C — trades (review)** | electrical | 5190 | **ON** | 15 ft + commercial DD disclaimer in outreach |
+| **C — trades (hold)** | hvac | 5537 | **OFF** | Hold until Jon confirms roof/install appetite |
+| **D — not in registry** | painter, bar, roofer | — | **OFF** | Add when GUARD confirms class |
 
 **Two switches per segment:**
 
@@ -44,7 +44,7 @@ Both must allow the segment. CO only until **`GUARD_PILOT_STATES`** expands.
    GUARD_API_SECRET=…
    GUARD_CONTRACT_NUMBER=…   # prod agency code
    GUARD_SP_NAME=com.commercialinsurance-direct
-   GUARD_ENABLED_SEGMENTS=beauty,cleaning,pet,fitness,plumber   # adjust to appetite
+   GUARD_ENABLED_SEGMENTS=beauty,cleaning,pet,fitness,plumber,electrical
    GUARD_PILOT_STATES=CO
    ```
 3. **Redeploy** prod (and keep sandbox on P-env for demos).

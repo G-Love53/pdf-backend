@@ -88,7 +88,10 @@ function requirePool(res) {
 
 /** Map cid-postgres policy row → Connect Policy-like shape */
 function mapPolicy(row, supabaseUserId) {
-  const cov = row.coverage_data;
+  const cov =
+    row.coverage_data && typeof row.coverage_data === "object"
+      ? row.coverage_data
+      : {};
   return {
     id: row.id,
     user_id: supabaseUserId || null,
@@ -107,7 +110,9 @@ function mapPolicy(row, supabaseUserId) {
     general_liability_limit: null,
     property_limit: null,
     auto_limit: null,
-    workers_comp_limit: null,
+    workers_comp_limit:
+      (typeof cov.workers_comp_limit === "string" && cov.workers_comp_limit) ||
+      null,
     umbrella_limit: null,
     deductible: null,
     payment_frequency: row.payment_method || null,
