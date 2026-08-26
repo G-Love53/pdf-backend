@@ -125,6 +125,18 @@ export function extractAcordFromSoap(soapXml) {
   return src;
 }
 
+function rqUidFromXml(xml) {
+  const block = String(xml || "").match(
+    /<WorkCompPolicyAddRs[\s\S]*?<\/WorkCompPolicyAddRs>/i,
+  )?.[0];
+  if (block) {
+    const id = firstTag(block, "RqUID");
+    if (id) return id;
+  }
+  const all = allTags(String(xml || ""), "RqUID").filter(Boolean);
+  return all.length ? all[all.length - 1] : null;
+}
+
 export function parseGuardResponse(acordXml) {
   const xml = String(acordXml || "");
   const questions = [];
@@ -148,7 +160,7 @@ export function parseGuardResponse(acordXml) {
   }
 
   return {
-    rqUid: firstTag(xml, "RqUID"),
+    rqUid: rqUidFromXml(xml),
     signonStatusCd:
       firstTag(xml, "SignonStatusCd") ||
       firstTag(xml.match(/<SignonRs[\s\S]*?<\/SignonRs>/i)?.[0] || "", "StatusCd"),
