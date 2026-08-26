@@ -7,7 +7,7 @@
     "https://cid-pdf-api.onrender.com"
   ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260826b";
+  const ASSET_V = "20260826c";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -1849,6 +1849,79 @@
     el.style.display = text ? "block" : "none";
   }
 
+  function ensureGuardWcReadyHero(box) {
+    let el = box.querySelector("#guard-wc-ready");
+    if (el) return el;
+    el = document.createElement("div");
+    el.id = "guard-wc-ready";
+    el.className = "guard-wc-ready";
+    el.hidden = true;
+    el.innerHTML =
+      '<p class="guard-wc-ready-kicker">Your <span class="guard-wc-em">Workers\u2019 Comp</span> quote is ready</p>' +
+      '<p class="guard-wc-ready-amount" id="guard-wc-ready-amount"></p>' +
+      '<p class="guard-wc-ready-note">GUARD will send billing and payment options to you.</p>';
+    const bindFields = $("guard-bind-fields");
+    if (bindFields && bindFields.parentNode) {
+      bindFields.parentNode.insertBefore(el, bindFields);
+    } else {
+      box.appendChild(el);
+    }
+    return el;
+  }
+
+  function ensureGuardWcBoundHero(box) {
+    let el = box.querySelector("#guard-wc-bound");
+    if (el) return el;
+    el = document.createElement("div");
+    el.id = "guard-wc-bound";
+    el.className = "guard-wc-bound";
+    el.hidden = true;
+    el.innerHTML =
+      '<p class="guard-wc-bound-kicker">Workers\u2019 Comp bound with GUARD</p>' +
+      '<p class="guard-wc-bound-detail" id="guard-wc-bound-detail"></p>' +
+      '<p class="guard-wc-bound-note">Watch for payment instructions from GUARD. Your policies will appear in CID Connect once you sign up.</p>';
+    box.appendChild(el);
+    return el;
+  }
+
+  function showGuardQuoteReady(box, premium) {
+    const hero = ensureGuardWcReadyHero(box);
+    const amtEl = hero.querySelector("#guard-wc-ready-amount");
+    if (amtEl && premium != null) {
+      amtEl.textContent =
+        "$" + Number(premium).toLocaleString() + " / year";
+    }
+    hero.hidden = false;
+    const quoteBtn = $("guard-quote-btn");
+    if (quoteBtn) {
+      quoteBtn.classList.add("is-done");
+      quoteBtn.textContent = "Quote saved";
+      quoteBtn.disabled = true;
+    }
+    const bindBtn = $("guard-bind-btn");
+    if (bindBtn) bindBtn.hidden = false;
+    guardWcStatus(box, "", "");
+  }
+
+  function showGuardBound(box, data) {
+    const g = (data && data.guard) || {};
+    const hero = ensureGuardWcBoundHero(box);
+    const detail = hero.querySelector("#guard-wc-bound-detail");
+    if (detail) {
+      const bits = [];
+      if (g.policyNumber) bits.push("Policy " + g.policyNumber);
+      if (data.premium != null)
+        bits.push("$" + Number(data.premium).toLocaleString() + " / yr");
+      detail.textContent = bits.join(" · ");
+    }
+    hero.hidden = false;
+    const ready = box.querySelector("#guard-wc-ready");
+    if (ready) ready.hidden = true;
+    const bindBtn = $("guard-bind-btn");
+    if (bindBtn) bindBtn.hidden = true;
+    guardWcStatus(box, "", "");
+  }
+
   function renderGuardQuestions(host, questions) {
     host.innerHTML = "";
     (questions || []).forEach((q) => {
@@ -1986,6 +2059,7 @@
         const premEl = $("guard-premium");
         premEl.hidden = false;
         if (prem) {
+          session.guardPremium = Number(prem);
           premEl.textContent =
             "Indication: $" +
             Number(prem).toLocaleString() +
@@ -2052,13 +2126,10 @@
         }
         const prem = data.guard && data.guard.premium;
         if (data.bindable) {
-          guardWcStatus(
-            box,
-            "ok",
-            (prem ? "$" + Number(prem).toLocaleString() + " / yr. " : "") +
-              "Ready to bind. GUARD bills you — we do not take a card.",
-          );
-          $("guard-bind-btn").hidden = false;
+          if (data.guard && data.guard.premium != null) {
+            session.guardPremium = Number(data.guard.premium);
+          }
+          showGuardQuoteReady(box, prem);
         } else {
           const uw = (data.guard && data.guard.uwDecision) || "";
           guardWcStatus(
@@ -2095,8 +2166,10 @@
         });
         const data = await res.json();
         if (!data.ok) throw new Error(data.message || data.error || "Bind failed");
-        guardWcStatus(box, "ok", data.message || "Workers’ Comp bound.");
-        btn.hidden = true;
+        showGuardBound(box, {
+          guard: data.guard,
+          premium: session.guardPremium,
+        });
       } catch (err) {
         guardWcStatus(box, "err", err.message || String(err));
         btn.disabled = false;

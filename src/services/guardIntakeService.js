@@ -477,6 +477,6 @@ export async function processGuardBind(body = {}) {
       msgStatusCd: parsed.msgStatusCd,
     },
     message:
-      "Workers’ Comp bind sent to GUARD. They bill you directly — CID does not charge a card.",
+      "Workers’ Comp bound with GUARD. Payment options will come from GUARD.",
   };
 }

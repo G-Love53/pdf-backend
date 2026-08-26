@@ -350,6 +350,60 @@ select.cq-ext-field:required:invalid {
 }
 .guard-wc-status.ok { color: #065f46; }
 .guard-wc-status.err { color: #b91c1c; }
+
+.guard-wc-ready,
+.guard-wc-bound {
+  margin: 16px 0 14px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1B3A5F 0%, #2a4a6f 100%);
+  color: #fff;
+  text-align: center;
+}
+.guard-wc-ready-kicker,
+.guard-wc-bound-kicker {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.guard-wc-ready-amount {
+  margin: 0 0 10px;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.guard-wc-ready-note,
+.guard-wc-bound-note {
+  margin: 0;
+  font-size: .88rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
+}
+.guard-wc-bound {
+  background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+}
+.guard-wc-bound-detail {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+#guard-bind-btn {
+  margin-top: 12px;
+  width: 100%;
+  background: #1B3A5F;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 14px 18px;
+}
+#guard-bind-btn:hover { background: #2a4a6f; }
+#guard-quote-btn.is-done {
+  opacity: 0.55;
+  cursor: default;
+  margin-bottom: 4px;
+}
+
 .guard-q { margin-top: 10px; }
 .guard-clickwrap {
   display: flex;

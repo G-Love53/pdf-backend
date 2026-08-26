@@ -184,6 +184,17 @@ Offer WC only if employees exist **or** owner elects inclusion (owner-only Coter
 
 **Capture → Submit → Render → Deliver → Operate:** Either rail can Capture first. Same public_id. Render = Coterie REST and/or GUARD SOAP + doc webhook. Operate = CONNECT.
 
+### CONNECT (multi-policy UX)
+
+| Surface | Behavior |
+|---------|----------|
+| **Policy dropdown** | Header switcher — `Segment · Line — Business · Carrier` (e.g. BOP vs Workers' Comp · GUARD). |
+| **Am I Covered?** | Uses **selected** policy context; switch policy first. |
+| **File a claim** | GUARD WC → routed to GUARD messaging; claim still stored in Connect. |
+| **Skipped WC at bind** | Policy Home **Add Workers' Comp** card → segment ConnectQuote. |
+
+**Still to wire:** `createPolicy()` on GUARD BND so WC rows appear in Connect automatically (`bind_source: guard`, `policy_type: WC`).
+
 ---
 
 ## Sandbox access (P env — keys come from GUARD)
