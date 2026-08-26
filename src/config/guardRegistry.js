@@ -3,7 +3,7 @@
  * New ConnectQuote launches default wcEnabled: false.
  * GUARD “Digital Decision” is their auto-quote name — never shown in CID UX.
  *
- * Class flags from packet 08.19.26 (CO): [E] auto-quote, [R] refer, [I] ineligible.
+ * Class flags from packet 08.21.26 (CO): [E] auto-quote, [R] refer, [I] ineligible.
  */
 
 export const GUARD_DEFAULT_PILOT_STATES = ["CO"];
@@ -33,7 +33,7 @@ export const GUARD_SEGMENTS = {
   plumber: {
     wcEnabled: true,
     classCode: "5183",
-    classSuffix: "00",
+    classSuffix: "22",
     classDescription: "PLUMBING NOC & DRIVERS",
     operationsDesc: "Plumbing contracting",
     digitalDecisionNote:

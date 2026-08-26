@@ -136,8 +136,13 @@ export function parseGuardResponse(acordXml) {
   }
 
   return {
+    rqUid: firstTag(xml, "RqUID"),
     statusDesc: firstTag(xml, "StatusDesc"),
     msgStatusCd: firstTag(xml, "MsgStatusCd"),
+    requestStatusCd:
+      firstTag(xml, "RequestStatusCd") ||
+      firstTag(xml, "RequestStatus") ||
+      firstTag(xml, "StatusDesc"),
     policyNumber: firstTag(xml, "PolicyNumber"),
     policyStatusCd:
       firstTag(xml, "PolicyStatusCd") || firstTag(xml, "PolicyStatus"),
@@ -498,8 +503,13 @@ ${signon}
 </ACORD>`;
 }
 
+function isAzureGatewayHtml(xml) {
+  return /<title>504 Gateway Time-out<\/title>/i.test(xml || "");
+}
+
 async function guardSoap(innerXml) {
   const cfg = getGuardConfig();
+  const requestRqUid = firstTag(innerXml, "RqUID");
   const acord = wrapAcord(signonXml(cfg), innerXml);
   const soap = wrapSoap(acord);
   const res = await fetch(cfg.apiBase, {
@@ -513,11 +523,19 @@ async function guardSoap(innerXml) {
   const text = await res.text();
   const acordOut = extractAcordFromSoap(text);
   const parsed = parseGuardResponse(acordOut);
+  parsed.rqUid = parsed.rqUid || requestRqUid || null;
 
   if (!res.ok) {
+    const gateway = isAzureGatewayHtml(parsed.raw || text);
     throw new GuardApiError(
-      parsed.statusDesc || parsed.msgStatusCd || `GUARD HTTP ${res.status}`,
-      { status: res.status, body: parsed, code: parsed.msgStatusCd },
+      gateway
+        ? "GUARD Azure gateway timeout (504)"
+        : parsed.statusDesc || parsed.msgStatusCd || `GUARD HTTP ${res.status}`,
+      {
+        status: res.status,
+        body: parsed,
+        code: gateway ? "GUARD_GATEWAY_TIMEOUT" : parsed.msgStatusCd,
+      },
     );
   }
   if (/authentication failed/i.test(parsed.statusDesc || "")) {
@@ -587,6 +605,7 @@ export function buildRatingPayloadFromForm(form, segment, extras = {}) {
   }
 
   return {
+    rqUid: extras.rqUid || null,
     commercialName:
       form.insured_name ||
       form.legal_business_name ||

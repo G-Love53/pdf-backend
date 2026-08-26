@@ -160,23 +160,28 @@ export async function processGuardIndicate(body = {}) {
     };
   }
 
+  const rqUid = crypto.randomUUID();
   const payload = buildRatingPayloadFromForm(form, segment, {
     legalEntityCd: body.legal_entity || body.legalEntityCd || "LL",
     ownerIncluded,
     numYrsInBusiness:
       Number(body.years_in_business) || yearsInBusinessFromForm(form),
+    rqUid,
   });
 
   let parsed;
   try {
     parsed = await guardIndicate(payload);
   } catch (err) {
-    console.error("[guard indicate]", err);
+    const rq =
+      err instanceof GuardApiError ? err.body?.rqUid || rqUid : rqUid;
+    console.error("[guard indicate]", { rqUid: rq, err });
     return {
       ok: false,
       status: err instanceof GuardApiError ? err.status || 502 : 502,
       error: err instanceof GuardApiError ? err.code : "GUARD_INDICATE_FAILED",
       message: err.message || "GUARD indication failed",
+      rqUid: rq,
     };
   }
 
@@ -184,6 +189,7 @@ export async function processGuardIndicate(body = {}) {
     submission_public_id: submissionPublicId,
     segment,
     purpose: "NBQ",
+    rqUid: parsed.rqUid || rqUid,
     ratingClassificationCd: ratingClassificationCd(entry),
     legalEntityCd: payload.legalEntityCd,
     ownerIncluded,
@@ -193,14 +199,17 @@ export async function processGuardIndicate(body = {}) {
     policyStatusCd: parsed.policyStatusCd,
     uwDecision: parsed.uwDecision,
     msgStatusCd: parsed.msgStatusCd,
+    requestStatusCd: parsed.requestStatusCd,
     remarks: parsed.remarks,
     indicatedAt: new Date().toISOString(),
   };
   await persistGuardSession(row.submission_id, session);
   await appendGuardTimeline(row.submission_id, "guard.indicated", {
+    rqUid: session.rqUid,
     policyNumber: parsed.policyNumber,
     premium: parsed.fullTermAmt,
     policyStatusCd: parsed.policyStatusCd,
+    msgStatusCd: parsed.msgStatusCd,
   });
 
   return {
@@ -209,11 +218,13 @@ export async function processGuardIndicate(body = {}) {
     indication: true,
     submission_public_id: submissionPublicId,
     guard: {
+      rqUid: session.rqUid,
       policyNumber: parsed.policyNumber,
       premium: parsed.fullTermAmt ? Number(parsed.fullTermAmt) : null,
       policyStatusCd: parsed.policyStatusCd,
       uwDecision: parsed.uwDecision,
       msgStatusCd: parsed.msgStatusCd,
+      requestStatusCd: parsed.requestStatusCd,
       remarks: parsed.remarks,
     },
     disclaimer:

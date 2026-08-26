@@ -1,10 +1,10 @@
 # GUARD WC sandbox fixtures (redacted)
 
 > **Canonical location:** `pdf-backend/docs/guard-sandbox-fixtures.md`  
-> **As of:** 2026-08-20. **No secrets.** Packet: `GUARD WC API Documentation - 08.19.26`.  
+> **As of:** 2026-08-26. **No secrets.** Packet: `GUARD WC API Documentation - 08.21.26`.  
 > Spec: [`guard-integration.md`](./guard-integration.md)
 
-v1 pilot class: **Plumber CO 5183** (`518300`). Electrical 5190 is in registry with `wcEnabled: false`.
+v1 pilot class: **Plumber CO 518322** (NCCI 5183 + suffix 22). Electrical 5190 is in registry with `wcEnabled: false`.
 
 ---
 
@@ -41,7 +41,7 @@ Expected GUARD shape: `MsgStatusCd` SuccessWithChanges, `PolicyStatusCd` NotQuot
 ## Questions
 
 CID: `POST /api/guard/wc/questions` with `submission_public_id`.  
-GUARD: `UnderwritingQuestionsInqRq` state `CO` + class `518300`.
+GUARD: `UnderwritingQuestionsInqRq` state `CO` + class `518322`.
 
 ---
 

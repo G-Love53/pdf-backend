@@ -8,7 +8,7 @@
 ## Gate (all environments)
 
 - [ ] P-env NBQ returns **`FullTermAmt`** + **`PolicyNumber`** on plumber CO (sandbox smoke)
-- [ ] Jon confirms **`RatingClassificationCd`** per class (e.g. `518300` vs `518301`)
+- [ ] Jon confirms **`RatingClassificationCd`** per class (plumber CO = **`518322`**)
 - [ ] Prod **ContractNumber** + API keys (not `PAFAKE10`)
 - [ ] Prod **`GUARD_API_BASE`** → `https://gigezrate.guard.com/dotnet/api/acordservice/acord.svc`
 - [ ] **`GUARD_WEBHOOK_AUTH`** set; doc push URL shared with GUARD (when ready)
