@@ -343,12 +343,22 @@ export async function processGuardQuote(body = {}) {
   try {
     parsed = await guardSubmitNbs(payload);
   } catch (err) {
+    const body = err instanceof GuardApiError ? err.body : null;
     console.error("[guard quote]", err);
     return {
       ok: false,
       status: err instanceof GuardApiError ? err.status || 502 : 502,
-      error: "GUARD_QUOTE_FAILED",
+      error: err instanceof GuardApiError ? err.code : "GUARD_QUOTE_FAILED",
       message: err.message || "GUARD quote failed",
+      rqUid: body?.rqUid || null,
+      guard: body
+        ? {
+            rqUid: body.rqUid,
+            msgStatusCd: body.msgStatusCd,
+            msgErrorCd: body.msgErrorCd,
+            msgStatusDesc: body.msgStatusDesc,
+          }
+        : null,
     };
   }
 

@@ -7,7 +7,7 @@
     "https://cid-pdf-api.onrender.com"
   ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260826a";
+  const ASSET_V = "20260826b";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -2042,7 +2042,14 @@
           }),
         });
         const data = await res.json();
-        if (!data.ok) throw new Error(data.message || data.error || "Quote failed");
+        if (!data.ok) {
+          const detail =
+            (data.guard && data.guard.msgStatusDesc) ||
+            data.message ||
+            data.error ||
+            "Quote failed";
+          throw new Error(detail);
+        }
         const prem = data.guard && data.guard.premium;
         if (data.bindable) {
           guardWcStatus(

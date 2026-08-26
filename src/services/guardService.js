@@ -137,6 +137,19 @@ function rqUidFromXml(xml) {
   return all.length ? all[all.length - 1] : null;
 }
 
+export function guardResponseMessage(parsed) {
+  const p = parsed || {};
+  if (String(p.msgStatusCd || "").toLowerCase() === "error") {
+    return (
+      p.msgStatusDesc ||
+      p.remarks?.[0] ||
+      (p.msgErrorCd ? `GUARD error (${p.msgErrorCd})` : null) ||
+      "GUARD returned an error"
+    );
+  }
+  return p.statusDesc || p.msgStatusCd || null;
+}
+
 export function parseGuardResponse(acordXml) {
   const xml = String(acordXml || "");
   const questions = [];
@@ -166,6 +179,8 @@ export function parseGuardResponse(acordXml) {
       firstTag(xml.match(/<SignonRs[\s\S]*?<\/SignonRs>/i)?.[0] || "", "StatusCd"),
     statusDesc: firstTag(xml, "StatusDesc"),
     msgStatusCd: firstTag(xml, "MsgStatusCd"),
+    msgErrorCd: firstTag(xml, "MsgErrorCd"),
+    msgStatusDesc: firstTag(xml, "MsgStatusDesc"),
     requestStatusCd:
       firstTag(xml, "RequestStatusCd") ||
       firstTag(xml, "RequestStatus") ||
@@ -589,10 +604,11 @@ async function guardSoap(innerXml) {
     });
   }
   if (String(parsed.msgStatusCd || "").toLowerCase() === "error") {
-    throw new GuardApiError(
-      parsed.remarks?.[0] || parsed.statusDesc || "GUARD returned Error",
-      { code: "GUARD_ERROR", status: 422, body: parsed },
-    );
+    throw new GuardApiError(guardResponseMessage(parsed) || "GUARD returned Error", {
+      code: parsed.msgErrorCd || "GUARD_ERROR",
+      status: 422,
+      body: parsed,
+    });
   }
   return parsed;
 }
