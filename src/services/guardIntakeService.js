@@ -212,6 +212,19 @@ export async function processGuardIndicate(body = {}) {
     msgStatusCd: parsed.msgStatusCd,
   });
 
+  const sandbox = getGuardPublicConfig().sandbox;
+  const emptyGuard =
+    !parsed.fullTermAmt && !parsed.msgStatusCd && !parsed.policyNumber;
+  if (emptyGuard) {
+    console.warn("[guard indicate] empty NBQ response", {
+      rqUid: session.rqUid,
+      ratingClassificationCd: session.ratingClassificationCd,
+      signonStatusCd: parsed.signonStatusCd,
+      soapFault: parsed.soapFault,
+      rawPreview: parsed.raw?.slice(0, 800),
+    });
+  }
+
   return {
     ok: true,
     bindable: false,
@@ -225,7 +238,17 @@ export async function processGuardIndicate(body = {}) {
       uwDecision: parsed.uwDecision,
       msgStatusCd: parsed.msgStatusCd,
       requestStatusCd: parsed.requestStatusCd,
+      signonStatusCd: parsed.signonStatusCd,
       remarks: parsed.remarks,
+      ...(sandbox && emptyGuard
+        ? {
+            debug: {
+              ratingClassificationCd: session.ratingClassificationCd,
+              soapFault: parsed.soapFault,
+              rawPreview: parsed.raw?.slice(0, 1200),
+            },
+          }
+        : {}),
     },
     disclaimer:
       "Indication only — not bindable until underwriting questions and FEIN are submitted.",

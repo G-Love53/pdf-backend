@@ -7,7 +7,7 @@
     "https://cid-pdf-api.onrender.com"
   ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260825b";
+  const ASSET_V = "20260826a";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -1985,11 +1985,24 @@
         const prem = data.guard && data.guard.premium;
         const premEl = $("guard-premium");
         premEl.hidden = false;
-        premEl.textContent = prem
-          ? "Indication: $" +
+        if (prem) {
+          premEl.textContent =
+            "Indication: $" +
             Number(prem).toLocaleString() +
-            " / yr — not bindable yet."
-          : "Indication returned (see notes).";
+            " / yr — not bindable yet.";
+        } else {
+          const g = data.guard || {};
+          const bits = [];
+          if (g.policyNumber) bits.push("Policy " + g.policyNumber);
+          if (g.msgStatusCd) bits.push(g.msgStatusCd);
+          if (g.policyStatusCd) bits.push(g.policyStatusCd);
+          if (g.remarks && g.remarks.length)
+            bits.push(g.remarks.join(" · "));
+          if (g.rqUid) bits.push("RqUID " + g.rqUid);
+          premEl.textContent = bits.length
+            ? "Indication: " + bits.join(" · ")
+            : "Indication submitted — GUARD did not return a premium yet.";
+        }
         guardWcStatus(box, "ok", data.disclaimer || "");
         const qRes = await fetch(API + "/api/guard/wc/questions", {
           method: "POST",

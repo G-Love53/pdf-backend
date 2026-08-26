@@ -58,6 +58,7 @@ export function getGuardConfig() {
     contractNumber: process.env.GUARD_CONTRACT_NUMBER,
     spName: process.env.GUARD_SP_NAME,
     producerSubCode: process.env.GUARD_PRODUCER_SUBCODE || "",
+    fieldOfficeCd: process.env.GUARD_FIELD_OFFICE_CD || "S",
   };
 }
 
@@ -105,12 +106,16 @@ function allTags(xml, name) {
 }
 
 export function extractAcordFromSoap(soapXml) {
-  const dataMatch = String(soapXml || "").match(
-    /<data[^>]*>([\s\S]*?)<\/data>/i,
-  );
-  if (dataMatch) return unescapeXml(dataMatch[1]);
-  if (/<ACORD[\s>]/i.test(soapXml)) return String(soapXml);
-  return String(soapXml || "");
+  const src = String(soapXml || "");
+  const dataMatch = src.match(/<data[^>]*>([\s\S]*?)<\/data>/i);
+  if (dataMatch) {
+    const inner = unescapeXml(dataMatch[1]).trim();
+    if (inner) return inner;
+  }
+  if (/<ACORD[\s>]/i.test(src)) return src;
+  if (/<WorkCompPolicyAddRs/i.test(src)) return src;
+  if (/<SignonRs/i.test(src)) return src;
+  return src;
 }
 
 export function parseGuardResponse(acordXml) {
@@ -137,6 +142,9 @@ export function parseGuardResponse(acordXml) {
 
   return {
     rqUid: firstTag(xml, "RqUID"),
+    signonStatusCd:
+      firstTag(xml, "SignonStatusCd") ||
+      firstTag(xml.match(/<SignonRs[\s\S]*?<\/SignonRs>/i)?.[0] || "", "StatusCd"),
     statusDesc: firstTag(xml, "StatusDesc"),
     msgStatusCd: firstTag(xml, "MsgStatusCd"),
     requestStatusCd:
@@ -152,6 +160,7 @@ export function parseGuardResponse(acordXml) {
     questions,
     carrier: firstTag(xml, "Carrier"),
     raw: xml.slice(0, 20000),
+    soapFault: firstTag(xml, "faultstring") || firstTag(xml, "Fault"),
   };
 }
 
@@ -327,6 +336,7 @@ export function buildWorkCompPolicyAddXml(purpose, payload, cfg) {
       <ContractNumber>${xmlEscape(cfg.contractNumber)}</ContractNumber>
       <ProducerSubCode>${xmlEscape(cfg.producerSubCode)}</ProducerSubCode>
       <ProducerRoleCd>Agency</ProducerRoleCd>
+      <FieldOfficeCd>${xmlEscape(cfg.fieldOfficeCd || "S")}</FieldOfficeCd>
     </ProducerInfo>
   </Producer>
   <InsuredOrPrincipal>
@@ -522,8 +532,22 @@ async function guardSoap(innerXml) {
   });
   const text = await res.text();
   const acordOut = extractAcordFromSoap(text);
-  const parsed = parseGuardResponse(acordOut);
+  const parsed = parseGuardResponse(acordOut || text);
   parsed.rqUid = parsed.rqUid || requestRqUid || null;
+  parsed.httpStatus = res.status;
+
+  if (
+    !parsed.fullTermAmt &&
+    !parsed.msgStatusCd &&
+    !parsed.policyNumber &&
+    (parsed.raw?.length || 0) < 50
+  ) {
+    console.warn("[guard soap] empty ACORD parse", {
+      rqUid: parsed.rqUid,
+      httpStatus: res.status,
+      soapPreview: text.slice(0, 1200),
+    });
+  }
 
   if (!res.ok) {
     const gateway = isAzureGatewayHtml(parsed.raw || text);
