@@ -7,7 +7,7 @@
     "https://cid-pdf-api.onrender.com"
   ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260826c";
+  const ASSET_V = "20260827a";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -324,9 +324,18 @@
 
   let stripe = null;
   let cardElement = null;
-  let session = { submission_public_id: null, quote_id: null, email: null, quote: null };
+  let session = {
+    submission_public_id: null,
+    quote_id: null,
+    email: null,
+    quote: null,
+    wcIntentDeclined: true,
+    guardWcBound: false,
+    guardPremium: null,
+  };
   let demoEnabled = false;
   let paymentBindReady = false;
+  let guardWcConfig = null;
   let registryCache = null;
   let currentSchema = null;
 
@@ -1976,35 +1985,49 @@
     return answers;
   }
 
-  async function mountGuardWcOffer() {
-    const successBox = $("success-box");
-    if (!successBox || $("guard-wc-box")) return;
-    let cfg;
+  async function fetchGuardWcConfig() {
+    if (guardWcConfig) return guardWcConfig;
     try {
+      const stateEl = $("state");
+      const state = String(
+        (stateEl && stateEl.value) || formPayload().state || "CO",
+      )
+        .trim()
+        .slice(0, 2)
+        .toUpperCase();
       const r = await fetch(
         API +
           "/api/guard/wc/config?segment=" +
           encodeURIComponent(SEGMENT) +
           "&state=" +
-          encodeURIComponent(
-            (formPayload().state || formPayload().premise_state || "CO").slice(
-              0,
-              2,
-            ),
-          ),
+          encodeURIComponent(state),
       );
-      cfg = await r.json();
+      guardWcConfig = await r.json();
     } catch (_) {
-      return;
+      guardWcConfig = { offerWc: false };
     }
-    if (!cfg || !cfg.offerWc) return;
+    return guardWcConfig;
+  }
 
-    const box = document.createElement("div");
-    box.id = "guard-wc-box";
-    box.className = "guard-wc-box";
-    box.innerHTML =
-      "<h3>Would you like a <span class=\"guard-wc-em\">Workers\u2019 Comp</span> quote as well?</h3>" +
-      "<p class=\"guard-wc-lead\">Same business we just quoted — indication first, no card. GUARD bills you directly if you bind.</p>" +
+  function wcIntentSelected() {
+    const el = $("guard-wc-intent");
+    return el && el.value === "yes";
+  }
+
+  function injectGuardWcIntentOnForm() {
+    if ($("guard-wc-intent-wrap") || !$("quote-btn")) return;
+    const wrap = document.createElement("div");
+    wrap.id = "guard-wc-intent-wrap";
+    wrap.className = "guard-wc-intent-wrap";
+    wrap.hidden = true;
+    wrap.innerHTML =
+      "<label for=\"guard-wc-intent\">Would you like a <span class=\"guard-wc-em\">Workers\u2019 Comp</span> indication too?</label>" +
+      "<select id=\"guard-wc-intent\" name=\"guard_wc_intent\">" +
+      '<option value="no" selected>No — commercial quote only</option>' +
+      '<option value="yes">Yes — show WC indication with my quote</option>' +
+      "</select>" +
+      '<div id="guard-wc-intent-detail" hidden>' +
+      '<p class="guard-wc-intent-note">Separate policy through GUARD if you bind. Indication first — no card. You can still bind commercial coverage below without WC.</p>' +
       '<div class="row">' +
       "<div><label>Legal entity</label>" +
       '<select id="guard-legal">' +
@@ -2018,92 +2041,84 @@
       "</div>" +
       "<label>Include owner on the WC policy?</label>" +
       '<select id="guard-owner"><option value="no">No — employees only</option><option value="yes">Yes — include me</option></select>' +
-      '<button type="button" id="guard-indicate-btn">Get WC indication</button>' +
+      "</div>";
+    $("quote-btn").insertAdjacentElement("beforebegin", wrap);
+    $("guard-wc-intent").addEventListener("change", () => {
+      $("guard-wc-intent-detail").hidden = !wcIntentSelected();
+    });
+  }
+
+  async function setupGuardWcIntentUi() {
+    const cfg = await fetchGuardWcConfig();
+    if (!cfg || !cfg.offerWc) return;
+    injectGuardWcIntentOnForm();
+    $("guard-wc-intent-wrap").hidden = false;
+  }
+
+  function validateGuardWcExposure() {
+    const employees = Number(formPayload().num_employees || 0);
+    const ownerOn = $("guard-owner") && $("guard-owner").value === "yes";
+    if (employees < 1 && !ownerOn) {
+      return "Workers\u2019 Comp needs employees, or include the owner on the WC policy.";
+    }
+    return null;
+  }
+
+  function buildGuardWcPanelHtml(mode) {
+    const isQuote = mode === "quote";
+    const heading = isQuote
+      ? "<h3><span class=\"guard-wc-em\">Workers\u2019 Comp</span> (GUARD) \u2014 separate policy</h3>" +
+        "<p class=\"guard-wc-lead\">Shown alongside your commercial quote above. Indication only until you complete a few questions and FEIN. GUARD bills you directly if you bind.</p>"
+      : "<h3>Would you like a <span class=\"guard-wc-em\">Workers\u2019 Comp</span> quote as well?</h3>" +
+        "<p class=\"guard-wc-lead\">Same business we just quoted \u2014 indication first, no card. GUARD bills you directly if you bind.</p>" +
+        '<div class="row">' +
+        "<div><label>Legal entity</label>" +
+        '<select id="guard-legal">' +
+        '<option value="LL">LLC</option>' +
+        '<option value="SolePrp">Sole proprietor</option>' +
+        '<option value="CP">Corporation</option>' +
+        '<option value="SS">S Corp</option>' +
+        "</select></div>" +
+        "<div><label>Years in business</label>" +
+        '<input id="guard-years" type="number" min="1" max="80" value="3"/></div>' +
+        "</div>" +
+        "<label>Include owner on the WC policy?</label>" +
+        '<select id="guard-owner"><option value="no">No \u2014 employees only</option><option value="yes">Yes \u2014 include me</option></select>' +
+        '<button type="button" id="guard-indicate-btn">Get WC indication</button>';
+
+    return (
+      heading +
+      (isQuote
+        ? '<button type="button" id="guard-indicate-btn" hidden>Get WC indication</button>'
+        : "") +
       '<p class="guard-wc-premium" id="guard-premium" hidden></p>' +
       '<div id="guard-q-host" hidden></div>' +
       '<div id="guard-bind-fields" hidden>' +
       "<label>FEIN (required to bind)</label>" +
       '<input id="guard-fein" inputmode="numeric" maxlength="10" placeholder="XX-XXXXXXX"/>' +
-      "<label class=\"guard-clickwrap\"><input type=\"checkbox\" id=\"guard-agree\"/> I am authorized and the answers are true and complete.</label>" +
+      '<label class="guard-clickwrap"><input type="checkbox" id="guard-agree"/> I am authorized and the answers are true and complete.</label>' +
       '<input id="guard-sign-name" placeholder="Typed name"/>' +
       '<button type="button" id="guard-quote-btn">Get bindable WC quote</button>' +
-      '<button type="button" class="secondary" id="guard-bind-btn" hidden>Bind Workers’ Comp</button>' +
-      "</div>";
+      '<button type="button" class="secondary" id="guard-bind-btn" hidden>Bind Workers\u2019 Comp</button>' +
+      "</div>"
+    );
+  }
 
-    const connectBtn = $("connect-btn");
-    if (connectBtn && connectBtn.parentNode) {
-      connectBtn.insertAdjacentElement("afterend", box);
-    } else {
-      successBox.appendChild(box);
-    }
+  function wireGuardWcBox(box) {
+    if (!box || box.dataset.wired === "1") return;
+    box.dataset.wired = "1";
 
     const indicateBtn = $("guard-indicate-btn");
-    indicateBtn.addEventListener("click", async () => {
-      indicateBtn.disabled = true;
-      guardWcStatus(box, "", "Getting indication…");
-      try {
-        const res = await fetch(API + "/api/guard/wc/indicate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            submission_public_id: session.submission_public_id,
-            segment: SEGMENT,
-            legal_entity: $("guard-legal").value,
-            years_in_business: $("guard-years").value,
-            owner_on_wc: $("guard-owner").value === "yes",
-          }),
-        });
-        const data = await res.json();
-        if (!data.ok) throw new Error(data.message || data.error || "Indication failed");
-        const prem = data.guard && data.guard.premium;
-        const premEl = $("guard-premium");
-        premEl.hidden = false;
-        if (prem) {
-          session.guardPremium = Number(prem);
-          premEl.textContent =
-            "Indication: $" +
-            Number(prem).toLocaleString() +
-            " / yr — not bindable yet.";
-        } else {
-          const g = data.guard || {};
-          const bits = [];
-          if (g.policyNumber) bits.push("Policy " + g.policyNumber);
-          if (g.msgStatusCd) bits.push(g.msgStatusCd);
-          if (g.policyStatusCd) bits.push(g.policyStatusCd);
-          if (g.remarks && g.remarks.length)
-            bits.push(g.remarks.join(" · "));
-          if (g.rqUid) bits.push("RqUID " + g.rqUid);
-          premEl.textContent = bits.length
-            ? "Indication: " + bits.join(" · ")
-            : "Indication submitted — GUARD did not return a premium yet.";
-        }
-        guardWcStatus(box, "ok", data.disclaimer || "");
-        const qRes = await fetch(API + "/api/guard/wc/questions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            submission_public_id: session.submission_public_id,
-            segment: SEGMENT,
-          }),
-        });
-        const qData = await qRes.json();
-        if (qData.ok && qData.questions && qData.questions.length) {
-          const host = $("guard-q-host");
-          host.hidden = false;
-          renderGuardQuestions(host, qData.questions);
-        }
-        $("guard-bind-fields").hidden = false;
-      } catch (err) {
-        guardWcStatus(box, "err", err.message || String(err));
-      } finally {
-        indicateBtn.disabled = false;
-      }
-    });
+    if (indicateBtn) {
+      indicateBtn.addEventListener("click", async () => {
+        await executeGuardIndicate(box);
+      });
+    }
 
     $("guard-quote-btn").addEventListener("click", async () => {
       const btn = $("guard-quote-btn");
       btn.disabled = true;
-      guardWcStatus(box, "", "Submitting to GUARD…");
+      guardWcStatus(box, "", "Submitting to GUARD\u2026");
       try {
         const res = await fetch(API + "/api/guard/wc/quote", {
           method: "POST",
@@ -2161,11 +2176,13 @@
           body: JSON.stringify({
             submission_public_id: session.submission_public_id,
             clickwrap_agreed: true,
-            clickwrap_name: $("guard-sign-name").value || formPayload().first_name,
+            clickwrap_name:
+              $("guard-sign-name").value || formPayload().first_name,
           }),
         });
         const data = await res.json();
         if (!data.ok) throw new Error(data.message || data.error || "Bind failed");
+        session.guardWcBound = true;
         showGuardBound(box, {
           guard: data.guard,
           premium: session.guardPremium,
@@ -2175,6 +2192,119 @@
         btn.disabled = false;
       }
     });
+  }
+
+  async function executeGuardIndicate(box) {
+    if (!box || !session.submission_public_id) return;
+    const exposureErr = validateGuardWcExposure();
+    if (exposureErr) {
+      guardWcStatus(box, "err", exposureErr);
+      return;
+    }
+    const indicateBtn = $("guard-indicate-btn");
+    if (indicateBtn) indicateBtn.disabled = true;
+    guardWcStatus(box, "", "Getting WC indication\u2026");
+    try {
+      const res = await fetch(API + "/api/guard/wc/indicate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          submission_public_id: session.submission_public_id,
+          segment: SEGMENT,
+          legal_entity: $("guard-legal").value,
+          years_in_business: $("guard-years").value,
+          owner_on_wc: $("guard-owner").value === "yes",
+        }),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.message || data.error || "Indication failed");
+      const prem = data.guard && data.guard.premium;
+      const premEl = $("guard-premium");
+      premEl.hidden = false;
+      if (prem) {
+        session.guardPremium = Number(prem);
+        premEl.textContent =
+          "Indication: $" +
+          Number(prem).toLocaleString() +
+          " / yr \u2014 not bindable yet.";
+      } else {
+        const g = data.guard || {};
+        const bits = [];
+        if (g.policyNumber) bits.push("Policy " + g.policyNumber);
+        if (g.msgStatusCd) bits.push(g.msgStatusCd);
+        if (g.policyStatusCd) bits.push(g.policyStatusCd);
+        if (g.remarks && g.remarks.length) bits.push(g.remarks.join(" \u00b7 "));
+        if (g.rqUid) bits.push("RqUID " + g.rqUid);
+        premEl.textContent = bits.length
+          ? "Indication: " + bits.join(" \u00b7 ")
+          : "Indication submitted \u2014 GUARD did not return a premium yet.";
+      }
+      guardWcStatus(box, "ok", data.disclaimer || "");
+      const qRes = await fetch(API + "/api/guard/wc/questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          submission_public_id: session.submission_public_id,
+          segment: SEGMENT,
+        }),
+      });
+      const qData = await qRes.json();
+      if (qData.ok && qData.questions && qData.questions.length) {
+        const host = $("guard-q-host");
+        host.hidden = false;
+        renderGuardQuestions(host, qData.questions);
+      }
+      $("guard-bind-fields").hidden = false;
+    } catch (err) {
+      guardWcStatus(box, "err", err.message || String(err));
+    } finally {
+      if (indicateBtn) indicateBtn.disabled = false;
+    }
+  }
+
+  async function mountGuardWcQuoteCard() {
+    if ($("guard-wc-box") && $("guard-wc-quote-card")) {
+      return $("guard-wc-box");
+    }
+    const quoteBox = $("quote-box");
+    if (!quoteBox) return null;
+
+    const card = document.createElement("div");
+    card.id = "guard-wc-quote-card";
+    card.className = "card guard-wc-quote-card show";
+    const box = document.createElement("div");
+    box.id = "guard-wc-box";
+    box.className = "guard-wc-box guard-wc-box--quote";
+    box.innerHTML = buildGuardWcPanelHtml("quote");
+    card.appendChild(box);
+    quoteBox.insertAdjacentElement("afterend", card);
+    wireGuardWcBox(box);
+    return box;
+  }
+
+  async function mountGuardWcPostBindOffer() {
+    const successBox = $("success-box");
+    if (!successBox || $("guard-wc-box")) return;
+    const cfg = await fetchGuardWcConfig();
+    if (!cfg || !cfg.offerWc) return;
+
+    const box = document.createElement("div");
+    box.id = "guard-wc-box";
+    box.className = "guard-wc-box";
+    box.innerHTML = buildGuardWcPanelHtml("postbind");
+
+    const connectBtn = $("connect-btn");
+    if (connectBtn && connectBtn.parentNode) {
+      connectBtn.insertAdjacentElement("afterend", box);
+    } else {
+      successBox.appendChild(box);
+    }
+    wireGuardWcBox(box);
+  }
+
+  async function startGuardWcWithQuote() {
+    const box = await mountGuardWcQuoteCard();
+    if (box) await executeGuardIndicate(box);
   }
 
   function showSuccess(connectUrl) {
@@ -2210,7 +2340,14 @@
       };
     }
     ensureConnectBenefitsOnSuccess();
-    mountGuardWcOffer();
+    if (session.wcIntentDeclined && !session.guardWcBound) {
+      mountGuardWcPostBindOffer();
+    }
+    const guardCard = $("guard-wc-quote-card");
+    if (guardCard && wcIntentSelected() && !session.guardWcBound) {
+      const successBox = $("success-box");
+      if (successBox) successBox.insertAdjacentElement("afterend", guardCard);
+    }
   }
 
   function wireForm() {
@@ -2259,6 +2396,7 @@
         session.email = formPayload().contact_email;
         session.quote = q;
         session.exclusions = data.coterie?.exclusions || [];
+        session.wcIntentDeclined = !wcIntentSelected();
         updatePremiumDisplay();
         $("quote-box").classList.add("show");
         $("payment-section").classList.add("show");
@@ -2268,6 +2406,11 @@
           applyPaymentSectionLabels();
         }
         $("quote-box").scrollIntoView({ behavior: "smooth", block: "start" });
+        if (wcIntentSelected()) {
+          startGuardWcWithQuote().catch((err) => {
+            showErr(err.message || String(err));
+          });
+        }
       } catch (err) {
         showErr(err.message || String(err));
       } finally {
@@ -2388,6 +2531,14 @@
       }
     }
     await loadConfig().catch(() => {});
+    await setupGuardWcIntentUi().catch(() => {});
+    const stateEl = $("state");
+    if (stateEl) {
+      stateEl.addEventListener("change", () => {
+        guardWcConfig = null;
+        setupGuardWcIntentUi().catch(() => {});
+      });
+    }
   }
 
   /** Re-apply interim demo UI when quote box is already open before config returned. */

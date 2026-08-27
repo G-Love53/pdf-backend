@@ -316,6 +316,36 @@ select.cq-ext-field:required:invalid {
   margin: 14px 0 16px;
 }
 
+.guard-wc-intent-wrap {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+.guard-wc-intent-wrap label {
+  margin-top: 0;
+}
+.guard-wc-intent-note {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: #374151;
+  line-height: 1.4;
+}
+.guard-wc-quote-card {
+  display: none;
+  margin-top: 0;
+  border: 2px solid #86efac;
+  background: #fff;
+}
+.guard-wc-quote-card.show {
+  display: block;
+}
+.guard-wc-box--quote {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
 .guard-wc-box {
   margin-top: 18px;
   padding-top: 16px;
