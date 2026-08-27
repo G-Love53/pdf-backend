@@ -1,8 +1,8 @@
 # CID × GUARD — Workers’ Comp (ConnectQuote second rail)
 
 > **Canonical location (RSS):** `pdf-backend/docs/guard-integration.md`  
-> **As of:** 2026-08-26 (America/Denver). **Status: route stubs + intake UI on CID-PDF-API** (`af497c8`) — P-env credentials + IP whitelist still required before a live indication.  
-> **v1 segment:** **Plumber** (`wcEnabled: true`, CO **`518322`** = NCCI 5183 + suffix 22). Electrical is coded **off** (15 ft / commercial Digital Decision knockouts).  
+> **As of:** 2026-08-27 (America/Denver). **Status: sandbox E2E on `cid-pdf-api-sandbox`** — main-form WC opt-in, NBQ indication, NBS/BND, `finalizeGuardBind()` → Connect policy row. **Prod gated** on Jon prod credentials + CO class-code confirmation.  
+> **Pilot segments (`wcEnabled: true`):** beauty, cleaning, pet, fitness, plumber, electrical (CO). HVAC **off** until roof/install appetite confirmed.  
 > **Packet:** local `Downloads/GUARD WC API Documentation - 08.21.26` (not in repo).  
 > **Appetite supplement (Aug 2026):** local `Downloads/WC_Appetite_Supplement.pdf` — doc **WCAS081126**; marketing overview + eligible class buckets (not API truth; confirm NCCI + `[E]` with Jon / 60-Second Appetite Check in ASC).
 > **Related:** [`coterie-integration.md`](./coterie-integration.md) · [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md) · [`Deploy_Guide.md`](./Deploy_Guide.md) · [`AUDIT_READINESS.md`](./AUDIT_READINESS.md) · [`partnerships.md`](./partnerships.md) · [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md) · [`CID_IP_AND_ACQUIRER_PROTECTION.md`](./CID_IP_AND_ACQUIRER_PROTECTION.md) § multi-carrier roadmap
@@ -29,7 +29,7 @@
 |------|------|-------|
 | **B — WC after Coterie** | Post-bind confirmation: “Workers’ Comp as well?” | **v1 first UI** |
 | **Connect vault opt-in** | Later, if segment + state apply | After B |
-| **A — Intake checkbox** | Intent on ConnectQuote; no full NBS on the BOP form | Later |
+| **A — Intake checkbox** | “Workers’ Comp indication too?” on main form (entity, years, owner-on-WC); NBQ after commercial quote | **Shipped (2026-08-27)** |
 | **WC-first (standalone)** | Market WC as its own product → bind GUARD → then offer BOP/GL (Coterie) on confirmation / CONNECT | **Phase 2-ish / test** |
 
 User may bind Coterie, GUARD, both, or neither — **either product can be first.**
@@ -51,7 +51,7 @@ GUARD’s instant/auto-UW path is what **they** call **Digital Decision**. Inter
 
 If the switch is off: Coterie BOP/GL unchanged; no WC questions, no GUARD call.
 
-**Pilot appetite (Rick to confirm):** prefer Beauty / Cleaning / Pet / Fitness. Electrical / Plumber / HVAC stay **off** until Digital Decision knockouts (height, commercial, roof HVAC) are acceptable.
+**Pilot appetite (registry Aug 2026):** Beauty / Cleaning / Pet / Fitness + Plumber + Electrical **on** in sandbox (`wcEnabled: true`). HVAC **off** (roof/install knockouts). Painter / bar / roofer not in registry until Jon confirms class codes.
 
 ---
 
@@ -172,15 +172,15 @@ Offer WC only if employees exist **or** owner elects inclusion (owner-only Coter
 
 ## Phased plan
 
-| Phase | Done when |
-|-------|-----------|
-| **0 Review** | Packet reviewed; Option B + hybrid doors; this doc |
-| **1 Sandbox indication** | NBQ premium in P for one `[E]` class (no UI) |
-| **2 Door B UI** | Post-bind WC indication on confirmation page |
-| **3 NBS + BND** | Bindable quote + GUARD bill; `createPolicy()` `bind_source: guard` |
-| **4 CONNECT** | Second policy + WC limit + later vault opt-in (either line) |
-| **5 Optional door A** | Intake `wc_intent` checkbox only |
-| **6 WC-first (phase 2-ish)** | Standalone WC landing/test; after GUARD bind, offer Coterie BOP/GL. Same adapter; no Coterie prerequisite |
+| Phase | Done when | Status |
+|-------|-----------|--------|
+| **0 Review** | Packet reviewed; Option B + hybrid doors; this doc | Done |
+| **1 Sandbox indication** | NBQ premium in P for one `[E]` class (no UI) | Done |
+| **2 Door B UI** | Post-bind WC indication on confirmation page | Done |
+| **3 NBS + BND** | Bindable quote + GUARD bill; `createPolicy()` `bind_source: guard` | Done (sandbox) |
+| **4 CONNECT** | Second policy + WC limit + later vault opt-in (either line) | Partial |
+| **5 Door A — intake WC intent** | Main-form opt-in before commercial quote | Done (2026-08-27) |
+| **6 WC-first (phase 2-ish)** | Standalone WC landing/test; after GUARD bind, offer Coterie BOP/GL. Same adapter; no Coterie prerequisite | Planned |
 
 **Capture → Submit → Render → Deliver → Operate:** Either rail can Capture first. Same public_id. Render = Coterie REST and/or GUARD SOAP + doc webhook. Operate = CONNECT.
 
@@ -247,3 +247,5 @@ Webhook auth (`GUARD_WEBHOOK_AUTH`) is **ours** to invent later and give GUARD f
 | 2026-08-20 | Phase 2-ish: WC may be marketed **standalone**, then offer BOP/GL. Adapter must not require Coterie first. |
 | 2026-08-20 | **Build start:** Plumber WC on; Electrical off. SOAP adapter + post-bind indication UI. Live quote needs GUARD P keys + IP whitelist. |
 | 2026-08-21 | Routes mounted on Render (`guardRoutes.js`); intake post-bind WC box wired; env still empty — no live GUARD calls. |
+| 2026-08-26 | `finalizeGuardBind()` → `policies` row; `wcEnabled` for appetite segments; sandbox P-env smoke (plumber CO). |
+| 2026-08-27 | Main-form WC opt-in (Door A); years-in-business prefill from month started; prod still gated on Jon. |

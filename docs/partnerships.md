@@ -38,7 +38,7 @@
 | **Instantly** | Marketing | Live (ops) | Cold/warm outbound; **not wired to S1 API** | Lead gen customer | Marketing / links | Verify if available | Vendor terms; domain alignment | Rick |
 | **Cohesive AI** | Marketing | Planned | Warm leads → segment `quotes@` | Referral partner | Email forward (planned) | N/A | Written lead-referral agreement before prod | Rick |
 | **Coterie Insurance** | MGA / API carrier | **Prod live (CO)** | ConnectQuote instant rail — Electrical, Fitness, HVAC, Plumber | Distribution / API volume | API + webhooks (+ Stripe bind) | Coterie states compliant; confirm | DPA; issued-policy webhook + doc ingest; multi-state licensing | Gerry |
-| **GUARD** (W.R. Berkley / WestGUARD) | Carrier / API | **Planning** (packet 08.19.26) | ConnectQuote **WC** second line — not a Coterie replacement | Distribution / WC premium | SOAP ACORD + doc webhook (direct bill) | Confirm | Appointment, P-env whitelist, billing-in-writing (CID not MoR); spec [`guard-integration.md`](./guard-integration.md) | Rick / Gerry |
+| **GUARD** (W.R. Berkley / WestGUARD) | Carrier / API | **Sandbox UAT** (prod gated) | ConnectQuote **WC** second line — not a Coterie replacement | Distribution / WC premium | SOAP ACORD + doc webhook (direct bill) | Confirm | P-env live; prod credentials + CO class codes pending Jon; CID not MoR — [`guard-integration.md`](./guard-integration.md) | Rick / Gerry |
 | **Stripe** (via Coterie) | API | **Live (prod + sandbox paths)** | Payment on Coterie instant bind | Payment volume | Embedded (Coterie) | Stripe Type II (standard) | PCI: insured pays Coterie/Stripe; CID not MoR; `pk_live_` for live card bind | Gerry |
 | **USLI / CoverSmart** | Carrier | **Appointment** (small business + special events) | Optional second instant rail; COI/docs if no API | Distribution / premium | TBD — discovery | Verify USLI trust / DPA | Send RSS discovery (`direct-partner-discovery-rss.md`); API vs hosted; Connect handoff | Rick / Gerry |
 | **Traditional carriers** (per segment) | Carrier | Live | Placement for non-instant risks | Submissions / premium | ACORD/SUPP + email (S1–S6) | Varies by carrier | **Named appointment matrix** (see gaps doc) | Gerry / Rick |
@@ -76,3 +76,4 @@
 | 2026-07-30 | USLI / CoverSmart row added; RSS direct-partner discovery template (`direct-partner-discovery-rss.md`). |
 | 2026-08-20 | GUARD WC planning row; see `guard-integration.md`. |
 | 2026-08-21 | **LocalProspects** live for CO Instantly lists; seven ConnectQuote campaigns; prefill/ZIP pipeline shipped (`af497c8`). |
+| 2026-08-27 | GUARD WC sandbox E2E; main-form WC intent; prod gated on Jon credentials + class confirm. |

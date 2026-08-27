@@ -41,9 +41,9 @@ Parallel **instant** path for eligible SMB risks (**CO marketing**: Electrical, 
 
 Shared intake: `/static/connectquote-intake.js` on Render. Lists: **`pull-localprospects-instantly.mjs`** / **`clean-localprospects-instantly.mjs`**. Spec: [`coterie-integration.md`](./coterie-integration.md), [`outreach-claude-playbook.md`](./outreach-claude-playbook.md).
 
-### ConnectQuote second line (GUARD WC — planning)
+### ConnectQuote second line (GUARD WC — sandbox live, prod gated)
 
-Workers’ Comp **in conjunction with** Coterie BOP/GL — same `submission_public_id`; **v1 = Coterie then WC; phase 2 may reverse** (WC standalone test, then BOP/GL). **Per-segment WC switch.** CID-PDF-API **`/api/guard/wc/*`** routes stubbed (2026-08-21); sandbox env not live. GUARD **direct bill** (CID not MoR). Spec: [`guard-integration.md`](./guard-integration.md).
+Workers’ Comp **alongside** Coterie BOP/GL — same `submission_public_id`; **v1 = commercial quote then WC indication/bind** (main-form WC opt-in or post-bind offer). **Per-segment WC switch** (`guardRegistry.js` + `GUARD_ENABLED_SEGMENTS`). CID-PDF-API **`/api/guard/wc/*`** on **`cid-pdf-api-sandbox`** (P-env SOAP); prod waits on Jon credentials + CO class confirmation. GUARD **direct bill** (CID not MoR). Bind → `finalizeGuardBind()` → shared **`policies`** spine. Spec: [`guard-integration.md`](./guard-integration.md).
 
 ## Current Production Invariants
 

@@ -261,9 +261,21 @@ Spec: [`coterie-integration.md`](./coterie-integration.md) · Shipped: [`connect
 
 **Static intake assets** (served from same Render service): `/static/connectquote-intake.js` and `.css` — segment Netlify pages load these with cache-bust query (e.g. `?v=20260821b`); **do not duplicate logic in segment repos**. After intake deploy, bump `?v=` on segment `connectquote.html` files so browsers pick up ZIP/email prefill fixes.
 
-### GUARD Workers’ Comp (planning — not live)
+### GUARD Workers’ Comp (sandbox live — prod gated)
 
-Optional second ConnectQuote line. **Do not set until sandbox is ready.** Spec: [`guard-integration.md`](./guard-integration.md). Names only (values from GUARD — **never commit**): `GUARD_API_BASE`, `GUARD_API_KEY`, `GUARD_API_SECRET`, `GUARD_SP_NAME`, `GUARD_CONTRACT_NUMBER`, `GUARD_WEBHOOK_AUTH`, `GUARD_ENABLED_SEGMENTS`, `GUARD_PILOT_STATES`. P/test environment requires **Render outbound IPs whitelisted** by GUARD; prod does not whitelist. CID does **not** take WC payment — GUARD direct bill.
+Optional second ConnectQuote line on the same submission. **Sandbox:** `cid-pdf-api-sandbox` with P-env credentials + IP whitelist. **Prod:** separate keys/host on `cid-pdf-api` — **do not copy sandbox secrets**; wait for Jon prod `ContractNumber` + CO class confirmation. Spec: [`guard-integration.md`](./guard-integration.md) · Rollout: [`guard-wc-rollout.md`](./guard-wc-rollout.md).
+
+| Env var | Sandbox (P) | Prod |
+|---------|-------------|------|
+| `GUARD_API_BASE` | `https://pgigezrate.guard.com/dotnet/api/acordservice/acord.svc` | `https://gigezrate.guard.com/dotnet/api/acordservice/acord.svc` |
+| `GUARD_API_KEY` / `GUARD_API_SECRET` | From Jon (P-env) | **Separate prod** pair |
+| `GUARD_CONTRACT_NUMBER` | `PAFAKE10` (sandbox) | Prod agency code |
+| `GUARD_SP_NAME` | `com.commercialinsurance-direct` | Same |
+| `GUARD_ENABLED_SEGMENTS` | e.g. `beauty,cleaning,pet,fitness,plumber,electrical` | Same list after class confirm |
+| `GUARD_PILOT_STATES` | `CO` | `CO` until expansion |
+| `GUARD_WEBHOOK_AUTH` | Invent + share with GUARD when doc push enabled | Same pattern |
+
+P/test requires **Render outbound IPs whitelisted** by GUARD; prod does not whitelist. Intake is **`/static/connectquote-intake.js`** on Render — bump `?v=` on segment `connectquote.html` after intake changes. CID does **not** take WC payment — GUARD direct bill.
 
 ### Connect identity + CORS checks
 

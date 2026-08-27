@@ -83,7 +83,7 @@ ConnectQuote is architected as a **multi-partner instant-bind layer**, not a sin
 | Phase | Partner / program | Lines | Status | Owner |
 |-------|-------------------|-------|--------|-------|
 | **Live** | **Coterie** (MGA / API) | BOP, GL (+ PL where appetite) | **Prod — CO**; 7 ConnectQuote domains, 9 marketable lines (Fitness = yoga / pilates / trainer) | Gerry / Rick |
-| **In development** | **GUARD** (W.R. Berkley) | Workers’ Comp | Planning spec [`guard-integration.md`](./guard-integration.md); packet 08.19.26; Option B first | Rick / Gerry |
+| **Sandbox UAT** | **GUARD** (W.R. Berkley) | Workers’ Comp | Sandbox E2E on ConnectQuote; prod gated — [`guard-integration.md`](./guard-integration.md) | Rick / Gerry |
 | **Discovery** | **Next Insurance** | SMB commercial (scope TBD) | RSS discovery — API vs hosted, Connect post-bind handoff | Rick / Gerry |
 | **Discovery** | **Thimble** | On-demand / SMB (scope TBD) | RSS discovery — MoR + payment surface per rail | Rick / Gerry |
 | **Discovery** | **USLI / CoverSmart** | Small business + special events | Appointment in place; RSS discovery template ready | Rick / Gerry |

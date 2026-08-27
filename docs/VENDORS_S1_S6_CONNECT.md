@@ -1,9 +1,9 @@
 # CID vendors — S1–S6 pipeline and Connect
 
 > **Canonical location (RSS):** `pdf-backend/docs/VENDORS_S1_S6_CONNECT.md` — version with **CID-PDF-API** on Render.  
-> **As of:** 2026-06-04 (America/Denver). Update this date when vendors or roles change.
+> **As of:** 2026-08-27 (America/Denver). Update this date when vendors or roles change.
 
-**Purpose:** One dated reference for **who we use** (and what we dropped) across intake → operator → bind and **CID Connect**. Deploy/env → [`Deploy_Guide.md`](./Deploy_Guide.md). Coterie ConnectQuote → [`coterie-integration.md`](./coterie-integration.md). GUARD WC (planning) → [`guard-integration.md`](./guard-integration.md). Ops → [`OPERATOR_DAILY_RUNBOOK.md`](./OPERATOR_DAILY_RUNBOOK.md). Connect arch → **`cid-connect`** [`docs/ARCHITECTURE.md`](https://github.com/G-Love53/cid-connect/blob/main/docs/ARCHITECTURE.md). Business/compliance → [`partnerships.md`](./partnerships.md), [`partnership-gaps.md`](./partnership-gaps.md), [`compliance-roadmap.md`](./compliance-roadmap.md).
+**Purpose:** One dated reference for **who we use** (and what we dropped) across intake → operator → bind and **CID Connect**. Deploy/env → [`Deploy_Guide.md`](./Deploy_Guide.md). Coterie ConnectQuote → [`coterie-integration.md`](./coterie-integration.md). GUARD WC (sandbox UAT) → [`guard-integration.md`](./guard-integration.md). Ops → [`OPERATOR_DAILY_RUNBOOK.md`](./OPERATOR_DAILY_RUNBOOK.md). Connect arch → **`cid-connect`** [`docs/ARCHITECTURE.md`](https://github.com/G-Love53/cid-connect/blob/main/docs/ARCHITECTURE.md). Business/compliance → [`partnerships.md`](./partnerships.md), [`partnership-gaps.md`](./partnership-gaps.md), [`compliance-roadmap.md`](./compliance-roadmap.md).
 
 ---
 
@@ -25,7 +25,7 @@
 | **S3** | *(Grouped with submit in practice)* | Same as S2 | No separate third-party product |
 | **S4 — Carrier ingest + review** | Poller reads inbox; quote PDFs → R2; extraction queue | **Gmail** (OAuth poller), **Google Cloud** (OAuth client), **Render**, **Postgres**, **R2**, **Anthropic** | Operator UI on Render `/operator` |
 | **S5 — Client packet** | Sales letter + email quote packet to insured | **Render**, **Gmail**, **Anthropic** (primary), **Gemini** (fallback), **R2** | **OpenAI** not wired in `pdf-backend` letter/chat today |
-| **S6 — Bind** | E-sign, policy row, bind/welcome mail | **BoldSign**, **Render**, **Postgres**, **R2**, **Gmail** | **ConnectQuote BOP/GL:** **Coterie** + **Stripe (via Coterie)** + demo-finalize; `bind_source: coterie`. **WC (planning):** **GUARD** SOAP + their direct bill; `bind_source: guard` — CID not MoR ([`guard-integration.md`](./guard-integration.md)) |
+| **S6 — Bind** | E-sign, policy row, bind/welcome mail | **BoldSign**, **Render**, **Postgres**, **R2**, **Gmail** | **ConnectQuote BOP/GL:** **Coterie** + **Stripe (via Coterie)** + demo-finalize; `bind_source: coterie`. **WC (sandbox):** **GUARD** SOAP + their direct bill; `bind_source: guard` — CID not MoR ([`guard-integration.md`](./guard-integration.md)) |
 
 ---
 

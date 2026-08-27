@@ -6,7 +6,7 @@
 
 **RSS rule:** **CID-PDF-API** (`pdf-backend` on Render) remains the **only** system of record for S4–S6, poller, bind, policy artifacts, and COI **execution**. CID Connect + Supabase provide **identity, UX, and optional app-side cache**; they **call** the API, they do not fork pipeline logic.
 
-**GUARD WC (later):** vault may show an opt-in for Workers’ Comp when the segment/state apply. Quote/bind still hits CID-PDF-API — no GUARD secrets in the browser. Spec: [`guard-integration.md`](./guard-integration.md).
+**GUARD WC:** second policy on the same submission when segment/state allow (`bind_source: guard`). ConnectQuote intake offers WC on the main form or post-bind; quote/bind still hits CID-PDF-API — no GUARD secrets in the browser. Spec: [`guard-integration.md`](./guard-integration.md).
 
 ---
 

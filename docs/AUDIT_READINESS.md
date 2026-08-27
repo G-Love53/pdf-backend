@@ -100,18 +100,18 @@ Given a `submission_public_id` or `quote_id`:
 
 **Gaps until implemented:** webhook handler, idempotent finalize, fixture tests, operator visibility for Coterie-bound policies.
 
-### ConnectQuote — GUARD Workers’ Comp (planning)
+### ConnectQuote — GUARD Workers’ Comp (sandbox UAT — prod gated)
 
-**Status:** Packet reviewed 2026-08-20 (`docs/guard-integration.md`). **API route stubs** on CID-PDF-API (`/api/guard/wc/*`, commit `af497c8`) — **no production SOAP credentials**; post-bind WC offer UI in intake is gated on `offerWc` config.
+**Status:** P-env SOAP live on **`cid-pdf-api-sandbox`** (Aug 2026). Full path tested: main-form WC opt-in → Coterie BOP quote → GUARD NBQ indication → NBS UW questions → BND → `finalizeGuardBind()` → **`policies`** row (`bind_source: guard`, GUARD policy number). Spec: [`guard-integration.md`](./guard-integration.md).
 
-**Target (same spine, second policy on the same submission):**
+**Audit spine (same submission, second policy):**
 
-- Timeline `guard.*` + GUARD `PolicyNumber` as `carrier_quote_ref`
+- Timeline `guard.indicated` / `guard.bound` + GUARD `PolicyNumber` as `carrier_quote_ref`
 - `policies` via `createPolicy()` with `coverage_data.bind_source = 'guard'`, `policy_type = WC`
-- Doc push webhook → R2 + `documents` (partner-hosted endpoint; GUARD origin IPs in packet)
-- Bind evidence is GUARD BND + their billing — **not** CID card/ACH, **not** BoldSign
+- Doc push webhook → R2 + `documents` (partner-hosted endpoint; GUARD origin IPs in packet) — **not wired**
+- Bind evidence is GUARD BND + **GUARD direct bill** — **not** CID card/ACH, **not** BoldSign
 
-**Gaps until implemented:** SOAP client, indication vs NBS split, webhook ingest, operator dual-rail view.
+**Gaps until prod:** prod API credentials + CO class-code confirmation (Jon); doc webhook ingest; operator dual-rail polish.
 
 ### Known operational gaps (audit awareness)
 
@@ -121,18 +121,21 @@ Given a `submission_public_id` or `quote_id`:
 
 ---
 
-**Gaps until implemented:** SOAP client, indication vs NBS split, webhook ingest, operator dual-rail view.
-
 ### Outreach / list quality (Aug 2026)
 
 - **Instantly → ConnectQuote** attribution via `ch` / `src` / `cid` on every prefilled URL; persisted on submission.
 - **ZIP prefill:** wrong ZIP worse than blank — `parseUsZip.js` + intake validation (deployed 2026-08-21).
 - **List tooling** in `pdf-backend` only; segment repos host creatives + `connectquote.html` shell.
 
+### 2026-08-27 readiness updates
+
+- GUARD WC sandbox E2E on `cid-pdf-api-sandbox`: main-form WC intent, post-quote indication card, NBS/BND, `finalizeGuardBind()` → Connect policy row.
+- Prod GUARD credentials and CO class codes **pending Jon** — do not enable on `cid-pdf-api` until confirmed.
+
 ### 2026-08-21 readiness updates
 
 - Seven CO ConnectQuote Instantly campaigns; LocalProspects pipeline documented (`localprospects-list-design.md`).
-- GUARD WC API stubs on Render; no live SOAP credentials.
+- GUARD WC API routes mounted on Render (`/api/guard/wc/*`).
 
 ### 2026-06-04 readiness updates
 
