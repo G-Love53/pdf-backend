@@ -7,7 +7,7 @@
     "https://cid-pdf-api.onrender.com"
   ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260827a";
+  const ASSET_V = "20260827b";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -802,6 +802,7 @@
         } else {
           hidden.value = "";
         }
+        syncGuardYearsFromForm();
       }
 
       monthSel.addEventListener("change", sync);
@@ -1369,6 +1370,7 @@
     bindMonthYearFields();
     bindLocationTypeUi();
     applyCoveragePrefill();
+    syncGuardYearsFromForm();
   }
 
   function applyCoveragePrefill() {
@@ -1528,6 +1530,43 @@
       o.contact_phone = normalizeUsPhone(o.contact_phone) || String(o.contact_phone).replace(/\D+/g, "");
     }
     return o;
+  }
+
+  /** Match guardService.yearsInBusinessFromForm — month started → full years. */
+  function yearsInBusinessFromForm(form) {
+    const explicit = form.years_in_business || form.num_yrs_in_business;
+    if (explicit != null && explicit !== "") {
+      const n = Number(explicit);
+      if (Number.isFinite(n) && n >= 0) return Math.max(1, Math.round(n));
+    }
+    const start =
+      form.business_start_month ||
+      form.businessStartDate ||
+      form.business_start_year ||
+      "";
+    const yearMatch = String(start).match(/^(19|20)\d{2}/);
+    if (yearMatch) {
+      const startYear = Number(yearMatch[0]);
+      const now = new Date().getUTCFullYear();
+      return Math.max(1, now - startYear);
+    }
+    return null;
+  }
+
+  function syncGuardYearsFromForm() {
+    const el = $("guard-years");
+    if (!el || el.dataset.userEdited === "1") return;
+    const yrs = yearsInBusinessFromForm(formPayload());
+    if (yrs != null) el.value = String(yrs);
+  }
+
+  function wireGuardYearsField() {
+    const el = $("guard-years");
+    if (!el || el.dataset.guardYearsBound === "1") return;
+    el.dataset.guardYearsBound = "1";
+    el.addEventListener("input", () => {
+      el.dataset.userEdited = "1";
+    });
   }
 
   function validateEmailForQuote() {
@@ -2043,8 +2082,11 @@
       '<select id="guard-owner"><option value="no">No — employees only</option><option value="yes">Yes — include me</option></select>' +
       "</div>";
     $("quote-btn").insertAdjacentElement("beforebegin", wrap);
+    wireGuardYearsField();
+    syncGuardYearsFromForm();
     $("guard-wc-intent").addEventListener("change", () => {
       $("guard-wc-intent-detail").hidden = !wcIntentSelected();
+      if (wcIntentSelected()) syncGuardYearsFromForm();
     });
   }
 
@@ -2196,6 +2238,7 @@
 
   async function executeGuardIndicate(box) {
     if (!box || !session.submission_public_id) return;
+    syncGuardYearsFromForm();
     const exposureErr = validateGuardWcExposure();
     if (exposureErr) {
       guardWcStatus(box, "err", exposureErr);
@@ -2279,6 +2322,8 @@
     card.appendChild(box);
     quoteBox.insertAdjacentElement("afterend", card);
     wireGuardWcBox(box);
+    wireGuardYearsField();
+    syncGuardYearsFromForm();
     return box;
   }
 
