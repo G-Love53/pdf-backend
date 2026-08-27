@@ -261,9 +261,9 @@ Spec: [`coterie-integration.md`](./coterie-integration.md) · Shipped: [`connect
 
 **Static intake assets** (served from same Render service): `/static/connectquote-intake.js` and `.css` — segment Netlify pages load these with cache-bust query (e.g. `?v=20260821b`); **do not duplicate logic in segment repos**. After intake deploy, bump `?v=` on segment `connectquote.html` files so browsers pick up ZIP/email prefill fixes.
 
-### GUARD Workers’ Comp (sandbox live — prod gated)
+### GUARD Workers’ Comp (live)
 
-Optional second ConnectQuote line on the same submission. **Sandbox:** `cid-pdf-api-sandbox` with P-env credentials + IP whitelist. **Prod:** separate keys/host on `cid-pdf-api` — **do not copy sandbox secrets**; wait for Jon prod `ContractNumber` + CO class confirmation. Spec: [`guard-integration.md`](./guard-integration.md) · Rollout: [`guard-wc-rollout.md`](./guard-wc-rollout.md).
+Optional second ConnectQuote line on the same submission. Spec: [`guard-integration.md`](./guard-integration.md) · Rollout: [`guard-wc-rollout.md`](./guard-wc-rollout.md).
 
 | Env var | Sandbox (P) | Prod |
 |---------|-------------|------|

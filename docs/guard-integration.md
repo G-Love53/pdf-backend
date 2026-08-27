@@ -1,7 +1,7 @@
 # CID × GUARD — Workers’ Comp (ConnectQuote second rail)
 
 > **Canonical location (RSS):** `pdf-backend/docs/guard-integration.md`  
-> **As of:** 2026-08-27 (America/Denver). **Status: sandbox E2E on `cid-pdf-api-sandbox`** — main-form WC opt-in, NBQ indication, NBS/BND, `finalizeGuardBind()` → Connect policy row. **Prod gated** on Jon prod credentials + CO class-code confirmation.  
+> **As of:** 2026-08-27 (America/Denver). **Status: live on ConnectQuote** (CO pilot) — main-form WC opt-in, NBQ indication, NBS/BND, `finalizeGuardBind()` → Connect policy row.  
 > **Pilot segments (`wcEnabled: true`):** beauty, cleaning, pet, fitness, plumber, electrical (CO). HVAC **off** until roof/install appetite confirmed.  
 > **Packet:** local `Downloads/GUARD WC API Documentation - 08.21.26` (not in repo).  
 > **Appetite supplement (Aug 2026):** local `Downloads/WC_Appetite_Supplement.pdf` — doc **WCAS081126**; marketing overview + eligible class buckets (not API truth; confirm NCCI + `[E]` with Jon / 60-Second Appetite Check in ASC).

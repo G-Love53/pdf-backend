@@ -43,7 +43,7 @@ CID acquires, qualifies, distributes, and services small commercial insurance cu
 Ten-plus trade-specific websites, each purpose-built for a single type of small business. Segment-native language, intake forms, and coverage explanations that convert where generalist portals fail. New segments deploy on shared infrastructure in **under 5 hours** from domain purchase to live ConnectQuote intake.
 
 ### 2 · Distribute — ConnectQuote + RSS Engine
-CID's instant quote-and-bind platform powered by the Coterie API. A small business owner completes a trade-specific intake form and receives a real-time BOP/GL quote. They bind directly. The policy is issued immediately. No human touchpoints. The RSS Engine provides a dual rail: Coterie API instant-bind for supported carriers, automated ACORD S1–S6 for every other carrier regardless of technology maturity. GUARD Insurance (W.R. Berkley) Workers' Comp — sandbox E2E tested on ConnectQuote (Aug 2026); prod gated on carrier credentials — second commercial line on the platform.
+CID's instant quote-and-bind platform powered by the Coterie API. A small business owner completes a trade-specific intake form and receives a real-time BOP/GL quote. They bind directly. The policy is issued immediately. No human touchpoints. The RSS Engine provides a dual rail: Coterie API instant-bind for supported carriers, automated ACORD S1–S6 for every other carrier regardless of technology maturity. GUARD Insurance (W.R. Berkley) Workers' Comp **live on ConnectQuote** (Aug 2026) — second commercial line alongside Coterie BOP/GL, CO pilot.
 
 ### 3 · Retain — CONNECT
 CONNECT is a branded mobile app — always available, policy-specific, always with the insured on phone, tablet, or desktop — that transforms insurance from a one-time transaction into a living, working relationship. Policy vault, instant COI hub, Am I Covered?, claims initiation, and renewal management. The bind is the beginning of the relationship, not the end. Traditional agencies retain at 80–85% because clients shop at renewal. CONNECT is designed to break that pattern permanently by raising switching costs before renewal arrives.
@@ -85,7 +85,7 @@ The fundamental advantage: adding 1,000 policyholders to a traditional agency re
 | CONNECT policyholder app | Live — policy vault, COI hub, Am I Covered?, claims |
 | RSS Engine (dual rail) | Live — API + ACORD S1–S6 |
 | Colorado email marketing campaign | Active — Electrical, HVAC, Plumber, Beauty, Cleaning, Pet; Fitness classes Yoga, Pilates, Personal Trainer |
-| GUARD Workers' Comp program | In development for ConnectQuote |
+| GUARD Workers' Comp program | **Live** on ConnectQuote (CO pilot, Aug 2026) |
 | First binds | Complete — real policies issued end-to-end on mobile |
 | Segment deployment speed | Under 5 hours from domain to live ConnectQuote intake |
 

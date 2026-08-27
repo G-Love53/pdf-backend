@@ -100,9 +100,9 @@ Given a `submission_public_id` or `quote_id`:
 
 **Gaps until implemented:** webhook handler, idempotent finalize, fixture tests, operator visibility for Coterie-bound policies.
 
-### ConnectQuote — GUARD Workers’ Comp (sandbox UAT — prod gated)
+### ConnectQuote — GUARD Workers’ Comp (live)
 
-**Status:** P-env SOAP live on **`cid-pdf-api-sandbox`** (Aug 2026). Full path tested: main-form WC opt-in → Coterie BOP quote → GUARD NBQ indication → NBS UW questions → BND → `finalizeGuardBind()` → **`policies`** row (`bind_source: guard`, GUARD policy number). Spec: [`guard-integration.md`](./guard-integration.md).
+**Status:** Live on ConnectQuote (Aug 2026, CO pilot). Full path: main-form WC opt-in → Coterie BOP quote → GUARD NBQ indication → NBS/BND → `finalizeGuardBind()` → **`policies`** row (`bind_source: guard`). Spec: [`guard-integration.md`](./guard-integration.md).
 
 **Audit spine (same submission, second policy):**
 
@@ -111,7 +111,7 @@ Given a `submission_public_id` or `quote_id`:
 - Doc push webhook → R2 + `documents` (partner-hosted endpoint; GUARD origin IPs in packet) — **not wired**
 - Bind evidence is GUARD BND + **GUARD direct bill** — **not** CID card/ACH, **not** BoldSign
 
-**Gaps until prod:** prod API credentials + CO class-code confirmation (Jon); doc webhook ingest; operator dual-rail polish.
+**Gaps (ops):** doc webhook ingest → R2; multi-state class-code expansion as pilot grows.
 
 ### Known operational gaps (audit awareness)
 
