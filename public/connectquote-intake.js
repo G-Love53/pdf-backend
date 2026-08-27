@@ -7,7 +7,7 @@
     "https://cid-pdf-api.onrender.com"
   ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260827b";
+  const ASSET_V = "20260827c";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -1539,6 +1539,16 @@
       const n = Number(explicit);
       if (Number.isFinite(n) && n >= 0) return Math.max(1, Math.round(n));
     }
+    const yearEl =
+      document.getElementById("f_business_start_month_year") ||
+      document.querySelector("[data-bsm-year]");
+    if (yearEl && yearEl.value) {
+      const startYear = Number(yearEl.value);
+      if (Number.isFinite(startYear) && startYear >= 1900) {
+        const now = new Date().getFullYear();
+        return Math.max(1, now - startYear);
+      }
+    }
     const start =
       form.business_start_month ||
       form.businessStartDate ||
@@ -1547,7 +1557,7 @@
     const yearMatch = String(start).match(/^(19|20)\d{2}/);
     if (yearMatch) {
       const startYear = Number(yearMatch[0]);
-      const now = new Date().getUTCFullYear();
+      const now = new Date().getFullYear();
       return Math.max(1, now - startYear);
     }
     return null;
@@ -2404,6 +2414,7 @@
     $("cq-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!validateBeforeQuote()) return;
+      syncGuardYearsFromForm();
       $("err-box").classList.remove("show");
       $("quote-btn").disabled = true;
       try {
