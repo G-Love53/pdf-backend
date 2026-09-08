@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>CID Partner Test — Workers' Comp (P-env)</title>
+  <link rel="stylesheet" href="/static/connectquote-intake.css?v=20260904a"/>
+  <style>
+    :root { --brand: #1B3A5F; --accent: #0d9488; }
+    body { font-family: Arial, sans-serif; margin: 0; background: #f3f4f6; color: #111; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 20px; }
+    .banner { background: var(--brand); color: #fff; border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; font-size: .9rem; line-height: 1.5; }
+    .banner strong { color: #99f6e4; }
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.08); padding: 22px; margin-bottom: 14px; }
+    h1 { color: var(--brand); margin: 0 0 6px; font-size: 1.5rem; }
+    .sub { color: #555; margin: 0 0 16px; font-size: .95rem; }
+    label { display: block; font-weight: 600; margin: 10px 0 4px; font-size: .88rem; }
+    input, select { width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+    button { background: linear-gradient(135deg, #14b8a6, var(--accent)); color: #fff; border: 0; padding: 13px 18px; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 14px; }
+    button.secondary { background: var(--brand); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    .class-box { background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 12px; margin: 12px 0; font-size: .92rem; display: none; }
+    .class-box.show { display: block; }
+    .err { background: #fef2f2; color: #b91c1c; padding: 12px; border-radius: 8px; margin-top: 12px; display: none; }
+    .err.show { display: block; }
+    .ok { background: #ecfdf5; color: #065f46; padding: 12px; border-radius: 8px; margin-top: 12px; display: none; }
+    .ok.show { display: block; }
+    #wc-section { display: none; }
+    #wc-section.show { display: block; }
+    .footer { text-align: center; font-size: .82rem; color: #666; margin-top: 20px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="banner">
+    <strong>Partner test — P-env</strong> Workers' Comp only. For GUARD integration testing.
+    Not a consumer quote site. Billing is direct with the carrier if you bind.
+  </div>
+
+  <div class="card">
+    <h1>Workers' Comp test intake</h1>
+    <p class="sub">All Access Insurance · Colorado pilot · select segment to view class code</p>
+
+    <form id="start-form">
+      <div class="row">
+        <div>
+          <label>Segment</label>
+          <select id="segment" name="segment" required></select>
+        </div>
+        <div>
+          <label>State</label>
+          <select id="state" name="state" required>
+            <option value="CO" selected>CO</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="class-box" class="class-box"></div>
+
+      <div class="row">
+        <div>
+          <label>First name</label>
+          <input id="first_name" value="Demo" required/>
+        </div>
+        <div>
+          <label>Last name</label>
+          <input id="last_name" value="Insured" required/>
+        </div>
+      </div>
+      <label>Email</label>
+      <input id="email" type="email" value="guard-test@commercialinsurance-direct.com" required/>
+      <label>Business name</label>
+      <input id="business_name" value="Demo Business LLC" required/>
+
+      <div class="row">
+        <div>
+          <label>Location street (operations)</label>
+          <input id="location_street" value="123 Main St" required/>
+        </div>
+        <div>
+          <label>Location ZIP</label>
+          <input id="location_zip" value="80202" required/>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Mailing street (must differ from location)</label>
+          <input id="mailing_street" value="PO Box 100" required/>
+        </div>
+        <div>
+          <label>Mailing ZIP</label>
+          <input id="mailing_zip" value="80203" required/>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Employees</label>
+          <input id="num_employees" type="number" min="0" value="2" required/>
+        </div>
+        <div>
+          <label>Annual payroll</label>
+          <input id="payroll" type="number" min="0" value="80000" required/>
+        </div>
+      </div>
+
+      <button type="submit" id="start-btn">Start WC test</button>
+      <p id="start-err" class="err"></p>
+      <p id="start-ok" class="ok"></p>
+    </form>
+  </div>
+
+  <div id="wc-section" class="card">
+    <div id="guard-wc-box" class="guard-wc-box"></div>
+  </div>
+
+  <p class="footer">Submission ID: <span id="submission-id">—</span></p>
+</div>
+
+<script>
+window.GUARD_PARTNER_TEST = {
+  api: (function () {
+    var p = new URLSearchParams(location.search);
+    if (p.get("api")) return p.get("api").replace(/\/$/, "");
+    if (/cid-pdf-api-sandbox/i.test(location.host)) return location.origin.replace(/\/$/, "");
+    return "https://cid-pdf-api-sandbox.onrender.com";
+  })(),
+  token: new URLSearchParams(location.search).get("token") || "",
+};
+</script>
+<script src="/partner-test/guard-wc-test.js?v=20260904a"></script>
+</body>
+</html>

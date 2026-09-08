@@ -48,6 +48,7 @@ export async function recordSubmission({
   primaryPhone,
   firstName,
   lastName,
+  notifyAgent = true,
 }) {
   const poolInstance = getPool();
   if (!poolInstance) return null;
@@ -157,16 +158,18 @@ export async function recordSubmission({
     const result = { clientId, submissionId, submissionPublicId };
 
     try {
-      const name =
-        rawSubmission?.applicant_name ||
-        rawSubmission?.insured_name ||
-        rawSubmission?.premises_name ||
-        null;
-      await notifySubmissionReceived({
-        segment: segEnum,
-        submissionPublicId,
-        clientName: name,
-      });
+      if (notifyAgent) {
+        const name =
+          rawSubmission?.applicant_name ||
+          rawSubmission?.insured_name ||
+          rawSubmission?.premises_name ||
+          null;
+        await notifySubmissionReceived({
+          segment: segEnum,
+          submissionPublicId,
+          clientName: name,
+        });
+      }
     } catch (notifyErr) {
       console.error(
         "[db] notifySubmissionReceived error:",

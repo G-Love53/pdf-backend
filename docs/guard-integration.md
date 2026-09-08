@@ -2,7 +2,7 @@
 
 > **Canonical location (RSS):** `pdf-backend/docs/guard-integration.md`  
 > **As of:** 2026-08-27 (America/Denver). **Status: live on ConnectQuote** (CO pilot) — main-form WC opt-in, NBQ indication, NBS/BND, `finalizeGuardBind()` → Connect policy row.  
-> **Pilot segments (`wcEnabled: true`):** beauty, cleaning, pet, fitness, plumber, electrical (CO). HVAC **off** until roof/install appetite confirmed.  
+> **Pilot segments (`wcEnabled: true`):** beauty (hair / barber / nails), cleaning, pet, fitness (yoga / pilates / personal trainer), plumber, electrical (CO). HVAC **off** until roof/install appetite confirmed.  
 > **Packet:** local `Downloads/GUARD WC API Documentation - 08.21.26` (not in repo).  
 > **Appetite supplement (Aug 2026):** local `Downloads/WC_Appetite_Supplement.pdf` — doc **WCAS081126**; marketing overview + eligible class buckets (not API truth; confirm NCCI + `[E]` with Jon / 60-Second Appetite Check in ASC).
 > **Related:** [`coterie-integration.md`](./coterie-integration.md) · [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md) · [`Deploy_Guide.md`](./Deploy_Guide.md) · [`AUDIT_READINESS.md`](./AUDIT_READINESS.md) · [`partnerships.md`](./partnerships.md) · [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md) · [`CID_IP_AND_ACQUIRER_PROTECTION.md`](./CID_IP_AND_ACQUIRER_PROTECTION.md) § multi-carrier roadmap
@@ -51,7 +51,7 @@ GUARD’s instant/auto-UW path is what **they** call **Digital Decision**. Inter
 
 If the switch is off: Coterie BOP/GL unchanged; no WC questions, no GUARD call.
 
-**Pilot appetite (registry Aug 2026):** Beauty / Cleaning / Pet / Fitness + Plumber + Electrical **on** in sandbox (`wcEnabled: true`). HVAC **off** (roof/install knockouts). Painter / bar / roofer not in registry until Jon confirms class codes.
+**Pilot appetite (registry Aug 2026):** Beauty (hair / barber / nails), Cleaning, Pet, Fitness (yoga / pilates / personal trainer) + Plumber + Electrical **on** in sandbox (`wcEnabled: true`). HVAC **off** (roof/install knockouts). Painter / bar / roofer not in registry until Jon confirms class codes.
 
 ---
 
@@ -215,6 +215,8 @@ GUARD does **not** put API keys in the packet. Their sequence (Arianna, Jul 2026
 5. Paste key / secret / contract number into Render (sandbox). Redeploy.  
 6. Smoke: `GET /api/guard/wc/config?segment=plumber` → `offerWc: true`. Then a Plumber ConnectQuote bind → WC indication.
 
+**Partner test (WC-only, sandbox):** `https://cid-pdf-api-sandbox.onrender.com/partner-test/guard-wc.html` — segment picker, class codes, NBQ→bind without other products. Enabled when `GUARD_PARTNER_TEST_ENABLED` is unset on P-env (defaults on sandbox) or `true`. Optional `GUARD_PARTNER_TEST_TOKEN` + `?token=` on URL.
+
 **Prod rollout (multi-segment):** [`guard-wc-rollout.md`](./guard-wc-rollout.md)
 
 Webhook auth (`GUARD_WEBHOOK_AUTH`) is **ours** to invent later and give GUARD for doc push — not needed for the first indication.
@@ -248,4 +250,4 @@ Webhook auth (`GUARD_WEBHOOK_AUTH`) is **ours** to invent later and give GUARD f
 | 2026-08-20 | **Build start:** Plumber WC on; Electrical off. SOAP adapter + post-bind indication UI. Live quote needs GUARD P keys + IP whitelist. |
 | 2026-08-21 | Routes mounted on Render (`guardRoutes.js`); intake post-bind WC box wired; env still empty — no live GUARD calls. |
 | 2026-08-26 | `finalizeGuardBind()` → `policies` row; `wcEnabled` for appetite segments; sandbox P-env smoke (plumber CO). |
-| 2026-08-27 | Main-form WC opt-in (Door A); years-in-business prefill from month started; prod still gated on Jon. |
+| 2026-09-04 | Partner test lane: `/partner-test/guard-wc.html` + `/api/guard/wc/registry` + `/api/guard/wc/partner/start` (WC-only, sandbox). |

@@ -6,8 +6,51 @@ import {
   processGuardQuestions,
   processGuardQuote,
 } from "../services/guardIntakeService.js";
+import {
+  getGuardWcRegistry,
+  isGuardPartnerTestEnabled,
+  startGuardPartnerTest,
+  verifyGuardPartnerTestToken,
+} from "../services/guardPartnerTestService.js";
 
 const router = express.Router();
+
+function partnerTestGate(req, res, next) {
+  if (!isGuardPartnerTestEnabled()) {
+    return res.status(404).json({
+      ok: false,
+      error: "PARTNER_TEST_DISABLED",
+      message: "GUARD partner test is not enabled on this service.",
+    });
+  }
+  if (!verifyGuardPartnerTestToken(req)) {
+    return res.status(401).json({
+      ok: false,
+      error: "PARTNER_TEST_UNAUTHORIZED",
+      message: "Invalid or missing partner test token.",
+    });
+  }
+  return next();
+}
+
+router.get("/api/guard/wc/registry", partnerTestGate, (req, res) => {
+  const state = req.query.state || "CO";
+  return res.json(getGuardWcRegistry(state));
+});
+
+router.post("/api/guard/wc/partner/start", partnerTestGate, async (req, res) => {
+  try {
+    const result = await startGuardPartnerTest(req.body || {});
+    return res.status(result.status || 200).json(result);
+  } catch (err) {
+    console.error("[guard partner start] error:", err);
+    return res.status(500).json({
+      ok: false,
+      error: "GUARD_PARTNER_START_ERROR",
+      message: err.message || "Internal error",
+    });
+  }
+});
 
 router.get("/api/guard/wc/config", (req, res) => {
   const segment = String(req.query.segment || "").toLowerCase();

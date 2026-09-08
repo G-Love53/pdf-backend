@@ -140,6 +140,15 @@ APP.use(
   }),
 );
 
+// Carrier partner test lanes (sandbox) — WC-only paths for GUARD, etc.
+APP.use(
+  "/partner-test",
+  express.static(path.join(process.cwd(), "public", "partner-test"), {
+    maxAge: 300,
+    etag: true,
+  }),
+);
+
 // CID Connect API bridge (Phase 1: X-User-Email + optional X-User-Id)
 APP.use("/api/connect", connectAuthMiddleware, connectApiRouter);
 

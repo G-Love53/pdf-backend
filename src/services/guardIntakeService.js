@@ -72,9 +72,9 @@ export async function loadGuardSession(submissionPublicId) {
   return r.rows[0]?.event_payload_json || null;
 }
 
-export function getGuardOfferConfig(segment, state) {
-  const entry = getGuardSegmentEntry(segment);
-  const wcEnabled = isGuardWcEnabledForSegment(segment);
+export function getGuardOfferConfig(segment, state, businessClass) {
+  const entry = getGuardSegmentEntry(segment, businessClass);
+  const wcEnabled = isGuardWcEnabledForSegment(segment, businessClass);
   const stateOk = isGuardPilotState(state || "CO");
   const pub = getGuardPublicConfig();
   return {
@@ -92,8 +92,26 @@ export function getGuardOfferConfig(segment, state) {
   };
 }
 
-function gate(segment, state) {
-  if (!isGuardWcEnabledForSegment(segment)) {
+function guardContextFrom(body, row, session) {
+  const form = formFromSubmission(row);
+  const segment = String(
+    body?.segment || session?.segment || form.segment || row?.segment || "",
+  )
+    .trim()
+    .toLowerCase();
+  const businessClass =
+    body?.business_class ||
+    form.business_class ||
+    form.businessClass ||
+    session?.businessClass ||
+    null;
+  const line = getGuardSegmentEntry(segment, businessClass);
+  const guardLineKey = line?.lineKey || segment;
+  return { form, segment, businessClass, line, guardLineKey };
+}
+
+function gate(segment, state, businessClass) {
+  if (!isGuardWcEnabledForSegment(segment, businessClass)) {
     return {
       ok: false,
       status: 400,
@@ -137,15 +155,13 @@ export async function processGuardIndicate(body = {}) {
   }
 
   const form = formFromSubmission(row);
-  const segment = String(body.segment || row.segment || form.segment || "")
-    .trim()
-    .toLowerCase();
-  const state = form.premise_state || form.state || body.state || "CO";
-  const blocked = gate(segment, state);
+  const ctx = guardContextFrom(body, row, null);
+  const state = ctx.form.premise_state || ctx.form.state || body.state || "CO";
+  const blocked = gate(ctx.segment, state, ctx.businessClass);
   if (blocked) return blocked;
 
-  const entry = getGuardSegmentEntry(segment);
-  const employees = Number(form.num_employees || form.numEmployees || 0);
+  const entry = ctx.line;
+  const employees = Number(ctx.form.num_employees || ctx.form.numEmployees || 0);
   const ownerIncluded =
     body.owner_on_wc === true ||
     body.owner_on_wc === "yes" ||
@@ -162,11 +178,11 @@ export async function processGuardIndicate(body = {}) {
   }
 
   const rqUid = crypto.randomUUID();
-  const payload = buildRatingPayloadFromForm(form, segment, {
+  const payload = buildRatingPayloadFromForm(ctx.form, ctx.guardLineKey, {
     legalEntityCd: body.legal_entity || body.legalEntityCd || "LL",
     ownerIncluded,
     numYrsInBusiness:
-      Number(body.years_in_business) || yearsInBusinessFromForm(form),
+      Number(body.years_in_business) || yearsInBusinessFromForm(ctx.form),
     rqUid,
   });
 
@@ -188,7 +204,9 @@ export async function processGuardIndicate(body = {}) {
 
   const session = {
     submission_public_id: submissionPublicId,
-    segment,
+    segment: ctx.guardLineKey,
+    parentSegment: row.segment,
+    businessClass: entry?.businessClass || ctx.businessClass || null,
     purpose: "NBQ",
     rqUid: parsed.rqUid || rqUid,
     ratingClassificationCd: ratingClassificationCd(entry),
@@ -258,21 +276,16 @@ export async function processGuardIndicate(body = {}) {
 
 export async function processGuardQuestions(body = {}) {
   const submissionPublicId = body.submission_public_id;
+  const row = submissionPublicId ? await loadSubmission(submissionPublicId) : null;
   const session = submissionPublicId
     ? await loadGuardSession(submissionPublicId)
     : null;
-  const row = submissionPublicId ? await loadSubmission(submissionPublicId) : null;
-  const form = formFromSubmission(row);
-  const segment = String(
-    body.segment || session?.segment || row?.segment || "",
-  )
-    .trim()
-    .toLowerCase();
-  const state = form.state || session?.state || body.state || "CO";
-  const blocked = gate(segment, state);
+  const ctx = guardContextFrom(body, row, session);
+  const state = ctx.form.premise_state || ctx.form.state || body.state || "CO";
+  const blocked = gate(ctx.segment, state, ctx.businessClass);
   if (blocked) return blocked;
 
-  const entry = getGuardSegmentEntry(segment);
+  const entry = ctx.line;
   const classCd =
     session?.ratingClassificationCd || ratingClassificationCd(entry);
 
@@ -313,12 +326,9 @@ export async function processGuardQuote(body = {}) {
   const row = await loadSubmission(submissionPublicId);
   if (!row) return { ok: false, status: 404, error: "SUBMISSION_NOT_FOUND" };
   const session = await loadGuardSession(submissionPublicId);
-  const form = formFromSubmission(row);
-  const segment = String(session?.segment || row.segment || "")
-    .trim()
-    .toLowerCase();
-  const state = form.state || "CO";
-  const blocked = gate(segment, state);
+  const ctx = guardContextFrom(body, row, session);
+  const state = ctx.form.premise_state || ctx.form.state || "CO";
+  const blocked = gate(ctx.segment, state, ctx.businessClass);
   if (blocked) return blocked;
 
   const fein = String(body.fein || "").replace(/\D/g, "");
@@ -331,7 +341,7 @@ export async function processGuardQuote(body = {}) {
     };
   }
 
-  const payload = buildRatingPayloadFromForm(form, segment, {
+  const payload = buildRatingPayloadFromForm(ctx.form, ctx.guardLineKey, {
     legalEntityCd: body.legal_entity || session?.legalEntityCd || "LL",
     ownerIncluded: session?.ownerIncluded === true,
     numYrsInBusiness: session?.numYrsInBusiness,
@@ -434,8 +444,8 @@ export async function processGuardBind(body = {}) {
     };
   }
 
-  const segment = String(session.segment || row.segment || "").toLowerCase();
-  const blocked = gate(segment, "CO");
+  const ctx = guardContextFrom(body, row, session);
+  const blocked = gate(ctx.segment, "CO", ctx.businessClass);
   if (blocked) return blocked;
 
   let parsed;

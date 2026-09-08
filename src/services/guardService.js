@@ -642,7 +642,12 @@ export async function guardBind(policyNumber) {
 }
 
 export function buildRatingPayloadFromForm(form, segment, extras = {}) {
-  const entry = getGuardSegmentEntry(segment);
+  const businessClass =
+    extras.businessClass ||
+    form.business_class ||
+    form.businessClass ||
+    null;
+  const entry = getGuardSegmentEntry(segment, businessClass);
   const classCd = ratingClassificationCd(entry);
   const payroll = Number(
     extras.exposure ||
