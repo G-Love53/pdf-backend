@@ -2,6 +2,13 @@
 
 This is the daily operating flow for CID-PDF-API operator queues.
 
+## 0) Find a client (Operator Home search)
+
+- **Operator Home** header or **`/operator/search`** — enter **email**, **business name** (partial), or **CID submission ID** (`CID-PLU-…`).
+- Multiple business-name hits → pick a client from the list.
+- Results: client profile, all **submissions** (status, Instantly `src`/`cid`), **policies**, links to S4/S5/S6 and policy documents.
+- JSON: `GET /api/operator/search?q=…` · disambiguation: `409` + `choices` · direct: `?client_id=`
+
 ## 1) Quote email arrives (carrier reply) -> S4
 
 - **System does automatically**

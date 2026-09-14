@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Client search — CID Operator</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #020617;
+        color: #e5e7eb;
+      }
+      header {
+        padding: 16px 24px;
+        border-bottom: 1px solid #1f2937;
+      }
+      header h1 {
+        font-size: 20px;
+        margin: 0 0 12px;
+      }
+      main {
+        padding: 16px 24px 32px;
+        max-width: 1200px;
+      }
+      .search-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .search-bar input[type="search"] {
+        flex: 1;
+        min-width: 220px;
+        max-width: 420px;
+        background: #020617;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        color: #e5e7eb;
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+      .search-bar button {
+        appearance: none;
+        border: 1px solid #334155;
+        background: #0f172a;
+        color: #e5e7eb;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .search-bar button:hover {
+        border-color: #38bdf8;
+        color: #7dd3fc;
+      }
+      .hint {
+        font-size: 12px;
+        color: #6b7280;
+        margin: 0;
+      }
+      .alert {
+        margin: 16px 0;
+        padding: 12px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        border: 1px solid #991b1b;
+        background: #450a0a;
+        color: #fecaca;
+      }
+      .card {
+        background: #0f172a;
+        border: 1px solid #1f2937;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 20px;
+      }
+      .card h2 {
+        font-size: 14px;
+        font-weight: 500;
+        color: #9ca3af;
+        margin: 0 0 10px;
+      }
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 8px 16px;
+        font-size: 13px;
+      }
+      .meta-grid dt {
+        color: #6b7280;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        margin: 0;
+      }
+      .meta-grid dd {
+        margin: 2px 0 0;
+        color: #e5e7eb;
+      }
+      .section-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #9ca3af;
+        margin: 24px 0 8px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th,
+      td {
+        padding: 8px 10px;
+        border-bottom: 1px solid #111827;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        color: #9ca3af;
+        font-weight: 500;
+      }
+      tr.highlight {
+        background: #172554;
+      }
+      .pill {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 2px 8px;
+        border: 1px solid #1f2937;
+        font-size: 11px;
+        color: #9ca3af;
+      }
+      .pill-ok {
+        border-color: #166534;
+        color: #86efac;
+      }
+      .pill-warn {
+        border-color: #854d0e;
+        color: #fcd34d;
+      }
+      .pill-info {
+        border-color: #1e40af;
+        color: #93c5fd;
+      }
+      a {
+        color: #38bdf8;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 10px;
+        font-size: 12px;
+      }
+      .empty {
+        color: #6b7280;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Client search</h1>
+      <form class="search-bar" method="get" action="/operator/search">
+        <input
+          type="search"
+          name="q"
+          value="<%= typeof q !== 'undefined' ? q : '' %>"
+          placeholder="Email, business name, or CID-…"
+          autocomplete="off"
+          autofocus
+        />
+        <button type="submit">Search</button>
+      </form>
+      <p class="hint">Email (exact), business name (partial match), or submission ID (CID-…). Shows all submissions and policies for that client.</p>
+      <%- include('../partials/operator-nav', { segmentQuery: '', segment: 'all' }) %>
+    </header>
+    <main>
+      <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert"><%= error %></div>
+      <% } %>
+
+      <% if (typeof choices !== 'undefined' && choices && choices.length) { %>
+      <div class="section-title">Multiple matches — pick a client</div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Business</th>
+              <th>Email</th>
+              <th>Segment</th>
+              <th>Latest CID</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% choices.forEach(function (c) { %>
+            <tr>
+              <td><%= c.matched_business_name || "—" %></td>
+              <td><%= c.primary_email || "—" %></td>
+              <td><%= c.segment || "—" %></td>
+              <td><%= c.submission_public_id || "—" %></td>
+              <td>
+                <a href="/operator/search?client_id=<%= c.client_id %>&amp;q=<%= encodeURIComponent(typeof q !== 'undefined' ? q : '') %>">Open</a>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+
+      <% if (typeof result !== 'undefined' && result && result.found) { %>
+      <div class="card">
+        <h2>Client</h2>
+        <dl class="meta-grid">
+          <div>
+            <dt>Email</dt>
+            <dd><%= result.client.primary_email || "—" %></dd>
+          </div>
+          <div>
+            <dt>Name</dt>
+            <dd><%= [result.client.first_name, result.client.last_name].filter(Boolean).join(" ") || "—" %></dd>
+          </div>
+          <div>
+            <dt>Phone</dt>
+            <dd><%= result.client.primary_phone || "—" %></dd>
+          </div>
+          <div>
+            <dt>Client since</dt>
+            <dd><%= result.client.created_at ? new Date(result.client.created_at).toISOString().slice(0, 10) : "—" %></dd>
+          </div>
+          <div>
+            <dt>Matched by</dt>
+            <dd><%= result.matchKind === "submission_id" ? "Submission ID" : (result.matchKind === "business_name" ? "Business name" : (result.matchKind === "client_id" ? "Selected client" : "Email")) %></dd>
+          </div>
+        </dl>
+      </div>
+
+      <% if (result.businesses && result.businesses.length) { %>
+      <div class="section-title">Businesses</div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Segment</th>
+              <th>State</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% result.businesses.forEach(function (b) { %>
+            <tr>
+              <td><%= b.business_name || "—" %><% if (b.dba_name) { %> <span class="pill">DBA <%= b.dba_name %></span><% } %></td>
+              <td><%= b.segment || "—" %></td>
+              <td><%= b.state || "—" %></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+
+      <div class="section-title">Submissions (<%= result.submissions.length %>)</div>
+      <div class="card">
+        <% if (!result.submissions.length) { %>
+        <p class="empty">No submissions for this client.</p>
+        <% } else { %>
+        <table>
+          <thead>
+            <tr>
+              <th>CID / segment</th>
+              <th>Business</th>
+              <th>Status</th>
+              <th>Attribution</th>
+              <th>Submitted</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% result.submissions.forEach(function (s) { %>
+            <% var isHi = result.highlightSubmissionId && s.submission_public_id === result.highlightSubmissionId; %>
+            <% var status = s.pipeline_status || "submitted"; %>
+            <% var pillClass = status === "bound" ? "pill-ok" : (status === "quoted" || status === "wc_indicated" ? "pill-info" : (status === "traditional" ? "pill-warn" : "pill")); %>
+            <tr class="<%= isHi ? 'highlight' : '' %>">
+              <td>
+                <strong><%= s.submission_public_id %></strong><br />
+                <span class="pill"><%= s.segment %></span>
+                <% if (s.quote_rail === "coterie" || s.source_form === "connectquote") { %>
+                <span class="pill pill-info">ConnectQuote</span>
+                <% } %>
+              </td>
+              <td><%= s.business_name || "—" %></td>
+              <td><span class="pill <%= pillClass %>"><%= status %></span></td>
+              <td>
+                <% if (s.traffic_source || s.campaign_id) { %>
+                <span style="font-size:11px;color:#9ca3af"><%= s.traffic_source || "—" %> / <%= s.campaign_id || "—" %></span>
+                <% } else { %>—<% } %>
+              </td>
+              <td><%= s.submitted_at ? new Date(s.submitted_at).toISOString().slice(0, 16).replace("T", " ") : "—" %> UTC</td>
+              <td>
+                <div class="actions">
+                  <% if (s.extraction_work_queue_item_id) { %>
+                  <a href="/operator/extraction-review/<%= s.extraction_work_queue_item_id %>">S4</a>
+                  <% } %>
+                  <% if (s.latest_quote_id) { %>
+                  <a href="/operator/packet-builder/<%= s.latest_quote_id %>">S5</a>
+                  <a href="/operator/bind/<%= s.latest_quote_id %>">S6</a>
+                  <% } %>
+                  <% if (s.coterie_application_id) { %>
+                  <span class="pill" title="Coterie application external ID">App <%= s.coterie_application_id %></span>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <% } %>
+      </div>
+
+      <div class="section-title">Policies (<%= result.policies.length %>)</div>
+      <div class="card">
+        <% if (!result.policies.length) { %>
+        <p class="empty">No bound policies yet.</p>
+        <% } else { %>
+        <table>
+          <thead>
+            <tr>
+              <th>Policy #</th>
+              <th>Type</th>
+              <th>Carrier</th>
+              <th>Premium</th>
+              <th>Submission</th>
+              <th>Bound</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% result.policies.forEach(function (p) { %>
+            <tr>
+              <td><%= p.policy_number %></td>
+              <td>
+                <%= p.policy_type || "—" %>
+                <% if (p.bind_source) { %><span class="pill"><%= p.bind_source %></span><% } %>
+              </td>
+              <td><%= p.carrier_name || "—" %></td>
+              <td><% if (p.annual_premium != null) { %>$<%= Number(p.annual_premium).toLocaleString("en-US", { maximumFractionDigits: 0 }) %><% } else { %>—<% } %></td>
+              <td><%= p.submission_public_id || "—" %></td>
+              <td><%= p.bound_at ? new Date(p.bound_at).toISOString().slice(0, 10) : "—" %></td>
+              <td><a href="/operator/policies/<%= p.policy_id %>/documents">Documents</a></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <% } %>
+      </div>
+      <% } %>
+    </main>
+  </body>
+</html>

@@ -258,6 +258,27 @@
         <span id="operator-subtitle">All segments · Last 7 days — metrics &amp; ConnectQuote (queues below are open backlog, not time-filtered)</span>
       </div>
       <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #6b7280">
+        <form
+          method="get"
+          action="/operator/search"
+          style="display: flex; align-items: center; gap: 6px; margin-right: 4px"
+        >
+          <input
+            type="search"
+            name="q"
+            placeholder="Find client — email, business, CID-…"
+            aria-label="Search client by email, business name, or submission ID"
+            style="width: min(220px, 42vw); background: #020617; color: #e5e7eb; border: 1px solid #334155; border-radius: 8px; padding: 6px 10px; font-size: 13px"
+          />
+          <button
+            type="submit"
+            class="btn-sm"
+            style="padding: 6px 12px"
+          >
+            Search
+          </button>
+        </form>
+        <span>|</span>
         <label for="operator-segment" style="margin: 0">Segment</label>
         <select id="operator-segment" aria-label="Filter by segment">
           <option value="all">All</option>

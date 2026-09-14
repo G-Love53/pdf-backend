@@ -24,6 +24,7 @@ import {
   addManualCarrierQuote,
   linkQuoteNeedsCidToSubmission,
 } from "../services/quoteIngestService.js";
+import { searchOperatorClient } from "../services/operatorClientSearchService.js";
 
 const router = express.Router();
 const pool = getPool();
@@ -120,6 +121,90 @@ router.get(["/operator", "/operator/home"], async (req, res) => {
   }
 
   res.render("operator/home", {});
+});
+
+/** Client lookup — email, business name, or CID submission public ID. */
+router.get("/operator/search", async (req, res) => {
+  const q = String(req.query.q || "").trim();
+  const clientId = String(req.query.client_id || "").trim();
+  const nav = operatorNavLocals(req);
+  if (!q && !clientId) {
+    return res.render("operator/search", {
+      q: "",
+      result: null,
+      error: null,
+      choices: null,
+      ...nav,
+    });
+  }
+  if (!pool) {
+    return res.status(503).render("operator/search", {
+      q,
+      result: null,
+      error: "Database unavailable.",
+      choices: null,
+      ...nav,
+    });
+  }
+  try {
+    const result = await searchOperatorClient(pool, q, { clientId });
+    if (!result.found) {
+      return res.render("operator/search", {
+        q,
+        result: null,
+        error: result.message,
+        choices: result.ambiguous ? result.choices : null,
+        ...nav,
+      });
+    }
+    return res.render("operator/search", {
+      q,
+      result,
+      error: null,
+      choices: null,
+      ...nav,
+    });
+  } catch (err) {
+    console.error("[operator/search] error:", err.message || err);
+    return res.status(500).render("operator/search", {
+      q,
+      result: null,
+      error: "Search failed. Try again.",
+      choices: null,
+      ...nav,
+    });
+  }
+});
+
+router.get("/api/operator/search", async (req, res) => {
+  if (!pool) {
+    return res.status(503).json({ error: "database_not_configured" });
+  }
+  const q = String(req.query.q || "").trim();
+  const clientId = String(req.query.client_id || "").trim();
+  if (!q && !clientId) {
+    return res.status(400).json({
+      error: "missing_query",
+      message: "Provide ?q= (email, business name, or CID) or ?client_id=.",
+    });
+  }
+  try {
+    const result = await searchOperatorClient(pool, q, { clientId });
+    if (!result.found) {
+      if (result.ambiguous) {
+        return res.status(409).json({
+          error: "ambiguous",
+          message: result.message,
+          choices: result.choices,
+        });
+      }
+      return res.status(404).json({ error: "not_found", message: result.message });
+    }
+    return res.json(result);
+  } catch (err) {
+    console.error("[api/operator/search] error:", err.message || err);
+    return res.status(500).json({ error: "internal_error" });
+  }
 });
 
 // Dashboard API: counts + queues — ?segment=all|bar|roofer|plumber|hvac (default all)
