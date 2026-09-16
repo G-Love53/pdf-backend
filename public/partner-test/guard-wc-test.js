@@ -98,10 +98,11 @@
       const cd = el.dataset.qcd;
       const val = el.value;
       if (!cd || val === "") return;
-      answers.push({
-        questionCd: cd,
-        answer: el.dataset.qtype === "num" ? Number(val) : val,
-      });
+      if (el.dataset.qtype === "num") {
+        answers.push({ questionCd: cd, num: val });
+      } else {
+        answers.push({ questionCd: cd, response: val });
+      }
     });
     return answers;
   }

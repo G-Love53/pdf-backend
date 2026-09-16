@@ -1,0 +1,389 @@
+{
+  "source": "CID GUARD WC Q Changes - UAT Test Pack v1.xlsm",
+  "cases": [
+    {
+      "id": "Contractors-1",
+      "sheet": "Contractors",
+      "number": 1,
+      "expectedOutcome": "Quote",
+      "classCode": "5183CO",
+      "questions": [],
+      "notes": [],
+      "acordFavorable": true,
+      "address": {
+        "street": "523 E 17th Ave",
+        "city": "Denver",
+        "state": "CO",
+        "zip": "80203"
+      },
+      "payroll": 150000,
+      "entity": "CP",
+      "entityLabel": "Corporation",
+      "experienceMod": 0.9,
+      "segment": "plumber",
+      "ratingClassificationCd": "518322",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Contractors-2",
+      "sheet": "Contractors",
+      "number": 2,
+      "expectedOutcome": "Refer",
+      "classCode": "5474CO",
+      "questions": [],
+      "notes": [],
+      "acordFavorable": false,
+      "expectedReason": "Referral generated due to \"Yes\" response to \"Does the applicant have any past, present or discontinued operations involve(d) storing, treating, discharging, applying, disposing, or transporting of hazardous material?\"",
+      "address": {
+        "street": "500 16th St Ste 150",
+        "city": "Denver",
+        "state": "CO",
+        "zip": "80202"
+      },
+      "payroll": 100000,
+      "entity": "LL",
+      "entityLabel": "LLC",
+      "experienceMod": 1.1,
+      "segment": "plumber",
+      "ratingClassificationCd": "547400",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Contractors-3",
+      "sheet": "Contractors",
+      "number": 3,
+      "expectedOutcome": "Decline",
+      "classCode": "5537CO",
+      "questions": [],
+      "notes": [],
+      "acordFavorable": true,
+      "address": {
+        "street": "603 E 6th Ave",
+        "city": "Denver",
+        "state": "CO",
+        "zip": "80203"
+      },
+      "payroll": 175000,
+      "entity": "IN",
+      "entityLabel": "Individual",
+      "experienceMod": 0.7,
+      "segment": "hvac",
+      "ratingClassificationCd": "553700",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Contractors-4",
+      "sheet": "Contractors",
+      "number": 4,
+      "expectedOutcome": "Decline",
+      "classCode": "5183CO",
+      "questions": [],
+      "notes": [
+        "*Declination due to low payroll"
+      ],
+      "acordFavorable": true,
+      "address": {
+        "street": "702 S Cascade Ave",
+        "city": "Colorado Springs",
+        "state": "CO",
+        "zip": "80903"
+      },
+      "payroll": 10000,
+      "entity": "LL",
+      "entityLabel": "LLC",
+      "experienceMod": 1.1,
+      "segment": "plumber",
+      "ratingClassificationCd": "518322",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Contractors-5",
+      "sheet": "Contractors",
+      "number": 5,
+      "expectedOutcome": "Quote",
+      "classCode": "5190CO",
+      "questions": [],
+      "notes": [],
+      "acordFavorable": true,
+      "address": {
+        "street": "1500 Curtis St",
+        "city": "Denver",
+        "state": "CO",
+        "zip": "80202"
+      },
+      "payroll": 150000,
+      "entity": "LL",
+      "entityLabel": "LLC",
+      "experienceMod": 0.95,
+      "segment": "electrical",
+      "ratingClassificationCd": "519000",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Contractors-6",
+      "sheet": "Contractors",
+      "number": 6,
+      "expectedOutcome": "Refer",
+      "classCode": "5537CO",
+      "questions": [],
+      "notes": [],
+      "acordFavorable": true,
+      "address": {
+        "street": "23 S Tejon St",
+        "city": "Colorado Springs",
+        "state": "CO",
+        "zip": "80903"
+      },
+      "payroll": 150000,
+      "entity": "CP",
+      "entityLabel": "Corporation",
+      "experienceMod": 0.98,
+      "segment": "hvac",
+      "ratingClassificationCd": "553700",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Contractors-7",
+      "sheet": "Contractors",
+      "number": 7,
+      "expectedOutcome": "Quote",
+      "classCode": "9014CO",
+      "questions": [],
+      "notes": [],
+      "acordFavorable": true,
+      "address": {
+        "street": "1552 E 17th Ave",
+        "city": "Denver",
+        "state": "CO",
+        "zip": "80218"
+      },
+      "payroll": 150000,
+      "entity": "LL",
+      "entityLabel": "LLC",
+      "experienceMod": 0.95,
+      "segment": "cleaning",
+      "ratingClassificationCd": "901400",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Contractors-8",
+      "sheet": "Contractors",
+      "number": 8,
+      "expectedOutcome": "Refer",
+      "classCode": "9014CO",
+      "questions": [],
+      "notes": [],
+      "acordFavorable": true,
+      "address": {
+        "street": "101 N Tejon St",
+        "city": "Colorado Springs",
+        "state": "CO",
+        "zip": "80903"
+      },
+      "payroll": 150000,
+      "entity": "PT",
+      "entityLabel": "Partnership",
+      "experienceMod": 0.75,
+      "segment": "cleaning",
+      "ratingClassificationCd": "901400",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Non-Contractors-1",
+      "sheet": "Non-Contractors",
+      "number": 1,
+      "expectedOutcome": "Quote",
+      "classCode": "0917CO",
+      "questions": [],
+      "notes": [],
+      "acordFavorable": true,
+      "address": {
+        "street": "14061 E Iliff Ave",
+        "city": "Aurora",
+        "state": "CO",
+        "zip": "80014"
+      },
+      "payroll": 150000,
+      "entity": "CP",
+      "entityLabel": "Corporation",
+      "experienceMod": 0.95,
+      "segment": "pet",
+      "ratingClassificationCd": "091700",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Non-Contractors-2",
+      "sheet": "Non-Contractors",
+      "number": 2,
+      "expectedOutcome": "Refer",
+      "classCode": "9063CO",
+      "questions": [],
+      "notes": [],
+      "acordFavorable": false,
+      "expectedReason": "Referral due to \"Yes\" response to \"Does the applicant have any past, present or discontinued operations involve(d) storing, treating, discharging, applying, disposing, or transporting of hazardous material?\"",
+      "address": {
+        "street": "15343 E 6th Ave",
+        "city": "Aurora",
+        "state": "CO",
+        "zip": "80011"
+      },
+      "payroll": 100000,
+      "entity": "LL",
+      "entityLabel": "LLC",
+      "experienceMod": 1.1,
+      "segment": "fitness_trainer",
+      "ratingClassificationCd": "906300",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Non-Contractors-3",
+      "sheet": "Non-Contractors",
+      "number": 3,
+      "expectedOutcome": "Decline",
+      "classCode": "9586CO",
+      "questions": [],
+      "notes": [
+        "*Include officer for $75,000"
+      ],
+      "acordFavorable": false,
+      "expectedReason": "Declination due to \"Yes\" response to \"Does the applicant use temporary staffing, leased employees or cash/casual labor?\"",
+      "address": {
+        "street": "14197 E Exposition Ave",
+        "city": "Aurora",
+        "state": "CO",
+        "zip": "80012"
+      },
+      "payroll": 200000,
+      "entity": "IN",
+      "entityLabel": "Individual",
+      "experienceMod": 1.03,
+      "segment": "beauty_hair",
+      "ratingClassificationCd": "958600",
+      "ownerIncluded": true
+    },
+    {
+      "id": "Non-Contractors-4",
+      "sheet": "Non-Contractors",
+      "number": 4,
+      "expectedOutcome": "Quote",
+      "classCode": "9014CO",
+      "questions": [],
+      "notes": [],
+      "acordFavorable": true,
+      "address": {
+        "street": "321 N Tejon St",
+        "city": "Colorado Springs",
+        "state": "CO",
+        "zip": "80903"
+      },
+      "payroll": 150000,
+      "entity": "CP",
+      "entityLabel": "Corporation",
+      "experienceMod": 0.9,
+      "segment": "cleaning",
+      "ratingClassificationCd": "901400",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Non-Contractors-5",
+      "sheet": "Non-Contractors",
+      "number": 5,
+      "expectedOutcome": "Refer",
+      "classCode": "9063CO",
+      "questions": [],
+      "notes": [
+        "*Referral generated due to ex mod"
+      ],
+      "acordFavorable": true,
+      "address": {
+        "street": "25 W Cimarron St",
+        "city": "Colorado Springs",
+        "state": "CO",
+        "zip": "80903"
+      },
+      "payroll": 175000,
+      "entity": "PT",
+      "entityLabel": "Partnership",
+      "experienceMod": 0.5,
+      "segment": "fitness_trainer",
+      "ratingClassificationCd": "906300",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Non-Contractors-6",
+      "sheet": "Non-Contractors",
+      "number": 6,
+      "expectedOutcome": "Quote",
+      "classCode": "9586CO",
+      "questions": [],
+      "notes": [],
+      "acordFavorable": true,
+      "address": {
+        "street": "115 E Dale St",
+        "city": "Colorado Springs",
+        "state": "CO",
+        "zip": "80903"
+      },
+      "payroll": 125000,
+      "entity": "CP",
+      "entityLabel": "Corporation",
+      "experienceMod": 0.9,
+      "segment": "beauty_hair",
+      "ratingClassificationCd": "958600",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Non-Contractors-7",
+      "sheet": "Non-Contractors",
+      "number": 7,
+      "expectedOutcome": "Refer",
+      "classCode": "9586CO",
+      "questions": [
+        {
+          "text": "Does the insured operate a tanning salon?",
+          "answer": "No",
+          "expectedNote": null
+        }
+      ],
+      "notes": [],
+      "acordFavorable": false,
+      "expectedReason": "Referral generated due to \"Yes\" response to \"Does the applicant own more than 50% of another business not being covered under this policy?\"",
+      "address": {
+        "street": "21 S Tejon St",
+        "city": "Colorado Springs",
+        "state": "CO",
+        "zip": "80903"
+      },
+      "payroll": 300000,
+      "entity": "LL",
+      "entityLabel": "LLC",
+      "experienceMod": 0.88,
+      "segment": "beauty_hair",
+      "ratingClassificationCd": "958600",
+      "ownerIncluded": false
+    },
+    {
+      "id": "Non-Contractors-8",
+      "sheet": "Non-Contractors",
+      "number": 8,
+      "expectedOutcome": "Quote",
+      "classCode": "9063CO",
+      "questions": [],
+      "notes": [],
+      "acordFavorable": true,
+      "address": {
+        "street": "7 E Vermijo Ave",
+        "city": "Colorado Springs",
+        "state": "CO",
+        "zip": "80903"
+      },
+      "payroll": 200000,
+      "entity": "IN",
+      "entityLabel": "Individual",
+      "experienceMod": 0.85,
+      "segment": "fitness_trainer",
+      "ratingClassificationCd": "906300",
+      "ownerIncluded": false
+    }
+  ]
+}

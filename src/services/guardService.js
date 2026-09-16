@@ -150,6 +150,46 @@ export function guardResponseMessage(parsed) {
   return p.statusDesc || p.msgStatusCd || null;
 }
 
+/** Favorable ACORD policy-level defaults (GUARD sample NBS). */
+export const GUARD_DEFAULT_ACORD_ANSWERS = [
+  { questionCd: "YEARSCONSECUTIVECOVERAGE", response: "5" },
+  { questionCd: "com.guard_QUESTIONOWNMORETHANHALF", response: "N" },
+  { questionCd: "com.guard_QUESTIONTEMPSTAFFCASHLABOR", response: "N" },
+  { questionCd: "com.guard_QUESTIONTEMPSTAFFEMPLOYERORG", response: "N" },
+  { questionCd: "com.guard_QUESTIONVOLUNTEERLABOR", response: "N" },
+  { questionCd: "com.guard_QUESTIONPPDOPERATIONS", response: "N" },
+  { questionCd: "com.guard_QUESTIONAIRCRAFTWATERCRAFT", response: "N" },
+  { questionCd: "com.guard_QUESTIONSUBCONTRACTWORK", response: "N" },
+  { questionCd: "com.guard_QUESTIONTRANSPORTFIVEORMORE", response: "N" },
+  { questionCd: "com.guard_QUESTIONFRAUDDISCLAIMER", response: "Y" },
+];
+
+/** @param {Array<{ questionCd?: string, response?: string, answer?: string, num?: string|number }>} list */
+export function normalizeQuestionAnswers(list) {
+  const byCd = new Map();
+  for (const raw of list || []) {
+    const questionCd = String(raw?.questionCd || "").trim();
+    if (!questionCd) continue;
+    if (raw.num != null && raw.num !== "") {
+      byCd.set(questionCd, { questionCd, num: String(raw.num) });
+      continue;
+    }
+    const response = raw.response ?? raw.answer;
+    if (response == null || response === "") continue;
+    byCd.set(questionCd, { questionCd, response: String(response) });
+  }
+  return [...byCd.values()];
+}
+
+/** Merge ACORD defaults with class-specific answers (later wins). */
+export function mergeGuardQuestionAnswers(custom = []) {
+  const merged = normalizeQuestionAnswers([
+    ...GUARD_DEFAULT_ACORD_ANSWERS,
+    ...custom,
+  ]);
+  return merged;
+}
+
 export function parseGuardResponse(acordXml) {
   const xml = String(acordXml || "");
   const questions = [];
@@ -189,6 +229,7 @@ export function parseGuardResponse(acordXml) {
     policyStatusCd:
       firstTag(xml, "PolicyStatusCd") || firstTag(xml, "PolicyStatus"),
     fullTermAmt: firstTag(xml, "FullTermAmt"),
+    experienceMod: firstTag(xml, "FormatModFactor"),
     uwDecision: firstTag(xml, "SystemUnderwritingDecisionCd"),
     remarks: allTags(xml, "RemarkText"),
     questions,
@@ -322,7 +363,7 @@ export function buildWorkCompPolicyAddXml(purpose, payload, cfg) {
     ? xmlEscape(payload.policyNumber)
     : "";
 
-  const questionXml = (payload.questionAnswers || [])
+  const questionXml = normalizeQuestionAnswers(payload.questionAnswers || [])
     .map((qa) => {
       const cd = xmlEscape(qa.questionCd);
       if (qa.num != null && qa.num !== "") {
@@ -337,6 +378,17 @@ export function buildWorkCompPolicyAddXml(purpose, payload, cfg) {
     </QuestionAnswer>`;
     })
     .join("\n    ");
+
+  const expMod = Number(payload.experienceMod);
+  const expModXml =
+    Number.isFinite(expMod) && expMod > 0
+      ? `<CreditOrSurcharge>
+      <CreditSurchargeCd>EXP</CreditSurchargeCd>
+      <NumericValue>
+        <FormatModFactor>${expMod}</FormatModFactor>
+      </NumericValue>
+    </CreditOrSurcharge>`
+      : "";
 
   const feinXml =
     purpose === "NBS" && payload.fein
@@ -490,6 +542,7 @@ export function buildWorkCompPolicyAddXml(purpose, payload, cfg) {
           <Exposure>${exposure}</Exposure>
         </WorkCompRateClass>
       </WorkCompLocInfo>
+      ${expModXml}
     </WorkCompRateState>
     <CommlCoverage>
       <CoverageCd>WCEL</CoverageCd>
@@ -648,7 +701,9 @@ export function buildRatingPayloadFromForm(form, segment, extras = {}) {
     form.businessClass ||
     null;
   const entry = getGuardSegmentEntry(segment, businessClass);
-  const classCd = ratingClassificationCd(entry);
+  const classCd =
+    extras.ratingClassificationCd ||
+    ratingClassificationCd(entry);
   const payroll = Number(
     extras.exposure ||
       form.annual_payroll ||
@@ -690,8 +745,9 @@ export function buildRatingPayloadFromForm(form, segment, extras = {}) {
     contactFirstName: form.first_name || form.applicant_first_name || "Owner",
     contactLastName: form.last_name || form.applicant_last_name || "Contact",
     numYrsInBusiness: extras.numYrsInBusiness || yearsInBusinessFromForm(form),
-    operationsDesc: entry?.operationsDesc || "Operations",
+    operationsDesc: extras.operationsDesc || entry?.operationsDesc || "Operations",
     ratingClassificationCd: classCd,
+    experienceMod: extras.experienceMod ?? null,
     exposure: Math.round(exposure),
     numEmployeesFullTime: employees > 0 ? employees : ownerIncluded ? 1 : 0,
     numEmployeesPartTime: 0,
@@ -699,7 +755,7 @@ export function buildRatingPayloadFromForm(form, segment, extras = {}) {
     ownerPayroll: GUARD_CO_OFFICER_PAYROLL,
     fein: extras.fein || form.fein || null,
     policyNumber: extras.policyNumber || null,
-    questionAnswers: extras.questionAnswers || [],
+    questionAnswers: normalizeQuestionAnswers(extras.questionAnswers || []),
   };
 }
 

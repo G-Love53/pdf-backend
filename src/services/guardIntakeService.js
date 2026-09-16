@@ -14,6 +14,7 @@ import {
   guardIndicate,
   guardSubmitNbs,
   isGuardConfigured,
+  mergeGuardQuestionAnswers,
   yearsInBusinessFromForm,
 } from "./guardService.js";
 import { finalizeGuardBind } from "./guardPolicyService.js";
@@ -183,6 +184,9 @@ export async function processGuardIndicate(body = {}) {
     ownerIncluded,
     numYrsInBusiness:
       Number(body.years_in_business) || yearsInBusinessFromForm(ctx.form),
+    experienceMod: body.experience_mod ?? body.experienceMod ?? null,
+    ratingClassificationCd:
+      body.rating_classification_cd || body.ratingClassificationCd || null,
     rqUid,
   });
 
@@ -345,9 +349,21 @@ export async function processGuardQuote(body = {}) {
     legalEntityCd: body.legal_entity || session?.legalEntityCd || "LL",
     ownerIncluded: session?.ownerIncluded === true,
     numYrsInBusiness: session?.numYrsInBusiness,
+    experienceMod:
+      body.experience_mod ??
+      body.experienceMod ??
+      session?.experienceMod ??
+      null,
+    ratingClassificationCd:
+      body.rating_classification_cd ||
+      body.ratingClassificationCd ||
+      session?.ratingClassificationCd ||
+      null,
     fein,
     policyNumber: session?.policyNumber || null,
-    questionAnswers: Array.isArray(body.answers) ? body.answers : [],
+    questionAnswers: mergeGuardQuestionAnswers(
+      Array.isArray(body.answers) ? body.answers : [],
+    ),
   });
 
   let parsed;
