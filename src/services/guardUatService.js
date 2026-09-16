@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { recordSubmission } from "../db.js";
 import { guardDbSegmentFromLine } from "../config/guardRegistry.js";
 import {
@@ -11,6 +14,45 @@ import {
 } from "./guardService.js";
 
 const PARTNER_SOURCE = "guard-uat";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+let questionIndex = null;
+
+function loadQuestionIndex() {
+  if (questionIndex) return questionIndex;
+  try {
+    const raw = readFileSync(
+      join(__dirname, "../../data/guard-question-index.json"),
+      "utf8",
+    );
+    questionIndex = JSON.parse(raw).questions || [];
+  } catch {
+    questionIndex = [];
+  }
+  return questionIndex;
+}
+
+function normText(s) {
+  return String(s || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function lookupQuestionCd(text) {
+  const needle = normText(text);
+  if (!needle) return null;
+  const index = loadQuestionIndex();
+  let best = null;
+  for (const row of index) {
+    const hay = normText(row.text);
+    if (hay === needle || hay.includes(needle) || needle.includes(hay)) {
+      best = row.questionCd;
+      if (hay === needle) break;
+    }
+  }
+  return best;
+}
 
 function fakeFein(caseId) {
   let h = 0;
@@ -91,21 +133,25 @@ function matchUatQuestions(guardQuestions, uatQuestions) {
   const answers = [];
   for (const uq of uatQuestions || []) {
     const needle = String(uq.text || "").toLowerCase();
-    const gq = (guardQuestions || []).find((q) => {
+    let gq = (guardQuestions || []).find((q) => {
       const hay = String(q.questionText || "").toLowerCase();
-      return hay.includes(needle) || needle.includes(hay.slice(0, 30));
+      return hay.includes(needle) || needle.includes(hay.slice(0, 40));
     });
-    if (!gq) {
+    let questionCd = gq?.questionCd || lookupQuestionCd(uq.text);
+    if (!questionCd) {
       answers.push({ _unmatched: uq.text, answer: uq.answer });
       continue;
     }
+    if (!gq) {
+      gq = { questionCd, options: [{ value: "Y" }, { value: "N" }] };
+    }
     const response = matchQuestionAnswer(gq, uq.answer);
     if (gq.options?.length) {
-      answers.push({ questionCd: gq.questionCd, response });
+      answers.push({ questionCd, response });
     } else if (String(gq.type || "").toLowerCase() === "number") {
-      answers.push({ questionCd: gq.questionCd, num: String(response) });
+      answers.push({ questionCd, num: String(response) });
     } else {
-      answers.push({ questionCd: gq.questionCd, response: String(response) });
+      answers.push({ questionCd, response: String(response) });
     }
   }
   return answers;
