@@ -1,11 +1,11 @@
 {
-  "runAt": "2026-09-16T17:54:19.776Z",
+  "runAt": "2026-09-16T18:11:43.968Z",
   "api": "https://cid-pdf-api-sandbox.onrender.com",
   "ok": true,
   "summary": {
     "total": 16,
-    "passed": 13,
-    "failed": 3,
+    "passed": 15,
+    "failed": 1,
     "errors": 0
   },
   "results": [
@@ -15,7 +15,7 @@
       "sheet": "Contractors",
       "number": 1,
       "expectedOutcome": "Quote",
-      "submission_public_id": "CID-PLM-20260916-000171",
+      "submission_public_id": "CID-PLM-20260916-000203",
       "pass": true,
       "outcome": {
         "actual": "quote",
@@ -29,21 +29,19 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "c29a6746-c31d-4187-a97a-9735de5e8e43",
-        "nbsRqUid": "8e07b262-a7b1-4864-9820-1fc53ce907de",
-        "policyNumber": "CIWC773626",
-        "premium": 4141,
+        "indicateRqUid": "c8232c3a-6a25-4757-8ba5-8f616665d681",
+        "nbsRqUid": "0ddf5226-1bbc-4a1c-9bc6-6320a172d83f",
+        "policyNumber": "CIWC773664",
+        "premium": 3560,
         "policyStatusCd": "NotQuotedNotBound",
         "uwDecision": "Accept",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 23-5183_01 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 23-5183_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 23-5183_03 is missing or invalid."
+          "NOTICE: The answer to underwriting question 23-5183_01 is missing or invalid."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 3
     },
     {
       "ok": true,
@@ -51,7 +49,7 @@
       "sheet": "Contractors",
       "number": 2,
       "expectedOutcome": "Refer",
-      "submission_public_id": "CID-PLM-20260916-000172",
+      "submission_public_id": "CID-PLM-20260916-000204",
       "pass": true,
       "outcome": {
         "actual": "refer",
@@ -65,9 +63,9 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "290de176-1e3b-468b-9fdd-17beb52eca7a",
-        "nbsRqUid": "fcfd0c9e-ff86-4a7a-b25e-6133207ac66f",
-        "policyNumber": "CIWC773627",
+        "indicateRqUid": "5ab11caa-dd06-42c0-ae77-9ac8fe7ecbda",
+        "nbsRqUid": "c228dc5e-0283-4e7b-bdb8-24c92f32085b",
+        "policyNumber": "CIWC773665",
         "premium": 4895,
         "policyStatusCd": "NotQuotedNotBound",
         "uwDecision": "Refer",
@@ -85,11 +83,11 @@
       "sheet": "Contractors",
       "number": 3,
       "expectedOutcome": "Decline",
-      "submission_public_id": "CID-HVC-20260916-000173",
-      "pass": false,
+      "submission_public_id": "CID-HVC-20260916-000205",
+      "pass": true,
       "outcome": {
-        "actual": "quote",
-        "pass": false,
+        "actual": "decline",
+        "pass": true,
         "bindable": true
       },
       "experienceMod": {
@@ -99,22 +97,19 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "cdf4247c-9aa8-4199-b646-02877178d89b",
-        "nbsRqUid": "a2de5710-c5e2-4bce-bbaf-44a6a493c160",
+        "indicateRqUid": "7f1d8445-ccdd-47a7-9c28-038b44886c5e",
+        "nbsRqUid": "cb78c26b-bfde-47b0-bd2b-c6065b126c72",
         "policyNumber": "UAWC773628",
-        "premium": 4337,
+        "premium": 3524,
         "policyStatusCd": "NotQuotedNotBound",
-        "uwDecision": "Accept",
+        "uwDecision": "Reject",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 23-5537_01 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 23-5537_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 23-5537_03 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 23-5537_04 is missing or invalid."
+          "NOTICE: This risk does not meet the current underwriting appetite."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 4
     },
     {
       "ok": true,
@@ -122,7 +117,7 @@
       "sheet": "Contractors",
       "number": 4,
       "expectedOutcome": "Decline",
-      "submission_public_id": "CID-PLM-20260916-000174",
+      "submission_public_id": "CID-PLM-20260916-000206",
       "pass": true,
       "outcome": {
         "actual": "decline",
@@ -136,22 +131,20 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "0f6c1801-4e4e-47e5-a00a-583fff4425ba",
-        "nbsRqUid": "345c58c4-909a-4c25-be20-7ab4a7d4b1cc",
-        "policyNumber": "CIWC773629",
+        "indicateRqUid": "33cf9ea0-622b-4619-bba2-4c55fa90c60c",
+        "nbsRqUid": "2ae90473-dd05-4a0e-9dca-0784b14943fd",
+        "policyNumber": "CIWC773666",
         "premium": 1048,
         "policyStatusCd": "NotQuotedNotBound",
         "uwDecision": "Reject",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
           "NOTICE: The answer to underwriting question 23-5183_01 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 23-5183_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 23-5183_03 is missing or invalid.",
           "NOTICE: This risk does not meet the current underwriting appetite."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 3
     },
     {
       "ok": true,
@@ -159,7 +152,7 @@
       "sheet": "Contractors",
       "number": 5,
       "expectedOutcome": "Quote",
-      "submission_public_id": "CID-ELC-20260916-000175",
+      "submission_public_id": "CID-ELC-20260916-000207",
       "pass": true,
       "outcome": {
         "actual": "quote",
@@ -173,22 +166,20 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "6793f94d-7a73-4c52-9139-221992cffb4c",
-        "nbsRqUid": "bd1506f2-df8c-4cf8-9945-49b18a119fc1",
-        "policyNumber": "CIWC773630",
-        "premium": 3133,
-        "policyStatusCd": "NotQuotedNotBound",
+        "indicateRqUid": "d4bc2642-0ea2-4367-8da4-69c13b726c9b",
+        "nbsRqUid": "3a946d7d-80b0-466f-b3ee-0f80245e2717",
+        "policyNumber": "CIWC773667",
+        "premium": 2416,
+        "policyStatusCd": "QuotedNotBound",
         "uwDecision": "Accept",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 23-5190_01 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 23-5190_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 23-5190_03 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 23-5190_04 is missing or invalid."
+          "NOTICE:Policy CIWC773667 has been submitted (GENPROPSUBMIT).",
+          "NOTICE:Proposal Generated for CIWC773667."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 4
     },
     {
       "ok": true,
@@ -196,11 +187,11 @@
       "sheet": "Contractors",
       "number": 6,
       "expectedOutcome": "Refer",
-      "submission_public_id": "CID-HVC-20260916-000176",
-      "pass": false,
+      "submission_public_id": "CID-HVC-20260916-000208",
+      "pass": true,
       "outcome": {
-        "actual": "quote",
-        "pass": false,
+        "actual": "refer",
+        "pass": true,
         "bindable": true
       },
       "experienceMod": {
@@ -210,22 +201,19 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "8208a893-54fc-435e-b891-05bb3deca55c",
-        "nbsRqUid": "08035e53-6f99-452e-add3-66421e988df0",
-        "policyNumber": "CIWC773631",
-        "premium": 5159,
+        "indicateRqUid": "4acb15c4-e000-4b6f-a328-dad01c8c36ae",
+        "nbsRqUid": "9a6f7e30-9b8b-4290-b4a1-2623dc2bf292",
+        "policyNumber": "CIWC773668",
+        "premium": 4181,
         "policyStatusCd": "NotQuotedNotBound",
-        "uwDecision": "Accept",
+        "uwDecision": "Refer",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 23-5537_01 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 23-5537_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 23-5537_03 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 23-5537_04 is missing or invalid."
+          "NOTICE: This risk will require underwriting review."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 4
     },
     {
       "ok": true,
@@ -233,7 +221,7 @@
       "sheet": "Contractors",
       "number": 7,
       "expectedOutcome": "Quote",
-      "submission_public_id": "CID-CLN-20260916-000177",
+      "submission_public_id": "CID-CLN-20260916-000209",
       "pass": true,
       "outcome": {
         "actual": "quote",
@@ -247,21 +235,19 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "ae853419-45d1-42c1-ac9c-114c8842e9da",
-        "nbsRqUid": "46dc4388-7c24-4a81-8e8c-7a36e4fc8441",
-        "policyNumber": "CIWC773632",
-        "premium": 3857,
+        "indicateRqUid": "5e1cde4b-7cdf-4220-91fb-a07af67a22aa",
+        "nbsRqUid": "2da6e5bf-013f-47e4-adb4-2106e7561b92",
+        "policyNumber": "CIWC773669",
+        "premium": 3498,
         "policyStatusCd": "NotQuotedNotBound",
         "uwDecision": "Accept",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 56-9014_01 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 56-9014_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 56-9014_03 is missing or invalid."
+          "NOTICE: The answer to underwriting question 56-9014_01 is missing or invalid."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 3
     },
     {
       "ok": true,
@@ -269,7 +255,7 @@
       "sheet": "Contractors",
       "number": 8,
       "expectedOutcome": "Refer",
-      "submission_public_id": "CID-CLN-20260916-000178",
+      "submission_public_id": "CID-CLN-20260916-000210",
       "pass": false,
       "outcome": {
         "actual": "quote",
@@ -283,21 +269,19 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "2c6d7c36-4dfa-4d1f-b706-5206ee730cd7",
-        "nbsRqUid": "53d36e76-54b4-48db-9393-9b2c7cc38d9c",
-        "policyNumber": "CIWC773633",
-        "premium": 2798,
+        "indicateRqUid": "1353e358-3005-4efc-a099-bcd67983b4fd",
+        "nbsRqUid": "73d11e95-24f5-4d14-89b7-2efa31b90791",
+        "policyNumber": "CIWC773670",
+        "premium": 2543,
         "policyStatusCd": "NotQuotedNotBound",
         "uwDecision": "Accept",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 56-9014_01 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 56-9014_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 56-9014_03 is missing or invalid."
+          "NOTICE: The answer to underwriting question 56-9014_01 is missing or invalid."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 4
     },
     {
       "ok": true,
@@ -305,7 +289,7 @@
       "sheet": "Non-Contractors",
       "number": 1,
       "expectedOutcome": "Quote",
-      "submission_public_id": "CID-PET-20260916-000179",
+      "submission_public_id": "CID-PET-20260916-000211",
       "pass": true,
       "outcome": {
         "actual": "quote",
@@ -319,19 +303,20 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "0362f394-ac79-4829-9af5-5d9f77e017ff",
-        "nbsRqUid": "0edc5427-8d2a-4542-8eda-49a99a63b8f6",
-        "policyNumber": "CIWC773634",
+        "indicateRqUid": "525d8819-5963-4adb-ba75-7c525fe03b2c",
+        "nbsRqUid": "fa47bdf3-5fad-4bf3-bd1f-b9df71b23cd0",
+        "policyNumber": "CIWC773671",
         "premium": 4949,
-        "policyStatusCd": "NotQuotedNotBound",
+        "policyStatusCd": "QuotedNotBound",
         "uwDecision": "Accept",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 56-0917_01 is missing or invalid."
+          "NOTICE:Policy CIWC773671 has been submitted (GENPROPSUBMIT).",
+          "NOTICE:Proposal Generated for CIWC773671."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 1
     },
     {
       "ok": true,
@@ -339,7 +324,7 @@
       "sheet": "Non-Contractors",
       "number": 2,
       "expectedOutcome": "Refer",
-      "submission_public_id": "CID-FTN-20260916-000180",
+      "submission_public_id": "CID-FTN-20260916-000212",
       "pass": true,
       "outcome": {
         "actual": "refer",
@@ -353,25 +338,19 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "bbcfbf51-921f-435c-ac79-c6c147d067c7",
-        "nbsRqUid": "3e2cd006-c1bf-4563-8612-582ad0df768b",
-        "policyNumber": "CIWC773635",
-        "premium": 1312,
+        "indicateRqUid": "17c07670-9d2c-456a-ae28-0816ef6a3b13",
+        "nbsRqUid": "632c3e11-15df-4e2e-af74-87db37b5587f",
+        "policyNumber": "CIWC773672",
+        "premium": 1206,
         "policyStatusCd": "NotQuotedNotBound",
         "uwDecision": "Refer",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 71-9063_01 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_03 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_04 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_05 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_06 is missing or invalid.",
           "NOTICE: This risk will require underwriting review."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 6
     },
     {
       "ok": true,
@@ -379,7 +358,7 @@
       "sheet": "Non-Contractors",
       "number": 3,
       "expectedOutcome": "Decline",
-      "submission_public_id": "CID-BTY-20260916-000181",
+      "submission_public_id": "CID-BTY-20260916-000213",
       "pass": true,
       "outcome": {
         "actual": "decline",
@@ -393,22 +372,19 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "b383f7ac-666c-4b6a-979c-eba42c2d7203",
-        "nbsRqUid": "211b70a1-ebc8-4245-9237-c2ca2edfb6dc",
+        "indicateRqUid": "63bc396c-83c7-45f6-bb30-de02d956035d",
+        "nbsRqUid": "f19b94e5-76ea-47f7-a292-9a0e4e150150",
         "policyNumber": "UAWC773636",
-        "premium": 1457,
+        "premium": 1515,
         "policyStatusCd": "NotQuotedNotBound",
         "uwDecision": "Reject",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 81-9586_01 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 81-9586_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 81-9586_03 is missing or invalid.",
           "NOTICE: This risk does not meet the current underwriting appetite."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 3
     },
     {
       "ok": true,
@@ -416,7 +392,7 @@
       "sheet": "Non-Contractors",
       "number": 4,
       "expectedOutcome": "Quote",
-      "submission_public_id": "CID-CLN-20260916-000182",
+      "submission_public_id": "CID-CLN-20260916-000214",
       "pass": true,
       "outcome": {
         "actual": "quote",
@@ -430,21 +406,19 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "5d6238d8-5953-4f79-93f8-341fb528e4e0",
-        "nbsRqUid": "dd9b1396-54e1-4668-8dcb-3363046fa464",
-        "policyNumber": "CIWC773637",
-        "premium": 3307,
+        "indicateRqUid": "5637044d-8506-4d9d-b9f1-f62b96312ed1",
+        "nbsRqUid": "c055d018-388f-43c8-a419-f9139abe6dad",
+        "policyNumber": "CIWC773673",
+        "premium": 3001,
         "policyStatusCd": "NotQuotedNotBound",
         "uwDecision": "Accept",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 56-9014_01 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 56-9014_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 56-9014_03 is missing or invalid."
+          "NOTICE: The answer to underwriting question 56-9014_01 is missing or invalid."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 4
     },
     {
       "ok": true,
@@ -452,7 +426,7 @@
       "sheet": "Non-Contractors",
       "number": 5,
       "expectedOutcome": "Refer",
-      "submission_public_id": "CID-FTN-20260916-000183",
+      "submission_public_id": "CID-FTN-20260916-000215",
       "pass": true,
       "outcome": {
         "actual": "refer",
@@ -466,25 +440,19 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "f8c226d7-4f4c-4dbe-8298-183d004d28e1",
-        "nbsRqUid": "d4b2ca9b-9588-4ea5-a025-4af01298599b",
-        "policyNumber": "CIWC773638",
-        "premium": 976,
+        "indicateRqUid": "05c18f96-a975-4420-947f-c94cc081d2aa",
+        "nbsRqUid": "146cee44-becf-4efe-96a9-a3d7f91c1b19",
+        "policyNumber": "CIWC773674",
+        "premium": 904,
         "policyStatusCd": "NotQuotedNotBound",
         "uwDecision": "Refer",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 71-9063_01 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_03 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_04 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_05 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_06 is missing or invalid.",
           "NOTICE: This risk will require underwriting review."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 6
     },
     {
       "ok": true,
@@ -492,7 +460,7 @@
       "sheet": "Non-Contractors",
       "number": 6,
       "expectedOutcome": "Quote",
-      "submission_public_id": "CID-BTY-20260916-000184",
+      "submission_public_id": "CID-BTY-20260916-000216",
       "pass": true,
       "outcome": {
         "actual": "quote",
@@ -506,21 +474,20 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "36196279-ec60-45bc-b1fe-0e2c668e68cc",
-        "nbsRqUid": "583ab13a-197b-440b-af2a-ffc0c259d361",
-        "policyNumber": "CIWC773639",
-        "premium": 777,
-        "policyStatusCd": "NotQuotedNotBound",
+        "indicateRqUid": "990c174c-5e51-430b-bc0a-30d2b325e327",
+        "nbsRqUid": "7b9ea2b7-46a9-49a3-a79e-5ac141afaf84",
+        "policyNumber": "CIWC773675",
+        "premium": 803,
+        "policyStatusCd": "QuotedNotBound",
         "uwDecision": "Accept",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 81-9586_01 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 81-9586_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 81-9586_03 is missing or invalid."
+          "NOTICE:Policy CIWC773675 has been submitted (GENPROPSUBMIT).",
+          "NOTICE:Proposal Generated for CIWC773675."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 3
     },
     {
       "ok": true,
@@ -528,7 +495,7 @@
       "sheet": "Non-Contractors",
       "number": 7,
       "expectedOutcome": "Refer",
-      "submission_public_id": "CID-BTY-20260916-000185",
+      "submission_public_id": "CID-BTY-20260916-000217",
       "pass": true,
       "outcome": {
         "actual": "refer",
@@ -542,21 +509,19 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "9d698cd8-613d-4bec-9901-2aaf97c812c5",
-        "nbsRqUid": "baa4b939-8426-4d79-9507-bac3bc99cf3d",
-        "policyNumber": "CIWC773640",
-        "premium": 1243,
+        "indicateRqUid": "07561128-a460-4fcc-b851-8897dbb73076",
+        "nbsRqUid": "894396a6-24eb-4804-b1aa-94b56de6d7d3",
+        "policyNumber": "CIWC773676",
+        "premium": 1291,
         "policyStatusCd": "NotQuotedNotBound",
         "uwDecision": "Refer",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 81-9586_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 81-9586_03 is missing or invalid.",
           "NOTICE: This risk will require underwriting review."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 1
+      "classQuestionsAnswered": 3
     },
     {
       "ok": true,
@@ -564,7 +529,7 @@
       "sheet": "Non-Contractors",
       "number": 8,
       "expectedOutcome": "Quote",
-      "submission_public_id": "CID-FTN-20260916-000186",
+      "submission_public_id": "CID-FTN-20260916-000218",
       "pass": true,
       "outcome": {
         "actual": "quote",
@@ -578,24 +543,20 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "a3f1d6c0-6d9e-4aff-b836-2ccf84c2d509",
-        "nbsRqUid": "c1a7c7b6-75c5-4910-82da-82f5c8bdb372",
+        "indicateRqUid": "c5ed5f01-25aa-43ca-b01f-42458c808f1c",
+        "nbsRqUid": "5d3582bd-038a-4fcd-8eba-9bd5bd03a003",
         "policyNumber": "UAWC773641",
-        "premium": 1645,
-        "policyStatusCd": "NotQuotedNotBound",
+        "premium": 1506,
+        "policyStatusCd": "QuotedNotBound",
         "uwDecision": "Accept",
         "msgStatusCd": "SuccessWithChanges",
         "remarks": [
-          "NOTICE: The answer to underwriting question 71-9063_01 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_02 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_03 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_04 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_05 is missing or invalid.",
-          "NOTICE: The answer to underwriting question 71-9063_06 is missing or invalid."
+          "NOTICE:Policy UAWC773641 has been submitted (GENPROPSUBMIT).",
+          "NOTICE:Proposal Generated for UAWC773641."
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 0
+      "classQuestionsAnswered": 6
     }
   ]
 }
