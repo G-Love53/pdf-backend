@@ -108,12 +108,25 @@ def parse_sheet(ws, sheet_name):
                 {"text": hq, "answer": hans, "expectedNote": hexp or None}
             )
 
+        def record_question(q, ans, exp):
+            if q == "Are ACORD questions all answered favorably?":
+                case["acordFavorable"] = ans.lower().startswith("y")
+                if exp:
+                    case["expectedReason"] = exp
+            elif q and q not in SKIP_Q and q != "**None":
+                case["questions"].append(
+                    {"text": q, "answer": ans, "expectedNote": exp or None}
+                )
+            if exp and ("Referral" in exp or "Declination" in exp):
+                case.setdefault("expectedReason", exp)
+
         pending = None
         for r in block:
             b = col(r, 1)
             q = col(r, 4)
             ans = col(r, 5)
             exp = col(r, 6)
+            record_question(q, ans, exp)
 
             if b == "Address":
                 pending = "address"
@@ -152,16 +165,6 @@ def parse_sheet(ws, sheet_name):
                 continue
             if b.startswith("*"):
                 case["notes"].append(b)
-            if q == "Are ACORD questions all answered favorably?":
-                case["acordFavorable"] = ans.lower().startswith("y")
-                if exp:
-                    case["expectedReason"] = exp
-            elif q and q not in SKIP_Q and q != "**None":
-                case["questions"].append(
-                    {"text": q, "answer": ans, "expectedNote": exp or None}
-                )
-            if exp and ("Referral" in exp or "Declination" in exp):
-                case.setdefault("expectedReason", exp)
 
         meta = CLASS_SEGMENT.get(class_code, {})
         case["segment"] = meta.get("segment", "plumber")

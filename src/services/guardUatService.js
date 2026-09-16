@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -39,19 +40,32 @@ function normText(s) {
     .trim();
 }
 
-function lookupQuestionCd(text) {
+function classPrefixFromRating(ratingClassificationCd) {
+  const raw = String(ratingClassificationCd || "").replace(/\D/g, "");
+  if (raw.length >= 4) return raw.slice(0, 4);
+  return null;
+}
+
+function lookupQuestionCd(text, ratingClassificationCd) {
   const needle = normText(text);
   if (!needle) return null;
   const index = loadQuestionIndex();
-  let best = null;
+  const classPrefix = classPrefixFromRating(ratingClassificationCd);
+  const matches = [];
   for (const row of index) {
     const hay = normText(row.text);
     if (hay === needle || hay.includes(needle) || needle.includes(hay)) {
-      best = row.questionCd;
-      if (hay === needle) break;
+      matches.push(row);
     }
   }
-  return best;
+  if (!matches.length) return null;
+  if (classPrefix) {
+    const scoped = matches.find((row) =>
+      String(row.questionId || "").includes(classPrefix),
+    );
+    if (scoped) return scoped.questionCd;
+  }
+  return matches[0].questionCd;
 }
 
 function fakeFein(caseId) {
@@ -63,7 +77,8 @@ function fakeFein(caseId) {
 
 function uniqueBusinessName(caseDef) {
   const slug = String(caseDef.id || "uat").replace(/[^a-zA-Z0-9]/g, "");
-  return `CID UAT ${slug} ${Date.now().toString(36).slice(-4)}`.slice(0, 40);
+  const nonce = crypto.randomUUID().slice(0, 8);
+  return `CID UAT ${slug} ${nonce}`.slice(0, 40);
 }
 
 function acordOverrides(caseDef) {
@@ -129,7 +144,7 @@ function ynToSimple(text) {
   return text;
 }
 
-function matchUatQuestions(guardQuestions, uatQuestions) {
+function matchUatQuestions(guardQuestions, uatQuestions, caseDef) {
   const answers = [];
   for (const uq of uatQuestions || []) {
     const needle = String(uq.text || "").toLowerCase();
@@ -137,7 +152,9 @@ function matchUatQuestions(guardQuestions, uatQuestions) {
       const hay = String(q.questionText || "").toLowerCase();
       return hay.includes(needle) || needle.includes(hay.slice(0, 40));
     });
-    let questionCd = gq?.questionCd || lookupQuestionCd(uq.text);
+    let questionCd =
+      gq?.questionCd ||
+      lookupQuestionCd(uq.text, caseDef?.ratingClassificationCd);
     if (!questionCd) {
       answers.push({ _unmatched: uq.text, answer: uq.answer });
       continue;
@@ -299,6 +316,7 @@ export async function runGuardUatCase(caseDef) {
   const classAnswers = matchUatQuestions(
     questionsParsed.questions,
     caseDef.questions,
+    caseDef,
   );
   const unmatched = classAnswers.filter((a) => a._unmatched);
   const matched = classAnswers.filter((a) => a.questionCd);

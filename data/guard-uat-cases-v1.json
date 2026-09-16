@@ -7,7 +7,23 @@
       "number": 1,
       "expectedOutcome": "Quote",
       "classCode": "5183CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Does the insured provide services to industrial or commercial customers?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured provide services beyond a 75 mile radius?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured have at least 5 full time W2 employees?",
+          "answer": "Yes",
+          "expectedNote": null
+        }
+      ],
       "notes": [],
       "acordFavorable": true,
       "address": {
@@ -54,7 +70,28 @@
       "number": 3,
       "expectedOutcome": "Decline",
       "classCode": "5537CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Does the insured perform work for commercial concerns?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured work on HVAC units located on the customer's roof?",
+          "answer": "Yes",
+          "expectedNote": "Declination generated due to this response."
+        },
+        {
+          "text": "Does this insured perform 100% services on residential dwellings?",
+          "answer": "Yes",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the payroll on the application include at least five (5) or more W-2 employees?",
+          "answer": "Yes",
+          "expectedNote": null
+        }
+      ],
       "notes": [],
       "acordFavorable": true,
       "address": {
@@ -63,6 +100,7 @@
         "state": "CO",
         "zip": "80203"
       },
+      "expectedReason": "Declination generated due to this response.",
       "payroll": 175000,
       "entity": "IN",
       "entityLabel": "Individual",
@@ -77,7 +115,23 @@
       "number": 4,
       "expectedOutcome": "Decline",
       "classCode": "5183CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Does the insured provide services to industrial or commercial customers?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured provide services beyond a 75 mile radius?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured have at least 5 full time W2 employees?",
+          "answer": "Yes",
+          "expectedNote": null
+        }
+      ],
       "notes": [
         "*Declination due to low payroll"
       ],
@@ -102,7 +156,28 @@
       "number": 5,
       "expectedOutcome": "Quote",
       "classCode": "5190CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Does the insured ever work above 15 feet?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured have more than 5 full time W2 employees?",
+          "answer": "Yes",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured provide services to any industrial or commercial customers?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Is 100% of the work performed in single family homes?",
+          "answer": "Yes",
+          "expectedNote": null
+        }
+      ],
       "notes": [],
       "acordFavorable": true,
       "address": {
@@ -125,7 +200,28 @@
       "number": 6,
       "expectedOutcome": "Refer",
       "classCode": "5537CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Does the insured perform work for commercial concerns?",
+          "answer": "Yes",
+          "expectedNote": "Referral generated due to this response."
+        },
+        {
+          "text": "Does the insured work on HVAC units located on the customer's roof?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does this insured perform 100% services on residential dwellings?",
+          "answer": "Yes",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the payroll on the application include at least five (5) or more W-2 employees?",
+          "answer": "Yes",
+          "expectedNote": null
+        }
+      ],
       "notes": [],
       "acordFavorable": true,
       "address": {
@@ -134,6 +230,7 @@
         "state": "CO",
         "zip": "80903"
       },
+      "expectedReason": "Referral generated due to this response.",
       "payroll": 150000,
       "entity": "CP",
       "entityLabel": "Corporation",
@@ -148,7 +245,23 @@
       "number": 7,
       "expectedOutcome": "Quote",
       "classCode": "9014CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Does the insured perform mobile power washing or pressure cleaning services above ground level?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured perform extermination services only?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the payroll on the application include at least five (5) or more W-2 employees?",
+          "answer": "Yes",
+          "expectedNote": null
+        }
+      ],
       "notes": [],
       "acordFavorable": true,
       "address": {
@@ -171,7 +284,28 @@
       "number": 8,
       "expectedOutcome": "Refer",
       "classCode": "9014CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Does the insured perform mobile power washing or pressure cleaning services above ground level?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured perform extermination services only?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the payroll on the application include at least five (5) or more W-2 employees?",
+          "answer": "Yes",
+          "expectedNote": null
+        },
+        {
+          "text": "Any work performed above 15 feet?",
+          "answer": "Yes",
+          "expectedNote": "Referral generated due to this response."
+        }
+      ],
       "notes": [],
       "acordFavorable": true,
       "address": {
@@ -181,6 +315,7 @@
         "zip": "80903"
       },
       "payroll": 150000,
+      "expectedReason": "Referral generated due to this response.",
       "entity": "PT",
       "entityLabel": "Partnership",
       "experienceMod": 0.75,
@@ -194,7 +329,13 @@
       "number": 1,
       "expectedOutcome": "Quote",
       "classCode": "0917CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Any work performed above 15 feet?",
+          "answer": "No",
+          "expectedNote": null
+        }
+      ],
       "notes": [],
       "acordFavorable": true,
       "address": {
@@ -217,7 +358,38 @@
       "number": 2,
       "expectedOutcome": "Refer",
       "classCode": "9063CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Is this insured a YMCA/YWCA?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does this insured operate a massage salon?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured provide Spa or Tanning services?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does this insured provide personal training services?",
+          "answer": "Yes",
+          "expectedNote": null
+        },
+        {
+          "text": "Is this insured a Yoga, Tai Chi or Qigong Center",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does insured specialize in body building, martial arts, boxing/MMA, or rock climbing?",
+          "answer": "No",
+          "expectedNote": null
+        }
+      ],
       "notes": [],
       "acordFavorable": false,
       "expectedReason": "Referral due to \"Yes\" response to \"Does the applicant have any past, present or discontinued operations involve(d) storing, treating, discharging, applying, disposing, or transporting of hazardous material?\"",
@@ -241,7 +413,23 @@
       "number": 3,
       "expectedOutcome": "Decline",
       "classCode": "9586CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Does the insured operate a tanning salon?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured have at least 3 W2 employees?",
+          "answer": "Yes",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured offer walk in services?",
+          "answer": "Yes",
+          "expectedNote": null
+        }
+      ],
       "notes": [
         "*Include officer for $75,000"
       ],
@@ -267,7 +455,28 @@
       "number": 4,
       "expectedOutcome": "Quote",
       "classCode": "9014CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Does the insured perform mobile power washing or pressure cleaning services above ground level?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured perform extermination services only?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the payroll on the application include at least five (5) or more W-2 employees?",
+          "answer": "Yes",
+          "expectedNote": null
+        },
+        {
+          "text": "Any work performed above 15 feet?",
+          "answer": "No",
+          "expectedNote": null
+        }
+      ],
       "notes": [],
       "acordFavorable": true,
       "address": {
@@ -290,7 +499,38 @@
       "number": 5,
       "expectedOutcome": "Refer",
       "classCode": "9063CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Is this insured a YMCA/YWCA?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does this insured operate a massage salon?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured provide Spa or Tanning services?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does this insured provide personal training services?",
+          "answer": "Yes",
+          "expectedNote": null
+        },
+        {
+          "text": "Is this insured a Yoga, Tai Chi or Qigong Center",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does insured specialize in body building, martial arts, boxing/MMA, or rock climbing",
+          "answer": "No",
+          "expectedNote": null
+        }
+      ],
       "notes": [
         "*Referral generated due to ex mod"
       ],
@@ -315,7 +555,23 @@
       "number": 6,
       "expectedOutcome": "Quote",
       "classCode": "9586CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Does the insured operate a tanning salon?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured have at least 3 W2 employees?",
+          "answer": "Yes",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured offer walk in services?",
+          "answer": "Yes",
+          "expectedNote": null
+        }
+      ],
       "notes": [],
       "acordFavorable": true,
       "address": {
@@ -343,6 +599,16 @@
           "text": "Does the insured operate a tanning salon?",
           "answer": "No",
           "expectedNote": null
+        },
+        {
+          "text": "Does the insured have at least 3 W2 employees?",
+          "answer": "Yes",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured offer walk in services?",
+          "answer": "Yes",
+          "expectedNote": null
         }
       ],
       "notes": [],
@@ -368,7 +634,38 @@
       "number": 8,
       "expectedOutcome": "Quote",
       "classCode": "9063CO",
-      "questions": [],
+      "questions": [
+        {
+          "text": "Is this insured a YMCA/YWCA?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does this insured operate a massage salon?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does the insured provide Spa or Tanning services?",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does this insured provide personal training services?",
+          "answer": "Yes",
+          "expectedNote": null
+        },
+        {
+          "text": "Is this insured a Yoga, Tai Chi or Qigong Center",
+          "answer": "No",
+          "expectedNote": null
+        },
+        {
+          "text": "Does insured specialize in body building, martial arts, boxing/MMA, or rock climbing",
+          "answer": "No",
+          "expectedNote": null
+        }
+      ],
       "notes": [],
       "acordFavorable": true,
       "address": {
