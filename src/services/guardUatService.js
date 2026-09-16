@@ -179,6 +179,7 @@ export async function runGuardUatCase(caseDef) {
   }
 
   const form = buildForm(caseDef);
+  const payroll = Number(caseDef.payroll || form.annual_payroll || 150000);
   const dbSegment = guardDbSegmentFromLine(caseDef.segment);
   const ownerIncluded = caseDef.ownerIncluded === true;
   let ownerPayroll = 73900;
