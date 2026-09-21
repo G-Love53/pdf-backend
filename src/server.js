@@ -16,6 +16,7 @@ import operatorRoutes from "./routes/operatorRoutes.js";
 import webhooksRouter from "./routes/webhooks.js";
 import coterieRoutes from "./routes/coterieRoutes.js";
 import guardRoutes from "./routes/guardRoutes.js";
+import cqEventsRoutes, { startCqEventsBotJanitor } from "./routes/cqEventsRoutes.js";
 import { connectAuthMiddleware } from "./middleware/connectAuth.js";
 import connectApiRouter from "./routes/connectApi.js";
 import { renewalPrefillHandler } from "./routes/renewalIntakePublic.js";
@@ -96,6 +97,9 @@ APP.use(
   "/webhooks/coterie",
   express.raw({ type: "*/*", limit: "5mb" }),
 );
+
+// ConnectQuote analytics beacons (sendBeacon — parse before express.json)
+APP.use(cqEventsRoutes);
 
 // All other routes use normal JSON parsing
 APP.use(express.json({ limit: "20mb" }));
@@ -1093,6 +1097,7 @@ APP.use(webhooksRouter);
 
 startGmailPoller();
 startPolicyIndexer();
+startCqEventsBotJanitor();
 
 // Simple interval-based scheduler for follow-ups and expirations
 if (process.env.ENABLE_FOLLOWUP_SCHEDULER === "true") {

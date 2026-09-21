@@ -62,6 +62,7 @@ export function buildPrefilledUrl(contact, segment, campaignTag, opts = {}) {
     setAttributionParams(params, {
       channel: opts.src || "instantly",
       campaign: campaignTag,
+      seq: opts.seq ?? null,
     });
     if (opts.businessClass) {
       params.set("bc", opts.businessClass);
@@ -105,6 +106,7 @@ export function buildPrefilledUrl(contact, segment, campaignTag, opts = {}) {
   setAttributionParams(params, {
     channel: opts.src || "instantly",
     campaign: campaignTag,
+    seq: opts.seq ?? null,
   });
 
   return `${domain}/quote?${params.toString()}`;

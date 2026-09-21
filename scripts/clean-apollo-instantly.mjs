@@ -505,10 +505,11 @@ function toContact(row, targetState) {
 export function toInstantlyCsv(rows, { segment, campaignTag, targetState, channelSource }) {
   const contacts = rows.map((row) => {
     const contact = toContact(row, targetState);
-    const prefilledUrl = buildPrefilledUrl(contact, segment, campaignTag, {
+    const urlOpts = {
       src: channelSource,
       businessClass: row.businessClass,
-    });
+    };
+    const prefilledUrl = buildPrefilledUrl(contact, segment, campaignTag, urlOpts);
     const displayName = normalizeDisplayName(contact.business_name);
     return {
       Email: contact.email,
@@ -524,6 +525,9 @@ export function toInstantlyCsv(rows, { segment, campaignTag, targetState, channe
       Zip: contact.zip,
       Personalization: displayName,
       connectquote_url: prefilledUrl,
+      connectquote_url_s1: buildPrefilledUrl(contact, segment, campaignTag, { ...urlOpts, seq: 1 }),
+      connectquote_url_s2: buildPrefilledUrl(contact, segment, campaignTag, { ...urlOpts, seq: 2 }),
+      connectquote_url_s3: buildPrefilledUrl(contact, segment, campaignTag, { ...urlOpts, seq: 3 }),
       business_class: row.businessClass,
       segment,
       campaign_tag: campaignTag,

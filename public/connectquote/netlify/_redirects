@@ -1,0 +1,3 @@
+# Copy to each segment Netlify publish root (alongside connectquote.html).
+# Proxies analytics + API calls same-origin — avoids ad blockers and CORS.
+/api/*  https://cid-pdf-api.onrender.com/api/:splat  200!

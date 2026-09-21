@@ -7,7 +7,7 @@
     "https://cid-pdf-api.onrender.com"
   ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260827c";
+  const ASSET_V = "20260921a";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -42,6 +42,258 @@
   }
 
   const CHANNEL_QUERY_KEYS = ["ch", "src", "utm_source"];
+  const CQ_SESSION_KEY = "cq_session_id";
+  const CQ_PV_KEY = "cq_page_view_sent";
+
+  /** Keep in sync with src/outreach/attributionParams.js — `seq` is email step; `st` is state (CO). */
+  function readSequenceStep() {
+    const p = new URLSearchParams(location.search);
+    const seq = p.get("seq");
+    if (!seq) return null;
+    const n = Number(seq);
+    if (!Number.isInteger(n) || n < 1 || n > 9) return null;
+    return n;
+  }
+
+  function readGeoState() {
+    const el = $("state");
+    if (el && /^[A-Za-z]{2}$/.test(String(el.value || "").trim())) {
+      return String(el.value).trim().toUpperCase();
+    }
+    const st = new URLSearchParams(location.search).get("st");
+    if (st && /^[A-Za-z]{2}$/.test(st)) return st.toUpperCase();
+    return null;
+  }
+
+  function cqSessionId() {
+    try {
+      let id = sessionStorage.getItem(CQ_SESSION_KEY);
+      if (!id) {
+        id =
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : "cq-" + Math.random().toString(36).slice(2) + Date.now();
+        sessionStorage.setItem(CQ_SESSION_KEY, id);
+      }
+      return id;
+    } catch (_) {
+      return "cq-" + Math.random().toString(36).slice(2) + Date.now();
+    }
+  }
+
+  function cqEventsUrl() {
+    const host = String(location.hostname || "").toLowerCase();
+    if (
+      host.includes("insurancedirect.com") ||
+      host.endsWith(".netlify.app") ||
+      host === "localhost" ||
+      host === "127.0.0.1"
+    ) {
+      return "/api/cq/events";
+    }
+    return API.replace(/\/$/, "") + "/api/cq/events";
+  }
+
+  function prefillPresenceMeta() {
+    const p = new URLSearchParams(location.search);
+    const keys = ["fn", "ln", "em", "zp", "ph", "ad", "ct", "bc", "cid", "ch", "seq"];
+    const out = {};
+    keys.forEach((k) => {
+      out[k] = !!(p.get(k) && String(p.get(k)).trim());
+    });
+    return out;
+  }
+
+  const cqAnalytics = {
+    lastStep: "landing",
+    engaged: false,
+    loadStart: typeof performance !== "undefined" ? performance.now() : 0,
+    stepsDone: new Set(),
+
+    basePayload() {
+      const p = new URLSearchParams(location.search);
+      const channel =
+        readChannelParam(p) ||
+        String($("traffic_source")?.value || "").trim() ||
+        null;
+      return {
+        session_id: cqSessionId(),
+        segment: SEGMENT,
+        state: readGeoState(),
+        cid:
+          String($("campaign_id")?.value || "").trim() ||
+          p.get("cid") ||
+          null,
+        ch: p.get("ch") || channel,
+        src: p.get("src") || channel,
+        st: readSequenceStep(),
+        user_agent: navigator.userAgent,
+        referrer: document.referrer || null,
+        is_mobile: /Mobi|Android/i.test(navigator.userAgent || ""),
+        ts: new Date().toISOString(),
+      };
+    },
+
+    track(event, step, meta) {
+      const payload = {
+        ...this.basePayload(),
+        event,
+        step: step || this.lastStep || null,
+      };
+      if (meta && typeof meta === "object") payload.meta = meta;
+      const url = cqEventsUrl();
+      const body = JSON.stringify(payload);
+      try {
+        if (navigator.sendBeacon) {
+          const ok = navigator.sendBeacon(
+            url,
+            new Blob([body], { type: "application/json" }),
+          );
+          if (ok) return;
+        }
+      } catch (_) {
+        /* fetch fallback */
+      }
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        keepalive: true,
+      }).catch(function () {});
+    },
+
+    markEngaged(source) {
+      if (this.engaged) return;
+      this.engaged = true;
+      this.track("engaged", source || this.lastStep);
+    },
+
+    stepComplete(stepId) {
+      if (this.stepsDone.has(stepId)) return;
+      this.stepsDone.add(stepId);
+      this.lastStep = stepId;
+      this.markEngaged("step_" + stepId);
+      this.track("step_complete", stepId);
+    },
+
+    disqualified(reason) {
+      this.lastStep = "disqualified";
+      this.track("disqualified", reason || "unknown");
+    },
+  };
+
+  function wireCqStepField(id, stepId, validate) {
+    const el = $(id);
+    if (!el || el.dataset.cqStepBound === "1") return;
+    el.dataset.cqStepBound = "1";
+    const check = function () {
+      if (validate ? validate() : String(el.value || "").trim()) {
+        cqAnalytics.stepComplete(stepId);
+      }
+    };
+    el.addEventListener("change", check);
+    el.addEventListener("blur", check);
+  }
+
+  function wireCqAnalytics() {
+    let skipPageView = false;
+    try {
+      skipPageView = sessionStorage.getItem(CQ_PV_KEY) === "1";
+      if (!skipPageView) sessionStorage.setItem(CQ_PV_KEY, "1");
+    } catch (_) {
+      skipPageView = false;
+    }
+
+    if (!skipPageView) {
+      const loadMs = Math.round(
+        (typeof performance !== "undefined" ? performance.now() : 0) -
+          cqAnalytics.loadStart,
+      );
+      cqAnalytics.track("page_view", "landing", {
+        load_ms: loadMs,
+        prefill_present: prefillPresenceMeta(),
+      });
+    }
+
+    const engageOnce = function (source) {
+      return function () {
+        cqAnalytics.markEngaged(source);
+      };
+    };
+    ["focusin", "touchstart", "click"].forEach(function (ev) {
+      document.addEventListener(ev, engageOnce(ev), { once: true, passive: true });
+    });
+    window.addEventListener("scroll", engageOnce("scroll"), {
+      once: true,
+      passive: true,
+    });
+
+    window.addEventListener("pagehide", function () {
+      cqAnalytics.track("exit", cqAnalytics.lastStep);
+    });
+
+    wireCqStepField("business_class", "business_class");
+    wireCqStepField("is_owner", "is_owner");
+    wireCqStepField("num_employees", "employees");
+
+    (function wireCompositeStep(fieldIds, stepId, validate) {
+      const check = function () {
+        if (validate()) cqAnalytics.stepComplete(stepId);
+      };
+      fieldIds.forEach(function (id) {
+        const el = $(id);
+        if (!el) return;
+        el.addEventListener("change", check);
+        el.addEventListener("blur", check);
+      });
+    })(
+      ["first_name", "last_name", "contact_email"],
+      "contact",
+      function () {
+        const fn = String($("first_name")?.value || "").trim();
+        const ln = String($("last_name")?.value || "").trim();
+        const em = String($("contact_email")?.value || "").trim();
+        return fn && ln && em && validateOutreachEmail(em).ok;
+      },
+    );
+
+    (function wireCompositeStep(fieldIds, stepId, validate) {
+      const check = function () {
+        if (validate()) cqAnalytics.stepComplete(stepId);
+      };
+      fieldIds.forEach(function (id) {
+        const el = $(id);
+        if (!el) return;
+        el.addEventListener("change", check);
+        el.addEventListener("blur", check);
+      });
+    })(
+      ["insured_name", "premise_street", "premise_city", "state", "zip"],
+      "location",
+      function () {
+        return ["insured_name", "premise_street", "premise_city", "state", "zip"].every(
+          function (id) {
+            return String($(id)?.value || "").trim();
+          },
+        );
+      },
+    );
+  }
+
+  function wireCqCoverageStepOnce() {
+    const host = $("cq-dynamic");
+    if (!host || host.dataset.cqCovBound === "1") return;
+    host.dataset.cqCovBound = "1";
+    host.addEventListener(
+      "change",
+      function (e) {
+        if (e.target && e.target.matches("[data-cov-id]")) {
+          cqAnalytics.stepComplete("coverage");
+        }
+      },
+      true,
+    );
+  }
 
   /** Keep in sync with src/outreach/normalizeUsPhone.js */
   function normalizeUsPhone(raw) {
@@ -380,6 +632,7 @@
   }
 
   function redirectTraditional(message, reason) {
+    cqAnalytics.disqualified(reason || "traditional");
     if (!hasLongFormIntake()) {
       showManualQuoteContact(message);
       return;
@@ -473,6 +726,8 @@
       if (!p.get("src")) p.set("src", channel);
     }
     if (campaign) p.set("cid", campaign);
+    const seq = p.get("seq");
+    if (seq) p.set("seq", seq);
 
     const qs = p.toString();
     const next = qs ? `${location.pathname}?${qs}` : location.pathname;
@@ -1361,11 +1616,13 @@
       return;
     }
     if (isOwnerOnlyBlocked()) {
+      cqAnalytics.disqualified("not_owner");
       host.innerHTML = ownerOnlyNoticeHtml();
       return;
     }
     host.innerHTML = renderSections(currentSchema);
     bindCoverageUi();
+    wireCqCoverageStepOnce();
     bindCurrencyInputs();
     bindMonthYearFields();
     bindLocationTypeUi();
@@ -1638,6 +1895,7 @@
 
   function validateBeforeQuote() {
     if (isOwnerOnlyBlocked()) {
+      cqAnalytics.disqualified("not_owner");
       const email = agentInboxEmail();
       showErr(
         hasLongFormIntake()
@@ -2417,6 +2675,11 @@
       syncGuardYearsFromForm();
       $("err-box").classList.remove("show");
       $("quote-btn").disabled = true;
+      cqAnalytics.lastStep = "quote";
+      cqAnalytics.track("quote_requested", "quote", {
+        prefill_present: prefillPresenceMeta(),
+      });
+      const quoteStarted = typeof performance !== "undefined" ? performance.now() : 0;
       try {
         const res = await fetch(API + "/api/coterie/connectquote", {
           method: "POST",
@@ -2453,6 +2716,11 @@
         session.quote = q;
         session.exclusions = data.coterie?.exclusions || [];
         session.wcIntentDeclined = !wcIntentSelected();
+        const latencyMs = Math.round(
+          (typeof performance !== "undefined" ? performance.now() : 0) - quoteStarted,
+        );
+        cqAnalytics.track("quote_returned", "quote", { latency_ms: latencyMs });
+        cqAnalytics.lastStep = "quote_result";
         updatePremiumDisplay();
         $("quote-box").classList.add("show");
         $("payment-section").classList.add("show");
@@ -2468,6 +2736,9 @@
           });
         }
       } catch (err) {
+        cqAnalytics.track("quote_error", "quote", {
+          error: String(err.message || err).slice(0, 200),
+        });
         showErr(err.message || String(err));
       } finally {
         $("quote-btn").disabled = false;
@@ -2475,6 +2746,7 @@
     });
 
     $("pay-btn").addEventListener("click", async () => {
+      cqAnalytics.track("bind_clicked", "bind");
       if (!validateBeforeBind()) return;
       if (!stripe || !cardElement) {
         showErr(
@@ -2553,6 +2825,7 @@
     });
 
     $("demo-btn").addEventListener("click", async () => {
+      cqAnalytics.track("bind_clicked", "bind_demo");
       if (!validateBeforeBind()) return;
       $("demo-btn").disabled = true;
       try {
@@ -2570,6 +2843,7 @@
   }
 
   async function init() {
+    wireCqAnalytics();
     ensureConnectBenefits();
     ensureContactPhoneField();
     relaxNameRequiredFields();

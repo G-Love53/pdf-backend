@@ -78,7 +78,8 @@ Keyword → bc search profiles live in `segmentSearchProfiles.js` (what to pull)
 - Starter plan ≈ **$0.0039/credit** ($39 / 10k).
 - **Metro spillover:** city-named searches return mostly neighboring cities (e.g. Cherry Hills Village → Denver/Englewood).
 - **Cross-city duplicate billing:** same `google_cid` in multiple city searches still consumes credits; export dedupes listings to one row.
-- **`has_email=true`** on campaign export API may not reduce row count — always run **`outreachEmailValidation.js`** in clean step.
+- **`has_email=true` on campaign export does not filter** — LP confirmed **2026-08-27** (product bug; they logged a fix). `format=advanced&has_email=true` is still the right request; until they ship the fix, **download Advanced CSV and drop empty/junk email in clean** (`outreachEmailValidation.js`). `has_email` does **not** change billing — credits are charged when the business is found/enriched, before they know if an email exists.
+- **Campaign billing is per city search:** they reserve the city max, charge for businesses returned, refund unused. Overlap (Denver vs Aurora) is charged in **each** city; the final export dedupes rows but **does not refund** earlier searches. Prefer **larger, separated markets**, not every suburb in the same metro (matches our region-campaign + listing-id dedupe model).
 - Approximate yield: beauty ~5.5 credits/sendable; cleaning ~9.6 credits/sendable.
 
 ## Scripts
@@ -108,7 +109,8 @@ Map custom variables:
 
 | CSV column | Instantly variable |
 |------------|-------------------|
-| `connectquote_url` | **`connectquote_url`** |
+| `connectquote_url` | **`connectquote_url`** (legacy — no step) |
+| `connectquote_url_s1` / `_s2` / `_s3` | Per-sequence-step URL with `seq=1|2|3` (use in step 1 / 2 / 3 body) |
 | `displayName` | **`displayName`** |
 
 **Campaign settings:** `stop_for_company` ON (when ≤2 contacts/company); duplicate check OFF on fresh list upload.
