@@ -64,6 +64,7 @@ Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-20
 | **System_Flow.md** | One-page LEG 1 → LEG 2 → LEG 3 flow |
 | **CID_CONNECT.md** | CID Connect (insured app): Famous vs API, post-bind service |
 | **connectquote-shipped-2026-06.md** | ConnectQuote shipped summary — investor/handoff |
+| **connectquote-analytics-partner.md** | ConnectQuote page funnel & attribution — partner summary |
 | **corporate-structure.md** | LLC, segment brands/domains, partner-facing narrative |
 | **partnerships.md** | Partnerships and integrations registry |
 | **partnership-gaps.md** | Diligence gaps and next actions |

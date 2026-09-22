@@ -1,8 +1,8 @@
 # ConnectQuote — Operator learning cards (saved spec)
 
-> **Status:** Spec only — build after marketing launch when patterns emerge.  
-> **As of:** 2026-08-18 · **Operator today:** [`/operator`](https://cid-pdf-api.onrender.com/operator) (generic S4–S6; partial Coterie signal).  
-> **Related:** [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) · [`coterie-integration.md`](./coterie-integration.md)
+> **Status:** Partially live — page funnel in **`cq_events`** + Operator “Page funnel” tiles; submit/bind learning on **`submissions`** / timeline.  
+> **As of:** 2026-09-22 · **Operator today:** [`/operator`](https://cid-pdf-api.onrender.com/operator)  
+> **Related:** [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md) · [`connectquote-events-tracking.md`](./connectquote-events-tracking.md) · [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md)
 
 ---
 
@@ -27,16 +27,21 @@ Do not block launch on this UI — data already lands in **`submissions`**, **`t
 | **Quote shown** | Soft conversion | `coterie.bindable_quote` / `coterie.session` timeline | SQL in this doc |
 | **Bind** | Purchase | `policies` + `coterie.policy.bound` | Operator Home “Policies bound” |
 
-**What is NOT tracked yet (clicks / opens):**
+**Page funnel (live — `cq_events`):**
 
-- Landing on `connectquote.html` without submit → **no server event**
-- Partial form abandon → **no beacon**
+- Landing, engagement, semi-filled, stale, quote on page, bind click — see [`connectquote-events-tracking.md`](./connectquote-events-tracking.md)
+- Operator Home → **ConnectQuote — page funnel (cq_events)** or `GET /api/operator/cq-funnel`
 
-**Day-1 C&F workaround:**
+**Email clicks / opens:**
 
-1. **Clicks (proxy):** Email/ ad platform click counts (Instantly, Meta) + **`src`/`cid`** on destination URL.
-2. **Fills:** SQL **Submits** and **Attribution** queries below — run daily during launch week.
-3. **Fill rate (rough):** platform clicks → submits with matching `src`/`cid` (not page-level precision).
+- Instantly click tracking is **optional** (often off on step 1 for deliverability); opens are unreliable on HTML steps
+- Use **`cq_events` landings + engaged** as ground truth for “did they reach the form?”
+
+**Day-1 C&F:**
+
+1. **Landings / semi-fill:** `cq_events` funnel API or Operator tiles  
+2. **Submits / quotes / binds:** SQL below + ConnectQuote pipeline tiles  
+3. **Attribution:** **`ch`/`src`/`cid`/`seq`** on URL → stored on submit and on page events
 
 **URL discipline (non-negotiable):**
 
@@ -75,9 +80,9 @@ Examples: `ch=instantly-co-electrical&src=instantly-co-electrical` · `cid=elect
 
 | Metric | Question | Tracked today? |
 |--------|----------|----------------|
-| Page opens | How many landed on `connectquote.html`? | **No** — needs GA4 or light view ping (v2) |
-| Prefill vs cold | Instantly/email prefill vs organic URL? | **Partial** — only on submit via `src`/`cid` |
-| Open → submit | Fill rate | **No** (need opens + submits) |
+| Page opens | How many landed on `connectquote.html`? | **Yes** — `cq_events.page_view` (human filter: not `suspect_bot`) |
+| Prefill vs cold | Instantly/email prefill vs organic URL? | **Partial** — prefill *presence* in page event meta; values on submit only |
+| Open → submit | Fill rate | **Yes** — compare `cq_events` landings to `submissions` |
 | Submit → quote | Got bindable premium? | Yes — `coterie.bindable_quote`, `coterie.session` |
 | Quote → bind | Conversion after seeing price | Yes — compare timeline to `coterie.policy.bound` |
 | Traditional redirect | Owner gate, knockouts, appetite | Yes — `coterie.rail_traditional`, `coterie.appetite_excluded` |
@@ -166,13 +171,21 @@ Drill-down: list `submission_public_id`, segment, email (masked), timestamps.
 
 ---
 
-## v2 (after v1 proves value)
+## Shipped (2026-09) — page funnel
+
+| Feature | Where |
+|---------|--------|
+| Page view + engaged + step events | `cq_events` via `connectquote-intake.js` |
+| Funnel stages on exit | `open`, `semi_filled`, `quoted_unbound`, etc. |
+| Operator tiles | `/operator/home` — “Page funnel (cq_events)” |
+| Partner summary | [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md) |
+
+## v2 (next)
 
 | Feature | Why |
 |---------|-----|
-| **Page view ping** | `POST /api/coterie/intake-view` or GA4 on segment Netlify — true open → submit rate |
-| **Partial progress events** | Optional client beacons: `business_class_selected`, `quote_shown`, `payment_started` |
-| **Exclude internal** | Filter `src=demo`, test emails from marketing KPIs |
+| **`quote_outcomes` table** | Unified premium by segment/carrier (server-side) |
+| **CONNECT event log** | Post-bind servicing on same `submission_public_id` |
 | **Export CSV** | Weekly partner report |
 
 ---

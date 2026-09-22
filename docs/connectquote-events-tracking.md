@@ -2,6 +2,8 @@
 
 First-party page analytics for ConnectQuote intake — page load, human engagement, intake steps, quote timing, bind click.
 
+**Partner-facing summary:** [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md)
+
 ## Deploy checklist
 
 1. **Migration** (Render shell on CID-PDF-API):
@@ -10,7 +12,7 @@ First-party page analytics for ConnectQuote intake — page load, human engageme
    ```
 2. **Deploy `pdf-backend`** (intake JS + `POST /api/cq/events`).
 3. **Each segment Netlify site** — copy `public/connectquote/netlify/_redirects` to publish root so `/api/*` proxies to Render.
-4. **Bump intake cache-bust** on segment `connectquote.html`: `connectquote-intake.js?v=20260921a`.
+4. **Bump intake cache-bust** on segment `connectquote.html`: `connectquote-intake.js?v=20260922a`.
 5. **Privacy** — add to segment `privacy.html`:
    > We use first-party visit analytics on our quote pages (page load and form progress) to improve our service. We do not use third-party ad trackers.
 

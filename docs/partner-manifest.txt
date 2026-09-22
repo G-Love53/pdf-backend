@@ -11,6 +11,7 @@ docs/CID_ARCHITECTURE.md
 docs/System_Flow.md
 docs/CID_CONNECT.md
 docs/connectquote-shipped-2026-06.md
+docs/connectquote-analytics-partner.md
 docs/corporate-structure.md
 docs/partnerships.md
 docs/partnership-gaps.md
