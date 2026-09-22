@@ -5,6 +5,7 @@
 
 import { parseOperatorWindow, sqlWindowFilter } from "./operatorWindow.js";
 import { sqlSegmentFilter } from "../utils/operatorSegment.js";
+import { getCqFunnelBehavior } from "./cqFunnelService.js";
 
 const DEMO_SRC_BLOCK = new Set(["demo", "coterie-demo"]);
 
@@ -290,13 +291,20 @@ export async function getConnectQuoteLearning(pool, opts = {}) {
     LIMIT 25
   `;
 
-  const [funnelRes, revenueRes, openRes, recentRes, bindsRes] = await Promise.all([
-    pool.query(funnelSql, params),
-    pool.query(revenueSql, params),
-    pool.query(quotedNotBoundSql, params),
-    pool.query(recentSubmissionsSql, params),
-    pool.query(recentBindsSql, params),
-  ]);
+  const [funnelRes, revenueRes, openRes, recentRes, bindsRes, behaviorRes] =
+    await Promise.all([
+      pool.query(funnelSql, params),
+      pool.query(revenueSql, params),
+      pool.query(quotedNotBoundSql, params),
+      pool.query(recentSubmissionsSql, params),
+      pool.query(recentBindsSql, params),
+      getCqFunnelBehavior(pool, { segment: segParam, window: opts.window ?? opts.days }).catch(
+        (err) => {
+          console.warn("[connectquote learning] cq funnel:", err.message || err);
+          return null;
+        },
+      ),
+    ]);
 
   const funnelRow = funnelRes.rows[0] || {};
   const submits = funnelRow.submits ?? 0;
@@ -352,6 +360,7 @@ export async function getConnectQuoteLearning(pool, opts = {}) {
       last_quoted_premium: row.last_quoted_premium != null ? Number(row.last_quoted_premium) : null,
       minutes_to_bind: row.minutes_to_bind != null ? Number(row.minutes_to_bind) : null,
     })),
+    behavior: behaviorRes,
   };
 }
 

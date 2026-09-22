@@ -404,6 +404,44 @@
         </div>
       </div>
 
+      <div class="section-title" style="margin-top: 8px">
+        ConnectQuote — page funnel <span class="metric-window-suffix">(cq_events)</span>
+      </div>
+      <p style="font-size: 12px; color: #6b7280; margin: 0 0 10px; line-height: 1.45; max-width: 920px">
+        Pre-submit behavior from segment landing pages (excludes <code style="color:#cbd5e1">suspect_bot</code>).
+        <strong style="color:#d1d5db">Stale</strong> = no quote/bind and last activity &gt;30 min ago.
+        <strong style="color:#d1d5db">Quoted unbound (page)</strong> = saw premium, no bind click;
+        <strong style="color:#d1d5db">confirmed</strong> = same + no policy row yet.
+      </p>
+      <div class="grid" id="cq-behavior-metrics">
+        <div class="card">
+          <h2>Landings</h2>
+          <div class="metric" id="cq-beh-landings">—</div>
+          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-beh-engage-rate">—</div>
+        </div>
+        <div class="card">
+          <h2>Semi-filled</h2>
+          <div class="metric" id="cq-beh-semi">—</div>
+        </div>
+        <div class="card">
+          <h2>Stale</h2>
+          <div class="metric" id="cq-beh-stale">—</div>
+        </div>
+        <div class="card">
+          <h2>Quote on page</h2>
+          <div class="metric" id="cq-beh-quoted">—</div>
+        </div>
+        <div class="card">
+          <h2>Quoted, not bound</h2>
+          <div class="metric" id="cq-beh-unbound">—</div>
+          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-beh-unbound-premium">—</div>
+        </div>
+        <div class="card">
+          <h2>Bind clicked</h2>
+          <div class="metric" id="cq-beh-bind-click">—</div>
+        </div>
+      </div>
+
       <div class="section-title">Recent ConnectQuote submissions</div>
       <div class="card" style="margin-bottom: 24px">
         <table>
@@ -718,6 +756,24 @@
           f.with_requotes ?? "0";
         document.getElementById("cq-metric-traditional").textContent =
           (f.traditional_exits ?? 0) + " traditional exits";
+
+        const b = cq.behavior?.summary || {};
+        const behLand = document.getElementById("cq-beh-landings");
+        if (behLand) {
+          behLand.textContent = b.landings ?? "0";
+          document.getElementById("cq-beh-engage-rate").textContent =
+            b.engage_rate != null ? b.engage_rate + "% engaged" : "—";
+          document.getElementById("cq-beh-semi").textContent = b.semi_filled ?? "0";
+          document.getElementById("cq-beh-stale").textContent = b.stale ?? "0";
+          document.getElementById("cq-beh-quoted").textContent = b.quote_returned ?? "0";
+          const unbound = b.quoted_unbound_confirmed ?? b.quoted_unbound_page ?? 0;
+          document.getElementById("cq-beh-unbound").textContent = unbound;
+          document.getElementById("cq-beh-unbound-premium").textContent =
+            b.quoted_unbound_premium_sum
+              ? fmtMoney(b.quoted_unbound_premium_sum) + " open on page"
+              : "—";
+          document.getElementById("cq-beh-bind-click").textContent = b.bind_clicked ?? "0";
+        }
 
         const recentTbody = document.getElementById("tbody-cq-recent-submissions");
         if (recentTbody) {

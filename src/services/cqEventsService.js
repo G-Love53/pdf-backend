@@ -156,6 +156,11 @@ export async function recordCqEvent(body, headers = {}) {
   if (meta != null && typeof meta !== "object") {
     meta = null;
   }
+  if (body.submission_public_id && meta && !meta.submission_public_id) {
+    meta = { ...meta, submission_public_id: String(body.submission_public_id).slice(0, 64) };
+  } else if (body.submission_public_id && !meta) {
+    meta = { submission_public_id: String(body.submission_public_id).slice(0, 64) };
+  }
 
   let suspectBot = isScannerUserAgent(userAgent);
   if (event === "page_view" && cid && !suspectBot) {

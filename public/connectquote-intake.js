@@ -7,7 +7,7 @@
     "https://cid-pdf-api.onrender.com"
   ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260921a";
+  const ASSET_V = "20260922a";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -107,8 +107,39 @@
   const cqAnalytics = {
     lastStep: "landing",
     engaged: false,
+    disqualifiedFlag: false,
+    quoteRequested: false,
+    quoteReturned: false,
+    bindClicked: false,
     loadStart: typeof performance !== "undefined" ? performance.now() : 0,
     stepsDone: new Set(),
+
+    submissionPublicId() {
+      return String(session.submission_public_id || "").trim() || null;
+    },
+
+    computeFunnelStage() {
+      if (this.disqualifiedFlag) return "disqualified";
+      if (this.bindClicked) return "bind_clicked";
+      if (this.quoteReturned && !this.bindClicked) return "quoted_unbound";
+      if (this.quoteRequested && !this.quoteReturned) return "quote_pending";
+      if (this.stepsDone.size >= 1) return "semi_filled";
+      if (this.engaged) return "open_engaged";
+      return "open";
+    },
+
+    funnelMeta(extra) {
+      const meta = {
+        funnel_stage: this.computeFunnelStage(),
+        step_count: this.stepsDone.size,
+        steps_completed: Array.from(this.stepsDone),
+        submission_public_id: this.submissionPublicId(),
+      };
+      if (extra && typeof extra === "object") {
+        Object.assign(meta, extra);
+      }
+      return meta;
+    },
 
     basePayload() {
       const p = new URLSearchParams(location.search);
@@ -116,7 +147,7 @@
         readChannelParam(p) ||
         String($("traffic_source")?.value || "").trim() ||
         null;
-      return {
+      const payload = {
         session_id: cqSessionId(),
         segment: SEGMENT,
         state: readGeoState(),
@@ -132,6 +163,9 @@
         is_mobile: /Mobi|Android/i.test(navigator.userAgent || ""),
         ts: new Date().toISOString(),
       };
+      const subId = this.submissionPublicId();
+      if (subId) payload.submission_public_id = subId;
+      return payload;
     },
 
     track(event, step, meta) {
@@ -177,8 +211,9 @@
     },
 
     disqualified(reason) {
+      this.disqualifiedFlag = true;
       this.lastStep = "disqualified";
-      this.track("disqualified", reason || "unknown");
+      this.track("disqualified", reason || "unknown", this.funnelMeta());
     },
   };
 
@@ -229,7 +264,7 @@
     });
 
     window.addEventListener("pagehide", function () {
-      cqAnalytics.track("exit", cqAnalytics.lastStep);
+      cqAnalytics.track("exit", cqAnalytics.lastStep, cqAnalytics.funnelMeta());
     });
 
     wireCqStepField("business_class", "business_class");
@@ -2676,9 +2711,12 @@
       $("err-box").classList.remove("show");
       $("quote-btn").disabled = true;
       cqAnalytics.lastStep = "quote";
-      cqAnalytics.track("quote_requested", "quote", {
-        prefill_present: prefillPresenceMeta(),
-      });
+      cqAnalytics.quoteRequested = true;
+      cqAnalytics.track(
+        "quote_requested",
+        "quote",
+        cqAnalytics.funnelMeta({ prefill_present: prefillPresenceMeta() }),
+      );
       const quoteStarted = typeof performance !== "undefined" ? performance.now() : 0;
       try {
         const res = await fetch(API + "/api/coterie/connectquote", {
@@ -2689,6 +2727,7 @@
             business_class: selectedBusinessClass(),
             site_domain: location.hostname,
             submission_public_id: session.submission_public_id || undefined,
+            cq_session_id: cqSessionId(),
             formData: formPayload(),
           }),
         });
@@ -2719,7 +2758,16 @@
         const latencyMs = Math.round(
           (typeof performance !== "undefined" ? performance.now() : 0) - quoteStarted,
         );
-        cqAnalytics.track("quote_returned", "quote", { latency_ms: latencyMs });
+        cqAnalytics.quoteReturned = true;
+        const premiumAnnual = Number(q.premium || q.totalYearlyOwed || 0) || null;
+        cqAnalytics.track(
+          "quote_returned",
+          "quote",
+          cqAnalytics.funnelMeta({
+            latency_ms: latencyMs,
+            premium_annual: premiumAnnual,
+          }),
+        );
         cqAnalytics.lastStep = "quote_result";
         updatePremiumDisplay();
         $("quote-box").classList.add("show");
@@ -2736,9 +2784,13 @@
           });
         }
       } catch (err) {
-        cqAnalytics.track("quote_error", "quote", {
-          error: String(err.message || err).slice(0, 200),
-        });
+        cqAnalytics.track(
+          "quote_error",
+          "quote",
+          cqAnalytics.funnelMeta({
+            error: String(err.message || err).slice(0, 200),
+          }),
+        );
         showErr(err.message || String(err));
       } finally {
         $("quote-btn").disabled = false;
@@ -2746,7 +2798,8 @@
     });
 
     $("pay-btn").addEventListener("click", async () => {
-      cqAnalytics.track("bind_clicked", "bind");
+      cqAnalytics.bindClicked = true;
+      cqAnalytics.track("bind_clicked", "bind", cqAnalytics.funnelMeta());
       if (!validateBeforeBind()) return;
       if (!stripe || !cardElement) {
         showErr(
@@ -2825,7 +2878,8 @@
     });
 
     $("demo-btn").addEventListener("click", async () => {
-      cqAnalytics.track("bind_clicked", "bind_demo");
+      cqAnalytics.bindClicked = true;
+      cqAnalytics.track("bind_clicked", "bind_demo", cqAnalytics.funnelMeta());
       if (!validateBeforeBind()) return;
       $("demo-btn").disabled = true;
       try {

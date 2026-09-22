@@ -14,6 +14,7 @@ import {
   sqlSegmentFilter,
 } from "../utils/operatorSegment.js";
 import { getConnectQuoteLearning, sqlIsConnectQuoteSubmission } from "../services/connectQuoteLearningService.js";
+import { getCqFunnelBehavior } from "../services/cqFunnelService.js";
 import {
   parseOperatorWindow,
   sqlWindowFilter,
@@ -204,6 +205,24 @@ router.get("/api/operator/search", async (req, res) => {
   } catch (err) {
     console.error("[api/operator/search] error:", err.message || err);
     return res.status(500).json({ error: "internal_error" });
+  }
+});
+
+router.get("/api/operator/cq-funnel", async (req, res) => {
+  if (!pool) {
+    return res.status(503).json({ error: "database_not_configured" });
+  }
+  try {
+    const segment = parseOperatorSegmentQuery(req.query.segment);
+    const data = await getCqFunnelBehavior(pool, {
+      segment,
+      window: req.query,
+      includeBots: req.query.include_bots === "1",
+    });
+    return res.json({ ok: true, ...data });
+  } catch (err) {
+    console.error("[api/operator/cq-funnel] error:", err.message || err);
+    return res.status(500).json({ ok: false, error: "internal_error" });
   }
 });
 

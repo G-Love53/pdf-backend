@@ -39,7 +39,23 @@ Use `{{connectquote_url_s1}}` in step 1, `_s2` in step 2, `_s3` in step 3.
 | `disqualified` | Non-owner, PL long-form, traditional redirect |
 | `quote_requested` / `quote_returned` / `quote_error` | Coterie quote API |
 | `bind_clicked` | Pay or demo bind |
-| `exit` | `pagehide` — last step reached |
+| `exit` | `pagehide` — last step reached; includes `funnel_stage`, `steps_completed`, `submission_public_id` |
+
+## Funnel stages (on `exit` meta and Operator SQL)
+
+| Stage | Meaning |
+|-------|---------|
+| `open` | Landed, no engagement |
+| `open_engaged` | Engaged, no intake steps completed |
+| `semi_filled` | ≥1 step, no quote returned |
+| `quote_pending` | Quote requested, not returned yet |
+| `quoted_unbound` | Premium shown, no bind click |
+| `bind_clicked` | Pay / demo bind clicked |
+| `disqualified` | Non-owner, PL, traditional rail |
+
+**Operator Home** → “Page funnel (cq_events)” tiles, or `GET /api/operator/cq-funnel?window=7&segment=pet`.
+
+**Stale** = open / semi-filled with no quote and last event &gt;30 minutes ago.
 
 ## Bot flag (`suspect_bot`)
 

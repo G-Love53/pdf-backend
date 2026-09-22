@@ -142,6 +142,7 @@ export async function processConnectQuoteIntake(body, reqMeta = {}) {
         site_domain: body.site_domain,
         traffic_source: form.traffic_source || form.src || null,
         campaign_id: form.campaign_id || form.cid || null,
+        cq_session_id: body.cq_session_id || null,
       },
       primaryEmail,
       primaryPhone: form.phone || form.contact_phone || null,
@@ -178,6 +179,7 @@ export async function processConnectQuoteIntake(body, reqMeta = {}) {
                 quote_rail: "coterie",
                 traffic_source: form.traffic_source || form.src || null,
                 campaign_id: form.campaign_id || form.cid || null,
+                cq_session_id: body.cq_session_id || null,
               }),
             ],
           );
