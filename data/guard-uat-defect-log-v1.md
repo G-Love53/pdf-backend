@@ -19,7 +19,8 @@
 | 2026-09-16 | Non-Contractors-4 | c055d018-388f-43c8-a419-f9139abe6dad | CIWC773673 | Pass | Quote |
 | 2026-09-16 | Non-Contractors-5 | 146cee44-becf-4efe-96a9-a3d7f91c1b19 | CIWC773674 | Pass | Refer (ex mod 0.5) |
 | 2026-09-16 | Non-Contractors-6 | 7b9ea2b7-46a9-49a3-a79e-5ac141afaf84 | CIWC773675 | Pass | Quote |
-| 2026-09-16 | Non-Contractors-7 | 894396a6-24eb-4804-b1aa-94b56de6d7d3 | CIWC773676 | Pass | Refer (>50% other business) |
+| 2026-09-16 | Non-Contractors-7 | 894396a6-24eb-4804-b1aa-94b56de6d7d3 | CIWC773676 | Pass | Refer (>50% other business) — **v1 sent one location only** |
+| 2026-09-22 | Non-Contractors-7 | *(see results JSON)* | CIWC774942+ | Pass | **Fixed:** L1 21 S Tejon + L2 28 E Bijou; $150k payroll each; Refer as expected |
 | 2026-09-16 | Non-Contractors-8 | 5d3582bd-038a-4fcd-8eba-9bd5bd03a003 | UAWC773641 | Pass | Quote |
 
 ## Observations for GUARD
