@@ -26,6 +26,14 @@
       ],
       "notes": [],
       "acordFavorable": true,
+      "addresses": [
+        {
+          "street": "523 E 17th Ave",
+          "city": "Denver",
+          "state": "CO",
+          "zip": "80203"
+        }
+      ],
       "address": {
         "street": "523 E 17th Ave",
         "city": "Denver",
@@ -50,6 +58,14 @@
       "notes": [],
       "acordFavorable": false,
       "expectedReason": "Referral generated due to \"Yes\" response to \"Does the applicant have any past, present or discontinued operations involve(d) storing, treating, discharging, applying, disposing, or transporting of hazardous material?\"",
+      "addresses": [
+        {
+          "street": "500 16th St Ste 150",
+          "city": "Denver",
+          "state": "CO",
+          "zip": "80202"
+        }
+      ],
       "address": {
         "street": "500 16th St Ste 150",
         "city": "Denver",
@@ -94,6 +110,14 @@
       ],
       "notes": [],
       "acordFavorable": true,
+      "addresses": [
+        {
+          "street": "603 E 6th Ave",
+          "city": "Denver",
+          "state": "CO",
+          "zip": "80203"
+        }
+      ],
       "address": {
         "street": "603 E 6th Ave",
         "city": "Denver",
@@ -136,6 +160,14 @@
         "*Declination due to low payroll"
       ],
       "acordFavorable": true,
+      "addresses": [
+        {
+          "street": "702 S Cascade Ave",
+          "city": "Colorado Springs",
+          "state": "CO",
+          "zip": "80903"
+        }
+      ],
       "address": {
         "street": "702 S Cascade Ave",
         "city": "Colorado Springs",
@@ -180,6 +212,14 @@
       ],
       "notes": [],
       "acordFavorable": true,
+      "addresses": [
+        {
+          "street": "1500 Curtis St",
+          "city": "Denver",
+          "state": "CO",
+          "zip": "80202"
+        }
+      ],
       "address": {
         "street": "1500 Curtis St",
         "city": "Denver",
@@ -224,6 +264,14 @@
       ],
       "notes": [],
       "acordFavorable": true,
+      "addresses": [
+        {
+          "street": "23 S Tejon St",
+          "city": "Colorado Springs",
+          "state": "CO",
+          "zip": "80903"
+        }
+      ],
       "address": {
         "street": "23 S Tejon St",
         "city": "Colorado Springs",
@@ -264,6 +312,14 @@
       ],
       "notes": [],
       "acordFavorable": true,
+      "addresses": [
+        {
+          "street": "1552 E 17th Ave",
+          "city": "Denver",
+          "state": "CO",
+          "zip": "80218"
+        }
+      ],
       "address": {
         "street": "1552 E 17th Ave",
         "city": "Denver",
@@ -308,6 +364,14 @@
       ],
       "notes": [],
       "acordFavorable": true,
+      "addresses": [
+        {
+          "street": "101 N Tejon St",
+          "city": "Colorado Springs",
+          "state": "CO",
+          "zip": "80903"
+        }
+      ],
       "address": {
         "street": "101 N Tejon St",
         "city": "Colorado Springs",
@@ -338,6 +402,14 @@
       ],
       "notes": [],
       "acordFavorable": true,
+      "addresses": [
+        {
+          "street": "14061 E Iliff Ave",
+          "city": "Aurora",
+          "state": "CO",
+          "zip": "80014"
+        }
+      ],
       "address": {
         "street": "14061 E Iliff Ave",
         "city": "Aurora",
@@ -393,6 +465,14 @@
       "notes": [],
       "acordFavorable": false,
       "expectedReason": "Referral due to \"Yes\" response to \"Does the applicant have any past, present or discontinued operations involve(d) storing, treating, discharging, applying, disposing, or transporting of hazardous material?\"",
+      "addresses": [
+        {
+          "street": "15343 E 6th Ave",
+          "city": "Aurora",
+          "state": "CO",
+          "zip": "80011"
+        }
+      ],
       "address": {
         "street": "15343 E 6th Ave",
         "city": "Aurora",
@@ -435,6 +515,14 @@
       ],
       "acordFavorable": false,
       "expectedReason": "Declination due to \"Yes\" response to \"Does the applicant use temporary staffing, leased employees or cash/casual labor?\"",
+      "addresses": [
+        {
+          "street": "14197 E Exposition Ave",
+          "city": "Aurora",
+          "state": "CO",
+          "zip": "80012"
+        }
+      ],
       "address": {
         "street": "14197 E Exposition Ave",
         "city": "Aurora",
@@ -479,6 +567,14 @@
       ],
       "notes": [],
       "acordFavorable": true,
+      "addresses": [
+        {
+          "street": "321 N Tejon St",
+          "city": "Colorado Springs",
+          "state": "CO",
+          "zip": "80903"
+        }
+      ],
       "address": {
         "street": "321 N Tejon St",
         "city": "Colorado Springs",
@@ -535,6 +631,14 @@
         "*Referral generated due to ex mod"
       ],
       "acordFavorable": true,
+      "addresses": [
+        {
+          "street": "25 W Cimarron St",
+          "city": "Colorado Springs",
+          "state": "CO",
+          "zip": "80903"
+        }
+      ],
       "address": {
         "street": "25 W Cimarron St",
         "city": "Colorado Springs",
@@ -574,6 +678,14 @@
       ],
       "notes": [],
       "acordFavorable": true,
+      "addresses": [
+        {
+          "street": "115 E Dale St",
+          "city": "Colorado Springs",
+          "state": "CO",
+          "zip": "80903"
+        }
+      ],
       "address": {
         "street": "115 E Dale St",
         "city": "Colorado Springs",
@@ -614,6 +726,20 @@
       "notes": [],
       "acordFavorable": false,
       "expectedReason": "Referral generated due to \"Yes\" response to \"Does the applicant own more than 50% of another business not being covered under this policy?\"",
+      "addresses": [
+        {
+          "street": "21 S Tejon St",
+          "city": "Colorado Springs",
+          "state": "CO",
+          "zip": "80903"
+        },
+        {
+          "street": "28 E Bijou St",
+          "city": "Colorado Springs",
+          "state": "CO",
+          "zip": "80903"
+        }
+      ],
       "address": {
         "street": "21 S Tejon St",
         "city": "Colorado Springs",
@@ -668,6 +794,14 @@
       ],
       "notes": [],
       "acordFavorable": true,
+      "addresses": [
+        {
+          "street": "7 E Vermijo Ave",
+          "city": "Colorado Springs",
+          "state": "CO",
+          "zip": "80903"
+        }
+      ],
       "address": {
         "street": "7 E Vermijo Ave",
         "city": "Colorado Springs",

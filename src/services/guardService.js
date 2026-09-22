@@ -296,6 +296,99 @@ function legalEntityToTitle(legalEntityCd) {
   return "LLCMbr";
 }
 
+/** Split integer total across N parts (remainder to first buckets). */
+export function splitIntegerAcross(total, parts) {
+  const n = Math.max(1, Number(parts) || 1);
+  const value = Math.max(0, Math.round(Number(total) || 0));
+  const base = Math.floor(value / n);
+  const rem = value % n;
+  return Array.from({ length: n }, (_, i) => base + (i < rem ? 1 : 0));
+}
+
+/**
+ * Normalize WC locations for SOAP (L1, L2, …).
+ * @param {Record<string, unknown>} payload
+ */
+export function normalizeWorkCompLocations(payload) {
+  const classCd = payload.ratingClassificationCd;
+  const totalExposure = Number(payload.exposure || 0);
+  const ft = Number(payload.numEmployeesFullTime || 1);
+  const pt = Number(payload.numEmployeesPartTime || 0);
+  const totalEmployees = Math.max(ft + pt, 1);
+  const defaultState = String(payload.state || "CO").slice(0, 2).toUpperCase();
+
+  const raw = Array.isArray(payload.locations) ? payload.locations : null;
+  if (raw?.length) {
+    const exposureSplits = splitIntegerAcross(totalExposure, raw.length);
+    const employeeSplits = splitIntegerAcross(totalEmployees, raw.length);
+    return raw.map((loc, index) => {
+      const street = String(loc.street || loc.locationStreet || "").slice(0, 50);
+      const city = String(loc.city || loc.locationCity || "").slice(0, 30);
+      const state = String(loc.state || loc.locationState || defaultState)
+        .slice(0, 2)
+        .toUpperCase();
+      const zip = String(loc.zip || loc.locationZip || "")
+        .replace(/\D/g, "")
+        .slice(0, 9);
+      const locFt =
+        loc.numEmployeesFullTime != null
+          ? Number(loc.numEmployeesFullTime)
+          : employeeSplits[index];
+      const locPt =
+        loc.numEmployeesPartTime != null ? Number(loc.numEmployeesPartTime) : 0;
+      return {
+        id: String(loc.id || `L${index + 1}`),
+        street,
+        city,
+        state,
+        zip,
+        addr2: String(loc.addr2 || loc.locationAddr2 || `Loc ${index + 1}`).slice(
+          0,
+          50,
+        ),
+        exposure:
+          loc.exposure != null
+            ? Math.round(Number(loc.exposure))
+            : exposureSplits[index],
+        numEmployeesFullTime: locFt,
+        numEmployeesPartTime: locPt,
+        ratingClassificationCd:
+          loc.ratingClassificationCd || classCd,
+      };
+    });
+  }
+
+  const street = String(payload.locationStreet || payload.street || "").slice(0, 50);
+  const city = String(payload.locationCity || payload.city || "").slice(0, 30);
+  const state = String(payload.locationState || payload.state || defaultState)
+    .slice(0, 2)
+    .toUpperCase();
+  const zip = String(payload.locationZip || payload.zip || "")
+    .replace(/\D/g, "")
+    .slice(0, 9);
+  const mailingStreet = String(payload.street || "").slice(0, 50);
+  const mailingZip = String(payload.zip || "").replace(/\D/g, "").slice(0, 9);
+  const mailingSame =
+    street.toLowerCase() === mailingStreet.toLowerCase() &&
+    zip === mailingZip &&
+    state === String(payload.state || defaultState).slice(0, 2).toUpperCase();
+
+  return [
+    {
+      id: "L1",
+      street,
+      city,
+      state,
+      zip,
+      addr2: mailingSame ? "Loc 1" : String(payload.locationAddr2 || "").slice(0, 50),
+      exposure: Math.round(totalExposure),
+      numEmployeesFullTime: ft,
+      numEmployeesPartTime: pt,
+      ratingClassificationCd: classCd,
+    },
+  ];
+}
+
 /**
  * Build WorkCompPolicyAddRq inner XML (no Signon).
  * @param {"NBQ"|"NBS"|"BND"} purpose
@@ -328,23 +421,8 @@ export function buildWorkCompPolicyAddXml(purpose, payload, cfg) {
   const city = String(payload.city || "").slice(0, 30);
   const state = String(payload.state || "CO").slice(0, 2).toUpperCase();
   const zip = String(payload.zip || "").replace(/\D/g, "").slice(0, 9);
-  const locStreet = String(payload.locationStreet || street).slice(0, 50);
-  const locCity = String(payload.locationCity || city).slice(0, 30);
-  const locState = String(payload.locationState || state)
-    .slice(0, 2)
-    .toUpperCase();
-  const locZip = String(payload.locationZip || zip).replace(/\D/g, "").slice(0, 9);
-  const mailingSame =
-    locStreet.toLowerCase() === street.toLowerCase() &&
-    locZip === zip &&
-    locState === state;
-  const locAddr2 = mailingSame
-    ? "Loc 1"
-    : String(payload.locationAddr2 || "").slice(0, 50);
   const classCd = payload.ratingClassificationCd;
-  const exposure = Number(payload.exposure || 0);
-  const ft = Number(payload.numEmployeesFullTime || 1);
-  const pt = Number(payload.numEmployeesPartTime || 0);
+  const locations = normalizeWorkCompLocations(payload);
   const ownerIncluded = payload.ownerIncluded === true;
   const ownerPayroll = ownerIncluded
     ? Number(payload.ownerPayroll || GUARD_CO_OFFICER_PAYROLL)
@@ -497,15 +575,19 @@ export function buildWorkCompPolicyAddXml(purpose, payload, cfg) {
     </AdditionalInterestInfo>
     ${billingXml}
   </CommlPolicy>
-  <Location id="L1">
+  ${locations
+    .map(
+      (loc) => `<Location id="${xmlEscape(loc.id)}">
     <Addr>
-      <Addr1>${xmlEscape(locStreet)}</Addr1>
-      <Addr2>${xmlEscape(locAddr2)}</Addr2>
-      <City>${xmlEscape(locCity)}</City>
-      <StateProvCd>${xmlEscape(locState)}</StateProvCd>
-      <PostalCode>${xmlEscape(locZip)}</PostalCode>
+      <Addr1>${xmlEscape(loc.street)}</Addr1>
+      <Addr2>${xmlEscape(loc.addr2)}</Addr2>
+      <City>${xmlEscape(loc.city)}</City>
+      <StateProvCd>${xmlEscape(loc.state)}</StateProvCd>
+      <PostalCode>${xmlEscape(loc.zip)}</PostalCode>
     </Addr>
-  </Location>
+  </Location>`,
+    )
+    .join("\n  ")}
   <WorkCompLineBusiness>
     <WorkCompIndividuals>
       <DutiesDesc>${xmlEscape(ops)}</DutiesDesc>
@@ -533,15 +615,20 @@ export function buildWorkCompPolicyAddXml(purpose, payload, cfg) {
     </WorkCompIndividuals>
     <WorkCompRateState>
       <StateProvCd>${xmlEscape(state)}</StateProvCd>
-      <WorkCompLocInfo LocationRef="L1">
-        <NumEmployees>${ft + pt}</NumEmployees>
-        <WorkCompRateClass LocationRef="L1">
-          <NumEmployeesFullTime>${ft}</NumEmployeesFullTime>
-          <NumEmployeesPartTime>${pt}</NumEmployeesPartTime>
-          <RatingClassificationCd>${xmlEscape(classCd)}</RatingClassificationCd>
-          <Exposure>${exposure}</Exposure>
+      ${locations
+        .map((loc) => {
+          const locEmployees = loc.numEmployeesFullTime + loc.numEmployeesPartTime;
+          return `<WorkCompLocInfo LocationRef="${xmlEscape(loc.id)}">
+        <NumEmployees>${locEmployees}</NumEmployees>
+        <WorkCompRateClass LocationRef="${xmlEscape(loc.id)}">
+          <NumEmployeesFullTime>${loc.numEmployeesFullTime}</NumEmployeesFullTime>
+          <NumEmployeesPartTime>${loc.numEmployeesPartTime}</NumEmployeesPartTime>
+          <RatingClassificationCd>${xmlEscape(loc.ratingClassificationCd || classCd)}</RatingClassificationCd>
+          <Exposure>${loc.exposure}</Exposure>
         </WorkCompRateClass>
-      </WorkCompLocInfo>
+      </WorkCompLocInfo>`;
+        })
+        .join("\n      ")}
       ${expModXml}
     </WorkCompRateState>
     <CommlCoverage>
@@ -723,6 +810,12 @@ export function buildRatingPayloadFromForm(form, segment, extras = {}) {
     exposure = Math.max(employees, 1) * 40000;
   }
 
+  const locations = Array.isArray(extras.locations)
+    ? extras.locations
+    : Array.isArray(form.locations)
+      ? form.locations
+      : null;
+
   return {
     rqUid: extras.rqUid || null,
     commercialName:
@@ -751,6 +844,7 @@ export function buildRatingPayloadFromForm(form, segment, extras = {}) {
     exposure: Math.round(exposure),
     numEmployeesFullTime: employees > 0 ? employees : ownerIncluded ? 1 : 0,
     numEmployeesPartTime: 0,
+    locations,
     ownerIncluded,
     ownerPayroll: GUARD_CO_OFFICER_PAYROLL,
     fein: extras.fein || form.fein || null,

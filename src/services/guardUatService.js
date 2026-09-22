@@ -12,6 +12,7 @@ import {
   guardSubmitNbs,
   isGuardConfigured,
   mergeGuardQuestionAnswers,
+  normalizeWorkCompLocations,
 } from "./guardService.js";
 
 const PARTNER_SOURCE = "guard-uat";
@@ -196,8 +197,17 @@ function classifyOutcome(parsed, expectedOutcome) {
   return { actual, pass, bindable };
 }
 
+function caseAddresses(caseDef) {
+  if (Array.isArray(caseDef.addresses) && caseDef.addresses.length) {
+    return caseDef.addresses;
+  }
+  if (caseDef.address) return [caseDef.address];
+  return [{ street: "123 Main St", city: "Denver", state: "CO", zip: "80202" }];
+}
+
 function buildForm(caseDef) {
-  const addr = caseDef.address || {};
+  const addrs = caseAddresses(caseDef);
+  const primary = addrs[0] || {};
   const payroll = Number(caseDef.payroll || 150000);
   const employees =
     caseDef.questions?.some((q) => /five \(5\)|5 full time|5 w2/i.test(q.text)) ||
@@ -207,21 +217,32 @@ function buildForm(caseDef) {
         ? 4
         : 2;
 
+  const locations = addrs.map((addr, index) => ({
+    id: `L${index + 1}`,
+    street: addr.street || "123 Main St",
+    city: addr.city || "Denver",
+    state: addr.state || "CO",
+    zip: addr.zip || "80202",
+    locationAddr2: `Loc ${index + 1}`,
+    ratingClassificationCd: caseDef.ratingClassificationCd,
+  }));
+
   return {
     segment: caseDef.segment,
-    state: addr.state || "CO",
+    state: primary.state || "CO",
     first_name: "UAT",
     last_name: "Tester",
     contact_email: `guard-uat+${caseDef.id}@commercialinsurance-direct.com`,
     phone: "3039321700",
     insured_name: uniqueBusinessName(caseDef),
-    premise_street: addr.street || "123 Main St",
-    premise_city: addr.city || "Denver",
-    premise_state: addr.state || "CO",
-    premise_zip: addr.zip || "80202",
-    street: `${addr.street || "123 Main St"} Mailing`,
-    city: addr.city || "Denver",
-    zip: addr.zip || "80203",
+    premise_street: primary.street || "123 Main St",
+    premise_city: primary.city || "Denver",
+    premise_state: primary.state || "CO",
+    premise_zip: primary.zip || "80202",
+    street: `${primary.street || "123 Main St"} Mailing`,
+    city: primary.city || "Denver",
+    zip: primary.zip || "80203",
+    locations,
     num_employees: employees,
     annual_payroll: payroll,
     years_in_business: 5,
@@ -395,6 +416,15 @@ export async function runGuardUatCase(caseDef) {
     },
     acordDefaultsUsed: GUARD_DEFAULT_ACORD_ANSWERS.length,
     classQuestionsAnswered: matched.length,
+    locations: normalizeWorkCompLocations(nbsPayload).map((loc) => ({
+      id: loc.id,
+      street: loc.street,
+      city: loc.city,
+      state: loc.state,
+      zip: loc.zip,
+      exposure: loc.exposure,
+      numEmployeesFullTime: loc.numEmployeesFullTime,
+    })),
   };
 }
 

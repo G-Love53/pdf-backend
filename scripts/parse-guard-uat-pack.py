@@ -130,11 +130,16 @@ def parse_sheet(ws, sheet_name):
 
             if b == "Address":
                 pending = "address"
+                case.setdefault("addresses", [])
                 continue
-            if pending == "address" and b and "," in b:
-                case["address"] = parse_address(b)
+            if pending == "address":
+                if b and "," in b:
+                    addr = parse_address(b)
+                    case["addresses"].append(addr)
+                    case["address"] = case["addresses"][0]
+                    continue
                 pending = None
-                continue
+
             if b == "Payroll":
                 pending = "payroll"
                 continue
