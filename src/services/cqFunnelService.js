@@ -68,7 +68,6 @@ export async function getCqFunnelBehavior(pool, opts = {}) {
     classified AS (
       SELECT
         a.*,
-        a.has_engaged,
         EXISTS (
           SELECT 1 FROM policies p
           JOIN submissions s ON s.submission_id = p.submission_id
