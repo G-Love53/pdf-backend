@@ -62,7 +62,8 @@ Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-20
 | **AUDIT_READINESS.md** | Audit posture: Postgres, R2, timeline, bind artifacts (S1–S6) |
 | **CID_ARCHITECTURE.md** | Platform architecture: intake → operator → bind → service |
 | **System_Flow.md** | One-page LEG 1 → LEG 2 → LEG 3 flow |
-| **CID_CONNECT.md** | CID Connect (insured app): Famous vs API, post-bind service |
+| **CID_CONNECT.md** | CID Connect (insured app): post-bind service, API bridge |
+| **connect-pwa-partner.md** | Connect mobile / PWA / App Store — partner summary |
 | **connectquote-shipped-2026-06.md** | ConnectQuote shipped summary — investor/handoff |
 | **connectquote-analytics-partner.md** | ConnectQuote page funnel & attribution — partner summary |
 | **corporate-structure.md** | LLC, segment brands/domains, partner-facing narrative |
@@ -86,7 +87,7 @@ Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-20
 | **Agency of record** | All Access Insurance dba Commercial Insurance Direct (CO) · Rick Cline, producer |
 | **Officers** | Ray — Executive Chairman · Gerry — CEO · Rick — CRO (see `board-resolution-officer-titles-2026.md`) |
 | **Pipeline backend** | Single service: **CID-PDF-API** on Render (`pdf-backend` repo) |
-| **Insured app** | **CID Connect** at `connect.commercialinsurance-direct.com` |
+| **Insured app** | **CID Connect** at `connect.commercialinsurance-direct.com` — installable **PWA** (home screen); App Store / Play **optional later** |
 | **Instant bind rail** | **Coterie API** — marketing **Colorado (CO) only** |
 | **ConnectQuote marketing (CO)** | Electrical, HVAC, Plumber, Beauty, Cleaning, Pet; Fitness = **yoga / pilates / trainer** (3 classes, different policy/price) |
 | **Traditional only (no ConnectQuote)** | Bar, Roofer |

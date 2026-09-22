@@ -31,7 +31,7 @@
 | **HelloSign / Dropbox Sign** | Legal / Compliance | Legacy | Old bind rows only | N/A | Webhook (legacy) | — | Sunset / retention plan | Gerry |
 | **Anthropic (Claude)** | API | Live | S4 extraction assist, S5 letters, Connect chat (bridge) | API usage | API | Vendor policies | Key custody; minimize PII in logs | Gerry |
 | **Google Gemini** | API | Live | S5 / Connect chat fallback | API usage | API | Google | Same | Gerry |
-| **Famous (DatabasePad)** | Infrastructure | Live | Connect auth, app tables, Edge functions | Platform customer | Auth + DB + Edge | **Confirm** with Famous | DPA; anon vs service role; no service role in browser | Gerry |
+| **Famous (DatabasePad)** | Infrastructure | Live | Connect **backend only** — auth, app tables, Edge functions (frontend = `cid-connect` / Netlify) | Platform customer | Auth + DB + Edge | Confirmed Sep 2026 — no store/native from this project | DPA; anon vs service role; no service role in browser | Gerry |
 | **Resend** | API | Live | Connect app notifications / renewals (Edge) | Email volume | API (Edge) | Verify | Align SPF with sending domain | Rick |
 | **GoDaddy / registrar** | Infrastructure | Live | DNS for segment + corporate domains | Domain customer | DNS | N/A | Document domain ownership | Rick |
 | **Google Postmaster Tools** | Marketing / Compliance | Live | Sending-domain reputation monitoring | N/A | Operational | N/A | SPF/DKIM/DMARC evidence per domain | Rick |
@@ -59,7 +59,7 @@
 | **ACORD / S1–S6** | Intake → PDF → email → poller → operator → bind |
 | **API** | REST/webhooks (Coterie, BoldSign, AI, Stripe-via-Coterie) |
 | **Email routing** | Segment `quotes@…`, carrier packets, poller |
-| **Auth + app DB** | Famous / Connect shell |
+| **Auth + app DB** | Famous (backend) · Connect UI = GitHub + Netlify + PWA |
 | **Bridge** | Connect reads cid-postgres via `/api/connect/*` |
 | **Marketing** | Instantly, Cohesive (planned), Postmaster |
 
