@@ -209,13 +209,11 @@ function buildForm(caseDef) {
   const addrs = caseAddresses(caseDef);
   const primary = addrs[0] || {};
   const payroll = Number(caseDef.payroll || 150000);
-  const employees =
-    caseDef.questions?.some((q) => /five \(5\)|5 full time|5 w2/i.test(q.text)) ||
-    payroll >= 100000
-      ? 6
-      : caseDef.questions?.some((q) => /3 w2|three/i.test(q.text))
-        ? 4
-        : 2;
+  const has5w2 = caseDef.questions?.some((q) =>
+    /five \(5\)|5 full time|5 w2/i.test(q.text),
+  );
+  const has3w2 = caseDef.questions?.some((q) => /3 w2|three/i.test(q.text));
+  const employees = has5w2 ? 6 : has3w2 ? 4 : payroll >= 100000 ? 6 : 2;
 
   const locations = addrs.map((addr, index) => ({
     id: `L${index + 1}`,

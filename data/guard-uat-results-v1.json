@@ -1,5 +1,5 @@
 {
-  "runAt": "2026-09-22T18:51:10.588Z",
+  "runAt": "2026-09-22T20:41:59.785Z",
   "api": "https://cid-pdf-api-sandbox.onrender.com",
   "ok": true,
   "summary": {
@@ -15,7 +15,7 @@
       "sheet": "Non-Contractors",
       "number": 7,
       "expectedOutcome": "Refer",
-      "submission_public_id": "CID-BTY-20260922-000219",
+      "submission_public_id": "CID-BTY-20260922-000221",
       "pass": true,
       "outcome": {
         "actual": "refer",
@@ -29,9 +29,9 @@
       },
       "unmatchedQuestions": [],
       "guard": {
-        "indicateRqUid": "f6f406f9-16be-429d-987e-84b26d8c8275",
-        "nbsRqUid": "8b49cd33-31c3-4ad1-920d-98bcf2b8ea7b",
-        "policyNumber": "CIWC774876",
+        "indicateRqUid": "3fb32492-bc5f-45e3-baff-bc7ccf2be530",
+        "nbsRqUid": "f074ed74-7e57-42a7-ab41-f35b2460904a",
+        "policyNumber": "CIWC774942",
         "premium": 1291,
         "policyStatusCd": "NotQuotedNotBound",
         "uwDecision": "Refer",
@@ -41,7 +41,27 @@
         ]
       },
       "acordDefaultsUsed": 10,
-      "classQuestionsAnswered": 3
+      "classQuestionsAnswered": 3,
+      "locations": [
+        {
+          "id": "L1",
+          "street": "21 S Tejon St",
+          "city": "Colorado Springs",
+          "state": "CO",
+          "zip": "80903",
+          "exposure": 150000,
+          "numEmployeesFullTime": 3
+        },
+        {
+          "id": "L2",
+          "street": "28 E Bijou St",
+          "city": "Colorado Springs",
+          "state": "CO",
+          "zip": "80903",
+          "exposure": 150000,
+          "numEmployeesFullTime": 3
+        }
+      ]
     }
   ]
 }
