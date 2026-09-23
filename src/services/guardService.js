@@ -846,7 +846,9 @@ export function buildRatingPayloadFromForm(form, segment, extras = {}) {
     numEmployeesPartTime: 0,
     locations,
     ownerIncluded,
-    ownerPayroll: GUARD_CO_OFFICER_PAYROLL,
+    ownerPayroll: ownerIncluded
+      ? Number(extras.ownerPayroll ?? GUARD_CO_OFFICER_PAYROLL)
+      : 0,
     fein: extras.fein || form.fein || null,
     policyNumber: extras.policyNumber || null,
     questionAnswers: normalizeQuestionAnswers(extras.questionAnswers || []),

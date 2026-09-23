@@ -11,8 +11,8 @@
 
 export const GUARD_DEFAULT_PILOT_STATES = ["CO"];
 
-/** CO officer payroll is min = max ($73,900 as of 2024 table). */
-export const GUARD_CO_OFFICER_PAYROLL = 73900;
+/** CO officer payroll min = max (GUARD data dictionary; was $73,900, $79,800 per GUARD IT 2026). */
+export const GUARD_CO_OFFICER_PAYROLL = 79800;
 
 /** Default employers liability when Digital Decision accepts (CO stat 9812). */
 export const GUARD_DEFAULT_EL_LIMITS = {

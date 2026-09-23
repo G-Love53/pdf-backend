@@ -21,6 +21,9 @@
 | 2026-09-16 | Non-Contractors-6 | 7b9ea2b7-46a9-49a3-a79e-5ac141afaf84 | CIWC773675 | Pass | Quote |
 | 2026-09-16 | Non-Contractors-7 | 894396a6-24eb-4804-b1aa-94b56de6d7d3 | CIWC773676 | Pass | Refer (>50% other business) — **v1 sent one location only** |
 | 2026-09-22 | Non-Contractors-7 | *(see results JSON)* | CIWC774942+ | Pass | **Fixed:** L1 21 S Tejon + L2 28 E Bijou; $150k payroll each; Refer as expected |
+| 2026-09-23 | Non-Contractors-3 | db2430b3-ac4d-4810-8528-d6f9e29aae9e | UAWC773636 | Pass | **Fixed:** officer remuneration **$75,000** in NBS (was clamped to state min). Re-run after sandbox deploy. |
+| 2026-09-23 | Contractors-1 | 707889e7-471a-4c02-8229-80a954881b70 | CIWC775506 | Pass | **Fixed:** CO class UW codes (`23-5183_0x`, not CA). Verify remarks clear post-deploy. |
+| 2026-09-23 | Contractors-7 | 1151e5a9-4633-4267-a35e-8edde9dee5ea | CIWC775507 | Pass | **Fixed:** CO class UW codes (`56-9014_0x`, not MA). Verify remarks clear post-deploy. |
 | 2026-09-16 | Non-Contractors-8 | 5d3582bd-038a-4fcd-8eba-9bd5bd03a003 | UAWC773641 | Pass | Quote |
 
 ## Observations for GUARD

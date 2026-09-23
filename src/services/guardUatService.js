@@ -3,7 +3,10 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { recordSubmission } from "../db.js";
-import { guardDbSegmentFromLine } from "../config/guardRegistry.js";
+import {
+  GUARD_CO_OFFICER_PAYROLL,
+  guardDbSegmentFromLine,
+} from "../config/guardRegistry.js";
 import {
   GUARD_DEFAULT_ACORD_ANSWERS,
   buildRatingPayloadFromForm,
@@ -47,7 +50,33 @@ function classPrefixFromRating(ratingClassificationCd) {
   return null;
 }
 
-function lookupQuestionCd(text, ratingClassificationCd) {
+/** Prefer CO class codes (`5183_01`) over other states (`5183CA01`, `9014MA01`). */
+function pickQuestionRowForState(scoped, classPrefix, state) {
+  if (!scoped.length) return null;
+  if (state === "CO" && classPrefix) {
+    const coUnderscore = scoped.find((row) =>
+      String(row.questionId || "").includes(`${classPrefix}_`),
+    );
+    if (coUnderscore) return coUnderscore;
+    const notOtherState = scoped.filter((row) => {
+      const id = String(row.questionId || "");
+      return !new RegExp(`${classPrefix}[A-Z]{2}\\d`, "i").test(id);
+    });
+    if (notOtherState.length) return notOtherState[0];
+  }
+  return scoped[0];
+}
+
+function isCoAppropriateQuestionCd(questionCd, classPrefix, state = "CO") {
+  if (state !== "CO" || !classPrefix) return true;
+  const cd = String(questionCd || "");
+  if (!cd.includes(classPrefix)) return false;
+  if (cd.includes(`${classPrefix}_`)) return true;
+  if (new RegExp(`${classPrefix}[A-Z]{2}`, "i").test(cd)) return false;
+  return true;
+}
+
+function lookupQuestionCd(text, ratingClassificationCd, state = "CO") {
   const needle = normText(text);
   if (!needle) return null;
   const index = loadQuestionIndex();
@@ -61,12 +90,34 @@ function lookupQuestionCd(text, ratingClassificationCd) {
   }
   if (!matches.length) return null;
   if (classPrefix) {
-    const scoped = matches.find((row) =>
+    const scoped = matches.filter((row) =>
       String(row.questionId || "").includes(classPrefix),
     );
-    if (scoped) return scoped.questionCd;
+    const picked = pickQuestionRowForState(scoped, classPrefix, state);
+    if (picked) return picked.questionCd;
   }
   return matches[0].questionCd;
+}
+
+function controllingState(caseDef) {
+  return (
+    caseDef?.address?.state ||
+    caseDef?.addresses?.[0]?.state ||
+    "CO"
+  ).toUpperCase();
+}
+
+function findGuardQuestion(guardQuestions, uatText, classPrefix, state) {
+  const needle = String(uatText || "").toLowerCase();
+  const candidates = (guardQuestions || []).filter((q) => {
+    if (!isCoAppropriateQuestionCd(q.questionCd, classPrefix, state)) return false;
+    const hay = String(q.questionText || "").toLowerCase();
+    return hay.includes(needle) || needle.includes(hay.slice(0, 40));
+  });
+  const exact = candidates.find(
+    (q) => normText(q.questionText) === normText(uatText),
+  );
+  return exact || candidates[0] || null;
 }
 
 function fakeFein(caseId) {
@@ -147,15 +198,18 @@ function ynToSimple(text) {
 
 function matchUatQuestions(guardQuestions, uatQuestions, caseDef) {
   const answers = [];
+  const state = controllingState(caseDef);
+  const classPrefix = classPrefixFromRating(caseDef?.ratingClassificationCd);
   for (const uq of uatQuestions || []) {
-    const needle = String(uq.text || "").toLowerCase();
-    let gq = (guardQuestions || []).find((q) => {
-      const hay = String(q.questionText || "").toLowerCase();
-      return hay.includes(needle) || needle.includes(hay.slice(0, 40));
-    });
+    let gq = findGuardQuestion(
+      guardQuestions,
+      uq.text,
+      classPrefix,
+      state,
+    );
     let questionCd =
       gq?.questionCd ||
-      lookupQuestionCd(uq.text, caseDef?.ratingClassificationCd);
+      lookupQuestionCd(uq.text, caseDef?.ratingClassificationCd, state);
     if (!questionCd) {
       answers.push({ _unmatched: uq.text, answer: uq.answer });
       continue;
@@ -264,9 +318,12 @@ export async function runGuardUatCase(caseDef) {
   const payroll = Number(caseDef.payroll || form.annual_payroll || 150000);
   const dbSegment = guardDbSegmentFromLine(caseDef.segment);
   const ownerIncluded = caseDef.ownerIncluded === true;
-  let ownerPayroll = 73900;
-  if (caseDef.notes?.some((n) => /75000|75,000/.test(n))) {
+  let ownerPayroll = caseDef.ownerPayroll ?? null;
+  if (ownerPayroll == null && caseDef.notes?.some((n) => /75000|75,000/.test(n))) {
     ownerPayroll = 75000;
+  }
+  if (ownerIncluded && ownerPayroll == null) {
+    ownerPayroll = GUARD_CO_OFFICER_PAYROLL;
   }
 
   const dbResult = await recordSubmission({
@@ -414,6 +471,8 @@ export async function runGuardUatCase(caseDef) {
     },
     acordDefaultsUsed: GUARD_DEFAULT_ACORD_ANSWERS.length,
     classQuestionsAnswered: matched.length,
+    classQuestionCds: matched.map((a) => a.questionCd),
+    ownerPayrollSent: ownerIncluded ? ownerPayroll : 0,
     locations: normalizeWorkCompLocations(nbsPayload).map((loc) => ({
       id: loc.id,
       street: loc.street,

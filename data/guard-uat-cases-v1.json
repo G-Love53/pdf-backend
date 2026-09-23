@@ -535,7 +535,8 @@
       "experienceMod": 1.03,
       "segment": "beauty_hair",
       "ratingClassificationCd": "958600",
-      "ownerIncluded": true
+      "ownerIncluded": true,
+      "ownerPayroll": 75000
     },
     {
       "id": "Non-Contractors-4",
