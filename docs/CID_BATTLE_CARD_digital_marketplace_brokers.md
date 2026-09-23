@@ -12,7 +12,7 @@ Copy sections into a pitch, carrier meeting, or investor follow-up. **Delete or 
 | Audience | Lead with | De-emphasize |
 |----------|-----------|--------------|
 | **Investor / SAFE** | Market validation ($490M Travelers deal), CID architecture, moat, cap-table entry | Carrier names in appendix only |
-| **Carrier / MGA** | Strategic binary (partner vs cede digital), sub-$5k economics, live platform | Fundraising, valuation |
+| **Carrier / MGA** | **Strategic acquirer card first** (`CID_BATTLE_CARD_strategic_acquirer_platform.md`) — build vs attach; demo second | “Better than Simply” feature fight |
 | **Producer / partner** | Segment brands, CONNECT demo, licensed infrastructure | Travelers M&A detail |
 | **Internal (Ray / Rick / Gerry)** | Full doc | — |
 
@@ -44,7 +44,10 @@ Copy sections into a pitch, carrier meeting, or investor follow-up. **Delete or 
 
 ### Elevator (15 seconds)
 
-*Simply Business is Travelers’ national compare-and-buy broker — strong quote flow and a solid policy account. CID uses trade-branded front doors and CONNECT so the owner still has insurance on the job site after bind. Carriers can partner with that full stack — or slowly cede micro-SMB digital to Travelers.*
+*Simply Business is Travelers’ national compare-and-buy broker — strong quote flow and a solid policy account. CID uses trade-branded front doors and CONNECT so the owner still has insurance on the job site after bind.*
+
+**Carrier framing (prefer strategic acquirer card):**  
+*Travelers already bought its position in digital micro-commercial. The question is what everyone else is going to do about it — build for years, or attach appetite to a customer platform that is already operating.*
 
 ---
 
@@ -105,6 +108,8 @@ Copy sections into a pitch, carrier meeting, or investor follow-up. **Delete or 
 
 # SECTION F — Strategic frame for carriers and MGAs
 
+**Carrier meetings:** lead with **`CID_BATTLE_CARD_strategic_acquirer_platform.md`** (Acquire the customer platform · attach appetite · demo second). This section supports marketplace context and Simply fact sheet.
+
 ### The choice many carriers face
 
 | Path | What happens |
@@ -115,7 +120,9 @@ Copy sections into a pitch, carrier meeting, or investor follow-up. **Delete or 
 
 ### Talk track (carrier executive)
 
-*“Travelers already bought the national marketplace model. The question for [Carrier X] is whether micro-commercial digital stays theirs — through a **customer platform** that acquires by trade and services at near-zero marginal cost — or defaults to Boston’s compare-and-buy funnel.”*
+*“Travelers already bought its position in digital micro-commercial. The question is what everyone else is going to do about it — how many years and how much capital [Carrier X] will spend building trade acquisition, bind, and post-bind in one stack — versus attaching to a platform that is live today: **ACQUIRE** by trade, **TRANSACT** on ConnectQuote, **OWN THE RELATIONSHIP** in CONNECT.”*
+
+**Kicker:** *Attach your appetite to the platform without rebuilding the platform.*
 
 ### Talk track (investor)
 
@@ -142,9 +149,9 @@ Copy sections into a pitch, carrier meeting, or investor follow-up. **Delete or 
 
 | Layer | CID |
 |-------|-----|
-| **Acquire** | 10+ segment storefronts; **&lt;3 hours** new vertical on shared infra |
-| **Distribute** | ConnectQuote — instant bind + traditional fallback |
-| **Retain** | CONNECT — **half the thesis**; retention testable with CAC spend |
+| **ACQUIRE** | 10+ segment storefronts; **&lt;3 hours** new vertical on shared infra |
+| **TRANSACT** | ConnectQuote — quote → bind (BOP/GL; WC rail expanding) |
+| **OWN THE RELATIONSHIP** | CONNECT — COI → coverage → claims initiation → renewal |
 | **Raise logic** | Platform **built**; $250K SAFE funds **growth and proof**, not discovery |
 
 ### Competitive category map (simple)
@@ -244,6 +251,7 @@ Offer skeptics **demonstration**, not assertions:
 
 **Open with (one):**  
 ☐ Elevator (Section A)  
+☐ **Strategic acquirer platform card** (carrier / corp dev — recommended)  
 ☐ Strategic binary for carriers (Section F)  
 ☐ “Missing layer” story (post-bind vs quote sites)  
 

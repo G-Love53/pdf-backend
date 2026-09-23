@@ -6,6 +6,7 @@ on:
     paths:
       - "docs/CID_BATTLE_CARD_digital_marketplace_brokers.html"
       - "docs/CID_BATTLE_CARD_ergo_next_connect.html"
+      - "docs/CID_BATTLE_CARD_strategic_acquirer_platform.html"
       - "scripts/sync-battle-card-google-doc.mjs"
       - ".github/workflows/sync-battle-card-google-doc.yml"
   workflow_dispatch:
@@ -45,4 +46,12 @@ jobs:
           GDRIVE_PARTNER_FOLDER_ID: ${{ secrets.GDRIVE_PARTNER_FOLDER_ID }}
           BATTLE_CARD_HTML: docs/CID_BATTLE_CARD_ergo_next_connect.html
           BATTLE_CARD_DOC_TITLE: CID Battle Card - ERGO NEXT Connect
+        run: node scripts/sync-battle-card-google-doc.mjs
+
+      - name: Google Doc - Strategic acquirer platform
+        env:
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+          GDRIVE_PARTNER_FOLDER_ID: ${{ secrets.GDRIVE_PARTNER_FOLDER_ID }}
+          BATTLE_CARD_HTML: docs/CID_BATTLE_CARD_strategic_acquirer_platform.html
+          BATTLE_CARD_DOC_TITLE: CID Battle Card - Strategic Acquirer Platform
         run: node scripts/sync-battle-card-google-doc.mjs
