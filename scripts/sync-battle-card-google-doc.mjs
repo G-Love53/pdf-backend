@@ -8,8 +8,9 @@
  *   GDRIVE_PARTNER_FOLDER_ID
  *
  * Optional:
- *   BATTLE_CARD_HTML — path override (default: docs/CID_BATTLE_CARD_digital_marketplace_brokers.html)
- *   BATTLE_CARD_DOC_TITLE — default: "CID Battle Card — Digital Marketplace Brokers"
+ *   BATTLE_CARD_HTML — path override
+ *   BATTLE_CARD_DOC_TITLE — default ASCII title (Drive search-friendly)
+ *   BATTLE_CARD_NOTIFY_EMAIL — grant writer after upload (default g@commercialinsurance-direct.com)
  */
 
 import fs from "fs";
@@ -26,7 +27,10 @@ const DEFAULT_HTML = path.join(
 );
 const DOC_TITLE =
   process.env.BATTLE_CARD_DOC_TITLE?.trim() ||
-  "CID Battle Card — Digital Marketplace Brokers";
+  "CID Battle Card - Digital Marketplace Brokers";
+const NOTIFY_EMAIL =
+  process.env.BATTLE_CARD_NOTIFY_EMAIL?.trim() ||
+  "g@commercialinsurance-direct.com";
 const GOOGLE_DOC = "application/vnd.google-apps.document";
 
 function driveClient(credentialsJson) {
@@ -38,21 +42,108 @@ function driveClient(credentialsJson) {
   return google.drive({ version: "v3", auth });
 }
 
-async function findDocByTitle(drive, folderId, title) {
+function escapeDriveQueryString(value) {
+  return String(value).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+async function getFolderMeta(drive, folderId) {
+  const res = await drive.files.get({
+    fileId: folderId,
+    fields: "id,name,mimeType,driveId,teamDriveId,parents",
+    supportsAllDrives: true,
+  });
+  return res.data;
+}
+
+async function listBattleFiles(drive, folderId) {
   const q = [
     `'${folderId}' in parents`,
     "trashed=false",
-    `name='${title.replace(/'/g, "\\'")}'`,
+    "name contains 'Battle'",
+  ].join(" and ");
+  const res = await drive.files.list({
+    q,
+    fields: "files(id, name, mimeType, webViewLink, modifiedTime)",
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true,
+    corpora: "allDrives",
+    pageSize: 20,
+  });
+  return res.data.files || [];
+}
+
+async function findDocByTitle(drive, folderId, title) {
+  const safe = escapeDriveQueryString(title);
+  const q = [
+    `'${folderId}' in parents`,
+    "trashed=false",
+    `name='${safe}'`,
     `mimeType='${GOOGLE_DOC}'`,
   ].join(" and ");
   const res = await drive.files.list({
     q,
-    fields: "files(id, name, modifiedTime)",
+    fields: "files(id, name, webViewLink, modifiedTime)",
     supportsAllDrives: true,
     includeItemsFromAllDrives: true,
+    corpora: "allDrives",
     pageSize: 5,
   });
   return res.data.files?.[0] || null;
+}
+
+async function grantWriter(drive, fileId, email) {
+  if (!email) return;
+  try {
+    await drive.permissions.create({
+      fileId,
+      requestBody: {
+        type: "user",
+        role: "writer",
+        emailAddress: email,
+      },
+      supportsAllDrives: true,
+      sendNotificationEmail: false,
+    });
+    console.log(`Granted writer to ${email} on file ${fileId}`);
+  } catch (err) {
+    console.warn(
+      `Could not grant ${email} (file may inherit Shared drive ACL):`,
+      err.message || err,
+    );
+  }
+}
+
+async function uploadAsGoogleDoc(drive, folderId, htmlPath, existingId) {
+  const media = {
+    mimeType: "text/html",
+    body: fs.createReadStream(htmlPath),
+  };
+
+  if (existingId) {
+    await drive.files.update({
+      fileId: existingId,
+      media,
+      supportsAllDrives: true,
+    });
+    const got = await drive.files.get({
+      fileId: existingId,
+      fields: "id,name,webViewLink,parents,driveId",
+      supportsAllDrives: true,
+    });
+    return got.data;
+  }
+
+  const res = await drive.files.create({
+    requestBody: {
+      name: DOC_TITLE,
+      parents: [folderId],
+      mimeType: GOOGLE_DOC,
+    },
+    media,
+    supportsAllDrives: true,
+    fields: "id,name,webViewLink,parents,driveId",
+  });
+  return res.data;
 }
 
 async function main() {
@@ -74,38 +165,43 @@ async function main() {
   }
 
   const drive = driveClient(credentialsJson);
-  const existing = await findDocByTitle(drive, folderId, DOC_TITLE);
-  const media = {
-    mimeType: "text/html",
-    body: fs.createReadStream(htmlPath),
-  };
 
+  const folder = await getFolderMeta(drive, folderId);
+  console.log("Target folder:", {
+    id: folder.id,
+    name: folder.name,
+    driveId: folder.driveId || folder.teamDriveId || "(My Drive — prefer Shared drive folder)",
+  });
+
+  const existing = await findDocByTitle(drive, folderId, DOC_TITLE);
   if (existing) {
-    await drive.files.update({
-      fileId: existing.id,
-      media,
-      supportsAllDrives: true,
-    });
-    console.log(`Updated Google Doc: "${DOC_TITLE}" (${existing.id})`);
-    console.log(
-      `https://docs.google.com/document/d/${existing.id}/edit`,
-    );
-    return;
+    console.log("Found existing doc:", existing.id, existing.name);
   }
 
-  const res = await drive.files.create({
-    requestBody: {
-      name: DOC_TITLE,
-      parents: [folderId],
-      mimeType: GOOGLE_DOC,
-    },
-    media,
-    supportsAllDrives: true,
-    fields: "id",
-  });
-  const id = res.data.id;
-  console.log(`Created Google Doc: "${DOC_TITLE}" (${id})`);
-  console.log(`https://docs.google.com/document/d/${id}/edit`);
+  const file = await uploadAsGoogleDoc(
+    drive,
+    folderId,
+    htmlPath,
+    existing?.id,
+  );
+
+  await grantWriter(drive, file.id, NOTIFY_EMAIL);
+
+  const docUrl =
+    file.webViewLink ||
+    `https://docs.google.com/document/d/${file.id}/edit`;
+  console.log(`\nOK: "${file.name}"`);
+  console.log("Open:", docUrl);
+  console.log("File ID:", file.id);
+  console.log("Parent folder:", folder.name, folder.id);
+
+  const siblings = await listBattleFiles(drive, folderId);
+  console.log(
+    `\nFiles in folder matching "Battle" (${siblings.length}):`,
+  );
+  for (const f of siblings) {
+    console.log(` - ${f.name} [${f.mimeType}] ${f.webViewLink || f.id}`);
+  }
 }
 
 main().catch((err) => {
