@@ -1,10 +1,11 @@
-name: Sync battle card to Google Doc
+name: Sync battle cards to Google Docs
 
 on:
   push:
     branches: [main]
     paths:
       - "docs/CID_BATTLE_CARD_digital_marketplace_brokers.html"
+      - "docs/CID_BATTLE_CARD_ergo_next_connect.html"
       - "scripts/sync-battle-card-google-doc.mjs"
       - ".github/workflows/sync-battle-card-google-doc.yml"
   workflow_dispatch:
@@ -30,8 +31,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Upload HTML as Google Doc (CID Partner Docs folder)
+      - name: Google Doc - Digital marketplace brokers
         env:
           GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
           GDRIVE_PARTNER_FOLDER_ID: ${{ secrets.GDRIVE_PARTNER_FOLDER_ID }}
+          BATTLE_CARD_HTML: docs/CID_BATTLE_CARD_digital_marketplace_brokers.html
+          BATTLE_CARD_DOC_TITLE: CID Battle Card - Digital Marketplace Brokers
+        run: node scripts/sync-battle-card-google-doc.mjs
+
+      - name: Google Doc - ERGO NEXT Connect
+        env:
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+          GDRIVE_PARTNER_FOLDER_ID: ${{ secrets.GDRIVE_PARTNER_FOLDER_ID }}
+          BATTLE_CARD_HTML: docs/CID_BATTLE_CARD_ergo_next_connect.html
+          BATTLE_CARD_DOC_TITLE: CID Battle Card - ERGO NEXT Connect
         run: node scripts/sync-battle-card-google-doc.mjs
