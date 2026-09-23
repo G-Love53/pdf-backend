@@ -1,0 +1,37 @@
+name: Sync battle card to Google Doc
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/CID_BATTLE_CARD_digital_marketplace_brokers.html"
+      - "scripts/sync-battle-card-google-doc.mjs"
+      - ".github/workflows/sync-battle-card-google-doc.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: sync-battle-card-google-doc
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Upload HTML as Google Doc (CID Partner Docs folder)
+        env:
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+          GDRIVE_PARTNER_FOLDER_ID: ${{ secrets.GDRIVE_PARTNER_FOLDER_ID }}
+        run: node scripts/sync-battle-card-google-doc.mjs
