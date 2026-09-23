@@ -12,13 +12,13 @@ Thanks for the detail — you were right that these traced to our **automated UA
 
 **Contractors #1 and #7 (CA / MA question codes):** Our text matcher’s index fallback was picking **wrong-state** `questionCd`s (e.g. `5183CA01`, `9014MA01`) instead of Colorado (`23-5183_01`, `56-9014_01`). We now prefer GUARD’s CO question list from the API and, on fallback, **`5183_` / `9014_`** index rows only.
 
-**Re-test (sandbox, 2026-09-23):**
+**Re-test (sandbox, 2026-09-23 — post-deploy):**
 
-| Case | Policy # | NBS RqUID | Outcome | Notes |
-|------|----------|-----------|---------|--------|
-| Non-Contractors-3 | UAWC773636 | db2430b3-ac4d-4810-8528-d6f9e29aae9e | Decline (expected) | `ownerPayrollSent: 75000` in UAT JSON after deploy |
-| Contractors-1 | CIWC775506 | 707889e7-471a-4c02-8229-80a954881b70 | Quote | Class CDs should be `com.guard_QUESTION23-5183_0x` |
-| Contractors-7 | CIWC775507 | 1151e5a9-4633-4267-a35e-8edde9dee5ea | Quote | Class CDs should be `com.guard_QUESTION56-9014_0x` |
+| Case | Policy # | NBS RqUID | Outcome | Verification |
+|------|----------|-----------|---------|--------------|
+| Non-Contractors-3 | UAWC773636 | 09b16484-11a0-4d9a-afad-fb994345ba68 | Decline (expected) | `ownerPayrollSent: 75000` |
+| Contractors-1 | CIWC775513 | 44127141-f75a-42f1-a073-c27ccc147133 | Quote / Accept | `23-5183_01`–`_03`; proposal generated |
+| Contractors-7 | CIWC775514 | 39ff4f7e-6eac-4168-90d8-2041b55f370a | Quote / Accept | `56-9014_01`–`_03`; proposal generated |
 
 Please confirm on your side that the request XML shows **$75,000** on #3 and **CO** question IDs on #1/#7. Happy to send a redacted snippet if useful.
 

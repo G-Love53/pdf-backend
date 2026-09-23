@@ -1,26 +1,168 @@
 {
-  "runAt": "2026-09-23T14:07:47.234Z",
-  "api": "local",
+  "runAt": "2026-09-23T14:14:05.495Z",
+  "api": "https://cid-pdf-api-sandbox.onrender.com",
   "ok": true,
   "summary": {
     "total": 3,
-    "passed": 0
+    "passed": 3,
+    "failed": 0,
+    "errors": 0
   },
   "results": [
     {
-      "ok": false,
-      "error": "GUARD_NOT_CONFIGURED",
-      "message": "GUARD API env is not set on this service."
+      "ok": true,
+      "caseId": "Contractors-1",
+      "sheet": "Contractors",
+      "number": 1,
+      "expectedOutcome": "Quote",
+      "submission_public_id": "CID-PLM-20260923-000232",
+      "pass": true,
+      "outcome": {
+        "actual": "quote",
+        "pass": true,
+        "bindable": true
+      },
+      "experienceMod": {
+        "sent": 0.9,
+        "returned": null,
+        "pass": true
+      },
+      "unmatchedQuestions": [],
+      "guard": {
+        "indicateRqUid": "5e190d0c-4df7-4952-9b88-11f49b7412bd",
+        "nbsRqUid": "44127141-f75a-42f1-a073-c27ccc147133",
+        "policyNumber": "CIWC775513",
+        "premium": 3560,
+        "policyStatusCd": "QuotedNotBound",
+        "uwDecision": "Accept",
+        "msgStatusCd": "SuccessWithChanges",
+        "remarks": [
+          "NOTICE:Policy CIWC775513 has been submitted (GENPROPSUBMIT).",
+          "NOTICE:Proposal Generated for CIWC775513."
+        ]
+      },
+      "acordDefaultsUsed": 10,
+      "classQuestionsAnswered": 3,
+      "classQuestionCds": [
+        "com.guard_QUESTION23-5183_01",
+        "com.guard_QUESTION23-5183_02",
+        "com.guard_QUESTION23-5183_03"
+      ],
+      "ownerPayrollSent": 0,
+      "locations": [
+        {
+          "id": "L1",
+          "street": "523 E 17th Ave",
+          "city": "Denver",
+          "state": "CO",
+          "zip": "80203",
+          "exposure": 150000,
+          "numEmployeesFullTime": 6
+        }
+      ]
     },
     {
-      "ok": false,
-      "error": "GUARD_NOT_CONFIGURED",
-      "message": "GUARD API env is not set on this service."
+      "ok": true,
+      "caseId": "Contractors-7",
+      "sheet": "Contractors",
+      "number": 7,
+      "expectedOutcome": "Quote",
+      "submission_public_id": "CID-CLN-20260923-000233",
+      "pass": true,
+      "outcome": {
+        "actual": "quote",
+        "pass": true,
+        "bindable": true
+      },
+      "experienceMod": {
+        "sent": 0.95,
+        "returned": null,
+        "pass": true
+      },
+      "unmatchedQuestions": [],
+      "guard": {
+        "indicateRqUid": "e885d052-38e2-4daf-8fa6-8c470c827d31",
+        "nbsRqUid": "39ff4f7e-6eac-4168-90d8-2041b55f370a",
+        "policyNumber": "CIWC775514",
+        "premium": 3498,
+        "policyStatusCd": "QuotedNotBound",
+        "uwDecision": "Accept",
+        "msgStatusCd": "SuccessWithChanges",
+        "remarks": [
+          "NOTICE:Policy CIWC775514 has been submitted (GENPROPSUBMIT).",
+          "NOTICE:Proposal Generated for CIWC775514."
+        ]
+      },
+      "acordDefaultsUsed": 10,
+      "classQuestionsAnswered": 3,
+      "classQuestionCds": [
+        "com.guard_QUESTION56-9014_01",
+        "com.guard_QUESTION56-9014_02",
+        "com.guard_QUESTION56-9014_03"
+      ],
+      "ownerPayrollSent": 0,
+      "locations": [
+        {
+          "id": "L1",
+          "street": "1552 E 17th Ave",
+          "city": "Denver",
+          "state": "CO",
+          "zip": "80218",
+          "exposure": 150000,
+          "numEmployeesFullTime": 6
+        }
+      ]
     },
     {
-      "ok": false,
-      "error": "GUARD_NOT_CONFIGURED",
-      "message": "GUARD API env is not set on this service."
+      "ok": true,
+      "caseId": "Non-Contractors-3",
+      "sheet": "Non-Contractors",
+      "number": 3,
+      "expectedOutcome": "Decline",
+      "submission_public_id": "CID-BTY-20260923-000234",
+      "pass": true,
+      "outcome": {
+        "actual": "decline",
+        "pass": true,
+        "bindable": true
+      },
+      "experienceMod": {
+        "sent": 1.03,
+        "returned": null,
+        "pass": true
+      },
+      "unmatchedQuestions": [],
+      "guard": {
+        "indicateRqUid": "2ea8a96c-f741-4cf6-b87f-b8fa3b360beb",
+        "nbsRqUid": "09b16484-11a0-4d9a-afad-fb994345ba68",
+        "policyNumber": "UAWC773636",
+        "premium": 1515,
+        "policyStatusCd": "NotQuotedNotBound",
+        "uwDecision": "Reject",
+        "msgStatusCd": "SuccessWithChanges",
+        "remarks": [
+          "NOTICE: This risk does not meet the current underwriting appetite."
+        ]
+      },
+      "acordDefaultsUsed": 10,
+      "classQuestionsAnswered": 3,
+      "classQuestionCds": [
+        "com.guard_QUESTION81-9586_01",
+        "com.guard_QUESTION81-9586_02",
+        "com.guard_QUESTION81-9586_03"
+      ],
+      "ownerPayrollSent": 75000,
+      "locations": [
+        {
+          "id": "L1",
+          "street": "14197 E Exposition Ave",
+          "city": "Aurora",
+          "state": "CO",
+          "zip": "80012",
+          "exposure": 275000,
+          "numEmployeesFullTime": 4
+        }
+      ]
     }
   ]
 }
