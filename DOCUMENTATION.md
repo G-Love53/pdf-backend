@@ -18,8 +18,11 @@
 | **[docs/outreach-claude-playbook.md](./docs/outreach-claude-playbook.md)** | **Dated** — Instantly campaigns: list cleaning, attribution (`ch`/`src`/`cid`), HTML paste checklist, verified failure modes, **prefill policy** |
 | **[docs/localprospects-list-design.md](./docs/localprospects-list-design.md)** | **Dated** — LocalProspects CO pulls: dedupe, ZIP extraction, category allowlist, credit economics, Instantly upload |
 | **[docs/outreach-creatives.md](./docs/outreach-creatives.md)** | **Dated** — Segment email JPEG + HTML registry; Netlify deploy methods (Drop vs git) |
-| **[docs/connectquote-operator-learning.md](./docs/connectquote-operator-learning.md)** | **Dated** — ConnectQuote C&F metrics, attribution SQL, Operator Learning cards (spec) |
+| **[docs/connectquote-operator-learning.md](./docs/connectquote-operator-learning.md)** | **Dated** — ConnectQuote C&F metrics; **Click → Bind** at `/operator/funnel` |
+| **[docs/partner-layer.md](./docs/partner-layer.md)** | **Internal** — Partner Layer registry, mint URL, attribution (`ch=partner-{id}`) |
+| **[docs/partner-layer-onboarding.md](./docs/partner-layer-onboarding.md)** | **Give to a partner’s team** — how to add the CID quote link (no internals) |
 | **[docs/CID_IP_AND_ACQUIRER_PROTECTION.md](./docs/CID_IP_AND_ACQUIRER_PROTECTION.md)** | **Partner Shared drive** — IP / AI-assisted build / what a buyer CIO purchases |
+| **[docs/CID_Overview.md](./docs/CID_Overview.md)** | **Partner Shared drive** — company overview (purpose, live footprint, SAFE, strategic outcome) |
 | **[docs/CID_INVESTMENT_THESIS.md](./docs/CID_INVESTMENT_THESIS.md)** | **Partner Shared drive** — investor thesis (Ray/Rick); auto-synced on push |
 | **[docs/00 PARTNER_README.md](./docs/00%20PARTNER_README.md)** | Partner Shared drive index |
 | **[docs/PARTNER_DOCS_SETUP.md](./docs/PARTNER_DOCS_SETUP.md)** | One-time Google service account + GitHub secrets for Drive sync (internal) |

@@ -5,7 +5,7 @@
 
 ## Implemented (this change)
 
-- **`?segment=all|bar|roofer|plumber|hvac`** on Operator Home, `/api/operator/dashboard`, and `/operator/today/*` (default **all** via `sqlSegmentFilter` + `$1 = 'all'`).
+- **`?segment=all|bar|roofer|plumber|hvac`** on Operator Home, `/api/operator/dashboard`, `/operator/funnel`, and `/operator/today/*` (default **all** via `sqlSegmentFilter` + `$1 = 'all'`).
 - **Operator Home** dropdown persists selection in the URL (`history.replaceState`) and passes segment to S4/S5/S6 nav links and metric drill-downs.
 - **BoldSign redirect** back to `/operator` preserves `segment` when present.
 - **Renewals** queue on the dashboard now respects the same segment filter (previously hardcoded to Bar).

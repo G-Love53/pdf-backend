@@ -15,9 +15,10 @@ LEG 1 (Intake)          LEG 2 (CID-PDF-API pipeline)          LEG 3 (Service)
   Submit   ---------->    ACORD + SUPP + CLIENT_SUBMISSION   COI requests
   (segment-specific)      Gmail API send   ---------->      Claims routing
                           Quote inbox                         Policy access
-                          S4/S5/S6 operator flow             AI coverage chat
+                          S4/S5/S6 + /operator/funnel        AI coverage chat
                           Bind/payment   ---------->         Retention
                                     Carrier
+  Partner Layer URL ----> same ConnectQuote (ch=partner-{id})
 ```
 
 ---
@@ -31,6 +32,7 @@ LEG 1 (Intake)          LEG 2 (CID-PDF-API pipeline)          LEG 3 (Service)
 5. **S4/S5:** extraction review then packet builder. Sales letter generation uses Claude with Gemini/template fallback.
 6. **S6 Bind:** segment-branded bind-confirmation PDF is sent to BoldSign with fixed placement; webhook/redirect finalization creates policy.
 7. **CID Connect (LEG 3):** Post-bind policyholder experience: login, COI, claims, documents, **AI coverage Q&A** (policy + carrier knowledge), retention. **UI** is built and shipped with **Famous.ai** (stores); **execution** stays on **CID-PDF-API** + shared Postgres/R2. See [CID_CONNECT.md](./CID_CONNECT.md).
+8. **Partner Layer:** a trade/org unique URL is still step 1 (ConnectQuote) — not a separate stack. [`partner-layer-onboarding.md`](./partner-layer-onboarding.md).
 
 ---
 

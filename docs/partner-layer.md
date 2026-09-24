@@ -2,6 +2,8 @@
 
 Thin distribution wrap around ConnectQuote. **Not** an embedded quote API.
 
+**Give this to a partner’s team:** [`partner-layer-onboarding.md`](./partner-layer-onboarding.md) (no CID internals).
+
 **Operator:** [`/operator/funnel`](https://cid-pdf-api.onrender.com/operator/funnel) — Click → Bind graphs + mint URL.
 
 ---
@@ -46,6 +48,18 @@ That’s it. No API key. No dashboard login for them in v1.
 | Intake banner | `public/connectquote-intake.js` (`applyPartnerBrand`) |
 
 Channel convention: Instantly = `instantly-co-{segment}`. Partners = `partner-{id}`. Do not reuse Instantly `ch` for a trade org.
+
+---
+
+## Related docs
+
+| Doc | Audience |
+|-----|----------|
+| [`partner-layer-onboarding.md`](./partner-layer-onboarding.md) | **Their** marketing / web team |
+| [`connectquote-operator-learning.md`](./connectquote-operator-learning.md) | CID ops — Click → Bind |
+| [`connectquote-events-tracking.md`](./connectquote-events-tracking.md) | `cq_events` + `partner=` |
+| [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md) | Diligence / carrier summary |
+| [`00 PARTNER_README.md`](./00%20PARTNER_README.md) | Shared-drive index |
 
 ---
 

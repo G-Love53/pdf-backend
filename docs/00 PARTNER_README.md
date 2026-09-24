@@ -1,7 +1,7 @@
 # START HERE — CID Partner Docs
 
 > **Shared drive:** CID Partner Docs (Google Workspace)  
-> **As of:** 2026-08-18  
+> **As of:** 2026-09-24  
 > **Owner:** Gerry (`g@commercialinsurance-direct.com`)  
 > **Members:** Ray (Content manager), Rick (Contributor) · GC Bob Hersher — planned
 
@@ -29,25 +29,28 @@ If a doc looks stale, ask Gerry — **Git is always the source of truth.** Setup
 
 ### Ray (counsel / diligence)
 
-1. **[CID_INVESTMENT_THESIS.md](./CID_INVESTMENT_THESIS.md)** — investor narrative, market, platform layers, exit thesis  
-2. **[CID_IP_AND_ACQUIRER_PROTECTION.md](./CID_IP_AND_ACQUIRER_PROTECTION.md)** — IP, AI-assisted build, what a buyer CIO/CTO purchases  
-3. **[AUDIT_READINESS.md](./AUDIT_READINESS.md)** — what is auditable today (S1–S6): submissions, timeline, R2 docs, bind trail  
-4. **[CID_ARCHITECTURE.md](./CID_ARCHITECTURE.md)** — single-backend rule, end-to-end pipeline, operator surfaces  
-5. **[compliance-roadmap.md](./compliance-roadmap.md)** — SOC 2 / security roadmap  
-6. **[partnership-gaps.md](./partnership-gaps.md)** — diligence backlog P0–P3  
-7. **[corporate-structure.md](./corporate-structure.md)** — legal entity, segment brands, partner narrative  
-8. **[partnerships.md](./partnerships.md)** — vendor/carrier registry and SOC vendor status  
+1. **[CID_Overview.md](./CID_Overview.md)** — one-page company overview (purpose, live, SAFE, outcome)  
+2. **[CID_INVESTMENT_THESIS.md](./CID_INVESTMENT_THESIS.md)** — investor narrative, market, platform layers, exit thesis  
+3. **[CID_IP_AND_ACQUIRER_PROTECTION.md](./CID_IP_AND_ACQUIRER_PROTECTION.md)** — IP, AI-assisted build, what a buyer CIO/CTO purchases  
+4. **[AUDIT_READINESS.md](./AUDIT_READINESS.md)** — what is auditable today (S1–S6): submissions, timeline, R2 docs, bind trail  
+5. **[CID_ARCHITECTURE.md](./CID_ARCHITECTURE.md)** — single-backend rule, end-to-end pipeline, operator surfaces  
+6. **[compliance-roadmap.md](./compliance-roadmap.md)** — SOC 2 / security roadmap  
+7. **[partnership-gaps.md](./partnership-gaps.md)** — diligence backlog P0–P3  
+8. **[corporate-structure.md](./corporate-structure.md)** — legal entity, segment brands, partner narrative  
+9. **[partnerships.md](./partnerships.md)** — vendor/carrier registry and SOC vendor status  
 
 Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-2026-06.md** (ConnectQuote product summary).
 
 ### Rick (ops / partner)
 
-1. **[CID_INVESTMENT_THESIS.md](./CID_INVESTMENT_THESIS.md)** — platform story, market, business model, team  
-2. **[connectquote-shipped-2026-06.md](./connectquote-shipped-2026-06.md)** — what shipped, CO geography, segments on marketing rail  
-3. **[corporate-structure.md](./corporate-structure.md)** — brands, domains, inboxes  
-4. **[partnerships.md](./partnerships.md)** — who we depend on (Coterie, Render, Instantly, etc.)  
-5. **[coterie-integration.md](./coterie-integration.md)** — Coterie API rail (technical, no secrets)  
-6. **[connectquote-build-day.md](./connectquote-build-day.md)** — demo walkthrough script  
+1. **[CID_Overview.md](./CID_Overview.md)** — one-page company overview  
+2. **[CID_INVESTMENT_THESIS.md](./CID_INVESTMENT_THESIS.md)** — platform story, market, business model, team  
+3. **[connectquote-shipped-2026-06.md](./connectquote-shipped-2026-06.md)** — what shipped, CO geography, segments on marketing rail  
+4. **[corporate-structure.md](./corporate-structure.md)** — brands, domains, inboxes  
+5. **[partnerships.md](./partnerships.md)** — who we depend on (Coterie, Render, Instantly, etc.)  
+6. **[coterie-integration.md](./coterie-integration.md)** — Coterie API rail (technical, no secrets)  
+7. **[connectquote-build-day.md](./connectquote-build-day.md)** — demo walkthrough script  
+8. **[partner-layer-onboarding.md](./partner-layer-onboarding.md)** — give this to a trade/org team to add the CID quote link  
 
 ---
 
@@ -55,6 +58,7 @@ Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-20
 
 | Document | Topic |
 |----------|--------|
+| **CID_Overview.md** | Company overview — purpose, live footprint, SAFE, strategic outcome |
 | **CID_IP_AND_ACQUIRER_PROTECTION.md** | IP, AI-assisted development, buyer CIO/CTO protection  
 | **CID_INVESTMENT_THESIS.md** | Investment thesis — market, platform, exit, team |
 | **board-resolution-officer-titles-2026.md** | Board resolution — officer title amendment (Aug 2026) |
@@ -66,6 +70,7 @@ Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-20
 | **connect-pwa-partner.md** | Connect mobile / PWA / App Store — partner summary |
 | **connectquote-shipped-2026-06.md** | ConnectQuote shipped summary — investor/handoff |
 | **connectquote-analytics-partner.md** | ConnectQuote page funnel & attribution — partner summary |
+| **partner-layer-onboarding.md** | How a trade org / supplier adds the CID quote link (send this) |
 | **corporate-structure.md** | LLC, segment brands/domains, partner-facing narrative |
 | **partnerships.md** | Partnerships and integrations registry |
 | **partnership-gaps.md** | Diligence gaps and next actions |
@@ -89,6 +94,7 @@ Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-20
 | **Pipeline backend** | Single service: **CID-PDF-API** on Render (`pdf-backend` repo) |
 | **Insured app** | **CID Connect** at `connect.commercialinsurance-direct.com` — installable **PWA** (home screen); App Store / Play **optional later** |
 | **Instant bind rail** | **Coterie API** — marketing **Colorado (CO) only** |
+| **Partner Layer** | Branded quote **URL** (not an embed API). Hand their team `partner-layer-onboarding.md` |
 | **ConnectQuote marketing (CO)** | Electrical, HVAC, Plumber, Beauty, Cleaning, Pet; Fitness = **yoga / pilates / trainer** (3 classes, different policy/price) |
 | **Traditional only (no ConnectQuote)** | Bar, Roofer |
 | **CID SOC 2** | Not certified — roadmap in `compliance-roadmap.md` |
@@ -101,4 +107,4 @@ Reply in email or the shared thread with Gerry (`g@commercialinsurance-direct.co
 
 ---
 
-*Last folder refresh: 2026-08-18 · Auto-sync from Git on push to `main` (see manifest in repo).*
+*Last folder refresh: 2026-09-24 · Auto-sync from Git on push to `main` (see manifest in repo).*

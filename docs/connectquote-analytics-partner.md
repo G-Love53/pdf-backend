@@ -1,7 +1,7 @@
 # ConnectQuote analytics — partner summary
 
 > **Audience:** carriers, agency partners, diligence (no secrets).  
-> **Technical runbook:** [`connectquote-events-tracking.md`](./connectquote-events-tracking.md) · **Operator SQL:** [`connectquote-operator-learning.md`](./connectquote-operator-learning.md)
+> **Technical runbook:** [`connectquote-events-tracking.md`](./connectquote-events-tracking.md) · **Operator SQL / Click → Bind:** [`connectquote-operator-learning.md`](./connectquote-operator-learning.md) · **Add our link to your site:** [`partner-layer-onboarding.md`](./partner-layer-onboarding.md)
 
 ---
 
@@ -17,7 +17,7 @@ CID instruments the ConnectQuote journey on segment landing pages using **first-
 
 | Layer | Examples |
 |-------|----------|
-| **Campaign attribution** | Channel, campaign ID, outreach step (`seq=1\|2\|3`) |
+| **Campaign attribution** | Channel, campaign ID, outreach step (`seq=1\|2\|3`); Partner Layer `partner=` / `ch=partner-{id}` |
 | **Page funnel** | Landing, human engagement, intake progress (business type, contact, location, coverage), disqualifications, exit stage |
 | **Quote flow** | Quote requested / returned (response time), errors, bind clicks |
 | **Submission & bind** | Successful submits, quoted premium, bound policies (operator pipeline) |
@@ -63,6 +63,8 @@ This supports **conversion improvement**, **campaign attribution**, and **honest
 | `cq_events` | Pre-submit page funnel (Postgres, CID-PDF-API) |
 | `submissions`, `timeline_events`, `policies` | Submit, quote, bind (existing audit trail) |
 
+Trade / platform partners get a unique URL so CID can report **their** visits → quotes → binds (not Instantly). How they add the link: [`partner-layer-onboarding.md`](./partner-layer-onboarding.md).
+
 Partner-facing reports use **aggregates by segment and state**; carrier names and non-public contract details can be omitted from external exports.
 
 ---
@@ -74,3 +76,4 @@ Partner-facing reports use **aggregates by segment and state**; carrier names an
 | [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) | Product scope and CO marketing rail |
 | [`coterie-integration.md`](./coterie-integration.md) | Coterie API technical spec |
 | [`AUDIT_READINESS.md`](./AUDIT_READINESS.md) | S1–S6 audit posture |
+| [`partner-layer-onboarding.md`](./partner-layer-onboarding.md) | What we send a partner’s marketing / web team |

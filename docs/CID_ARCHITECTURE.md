@@ -41,6 +41,8 @@ Parallel **instant** path for eligible SMB risks (**CO marketing**: Electrical, 
 
 Shared intake: `/static/connectquote-intake.js` on Render. Lists: **`pull-localprospects-instantly.mjs`** / **`clean-localprospects-instantly.mjs`**. Spec: [`coterie-integration.md`](./coterie-integration.md), [`outreach-claude-playbook.md`](./outreach-claude-playbook.md).
 
+**Partner Layer (distribution):** trade org / supplier / payroll gets a unique ConnectQuote URL (`ch=partner-{id}` + optional logo). Same quote → bind → Connect path. CID remains agency of record. Internal: [`partner-layer.md`](./partner-layer.md). Sendable: [`partner-layer-onboarding.md`](./partner-layer-onboarding.md).
+
 ### ConnectQuote second line (GUARD WC — live)
 
 Workers’ Comp **alongside** Coterie BOP/GL — same `submission_public_id`; main-form WC opt-in → commercial quote → WC indication/bind. **Per-segment WC switch** (`guardRegistry.js` + `GUARD_ENABLED_SEGMENTS`). CID-PDF-API **`/api/guard/wc/*`**. GUARD **direct bill** (CID not MoR). Bind → `finalizeGuardBind()` → shared **`policies`** spine. Spec: [`guard-integration.md`](./guard-integration.md).
@@ -62,9 +64,11 @@ Workers’ Comp **alongside** Coterie BOP/GL — same `submission_public_id`; ma
 ## Operator Surfaces
 
 - `/operator` (home + segment switcher + today drilldowns)
+- `/operator/funnel` — **Click → Bind** scoreboard (graphs, stopped-before-quote, channel / partner attribution, mint URL)
 - `/operator/extraction-review` (S4 queue/detail, includes dismiss)
 - `/operator/packet-builder` (S5 queue/detail)
 - `/operator/bind` (S6 queue/detail)
+- `/operator/search` — client lookup
 
 ## Persistence Spine
 

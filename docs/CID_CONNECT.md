@@ -12,6 +12,8 @@
 
 **GUARD WC:** second policy on the same submission when segment/state allow (`bind_source: guard`). ConnectQuote intake offers WC on the main form or post-bind; quote/bind still hits CID-PDF-API — no GUARD secrets in the browser. Spec: [`guard-integration.md`](./guard-integration.md).
 
+**Partner Layer:** a trade/org URL still binds into **this** Connect — CID remains agency of record. Sendable: [`partner-layer-onboarding.md`](./partner-layer-onboarding.md).
+
 ---
 
 ## Who builds what

@@ -15,6 +15,7 @@ Critical:
 - **Instantly CSV vars** → **`connectquote_url`** + **`displayName`**; Step 1 body uses `{{displayName}}`, not `{{firstName}}`, when firstName coverage is low
 - **Hosted JPEG + HTML step** → `{segment}-pdf-backend/Netlify/email/archive/` → file **`instantly_html_step.html`**
 - **`ch=` + `src=`** — same value, e.g. `instantly-co-electrical` (not `apollo`); intake reads `ch` first
+- **Partner Layer** — trade/org URLs use `ch=partner-{id}` (never Instantly `ch`). Mint on `/operator/funnel`. Sendable: `docs/partner-layer-onboarding.md` · internal: `docs/partner-layer.md`
 - **After Instantly HTML paste:** re-apply `{{connectquote_url}}` on image + CTA (editor strips anchors)
 - **New segment Netlify deploy:** CNAME `inst` → `prox.itrackly.com` + **Netlify env** for Instantly unsubscribe (mirror plumber) — see `Deploy_Guide.md` § Instantly CTD
 - **Do not** use Zywave; **do not** host campaign images on Render; **never** `data:image` in email

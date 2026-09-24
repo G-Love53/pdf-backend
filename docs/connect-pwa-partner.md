@@ -63,4 +63,5 @@ Famous confirmed (Sep 2026): no App Store submission, native builds, or WebView 
 |-----|-----|
 | [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) | Pre-bind ConnectQuote rail |
 | [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md) | Pre-submit funnel analytics |
+| [`partner-layer-onboarding.md`](./partner-layer-onboarding.md) | How a trade/org adds the CID quote link |
 | [`direct-partner-discovery-rss.md`](./direct-partner-discovery-rss.md) | Carrier discovery — Connect servicing questions |

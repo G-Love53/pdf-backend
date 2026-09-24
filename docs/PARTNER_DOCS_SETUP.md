@@ -70,7 +70,7 @@ node scripts/sync-partner-docs-drive.mjs
 
 ## What syncs
 
-Listed in **`docs/partner-manifest.txt`** (16 files). Edit the manifest to add/remove partner docs.
+Listed in **`docs/partner-manifest.txt`**. Edit the manifest to add/remove partner docs (includes `partner-layer-onboarding.md`; not the internal `partner-layer.md`).
 
 **Not synced:** internal runbooks (`Deploy_Guide.md`, outreach playbooks, operator SQL, etc.).
 

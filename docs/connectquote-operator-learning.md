@@ -1,18 +1,18 @@
 # ConnectQuote — Operator learning cards (saved spec)
 
-> **Status:** Partially live — page funnel in **`cq_events`** + Operator “Page funnel” tiles; submit/bind learning on **`submissions`** / timeline.  
-> **As of:** 2026-09-22 · **Operator today:** [`/operator`](https://cid-pdf-api.onrender.com/operator)  
-> **Related:** [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md) · [`connectquote-events-tracking.md`](./connectquote-events-tracking.md) · [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md)
+> **Status:** Live — **Click → Bind** at [`/operator/funnel`](https://cid-pdf-api.onrender.com/operator/funnel) (graphs, stopped-before-quote, `ch` / partner table, mint URL). Home still has number tiles.  
+> **As of:** 2026-09-24 · **Operator today:** [`/operator`](https://cid-pdf-api.onrender.com/operator)  
+> **Related:** [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md) · [`connectquote-events-tracking.md`](./connectquote-events-tracking.md) · [`partner-layer.md`](./partner-layer.md) · [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md)
 
 ---
 
 ## Plan
 
 1. **Launch marketing** with disciplined **`ch` + `src` + `cid`** on every ConnectQuote URL (see **URL discipline** below).  
-2. **Watch** submissions, binds, and campaigns for 2–4 weeks (Operator Home + ad-hoc SQL below).  
-3. **Build Operator Learning cards** when volume makes manual SQL painful or a specific funnel question repeats.
+2. **Watch** **Click → Bind** (`/operator/funnel`) — landings, stopped-before-quote, quote → bind, Instantly vs `partner-*`.  
+3. Home tiles + SQL below remain for drill-down.
 
-Do not block launch on this UI — data already lands in **`submissions`**, **`timeline_events`**, and **`policies`**.
+Data lands in **`cq_events`**, **`submissions`**, **`timeline_events`**, and **`policies`**.
 
 ---
 
@@ -30,7 +30,7 @@ Do not block launch on this UI — data already lands in **`submissions`**, **`t
 **Page funnel (live — `cq_events`):**
 
 - Landing, engagement, semi-filled, stale, quote on page, bind click — see [`connectquote-events-tracking.md`](./connectquote-events-tracking.md)
-- Operator Home → **ConnectQuote — page funnel (cq_events)** or `GET /api/operator/cq-funnel`
+- **Click → Bind** → `/operator/funnel` (graphs + stopped-before-quote) or Home tiles / `GET /api/operator/scoreboard` / `GET /api/operator/cq-funnel`
 
 **Email clicks / opens:**
 
@@ -178,6 +178,8 @@ Drill-down: list `submission_public_id`, segment, email (masked), timestamps.
 | Page view + engaged + step events | `cq_events` via `connectquote-intake.js` |
 | Funnel stages on exit | `open`, `semi_filled`, `quoted_unbound`, etc. |
 | Operator tiles | `/operator/home` — “Page funnel (cq_events)” |
+| **Click → Bind scoreboard** | `/operator/funnel` — funnel bars, daily chart, drop-off, channel table, partner mint |
+| Partner Layer | [`partner-layer.md`](./partner-layer.md) · sendable: [`partner-layer-onboarding.md`](./partner-layer-onboarding.md) |
 | Partner summary | [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md) |
 
 ## v2 (next)
@@ -186,7 +188,7 @@ Drill-down: list `submission_public_id`, segment, email (masked), timestamps.
 |---------|-----|
 | **`quote_outcomes` table** | Unified premium by segment/carrier (server-side) |
 | **CONNECT event log** | Post-bind servicing on same `submission_public_id` |
-| **Export CSV** | Weekly partner report |
+| **Export CSV** | Weekly partner report (mint + on-page table cover v1) |
 
 ---
 

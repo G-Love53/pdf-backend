@@ -49,7 +49,7 @@ Both must allow the segment. CO only until **`GUARD_PILOT_STATES`** expands.
    ```
 3. **Redeploy** prod (and keep sandbox on P-env for demos).
 4. **Smoke per segment:** CO ConnectQuote → demo or live bind → WC panel → NBQ premium.
-5. **Operator:** Timeline events `guard.indicated` / `guard.bound` visible on submission.
+5. **Operator:** Timeline events `guard.indicated` / `guard.bound` visible on submission. **WC attachment %** is on **Click → Bind** (`/operator/funnel`).
 
 No segment-repo changes — WC is **`pdf-backend` only** (`connectquote-intake.js` main-form opt-in + post-quote GUARD card). Bump segment `connectquote.html` `?v=` after intake deploy.
 

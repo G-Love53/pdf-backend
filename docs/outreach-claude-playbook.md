@@ -180,6 +180,7 @@ Raw `Company Name` can hit 124 chars (SEO-stuffed Google Business names). Cleane
 - Built by `src/outreach/urlBuilder.js` → `{domain}/connectquote.html?em=&st=&bn=&ch=&src=&cid=&bc=` (+ optional `fn`, `ln`, `ph`, `ad`, `ct`, `zp` when valid)
 - **Invalid `zp` / `em` omitted** — intake requires both at quote; see **ConnectQuote prefill policy** above
 - **Channel:** set **`ch` and `src`** to the same value (e.g. `instantly-co-electrical`). Intake reads `ch` → `src` → `utm_source`. Safari Link Tracking Protection and some click trackers **strip `src`** (known tracking name); **`ch` and `cid` usually survive** — Ops attribution depends on `ch`/`traffic_source`, not URL `src` alone.
+- **Do not** reuse Instantly `ch` for a trade org. Partner Layer = `ch=partner-{id}` + `partner={id}` — mint on `/operator/funnel`. See [`partner-layer.md`](./partner-layer.md).
 - **`cid`** = campaign tag (e.g. `electrical-co-2026-08`)
 
 ### Claude review checklist (before upload)

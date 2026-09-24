@@ -99,7 +99,7 @@ Use **Secret Files** in Render for private keys if you prefer file-based config.
   - `/submit-quote` writes CID records and sends packet intake email.
   - Subject includes `submission_public_id` when DB insert succeeds.
 - **Phase 2 (operator + notifications)**
-  - Operator home dashboard route: `/operator`.
+  - Operator home dashboard route: `/operator`. **Click → Bind** scoreboard: `/operator/funnel` (funnel graphs, drop-off, partner mint). Spec: [`partner-layer.md`](./partner-layer.md).
   - **Submission received (all segments):** after `recordSubmission` commits, **`notifySubmissionReceived`** sends a short plain-text email to that segment’s agent/quotes inbox (same addresses as **`src/config/segmentAgentInbox.js`** / Gmail poller), subject prefix **`[CID][Submission]`**, so ops see a ping separate from the long **carrier packet** email from `/submit-quote`.
   - **Bar-only agent alerts** (still Bar-scoped in code): **`[CID][Carrier][Quote]`**, **`[CID][Bind]`**, **`[CID][Carrier][UW]`** — see `src/services/agentNotificationService.js`. **`[CID][Client][Packet]`** uses **`getSegmentAgentInboxEmail`** for every segment (same inbox list as submission ping when configured).
 - **Phase 3 (polish + intake controls)**
@@ -741,3 +741,4 @@ Details and division of labor (Famous vs `pdf-backend`): [CID_CONNECT.md](./CID_
 | 2026-05-21 | Render **Environment Groups** (`cid-segment-template`); shared vs segment-specific env table (12 vars per segment service); **`GMAIL_REFRESH_TOKEN_*`** on CID-PDF-API; Electrical segment example; DB migration via Node in API Shell. |
 | 2026-08-04 | **New segment domain + email launch playbook** (Netlify NS, manual Gmail MX, SPF/DKIM/DMARC/Postmaster, 2SV backup-code workaround, OAuth via Playground + Render — beauty/cleaning/pet validated). |
 | 2026-08-21 | **ConnectQuote intake deploy** (`connectquote-intake.js` `20260821b`): ZIP/email prefill validation, name at bind; bump `?v=` on segment `connectquote.html` after Render push. **Seven CO Instantly campaigns** live. LP scripts: `pull-localprospects-instantly.mjs`, `clean-localprospects-instantly.mjs`. |
+| 2026-09-24 | **Click → Bind** `/operator/funnel` + Partner Layer (`ch=partner-{id}`). Intake `?v=20260924b`. Sendable: `docs/partner-layer-onboarding.md`. |

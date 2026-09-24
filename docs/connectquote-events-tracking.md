@@ -2,7 +2,8 @@
 
 First-party page analytics for ConnectQuote intake — page load, human engagement, intake steps, quote timing, bind click.
 
-**Partner-facing summary:** [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md)
+**Partner-facing summary:** [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md)  
+**Operator scoreboard:** [`/operator/funnel`](https://cid-pdf-api.onrender.com/operator/funnel) · spec [`connectquote-operator-learning.md`](./connectquote-operator-learning.md) · Partner Layer [`partner-layer.md`](./partner-layer.md)
 
 ## Deploy checklist
 
@@ -12,7 +13,7 @@ First-party page analytics for ConnectQuote intake — page load, human engageme
    ```
 2. **Deploy `pdf-backend`** (intake JS + `POST /api/cq/events`).
 3. **Each segment Netlify site** — copy `public/connectquote/netlify/_redirects` to publish root so `/api/*` proxies to Render.
-4. **Bump intake cache-bust** on segment `connectquote.html`: `connectquote-intake.js?v=20260922a`.
+4. **Bump intake cache-bust** on segment `connectquote.html`: `connectquote-intake.js?v=20260924b` (partner banner + attribution).
 5. **Privacy** — add to segment `privacy.html`:
    > We use first-party visit analytics on our quote pages (page load and form progress) to improve our service. We do not use third-party ad trackers.
 
@@ -20,7 +21,8 @@ First-party page analytics for ConnectQuote intake — page load, human engageme
 
 | Param | Meaning |
 |-------|---------|
-| `ch`, `src`, `cid` | Channel + campaign (unchanged) |
+| `ch`, `src`, `cid` | Channel + campaign (unchanged). Partners: `ch=partner-{id}` |
+| `partner` | Partner Layer id (optional logo). Same as registry key in `cidPartners.js` |
 | `st` | **State** prefill (`CO`) — do not reuse for email step |
 | `seq` | **Email sequence step** `1` \| `2` \| `3` — stored as `st` in `cq_events` |
 
@@ -55,7 +57,7 @@ Use `{{connectquote_url_s1}}` in step 1, `_s2` in step 2, `_s3` in step 3.
 | `bind_clicked` | Pay / demo bind clicked |
 | `disqualified` | Non-owner, PL, traditional rail |
 
-**Operator Home** → “Page funnel (cq_events)” tiles, or `GET /api/operator/cq-funnel?window=7&segment=pet`.
+**Click → Bind** → `/operator/funnel` (stopped-before-quote + graphs). Home still has “Page funnel (cq_events)” tiles. API: `GET /api/operator/scoreboard` or `GET /api/operator/cq-funnel?window=7&segment=pet`.
 
 **Stale** = open / semi-filled with no quote and last event &gt;30 minutes ago.
 

@@ -1,7 +1,7 @@
 # ConnectQuote — shipped summary (2026-06-10 → 2026-08-18)
 
 > **Canonical “what we built” doc** for investors, Claude context, and team handoff.  
-> **Technical spec:** [`coterie-integration.md`](./coterie-integration.md) · **Demo script:** [`connectquote-build-day.md`](./connectquote-build-day.md) · **Page analytics (partner summary):** [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md) · **Operator learning:** [`connectquote-operator-learning.md`](./connectquote-operator-learning.md) · **Instantly outreach:** [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) · **Email creatives:** [`outreach-creatives.md`](./outreach-creatives.md)
+> **Technical spec:** [`coterie-integration.md`](./coterie-integration.md) · **Demo script:** [`connectquote-build-day.md`](./connectquote-build-day.md) · **Page analytics (partner summary):** [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md) · **Operator learning / Click → Bind:** [`connectquote-operator-learning.md`](./connectquote-operator-learning.md) · **Partner Layer (send to their team):** [`partner-layer-onboarding.md`](./partner-layer-onboarding.md) · **Instantly outreach:** [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) · **Email creatives:** [`outreach-creatives.md`](./outreach-creatives.md)
 
 ---
 
@@ -17,7 +17,9 @@
 
 **Traditional S6 (BoldSign)** is unchanged for full supplement / non-appetite risks. **Bar** and **Roofer** are **not** on ConnectQuote (traditional intake only).
 
-**Page analytics (2026-09):** First-party funnel tracking on segment `connectquote.html` — landings, engagement, semi-filled exits, quote timing, bind clicks — by segment, state, and email step. See [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md).
+**Page analytics (2026-09):** First-party funnel tracking on segment `connectquote.html` — landings, engagement, semi-filled exits, quote timing, bind clicks — by segment, state, and email step. Operator **Click → Bind:** `/operator/funnel`. See [`connectquote-analytics-partner.md`](./connectquote-analytics-partner.md).
+
+**Partner Layer (2026-09):** unique `ch=partner-{id}` URL + optional logo — not an embed API. Give partners [`partner-layer-onboarding.md`](./partner-layer-onboarding.md).
 
 ---
 

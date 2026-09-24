@@ -3,7 +3,7 @@
 > **Canonical location (RSS):** `pdf-backend/docs/partnerships.md`  
 > **As of:** 2026-08-21 (America/Denver). Update when vendors, carriers, or status change.
 >
-> **Related:** Coterie ConnectQuote spec → [`coterie-integration.md`](./coterie-integration.md). **Direct partner discovery (RSS)** → [`direct-partner-discovery-rss.md`](./direct-partner-discovery-rss.md). Technical vendor-by-stage → [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md). Entity/brands → [`corporate-structure.md`](./corporate-structure.md). Diligence backlog → [`partnership-gaps.md`](./partnership-gaps.md). Compliance → [`compliance-roadmap.md`](./compliance-roadmap.md).
+> **Related:** Coterie ConnectQuote spec → [`coterie-integration.md`](./coterie-integration.md). **Partner Layer (give to their team)** → [`partner-layer-onboarding.md`](./partner-layer-onboarding.md). Internal mint/registry → [`partner-layer.md`](./partner-layer.md). **Direct partner discovery (RSS)** → [`direct-partner-discovery-rss.md`](./direct-partner-discovery-rss.md). Technical vendor-by-stage → [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md). Entity/brands → [`corporate-structure.md`](./corporate-structure.md). Diligence backlog → [`partnership-gaps.md`](./partnership-gaps.md). Compliance → [`compliance-roadmap.md`](./compliance-roadmap.md).
 
 ---
 
@@ -62,6 +62,7 @@
 | **Auth + app DB** | Famous (backend) · Connect UI = GitHub + Netlify + PWA |
 | **Bridge** | Connect reads cid-postgres via `/api/connect/*` |
 | **Marketing** | Instantly, Cohesive (planned), Postmaster |
+| **Partner Layer** | Unique ConnectQuote URL + optional logo — not an embed API (`partner-layer-onboarding.md`) |
 
 ---
 
@@ -77,3 +78,4 @@
 | 2026-08-20 | GUARD WC planning row; see `guard-integration.md`. |
 | 2026-08-21 | **LocalProspects** live for CO Instantly lists; seven ConnectQuote campaigns; prefill/ZIP pipeline shipped (`af497c8`). |
 | 2026-08-27 | GUARD WC sandbox E2E; main-form WC intent; prod gated on Jon credentials + class confirm. |
+| 2026-09-24 | **Partner Layer** — branded quote URL + Click → Bind scoreboard (`/operator/funnel`). Onboarding doc for trade/org teams. |

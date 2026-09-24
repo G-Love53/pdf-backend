@@ -1,7 +1,7 @@
 # ConnectQuote segment — Deploy checklist
 
 > **Deploy = launch the segment rail** (URL, Netlify, Gmail, Render, Git, ConnectQuote + Connect after bind).  
-> **Not deploy:** creatives, Instantly, list pulls, campaigns, warmup — see **`outreach-claude-playbook.md`**.
+> **Not deploy:** creatives, Instantly, list pulls, campaigns, warmup — see **`outreach-claude-playbook.md`**. Partner Layer (unique `ch=partner-{id}` URL) is minted after the segment is live — [`partner-layer.md`](./partner-layer.md).
 
 **Template segment:** Painter (`painterinsurancedirect.com`, Aug 2026, ~90 min first time).
 

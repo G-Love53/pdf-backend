@@ -9,6 +9,12 @@ This is the daily operating flow for CID-PDF-API operator queues.
 - Results: client profile, all **submissions** (status, Instantly `src`/`cid`), **policies**, links to S4/S5/S6 and policy documents.
 - JSON: `GET /api/operator/search?q=…` · disambiguation: `409` + `choices` · direct: `?client_id=`
 
+## 0b) Click → Bind (ConnectQuote + partners)
+
+- **`/operator/funnel`** (nav: **Click → Bind**) — landings, fills, quotes, binds, **stopped before quote**, Instantly vs `partner-*`, WC attachment.
+- Mint a partner URL on the same page. Sendable instructions: [`partner-layer-onboarding.md`](./partner-layer-onboarding.md).
+- Home still has ConnectQuote number tiles; use Funnel for graphs and drop-off.
+
 ## 1) Quote email arrives (carrier reply) -> S4
 
 - **System does automatically**
