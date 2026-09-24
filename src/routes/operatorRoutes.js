@@ -15,6 +15,11 @@ import {
 } from "../utils/operatorSegment.js";
 import { getConnectQuoteLearning, sqlIsConnectQuoteSubmission } from "../services/connectQuoteLearningService.js";
 import { getCqFunnelBehavior } from "../services/cqFunnelService.js";
+import { getOperatorScoreboard } from "../services/operatorScoreboardService.js";
+import {
+  mintPartnerConnectQuoteUrl,
+  operatorPartnerRows,
+} from "../services/partnerLayerService.js";
 import {
   parseOperatorWindow,
   sqlWindowFilter,
@@ -205,6 +210,49 @@ router.get("/api/operator/search", async (req, res) => {
   } catch (err) {
     console.error("[api/operator/search] error:", err.message || err);
     return res.status(500).json({ error: "internal_error" });
+  }
+});
+
+router.get("/operator/funnel", async (req, res) => {
+  res.render("operator/funnel", { ...operatorNavLocals(req) });
+});
+
+router.get("/api/operator/scoreboard", async (req, res) => {
+  if (!pool) {
+    return res.status(503).json({ ok: false, error: "database_not_configured" });
+  }
+  try {
+    const segment = parseOperatorSegmentQuery(req.query.segment);
+    const data = await getOperatorScoreboard(pool, {
+      segment,
+      window: req.query,
+    });
+    return res.json({ ok: true, ...data });
+  } catch (err) {
+    console.error("[api/operator/scoreboard] error:", err.message || err);
+    return res.status(500).json({ ok: false, error: "internal_error" });
+  }
+});
+
+router.get("/api/operator/partners", (_req, res) => {
+  res.json({ ok: true, partners: operatorPartnerRows() });
+});
+
+router.post("/api/operator/partners/mint", (req, res) => {
+  try {
+    const partnerId = req.body?.partner_id || req.body?.id;
+    const minted = mintPartnerConnectQuoteUrl(partnerId, {
+      state: req.body?.state,
+      contact: req.body?.contact || {},
+      campaign: req.body?.campaign,
+    });
+    return res.json(minted);
+  } catch (err) {
+    if (err.code === "unknown_partner") {
+      return res.status(404).json({ ok: false, error: "unknown_partner" });
+    }
+    console.error("[api/operator/partners/mint] error:", err.message || err);
+    return res.status(500).json({ ok: false, error: "internal_error" });
   }
 });
 

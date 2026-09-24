@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Click → Bind — CID Operator</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #020617;
+        color: #e5e7eb;
+      }
+      header {
+        padding: 16px 24px;
+        border-bottom: 1px solid #1f2937;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      header h1 { font-size: 20px; margin: 0; }
+      header span { font-size: 13px; color: #9ca3af; }
+      header select {
+        background: #020617;
+        color: #e5e7eb;
+        border-radius: 8px;
+        border: 1px solid #1f2937;
+        padding: 6px 10px;
+        font-size: 13px;
+      }
+      main { padding: 16px 24px 40px; }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .card {
+        background: #020617;
+        border-radius: 10px;
+        border: 1px solid #1f2937;
+        padding: 12px 14px;
+      }
+      .card h2 {
+        font-size: 13px;
+        font-weight: 500;
+        color: #9ca3af;
+        margin: 0 0 6px;
+      }
+      .metric { font-size: 28px; font-weight: 650; letter-spacing: -0.02em; }
+      .hint { font-size: 11px; color: #6b7280; margin-top: 4px; }
+      .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 20px 0 10px;
+      }
+      .funnel-row {
+        display: grid;
+        grid-template-columns: 72px 1fr 56px 64px;
+        align-items: center;
+        gap: 10px;
+        margin: 8px 0;
+        font-size: 13px;
+      }
+      .funnel-bar-track {
+        background: #0f172a;
+        border-radius: 6px;
+        height: 22px;
+        overflow: hidden;
+      }
+      .funnel-bar {
+        height: 100%;
+        border-radius: 6px;
+        min-width: 0;
+        transition: width 0.25s ease;
+      }
+      .funnel-bar.click { background: #38bdf8; }
+      .funnel-bar.fill { background: #818cf8; }
+      .funnel-bar.quote { background: #34d399; }
+      .funnel-bar.bind { background: #f59e0b; }
+      .day-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 6px;
+        height: 140px;
+        padding: 8px 0 0;
+      }
+      .day-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+      .day-stack { width: 100%; max-width: 28px; display: flex; flex-direction: column-reverse; gap: 2px; }
+      .day-bar { width: 100%; border-radius: 3px 3px 0 0; min-height: 0; }
+      .day-bar.clicks { background: #38bdf8; opacity: 0.45; }
+      .day-bar.fills { background: #818cf8; }
+      .day-bar.binds { background: #f59e0b; }
+      .day-lbl { font-size: 10px; color: #6b7280; margin-top: 6px; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #1f2937; }
+      th { color: #9ca3af; font-weight: 500; }
+      .family { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; }
+      .family.partner { color: #34d399; }
+      .family.instantly { color: #38bdf8; }
+      input, button, textarea {
+        font: inherit;
+      }
+      .mint-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .mint-row label { font-size: 11px; color: #9ca3af; display: block; margin-bottom: 4px; }
+      .mint-row input, .mint-row select {
+        width: 100%;
+        box-sizing: border-box;
+        background: #020617;
+        color: #e5e7eb;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 7px 10px;
+      }
+      .btn {
+        background: #0ea5e9;
+        color: #022c3a;
+        border: 0;
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-weight: 650;
+        cursor: pointer;
+      }
+      .btn.secondary { background: #1f2937; color: #e5e7eb; }
+      #mint-url {
+        width: 100%;
+        box-sizing: border-box;
+        background: #0f172a;
+        color: #e5e7eb;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+      #page-error {
+        display: none;
+        margin-bottom: 12px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #7f1d1d;
+        background: #450a0a;
+        color: #fecaca;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Click → Bind</h1>
+        <span id="page-subtitle">ConnectQuote funnel + partner attribution</span>
+        <%- include("../partials/operator-nav") %>
+      </div>
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:12px;color:#6b7280">
+        <label for="operator-segment">Segment</label>
+        <select id="operator-segment" aria-label="Filter by segment">
+          <option value="all">All</option>
+          <option value="plumber">Plumber</option>
+          <option value="hvac">HVAC</option>
+          <option value="fitness">Fitness</option>
+          <option value="electrical">Electrical</option>
+          <option value="beauty">Beauty</option>
+          <option value="cleaning">Cleaning</option>
+          <option value="pet">Pet</option>
+          <option value="painter">Painter</option>
+        </select>
+        <label for="operator-window">Window</label>
+        <select id="operator-window" aria-label="Metrics time window">
+          <option value="today">Today (UTC)</option>
+          <option value="7" selected>7 days</option>
+          <option value="14">14 days</option>
+          <option value="30">30 days</option>
+        </select>
+      </div>
+    </header>
+    <main>
+      <div id="page-error" role="alert"></div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>Clicks</h2>
+          <div class="metric" id="m-clicks">—</div>
+          <div class="hint">Human landings</div>
+        </div>
+        <div class="card">
+          <h2>Fills</h2>
+          <div class="metric" id="m-fills">—</div>
+          <div class="hint" id="m-click-fill">—</div>
+        </div>
+        <div class="card">
+          <h2>Quotes</h2>
+          <div class="metric" id="m-quoted">—</div>
+          <div class="hint" id="m-fill-quote">—</div>
+        </div>
+        <div class="card">
+          <h2>Binds</h2>
+          <div class="metric" id="m-binds">—</div>
+          <div class="hint" id="m-quote-bind">—</div>
+        </div>
+        <div class="card">
+          <h2>Click → bind</h2>
+          <div class="metric" id="m-click-bind">—</div>
+          <div class="hint">End-to-end</div>
+        </div>
+        <div class="card">
+          <h2>WC attachment</h2>
+          <div class="metric" id="m-wc">—</div>
+          <div class="hint" id="m-wc-hint">GUARD binds / commercial binds</div>
+        </div>
+      </div>
+
+      <div class="section-title">Stopped before quote</div>
+      <p class="hint" style="margin-top:-4px;margin-bottom:10px">
+        Landed or started the form and never got a premium — last step from <code>cq_events</code>, not Instantly clicks.
+      </p>
+      <div class="grid">
+        <div class="card">
+          <h2>Started, no quote</h2>
+          <div class="metric" id="m-semi">—</div>
+          <div class="hint">Filled ≥1 step, never saw premium</div>
+        </div>
+        <div class="card">
+          <h2>Stale</h2>
+          <div class="metric" id="m-stale">—</div>
+          <div class="hint">Open / started, idle 30+ min</div>
+        </div>
+        <div class="card">
+          <h2>Never quoted</h2>
+          <div class="metric" id="m-no-quote">—</div>
+          <div class="hint">Landings minus quote-on-page</div>
+        </div>
+        <div class="card">
+          <h2>Disqualified</h2>
+          <div class="metric" id="m-dq">—</div>
+          <div class="hint">Owner gate / traditional / appetite</div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:20px;overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Last step / stage</th>
+              <th>Sessions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-dropoff"></tbody>
+        </table>
+      </div>
+
+      <div class="section-title">Funnel</div>
+      <div class="card" id="funnel-card">
+        <div id="funnel-rows"></div>
+      </div>
+
+      <div class="section-title">By day</div>
+      <div class="card">
+        <div class="hint" style="margin-bottom:8px">Clicks (light) · fills (purple) · binds (amber)</div>
+        <div class="day-chart" id="day-chart"></div>
+      </div>
+
+      <div class="section-title">By channel</div>
+      <p class="hint" style="margin-top:-4px;margin-bottom:10px">
+        <code>ch</code> on the URL. Instantly stays Instantly. <code>partner-*</code> is the Partner Layer.
+      </p>
+      <div class="card" style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Channel</th>
+              <th>Family</th>
+              <th>Clicks</th>
+              <th>Fills</th>
+              <th>Quoted</th>
+              <th>Binds</th>
+              <th>WC</th>
+              <th>Premium</th>
+              <th>Fill %</th>
+              <th>Bind %</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-channels"></tbody>
+        </table>
+      </div>
+
+      <div class="section-title">Partner Layer — mint a URL</div>
+      <p class="hint" style="margin-top:-4px;margin-bottom:10px">
+        Need from the partner: name, logo (optional PNG), segment, default state.
+        CID assigns the ID. They send the URL. We attribute every click → bind.
+      </p>
+      <div class="card">
+        <div class="mint-row">
+          <div>
+            <label for="mint-partner">Partner</label>
+            <select id="mint-partner"></select>
+          </div>
+          <div>
+            <label for="mint-state">State</label>
+            <input id="mint-state" value="CO" maxlength="2" />
+          </div>
+          <div>
+            <label for="mint-em">Email (optional prefill)</label>
+            <input id="mint-em" type="email" placeholder="member@shop.com" />
+          </div>
+          <div>
+            <label for="mint-bn">Business (optional)</label>
+            <input id="mint-bn" placeholder="Shop name" />
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin:10px 0">
+          <button type="button" class="btn" id="mint-btn">Build URL</button>
+          <button type="button" class="btn secondary" id="copy-btn">Copy</button>
+        </div>
+        <input id="mint-url" readonly placeholder="Partner URL appears here" />
+        <div class="hint" id="mint-status" style="margin-top:8px"></div>
+      </div>
+    </main>
+    <script>
+      (function () {
+        function $(id) { return document.getElementById(id); }
+        function fmt(n) {
+          if (n == null || Number.isNaN(n)) return "—";
+          return Number(n).toLocaleString();
+        }
+        function rate(v) { return v == null ? "—" : v + "%"; }
+        function money(n) {
+          if (n == null) return "—";
+          return "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+        }
+
+        function qs() {
+          const p = new URLSearchParams();
+          const seg = $("operator-segment").value;
+          const win = $("operator-window").value;
+          if (seg && seg !== "all") p.set("segment", seg);
+          if (win && win !== "7") p.set("window", win);
+          return p.toString();
+        }
+
+        function persistUrl() {
+          const q = qs();
+          history.replaceState(null, "", location.pathname + (q ? "?" + q : ""));
+        }
+
+        function renderFunnel(steps) {
+          const max = Math.max(1, ...steps.map(function (s) { return s.value || 0; }));
+          $("funnel-rows").innerHTML = steps.map(function (s, i) {
+            const prev = i === 0 ? null : steps[i - 1].value;
+            const conv = prev ? Math.round((s.value / prev) * 1000) / 10 : null;
+            const w = Math.max(2, Math.round(((s.value || 0) / max) * 100));
+            return (
+              '<div class="funnel-row">' +
+                '<div>' + s.label + '</div>' +
+                '<div class="funnel-bar-track"><div class="funnel-bar ' + s.key + '" style="width:' + w + '%"></div></div>' +
+                '<div>' + fmt(s.value) + '</div>' +
+                '<div class="hint">' + (conv == null ? "" : conv + "%") + '</div>' +
+              '</div>'
+            );
+          }).join("");
+        }
+
+        function renderDaily(days) {
+          const host = $("day-chart");
+          if (!days || !days.length) {
+            host.textContent = "No daily rows yet.";
+            return;
+          }
+          const max = Math.max(1, ...days.map(function (d) { return Math.max(d.clicks, d.fills, d.binds); }));
+          host.innerHTML = days.map(function (d) {
+            const lbl = d.day.slice(5);
+            function h(v) { return Math.max(v ? 4 : 0, Math.round((v / max) * 110)); }
+            return (
+              '<div class="day-col" title="' + d.day + ' · ' + d.clicks + ' / ' + d.fills + ' / ' + d.binds + '">' +
+                '<div class="day-stack">' +
+                  '<div class="day-bar binds" style="height:' + h(d.binds) + 'px"></div>' +
+                  '<div class="day-bar fills" style="height:' + h(d.fills) + 'px"></div>' +
+                  '<div class="day-bar clicks" style="height:' + h(d.clicks) + 'px"></div>' +
+                '</div>' +
+                '<div class="day-lbl">' + lbl + '</div>' +
+              '</div>'
+            );
+          }).join("");
+        }
+
+        function renderChannels(rows) {
+          const tb = $("tbody-channels");
+          if (!rows || !rows.length) {
+            tb.innerHTML = '<tr><td colspan="10" style="color:#6b7280">No attributed traffic in this window.</td></tr>';
+            return;
+          }
+          tb.innerHTML = rows.map(function (r) {
+            const name = r.partner_name ? r.partner_name + " <span class='hint'>(" + r.src + ")</span>" : r.src;
+            return (
+              "<tr>" +
+                "<td>" + name + "</td>" +
+                "<td><span class='family " + r.family + "'>" + r.family + "</span></td>" +
+                "<td>" + fmt(r.clicks) + "</td>" +
+                "<td>" + fmt(r.fills) + "</td>" +
+                "<td>" + fmt(r.quoted) + "</td>" +
+                "<td>" + fmt(r.binds) + "</td>" +
+                "<td>" + fmt(r.wc_binds) + "</td>" +
+                "<td>" + money(r.bound_premium) + "</td>" +
+                "<td>" + rate(r.fill_rate) + "</td>" +
+                "<td>" + rate(r.bind_rate) + "</td>" +
+              "</tr>"
+            );
+          }).join("");
+        }
+
+        function fillMint(registry) {
+          const sel = $("mint-partner");
+          sel.innerHTML = (registry || []).map(function (p) {
+            return '<option value="' + p.id + '"' + (p.active ? "" : " data-inactive=1") + ">" +
+              p.name + (p.active ? "" : " (inactive)") + " — " + p.segment + "</option>";
+          }).join("") || '<option value="">No partners in registry</option>';
+        }
+
+        async function load() {
+          persistUrl();
+          const q = qs();
+          const res = await fetch("/api/operator/scoreboard" + (q ? "?" + q : ""));
+          const data = await res.json();
+          if (!res.ok || data.ok === false) {
+            $("page-error").style.display = "block";
+            $("page-error").textContent = data.error || "Scoreboard failed to load.";
+            return;
+          }
+          $("page-error").style.display = "none";
+          const f = data.funnel || {};
+          $("m-clicks").textContent = fmt(f.clicks);
+          $("m-fills").textContent = fmt(f.fills);
+          $("m-quoted").textContent = fmt(f.quoted);
+          $("m-binds").textContent = fmt(f.binds);
+          $("m-click-bind").textContent = rate(f.click_to_bind);
+          $("m-click-fill").textContent = "of clicks " + rate(f.click_to_fill);
+          $("m-fill-quote").textContent = "of fills " + rate(f.fill_to_quote);
+          $("m-quote-bind").textContent = "of quotes " + rate(f.quote_to_bind);
+          const wc = data.wc || {};
+          $("m-wc").textContent = wc.attachment_rate == null ? "—" : wc.attachment_rate + "%";
+          $("m-wc-hint").textContent = (wc.wc_bound || 0) + " WC / " + (wc.commercial_bound || 0) + " commercial";
+          $("page-subtitle").textContent =
+            (data.segment === "all" ? "All segments" : data.segment) + " · " + (data.window && data.window.label);
+          const page = data.page || {};
+          $("m-semi").textContent = fmt(page.semi_filled);
+          $("m-stale").textContent = fmt(page.stale);
+          const neverQuoted = Math.max(0, (page.landings || 0) - (page.quote_returned || 0));
+          $("m-no-quote").textContent = fmt(neverQuoted);
+          $("m-dq").textContent = fmt(page.disqualified);
+          const dropTb = $("tbody-dropoff");
+          const drops = data.drop_off || [];
+          dropTb.innerHTML = drops.length
+            ? drops.map(function (r) {
+                return "<tr><td>" + (r.label || "unknown") + "</td><td>" + fmt(r.sessions) + "</td></tr>";
+              }).join("")
+            : '<tr><td colspan="2" style="color:#6b7280">No started-and-stopped sessions in this window.</td></tr>';
+          renderFunnel(f.steps || []);
+          renderDaily(data.daily || []);
+          renderChannels((data.attribution && data.attribution.channels) || []);
+          fillMint((data.attribution && data.attribution.registry) || []);
+        }
+
+        $("mint-btn").addEventListener("click", async function () {
+          const id = $("mint-partner").value;
+          if (!id) return;
+          const body = {
+            partner_id: id,
+            state: $("mint-state").value,
+            contact: { em: $("mint-em").value, bn: $("mint-bn").value },
+          };
+          const res = await fetch("/api/operator/partners/mint", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.url) {
+            $("mint-status").textContent = data.error || "Mint failed.";
+            return;
+          }
+          $("mint-url").value = data.url;
+          $("mint-status").textContent =
+            (data.active ? "Live partner URL." : "Registry row is inactive — test only.") +
+            " ch=" + data.channel;
+        });
+
+        $("copy-btn").addEventListener("click", function () {
+          const url = $("mint-url").value;
+          if (!url) return;
+          navigator.clipboard.writeText(url).then(function () {
+            $("mint-status").textContent = "Copied.";
+          });
+        });
+
+        $("operator-segment").addEventListener("change", load);
+        $("operator-window").addEventListener("change", load);
+
+        const start = new URLSearchParams(location.search);
+        if (start.get("segment")) $("operator-segment").value = start.get("segment");
+        if (start.get("window")) $("operator-window").value = start.get("window");
+        load();
+      })();
+    </script>
+  </body>
+</html>

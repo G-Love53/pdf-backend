@@ -8,6 +8,8 @@
 
 export const CHANNEL_QUERY_KEYS = ["ch", "src", "utm_source"];
 export const CAMPAIGN_QUERY_KEY = "cid";
+/** Partner Layer id (`partner=phcc-co`). Channel is still `ch=partner-{id}`. */
+export const PARTNER_QUERY_KEY = "partner";
 /** Email sequence step (1–3). URL param `seq` — not `st`, which is state (CO). */
 export const SEQUENCE_QUERY_KEY = "seq";
 

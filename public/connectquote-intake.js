@@ -7,7 +7,7 @@
     "https://cid-pdf-api.onrender.com"
   ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260922a";
+  const ASSET_V = "20260924b";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -96,7 +96,7 @@
 
   function prefillPresenceMeta() {
     const p = new URLSearchParams(location.search);
-    const keys = ["fn", "ln", "em", "zp", "ph", "ad", "ct", "bc", "cid", "ch", "seq"];
+    const keys = ["fn", "ln", "em", "zp", "ph", "ad", "ct", "bc", "cid", "ch", "seq", "partner"];
     const out = {};
     keys.forEach((k) => {
       out[k] = !!(p.get(k) && String(p.get(k)).trim());
@@ -743,9 +743,20 @@
     return "";
   }
 
+  function normalizePartnerId(raw) {
+    const id = String(raw || "")
+      .trim()
+      .toLowerCase()
+      .replace(/^partner-/, "");
+    if (!/^[a-z0-9][a-z0-9-]{0,40}$/.test(id)) return "";
+    return id;
+  }
+
   function applyAttributionFromQuery(p) {
     const channel = readChannelParam(p);
+    const partnerId = normalizePartnerId(p.get("partner"));
     if (channel) $("traffic_source").value = channel;
+    else if (partnerId) $("traffic_source").value = "partner-" + partnerId;
     if (p.get("cid")) $("campaign_id").value = p.get("cid");
   }
 
@@ -761,6 +772,8 @@
       if (!p.get("src")) p.set("src", channel);
     }
     if (campaign) p.set("cid", campaign);
+    const partnerId = normalizePartnerId(p.get("partner"));
+    if (partnerId) p.set("partner", partnerId);
     const seq = p.get("seq");
     if (seq) p.set("seq", seq);
 
@@ -770,6 +783,54 @@
     if (next !== current) {
       history.replaceState(null, "", next);
     }
+  }
+
+  function applyPartnerBrand() {
+    if ($("cid-partner-bar")) return;
+    const partnerId =
+      normalizePartnerId(new URLSearchParams(location.search).get("partner")) ||
+      normalizePartnerId(
+        String($("traffic_source")?.value || "").startsWith("partner-")
+          ? $("traffic_source").value
+          : "",
+      );
+    if (!partnerId) return;
+    const url = API.replace(/\/$/, "") + "/api/partners/" + encodeURIComponent(partnerId);
+    fetch(url)
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (data) {
+        const p = data && data.partner;
+        if (!p || !p.name) return;
+        const bar = document.createElement("div");
+        bar.id = "cid-partner-bar";
+        bar.className = "cid-partner-bar";
+        if (p.logoUrl) {
+          const img = document.createElement("img");
+          img.src = p.logoUrl;
+          img.alt = p.name;
+          img.className = "cid-partner-logo";
+          bar.appendChild(img);
+        }
+        const copy = document.createElement("div");
+        copy.className = "cid-partner-copy";
+        const name = document.createElement("strong");
+        name.textContent = p.name;
+        copy.appendChild(name);
+        if (p.tagline) {
+          const tag = document.createElement("span");
+          tag.textContent = p.tagline;
+          copy.appendChild(tag);
+        }
+        bar.appendChild(copy);
+        const host =
+          document.querySelector(".card") ||
+          document.querySelector(".wrap") ||
+          document.body;
+        host.insertBefore(bar, host.firstChild);
+      })
+      .catch(function () {});
   }
 
   function ensureContactPhoneField() {
@@ -942,6 +1003,7 @@
     });
     applyAttributionFromQuery(p);
     persistAttributionQuery();
+    applyPartnerBrand();
     const io = p.get("io") || p.get("is_owner");
     if (io && $("is_owner") && (io === "yes" || io === "no")) {
       $("is_owner").value = io;
