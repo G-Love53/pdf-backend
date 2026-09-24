@@ -2200,6 +2200,44 @@
     el.style.display = text ? "block" : "none";
   }
 
+  function formatFeinValue(s) {
+    const d = String(s || "").replace(/\D/g, "").slice(0, 9);
+    if (d.length <= 2) return d;
+    return d.slice(0, 2) + "-" + d.slice(2);
+  }
+
+  function feinValueError(s) {
+    const d = String(s || "").replace(/\D/g, "");
+    if (!d.length) return "Enter the 9-digit FEIN.";
+    if (d.length !== 9) return "FEIN must be 9 digits (xx-xxxxxxx).";
+    return null;
+  }
+
+  function wireGuardFeinInput() {
+    const el = $("guard-fein");
+    if (!el || el.dataset.wired === "1") return;
+    el.dataset.wired = "1";
+    el.addEventListener("input", () => {
+      el.value = formatFeinValue(el.value);
+    });
+  }
+
+  function toggleGuardOfficerPayroll() {
+    const wrap = $("guard-officer-wrap");
+    const owner = $("guard-owner");
+    if (!wrap || !owner) return;
+    wrap.hidden = owner.value !== "yes";
+  }
+
+  function guardBrandHtml(policyNumber) {
+    return (
+      '<p class="guard-brand">GUARD</p>' +
+      (policyNumber
+        ? '<p class="guard-policy-code">Policy ' + policyNumber + "</p>"
+        : "")
+    );
+  }
+
   function ensureGuardWcReadyHero(box) {
     let el = box.querySelector("#guard-wc-ready");
     if (el) return el;
@@ -2208,6 +2246,8 @@
     el.className = "guard-wc-ready";
     el.hidden = true;
     el.innerHTML =
+      '<p class="guard-brand">GUARD</p>' +
+      '<p class="guard-policy-code" id="guard-wc-ready-policy" hidden></p>' +
       '<p class="guard-wc-ready-kicker">Your <span class="guard-wc-em">Workers\u2019 Comp</span> quote is ready</p>' +
       '<p class="guard-wc-ready-amount" id="guard-wc-ready-amount"></p>' +
       '<p class="guard-wc-ready-note">GUARD will send billing and payment options to you.</p>';
@@ -2235,14 +2275,25 @@
     return el;
   }
 
-  function showGuardQuoteReady(box, premium) {
+  function showGuardQuoteReady(box, premium, policyNumber) {
     const hero = ensureGuardWcReadyHero(box);
     const amtEl = hero.querySelector("#guard-wc-ready-amount");
     if (amtEl && premium != null) {
       amtEl.textContent =
         "$" + Number(premium).toLocaleString() + " / year";
     }
+    const pol = hero.querySelector("#guard-wc-ready-policy");
+    if (pol) {
+      if (policyNumber) {
+        pol.textContent = "Policy " + policyNumber;
+        pol.hidden = false;
+      } else {
+        pol.hidden = true;
+      }
+    }
     hero.hidden = false;
+    const decision = box.querySelector("#guard-wc-decision");
+    if (decision) decision.hidden = true;
     const quoteBtn = $("guard-quote-btn");
     if (quoteBtn) {
       quoteBtn.classList.add("is-done");
@@ -2251,6 +2302,45 @@
     }
     const bindBtn = $("guard-bind-btn");
     if (bindBtn) bindBtn.hidden = false;
+    const referBtn = $("guard-refer-btn");
+    if (referBtn) referBtn.hidden = true;
+    guardWcStatus(box, "", "");
+  }
+
+  function showGuardDecision(box, data) {
+    const g = (data && data.guard) || {};
+    const isRefer = String(data.decision || "").toLowerCase() === "refer";
+    let el = box.querySelector("#guard-wc-decision");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "guard-wc-decision";
+      const bindFields = $("guard-bind-fields");
+      if (bindFields && bindFields.parentNode) {
+        bindFields.parentNode.insertBefore(el, bindFields);
+      } else {
+        box.appendChild(el);
+      }
+    }
+    el.className =
+      "guard-wc-decision" + (isRefer ? " is-refer" : " is-decline");
+    el.innerHTML =
+      guardBrandHtml(g.policyNumber) +
+      '<p class="guard-wc-decision-kicker">' +
+      (isRefer ? "Needs underwriter review" : "Coverage not offered") +
+      "</p>" +
+      '<p class="guard-wc-decision-note">' +
+      (data.message ||
+        (isRefer
+          ? "This is not available to bind online."
+          : "GUARD is unable to offer coverage for this risk.")) +
+      "</p>";
+    el.hidden = false;
+    const ready = box.querySelector("#guard-wc-ready");
+    if (ready) ready.hidden = true;
+    const bindBtn = $("guard-bind-btn");
+    if (bindBtn) bindBtn.hidden = true;
+    const referBtn = $("guard-refer-btn");
+    if (referBtn) referBtn.hidden = !isRefer;
     guardWcStatus(box, "", "");
   }
 
@@ -2383,6 +2473,10 @@
       "</div>" +
       "<label>Include owner on the WC policy?</label>" +
       '<select id="guard-owner"><option value="no">No — employees only</option><option value="yes">Yes — include me</option></select>' +
+      '<div id="guard-officer-wrap" hidden>' +
+      "<label>Officer / owner payroll (if included)</label>" +
+      '<input id="guard-officer-payroll" type="number" min="1" step="1" placeholder="Annual remuneration"/>' +
+      "</div>" +
       "</div>";
     $("quote-btn").insertAdjacentElement("beforebegin", wrap);
     wireGuardYearsField();
@@ -2391,6 +2485,10 @@
       $("guard-wc-intent-detail").hidden = !wcIntentSelected();
       if (wcIntentSelected()) syncGuardYearsFromForm();
     });
+    if ($("guard-owner")) {
+      $("guard-owner").addEventListener("change", toggleGuardOfficerPayroll);
+      toggleGuardOfficerPayroll();
+    }
   }
 
   async function setupGuardWcIntentUi() {
@@ -2429,6 +2527,10 @@
         "</div>" +
         "<label>Include owner on the WC policy?</label>" +
         '<select id="guard-owner"><option value="no">No \u2014 employees only</option><option value="yes">Yes \u2014 include me</option></select>' +
+        '<div id="guard-officer-wrap" hidden>' +
+        "<label>Officer / owner payroll (if included)</label>" +
+        '<input id="guard-officer-payroll" type="number" min="1" step="1" placeholder="Annual remuneration"/>' +
+        "</div>" +
         '<button type="button" id="guard-indicate-btn">Get WC indication</button>';
 
     return (
@@ -2440,11 +2542,12 @@
       '<div id="guard-q-host" hidden></div>' +
       '<div id="guard-bind-fields" hidden>' +
       "<label>FEIN (required to bind)</label>" +
-      '<input id="guard-fein" inputmode="numeric" maxlength="10" placeholder="XX-XXXXXXX"/>' +
+      '<input id="guard-fein" inputmode="numeric" maxlength="10" placeholder="xx-xxxxxxx"/>' +
       '<label class="guard-clickwrap"><input type="checkbox" id="guard-agree"/> I am authorized and the answers are true and complete.</label>' +
       '<input id="guard-sign-name" placeholder="Typed name"/>' +
-      '<button type="button" id="guard-quote-btn">Get bindable WC quote</button>' +
+      '<button type="button" id="guard-quote-btn">Submit application</button>' +
       '<button type="button" class="secondary" id="guard-bind-btn" hidden>Bind Workers\u2019 Comp</button>' +
+      '<button type="button" class="secondary" id="guard-refer-btn" hidden>Send to underwriting</button>' +
       "</div>"
     );
   }
@@ -2460,11 +2563,25 @@
       });
     }
 
+    const ownerSel = $("guard-owner");
+    if (ownerSel) {
+      ownerSel.addEventListener("change", toggleGuardOfficerPayroll);
+      toggleGuardOfficerPayroll();
+    }
+    wireGuardFeinInput();
+
     $("guard-quote-btn").addEventListener("click", async () => {
+      const feinErr = feinValueError($("guard-fein").value);
+      if (feinErr) {
+        guardWcStatus(box, "err", feinErr);
+        return;
+      }
       const btn = $("guard-quote-btn");
       btn.disabled = true;
-      guardWcStatus(box, "", "Submitting to GUARD\u2026");
+      guardWcStatus(box, "", "Submitting your application\u2026");
       try {
+        const ownerOn = $("guard-owner") && $("guard-owner").value === "yes";
+        const officerEl = $("guard-officer-payroll");
         const res = await fetch(API + "/api/guard/wc/quote", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -2472,6 +2589,11 @@
             submission_public_id: session.submission_public_id,
             legal_entity: $("guard-legal").value,
             fein: $("guard-fein").value,
+            owner_on_wc: ownerOn,
+            owner_payroll:
+              ownerOn && officerEl && officerEl.value
+                ? officerEl.value
+                : undefined,
             answers: collectGuardAnswers($("guard-q-host")),
           }),
         });
@@ -2489,16 +2611,13 @@
           if (data.guard && data.guard.premium != null) {
             session.guardPremium = Number(data.guard.premium);
           }
-          showGuardQuoteReady(box, prem);
-        } else {
-          const uw = (data.guard && data.guard.uwDecision) || "";
-          guardWcStatus(
+          showGuardQuoteReady(
             box,
-            "err",
-            uw
-              ? "GUARD decision: " + uw + ". This one is not instant-bind."
-              : "Not bindable yet. We can follow up.",
+            prem,
+            data.guard && data.guard.policyNumber,
           );
+        } else {
+          showGuardDecision(box, data);
         }
       } catch (err) {
         guardWcStatus(box, "err", err.message || String(err));
@@ -2537,6 +2656,38 @@
         btn.disabled = false;
       }
     });
+
+    const referBtn = $("guard-refer-btn");
+    if (referBtn) {
+      referBtn.addEventListener("click", async () => {
+        referBtn.disabled = true;
+        guardWcStatus(box, "", "Sending to a GUARD underwriter\u2026");
+        try {
+          const res = await fetch(API + "/api/guard/wc/refer", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              submission_public_id: session.submission_public_id,
+            }),
+          });
+          const data = await res.json();
+          if (!data.ok) {
+            throw new Error(data.message || data.error || "Referral failed");
+          }
+          showGuardDecision(box, {
+            decision: "refer",
+            message:
+              data.message ||
+              "A GUARD underwriter will review this application. It is not bound.",
+            guard: data.guard,
+          });
+          referBtn.hidden = true;
+        } catch (err) {
+          guardWcStatus(box, "err", err.message || String(err));
+          referBtn.disabled = false;
+        }
+      });
+    }
   }
 
   async function executeGuardIndicate(box) {
@@ -2560,6 +2711,12 @@
           legal_entity: $("guard-legal").value,
           years_in_business: $("guard-years").value,
           owner_on_wc: $("guard-owner").value === "yes",
+          owner_payroll:
+            $("guard-owner").value === "yes" &&
+            $("guard-officer-payroll") &&
+            $("guard-officer-payroll").value
+              ? $("guard-officer-payroll").value
+              : undefined,
         }),
       });
       const data = await res.json();
@@ -2601,6 +2758,7 @@
         renderGuardQuestions(host, qData.questions);
       }
       $("guard-bind-fields").hidden = false;
+      wireGuardFeinInput();
     } catch (err) {
       guardWcStatus(box, "err", err.message || String(err));
     } finally {

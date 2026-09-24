@@ -419,6 +419,53 @@ select.cq-ext-field:required:invalid {
   font-size: 1.1rem;
   font-weight: 700;
 }
+.guard-brand {
+  margin: 0 0 4px;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: #fbbf24;
+}
+.guard-policy-code {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.guard-wc-decision {
+  margin: 16px 0 14px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  color: #fff;
+  text-align: center;
+}
+.guard-wc-decision.is-refer {
+  background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
+}
+.guard-wc-decision.is-decline {
+  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+}
+.guard-wc-decision-kicker {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.guard-wc-decision-note {
+  margin: 0;
+  font-size: .9rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
+}
+.guard-field-hint {
+  margin: 4px 0 0;
+  font-size: .8rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+.guard-field-hint.err-inline {
+  color: #b91c1c;
+}
+#guard-refer-btn,
 #guard-bind-btn {
   margin-top: 12px;
   width: 100%;
@@ -427,6 +474,7 @@ select.cq-ext-field:required:invalid {
   font-weight: 700;
   padding: 14px 18px;
 }
+#guard-refer-btn:hover,
 #guard-bind-btn:hover { background: #2a4a6f; }
 #guard-quote-btn.is-done {
   opacity: 0.55;

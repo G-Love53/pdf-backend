@@ -14,6 +14,7 @@ import {
   guardIndicate,
   guardSubmitNbs,
   isGuardConfigured,
+  isGuardInstantBindable,
   mergeGuardQuestionAnswers,
   normalizeWorkCompLocations,
 } from "./guardService.js";
@@ -231,12 +232,11 @@ function matchUatQuestions(guardQuestions, uatQuestions, caseDef) {
 
 function classifyOutcome(parsed, expectedOutcome) {
   const uw = String(parsed?.uwDecision || "").toLowerCase();
-  const status = String(parsed?.policyStatusCd || "").replace(/\s/g, "");
-  const bindable = /QuotedNotBound/i.test(status);
+  const bindable = isGuardInstantBindable(parsed);
   const exp = String(expectedOutcome || "").toLowerCase();
 
   let actual = "unknown";
-  if (bindable && uw !== "reject" && uw !== "refer") actual = "quote";
+  if (bindable) actual = "quote";
   else if (uw === "refer" || uw.includes("refer")) actual = "refer";
   else if (uw === "reject" || uw.includes("declin") || uw.includes("reject"))
     actual = "decline";

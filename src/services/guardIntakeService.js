@@ -13,8 +13,11 @@ import {
   guardFetchQuestions,
   guardIndicate,
   guardSubmitNbs,
+  guardSubmitSbr,
   isGuardConfigured,
+  isGuardInstantBindable,
   mergeGuardQuestionAnswers,
+  normalizeGuardUwDecision,
   yearsInBusinessFromForm,
 } from "./guardService.js";
 import { finalizeGuardBind } from "./guardPolicyService.js";
@@ -111,6 +114,30 @@ function guardContextFrom(body, row, session) {
   return { form, segment, businessClass, line, guardLineKey };
 }
 
+function ownerPayrollFrom(body = {}, form = {}) {
+  const raw =
+    body.owner_payroll ??
+    body.ownerPayroll ??
+    form.owner_payroll ??
+    form.ownerPayroll;
+  if (raw == null || raw === "") return null;
+  const n = Number(String(raw).replace(/[^\d.]/g, ""));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function applicantQuoteMessage(uw, bindable) {
+  if (bindable) {
+    return "Your Workers’ Comp quote is ready to bind.";
+  }
+  if (uw === "refer") {
+    return "A GUARD underwriter needs to review this application. It is not available to bind online.";
+  }
+  if (uw === "decline") {
+    return "GUARD is unable to offer coverage for this risk.";
+  }
+  return "This application is not available to bind online.";
+}
+
 function gate(segment, state, businessClass) {
   if (!isGuardWcEnabledForSegment(segment, businessClass)) {
     return {
@@ -178,10 +205,12 @@ export async function processGuardIndicate(body = {}) {
     };
   }
 
+  const ownerPayroll = ownerPayrollFrom(body, ctx.form);
   const rqUid = crypto.randomUUID();
   const payload = buildRatingPayloadFromForm(ctx.form, ctx.guardLineKey, {
     legalEntityCd: body.legal_entity || body.legalEntityCd || "LL",
     ownerIncluded,
+    ownerPayroll: ownerIncluded ? ownerPayroll : 0,
     numYrsInBusiness:
       Number(body.years_in_business) || yearsInBusinessFromForm(ctx.form),
     experienceMod: body.experience_mod ?? body.experienceMod ?? null,
@@ -216,6 +245,7 @@ export async function processGuardIndicate(body = {}) {
     ratingClassificationCd: ratingClassificationCd(entry),
     legalEntityCd: payload.legalEntityCd,
     ownerIncluded,
+    ownerPayroll: ownerIncluded ? ownerPayroll : 0,
     numYrsInBusiness: payload.numYrsInBusiness,
     policyNumber: parsed.policyNumber,
     premium: parsed.fullTermAmt,
@@ -360,6 +390,10 @@ export async function processGuardQuote(body = {}) {
       session?.ratingClassificationCd ||
       null,
     fein,
+    ownerPayroll:
+      session?.ownerIncluded === true
+        ? ownerPayrollFrom(body, ctx.form) ?? session?.ownerPayroll ?? null
+        : 0,
     policyNumber: session?.policyNumber || null,
     questionAnswers: mergeGuardQuestionAnswers(
       Array.isArray(body.answers) ? body.answers : [],
@@ -389,9 +423,8 @@ export async function processGuardQuote(body = {}) {
     };
   }
 
-  const bindable = /QuotedNotBound/i.test(
-    String(parsed.policyStatusCd || "").replace(/\s/g, ""),
-  );
+  const bindable = isGuardInstantBindable(parsed);
+  const uw = normalizeGuardUwDecision(parsed.uwDecision);
 
   const nextSession = {
     ...session,
@@ -407,9 +440,9 @@ export async function processGuardQuote(body = {}) {
 
   const eventType = bindable
     ? "guard.quoted"
-    : String(parsed.uwDecision || "").toLowerCase() === "refer"
+    : uw === "refer"
       ? "guard.referred"
-      : String(parsed.uwDecision || "").toLowerCase() === "reject"
+      : uw === "decline"
         ? "guard.rejected"
         : "guard.quoted";
   await appendGuardTimeline(row.submission_id, eventType, {
@@ -417,11 +450,15 @@ export async function processGuardQuote(body = {}) {
     premium: parsed.fullTermAmt,
     policyStatusCd: parsed.policyStatusCd,
     uwDecision: parsed.uwDecision,
+    rqUid: parsed.rqUid,
   });
 
   return {
     ok: true,
     bindable,
+    decision: uw || (bindable ? "accept" : ""),
+    canRefer: uw === "refer" && Boolean(parsed.policyNumber || session?.policyNumber),
+    message: applicantQuoteMessage(uw, bindable),
     submission_public_id: submissionPublicId,
     guard: {
       policyNumber: parsed.policyNumber,
@@ -431,6 +468,7 @@ export async function processGuardQuote(body = {}) {
       msgStatusCd: parsed.msgStatusCd,
       remarks: parsed.remarks,
       carrier: parsed.carrier,
+      rqUid: parsed.rqUid,
     },
   };
 }
@@ -449,6 +487,18 @@ export async function processGuardBind(body = {}) {
       status: 400,
       error: "QUOTE_REQUIRED",
       message: "Get a bindable GUARD quote before binding.",
+    };
+  }
+  const sessionUw = normalizeGuardUwDecision(session.uwDecision);
+  if (session.bindable === false || sessionUw === "refer" || sessionUw === "decline") {
+    return {
+      ok: false,
+      status: 400,
+      error: "NOT_BINDABLE",
+      message:
+        sessionUw === "refer"
+          ? "This application was referred to underwriting and cannot be bound online."
+          : "This application is not available to bind.",
     };
   }
   if (!body.clickwrap_agreed) {
@@ -536,5 +586,66 @@ export async function processGuardBind(body = {}) {
     connect: connectPolicy,
     message:
       "Workers’ Comp bound with GUARD. Payment options will come from GUARD.",
+  };
+}
+
+export async function processGuardRefer(body = {}) {
+  const submissionPublicId = body.submission_public_id;
+  if (!submissionPublicId) {
+    return { ok: false, status: 400, error: "SUBMISSION_REQUIRED" };
+  }
+  const row = await loadSubmission(submissionPublicId);
+  if (!row) return { ok: false, status: 404, error: "SUBMISSION_NOT_FOUND" };
+  const session = await loadGuardSession(submissionPublicId);
+  if (!session?.policyNumber) {
+    return {
+      ok: false,
+      status: 400,
+      error: "QUOTE_REQUIRED",
+      message: "Submit the application before sending it to underwriting.",
+    };
+  }
+
+  const ctx = guardContextFrom(body, row, session);
+  const blocked = gate(ctx.segment, "CO", ctx.businessClass);
+  if (blocked) return blocked;
+
+  let parsed;
+  try {
+    parsed = await guardSubmitSbr(session.policyNumber);
+  } catch (err) {
+    console.error("[guard refer]", err);
+    return {
+      ok: false,
+      status: err instanceof GuardApiError ? err.status || 502 : 502,
+      error: "GUARD_REFER_FAILED",
+      message: err.message || "Could not send this application to underwriting.",
+    };
+  }
+
+  await persistGuardSession(row.submission_id, {
+    ...session,
+    purpose: "SBR",
+    policyStatusCd: parsed.policyStatusCd || session.policyStatusCd,
+    referredAt: new Date().toISOString(),
+  });
+  await appendGuardTimeline(row.submission_id, "guard.sbr", {
+    policyNumber: parsed.policyNumber || session.policyNumber,
+    policyStatusCd: parsed.policyStatusCd,
+    rqUid: parsed.rqUid,
+  });
+
+  return {
+    ok: true,
+    referred: true,
+    submission_public_id: submissionPublicId,
+    guard: {
+      policyNumber: parsed.policyNumber || session.policyNumber,
+      policyStatusCd: parsed.policyStatusCd,
+      msgStatusCd: parsed.msgStatusCd,
+      rqUid: parsed.rqUid,
+    },
+    message:
+      "This application was sent to a GUARD underwriter. They will follow up — it is not bound.",
   };
 }

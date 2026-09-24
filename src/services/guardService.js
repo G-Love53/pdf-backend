@@ -37,6 +37,28 @@ function guardApiBase() {
   return (process.env.GUARD_API_BASE || DEFAULT_P_BASE).replace(/\/$/, "");
 }
 
+/** Normalize SystemUnderwritingDecisionCd: accept | refer | decline | "". */
+export function normalizeGuardUwDecision(raw) {
+  const uw = String(raw || "").toLowerCase();
+  if (!uw) return "";
+  if (uw.includes("refer")) return "refer";
+  if (uw.includes("reject") || uw.includes("declin")) return "decline";
+  if (uw.includes("accept")) return "accept";
+  return uw;
+}
+
+/**
+ * Instant bind only when QuotedNotBound and UW is not Refer/Reject.
+ * GUARD can return a premium + QuotedNotBound on Refer/Reject — do not treat as bindable.
+ */
+export function isGuardInstantBindable(parsed) {
+  const status = String(parsed?.policyStatusCd || "").replace(/\s/g, "");
+  // Exact match — NotQuotedNotBound contains the substring QuotedNotBound.
+  if (!/^QuotedNotBound$/i.test(status)) return false;
+  const uw = normalizeGuardUwDecision(parsed?.uwDecision);
+  return uw !== "refer" && uw !== "decline";
+}
+
 export function getGuardPublicConfig() {
   return {
     apiConfigured: isGuardConfigured(),
@@ -391,17 +413,17 @@ export function normalizeWorkCompLocations(payload) {
 
 /**
  * Build WorkCompPolicyAddRq inner XML (no Signon).
- * @param {"NBQ"|"NBS"|"BND"} purpose
+ * @param {"NBQ"|"NBS"|"BND"|"SBR"} purpose
  */
 export function buildWorkCompPolicyAddXml(purpose, payload, cfg) {
   const rqUid = payload.rqUid || crypto.randomUUID();
   const now = new Date().toISOString();
 
-  if (purpose === "BND") {
+  if (purpose === "BND" || purpose === "SBR") {
     return `<WorkCompPolicyAddRq>
   <RqUID>${xmlEscape(rqUid)}</RqUID>
   <TransactionRequestDt>${xmlEscape(now)}</TransactionRequestDt>
-  <BusinessPurposeTypeCd>BND</BusinessPurposeTypeCd>
+  <BusinessPurposeTypeCd>${purpose}</BusinessPurposeTypeCd>
   <Producer>
     <ProducerInfo>
       <ContractNumber>${xmlEscape(cfg.contractNumber)}</ContractNumber>
@@ -781,6 +803,17 @@ export async function guardBind(policyNumber) {
   return guardSoap(inner);
 }
 
+/** Refer to underwriting — same shape as BND, BusinessPurposeTypeCd SBR. */
+export async function guardSubmitSbr(policyNumber) {
+  const cfg = getGuardConfig();
+  const inner = buildWorkCompPolicyAddXml(
+    "SBR",
+    { policyNumber },
+    cfg,
+  );
+  return guardSoap(inner);
+}
+
 export function buildRatingPayloadFromForm(form, segment, extras = {}) {
   const businessClass =
     extras.businessClass ||
@@ -825,14 +858,18 @@ export function buildRatingPayloadFromForm(form, segment, extras = {}) {
       "Unknown Business",
     legalEntityCd: extras.legalEntityCd || form.legal_entity || "LL",
     street:
-      form.premise_street ||
       form.street ||
-      form.address ||
       form.mailing_street ||
+      form.premise_street ||
+      form.address ||
       "",
-    city: form.premise_city || form.city || "",
+    city: form.city || form.mailing_city || form.premise_city || "",
     state: form.premise_state || form.state || form.businessState || "CO",
-    zip: form.zip || form.businessZip || form.premise_zip || "",
+    zip: form.zip || form.mailing_zip || form.businessZip || form.premise_zip || "",
+    locationStreet: form.premise_street || form.address || "",
+    locationCity: form.premise_city || form.city || "",
+    locationState: form.premise_state || form.state || form.businessState || "CO",
+    locationZip: form.premise_zip || form.businessZip || form.zip || "",
     email: form.contact_email || form.email || "",
     phone: form.phone || form.contact_phone || "",
     contactFirstName: form.first_name || form.applicant_first_name || "Owner",

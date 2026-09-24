@@ -6,7 +6,7 @@
 
 ---
 
-## Current status (2026-09-23)
+## Current status (2026-09-24)
 
 | Area | State |
 |------|--------|
@@ -15,7 +15,7 @@
 | **Automation** | `POST /api/guard/wc/uat/run` + `node scripts/run-guard-uat.mjs` |
 | **Email to Jon** | Fixes for #3, #1, #7 and #7 multi-location **communicated**; **waiting on Jon** for **Contractors-8** CO question ID + **live/prod credentials** |
 | **Open UAT** | **Contractors-8** — expected Refer (above 15 ft); need GUARD’s CO `QuestionCd` (`56-9014_04`?) |
-| **Open product** | ConnectQuote WC on intake (`guardIntakeService`); multi-location WC in **UAT/SOAP** only — ConnectQuote intake still **single location** |
+| **Open product** | ConnectQuote WC on intake (`guardIntakeService`); partner-test now has optional L2 + mailing-same. Production ConnectQuote intake still **single location**. |
 
 ---
 
@@ -25,6 +25,7 @@
 2. **Officer payroll** — `buildRatingPayloadFromForm` honors `extras.ownerPayroll`; UAT sends **$75k** for Non-Contractors-3 (`ownerPayroll: 75000` in JSON).
 3. **CO UW question codes** — UAT matcher prefers GUARD CO list + index fallback `5183_` / `9014_` (not CA/MA). Verified: `classQuestionCds` in results JSON.
 4. **CO officer min constant** — `GUARD_CO_OFFICER_PAYROLL = 79800` (GUARD dictionary update); pack overrides still win.
+5. **Partner-test UI (Jon 2026-09-24)** — `bindable` only when QuotedNotBound **and** UW is not Refer/Reject (`isGuardInstantBindable`). SBR at `POST /api/guard/wc/refer` (same XML as BND). FEIN `xx-xxxxxxx`; mailing-same; optional L2; officer payroll; GUARD brand + policy code on quote/refer/decline. No class-code green boxes; no NBQ/NBS/BND in applicant copy. **Needs sandbox deploy** before Jon retests. RqUIDs he cited: `b325fb1d-…`, `5a372012-…`.
 
 **Latest verified sandbox run:** `data/guard-uat-results-v1.json` (2026-09-23, three-case re-run).
 

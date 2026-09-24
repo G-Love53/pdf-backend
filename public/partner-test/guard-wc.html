@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>CID Partner Test — Workers' Comp (P-env)</title>
-  <link rel="stylesheet" href="/static/connectquote-intake.css?v=20260904a"/>
+  <link rel="stylesheet" href="/static/connectquote-intake.css?v=20260924a"/>
   <style>
     :root { --brand: #1B3A5F; --accent: #0d9488; }
     body { font-family: Arial, sans-serif; margin: 0; background: #f3f4f6; color: #111; }
@@ -21,8 +21,9 @@
     button { background: linear-gradient(135deg, #14b8a6, var(--accent)); color: #fff; border: 0; padding: 13px 18px; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 14px; }
     button.secondary { background: var(--brand); }
     button:disabled { opacity: .55; cursor: not-allowed; }
-    .class-box { background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 12px; margin: 12px 0; font-size: .92rem; display: none; }
-    .class-box.show { display: block; }
+    .check-row { display: flex; align-items: flex-start; gap: 10px; margin: 14px 0 6px; }
+    .check-row input { width: auto; margin-top: 3px; }
+    .check-row label { margin: 0; font-weight: 600; }
     .err { background: #fef2f2; color: #b91c1c; padding: 12px; border-radius: 8px; margin-top: 12px; display: none; }
     .err.show { display: block; }
     .ok { background: #ecfdf5; color: #065f46; padding: 12px; border-radius: 8px; margin-top: 12px; display: none; }
@@ -41,12 +42,12 @@
 
   <div class="card">
     <h1>Workers' Comp test intake</h1>
-    <p class="sub">All Access Insurance · Colorado pilot · select segment to view class code</p>
+    <p class="sub">All Access Insurance · Colorado pilot</p>
 
     <form id="start-form">
       <div class="row">
         <div>
-          <label>Segment</label>
+          <label>Business type</label>
           <select id="segment" name="segment" required></select>
         </div>
         <div>
@@ -56,8 +57,6 @@
           </select>
         </div>
       </div>
-
-      <div id="class-box" class="class-box"></div>
 
       <div class="row">
         <div>
@@ -76,22 +75,70 @@
 
       <div class="row">
         <div>
-          <label>Location street (operations)</label>
+          <label>Location street</label>
           <input id="location_street" value="123 Main St" required/>
         </div>
         <div>
-          <label>Location ZIP</label>
-          <input id="location_zip" value="80202" required/>
+          <label>City</label>
+          <input id="location_city" value="Denver" required/>
         </div>
       </div>
       <div class="row">
         <div>
-          <label>Mailing street (must differ from location)</label>
-          <input id="mailing_street" value="PO Box 100" required/>
+          <label>Location ZIP</label>
+          <input id="location_zip" value="80202" required/>
         </div>
         <div>
-          <label>Mailing ZIP</label>
-          <input id="mailing_zip" value="80203" required/>
+          <label>State</label>
+          <input id="location_state" value="CO" maxlength="2" required/>
+        </div>
+      </div>
+
+      <div class="check-row">
+        <input type="checkbox" id="mailing_same"/>
+        <label for="mailing_same">Mailing address is the same as the location</label>
+      </div>
+      <div id="mailing-fields" hidden>
+        <div class="row">
+          <div>
+            <label>Mailing street</label>
+            <input id="mailing_street" value="PO Box 100"/>
+          </div>
+          <div>
+            <label>Mailing city</label>
+            <input id="mailing_city" value="Denver"/>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Mailing ZIP</label>
+            <input id="mailing_zip" value="80203"/>
+          </div>
+          <div></div>
+        </div>
+      </div>
+
+      <div class="check-row">
+        <input type="checkbox" id="add_location2"/>
+        <label for="add_location2">Add a second location</label>
+      </div>
+      <div id="location2-fields" hidden>
+        <div class="row">
+          <div>
+            <label>Location 2 street</label>
+            <input id="location2_street"/>
+          </div>
+          <div>
+            <label>Location 2 city</label>
+            <input id="location2_city" value="Colorado Springs"/>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Location 2 ZIP</label>
+            <input id="location2_zip"/>
+          </div>
+          <div></div>
         </div>
       </div>
 
@@ -130,6 +177,6 @@ window.GUARD_PARTNER_TEST = {
   token: new URLSearchParams(location.search).get("token") || "",
 };
 </script>
-<script src="/partner-test/guard-wc-test.js?v=20260904a"></script>
+<script src="/partner-test/guard-wc-test.js?v=20260924a"></script>
 </body>
 </html>

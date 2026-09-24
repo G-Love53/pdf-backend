@@ -5,6 +5,7 @@ import {
   processGuardIndicate,
   processGuardQuestions,
   processGuardQuote,
+  processGuardRefer,
 } from "../services/guardIntakeService.js";
 import {
   getGuardWcRegistry,
@@ -163,6 +164,20 @@ router.post("/api/guard/wc/bind", async (req, res) => {
     return res.status(500).json({
       ok: false,
       error: "GUARD_BIND_ERROR",
+      message: err.message || "Internal error",
+    });
+  }
+});
+
+router.post("/api/guard/wc/refer", async (req, res) => {
+  try {
+    const result = await processGuardRefer(req.body || {});
+    return res.status(result.status || 200).json(result);
+  } catch (err) {
+    console.error("[guard refer] error:", err);
+    return res.status(500).json({
+      ok: false,
+      error: "GUARD_REFER_ERROR",
       message: err.message || "Internal error",
     });
   }

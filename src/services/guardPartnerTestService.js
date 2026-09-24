@@ -65,14 +65,65 @@ export function getGuardWcRegistry(state = "CO") {
   };
 }
 
+function truthyFlag(v) {
+  if (v === true || v === 1) return true;
+  const s = String(v || "").toLowerCase();
+  return s === "true" || s === "yes" || s === "on" || s === "1";
+}
+
+function partnerLocations(body, state, city1, zip1, street1) {
+  const loc2Street = String(
+    body.location2_street || body.location2Street || "",
+  ).trim();
+  const locations = [
+    {
+      id: "L1",
+      street: street1,
+      city: city1,
+      state,
+      zip: zip1,
+    },
+  ];
+  if (loc2Street) {
+    locations.push({
+      id: "L2",
+      street: loc2Street,
+      city: body.location2_city || body.location2City || city1,
+      state: body.location2_state || body.location2State || state,
+      zip: body.location2_zip || body.location2Zip || zip1,
+    });
+  }
+  return locations;
+}
+
 function normalizePartnerForm(body = {}) {
   const segment = String(body.segment || "plumber").trim().toLowerCase();
   const state = String(body.state || body.premise_state || "CO")
     .trim()
     .toUpperCase();
-  const mailingStreet = body.mailing_street || body.mailingStreet || "";
   const locationStreet =
     body.location_street || body.locationStreet || body.street || body.address || "";
+  const locationCity = body.location_city || body.premise_city || body.city || "Denver";
+  const locationZip = body.location_zip || body.premise_zip || body.zip || "80202";
+  const mailingSame = truthyFlag(
+    body.mailing_same ?? body.mailingSame ?? false,
+  );
+  const mailingStreet = mailingSame
+    ? locationStreet
+    : body.mailing_street || body.mailingStreet || "";
+  const mailingCity = mailingSame
+    ? locationCity
+    : body.mailing_city || body.city || locationCity;
+  const mailingZip = mailingSame
+    ? locationZip
+    : body.mailing_zip || body.zip || "80203";
+  const locations = partnerLocations(
+    body,
+    state,
+    locationCity,
+    locationZip,
+    locationStreet,
+  );
   return {
     segment,
     state,
@@ -82,15 +133,18 @@ function normalizePartnerForm(body = {}) {
     phone: body.phone || body.contact_phone || "3039321700",
     insured_name: body.insured_name || body.business_name || body.legal_business_name || "Demo Business LLC",
     premise_street: locationStreet,
-    premise_city: body.premise_city || body.city || "Denver",
+    premise_city: locationCity,
     premise_state: state,
-    premise_zip: body.premise_zip || body.zip || "80202",
-    street: mailingStreet || "PO Box 100",
-    city: body.mailing_city || body.city || "Denver",
+    premise_zip: locationZip,
+    street: mailingStreet || locationStreet || "PO Box 100",
+    city: mailingCity,
     state,
-    zip: body.mailing_zip || body.zip || "80203",
+    zip: mailingZip || locationZip,
+    mailing_same: mailingSame,
+    locations,
     num_employees: Number(body.num_employees || body.numEmployees || 2),
     annual_payroll: Number(body.annual_payroll || body.payroll || 80000),
+    owner_payroll: body.owner_payroll || body.ownerPayroll || null,
     years_in_business: Number(body.years_in_business || 3),
     traffic_source: PARTNER_SOURCE,
     campaign_id: body.campaign_id || "guard-partner-test",

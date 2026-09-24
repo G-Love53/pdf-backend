@@ -62,7 +62,7 @@ SOAP / ACORD P&C 1.30. Escaped XML inside SOAP `Service/data`. Not REST/JSON.
 | Txn | Use | Bindable? |
 |-----|-----|-----------|
 | **NBQ** | Premium **indication**. UW questions not required. FEIN not required. | **No** — `NotQuotedNotBound`. Premium may change or decline after questions |
-| **NBS** | Full submit. Questions required. Auto-UW if class `[E]`. | **Yes** if `QuotedNotBound` + `Accept` |
+| **NBS** | Full submit. Questions required. Auto-UW if class `[E]`. | **Yes** only if status is exactly `QuotedNotBound` **and** UW is not Refer/Reject (`isGuardInstantBindable`) |
 | **BND** | Bind by `PolicyNumber` only | After QuotedNotBound |
 | **SBR** | Refer to underwriting | Ops path — not instant |
 | **Questions inquiry** | `UnderwritingQuestionsInqRq` by state + class | Before NBS |
@@ -147,7 +147,7 @@ Offer WC only if employees exist **or** owner elects inclusion (owner-only Coter
 | `src/config/guardRegistry.js` | Per-segment **`wcEnabled`** (Plumber on; Electrical off), NCCI class, pilot states |
 | `src/services/guardService.js` | SOAP client, XML escape, NBQ / NBS / BND / questions |
 | `src/services/guardIntakeService.js` | Prefill from submission; indication vs bindable; clickwrap on bind |
-| `src/routes/guardRoutes.js` | `/api/guard/wc/config` · `/indicate` · `/questions` · `/quote` · `/bind` |
+| `src/routes/guardRoutes.js` | `/api/guard/wc/config` · `/indicate` · `/questions` · `/quote` · `/bind` · `/refer` (SBR) |
 | `src/routes/webhooks.js` | `POST /webhooks/guard-docs` (ack) |
 | `public/connectquote-intake.js` | Post-bind WC panel (shown when config `offerWc`) |
 | cid-connect | Vault WC opt-in later; no carrier secrets |
