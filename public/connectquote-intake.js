@@ -7,7 +7,7 @@
     "https://cid-pdf-api.onrender.com"
   ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260928a";
+  const ASSET_V = "20260928b";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -1090,26 +1090,31 @@
     const label =
       currentSchema?.businessClassLabel || "This business type";
     const email = agentInboxEmail();
-    const manual =
-      !hasLongFormIntake() && email
-        ? ' Email <a href="mailto:' +
-          escapeHtml(email) +
-          '">' +
-          escapeHtml(email) +
-          "</a> for employee coverage."
-        : !hasLongFormIntake()
-          ? " Contact us for employee coverage."
-          : ' use our <a href="index.html' +
-            (location.search || "") +
-            '">full application</a> instead';
+    let followUp;
+    if (hasLongFormIntake()) {
+      followUp =
+        'Use our <a href="index.html' +
+        (location.search || "") +
+        '">full application</a> for employee coverage, or select <strong>Yes</strong> above if you are the owner.';
+    } else if (email) {
+      followUp =
+        'Employees: email <a href="mailto:' +
+        escapeHtml(email) +
+        "?subject=" +
+        encodeURIComponent("Employee insurance quote request") +
+        '">' +
+        escapeHtml(email) +
+        "</a>. Owners: select <strong>Yes</strong> above to continue.";
+    } else {
+      followUp =
+        "Contact us for employee coverage, or select <strong>Yes</strong> above if you are the owner.";
+    }
     return (
       '<div class="cq-owner-only-notice" role="alert">' +
       "<strong>Instant quote is for business owners only.</strong> " +
-      label +
-      " on ConnectQuote requires you to own or operate the business " +
-      "(sole proprietor, LLC, etc.). If you are an employee," +
-      manual +
-      ' — or change ownership above to "Yes" if you are the owner.' +
+      escapeHtml(label) +
+      " requires an owner or operator (sole proprietor, LLC, etc.). " +
+      followUp +
       "</div>"
     );
   }
@@ -1995,8 +2000,8 @@
       const email = agentInboxEmail();
       showErr(
         hasLongFormIntake()
-          ? "Instant quotes are for business owners. Select “Yes — I own / operate the business” if you are a sole proprietor, or use our full application for employee coverage."
-          : "Instant quotes are for business owners. Select “Yes — I own / operate the business” if you are a sole proprietor" +
+          ? "Instant quotes are for owners only. Select Yes above if you own the business, or use our full application for employee coverage."
+          : "Instant quotes are for owners only. Select Yes above if you own the business" +
             (email ? ", or email " + email + " for employee coverage." : "."),
       );
       return false;
