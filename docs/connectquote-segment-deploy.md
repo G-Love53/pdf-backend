@@ -84,7 +84,7 @@ Verify: `curl -s https://cid-pdf-api.onrender.com/api/coterie/registry/{segment}
 | G | Netlify DNS | SPF, DKIM (`google._domainkey`), DMARC (`_dmarc`) |
 | H | Test | Send mail to `quotes@` from outside Gmail |
 
-**Ineligible for ConnectQuote?** ConnectQuote-only segments (beauty, cleaning, pet, painter) show **`quotes@`** — no long-form yet. Plumber/HVAC/electrical/fitness still have `index.html` long form.
+**Ineligible for ConnectQuote?** See **[`connectquote-kickout-callback-spec.md`](./connectquote-kickout-callback-spec.md)** (kick-out panel + agent callback to Gerry). **ConnectQuote-only Netlify:** beauty, cleaning, pet, painter, **electrical** (2026-09-28). **Still long-form `index.html` until migrated:** plumber, HVAC, fitness.
 
 ---
 

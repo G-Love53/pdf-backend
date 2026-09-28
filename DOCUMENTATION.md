@@ -23,6 +23,7 @@
 | **[docs/partner-layer-onboarding.md](./docs/partner-layer-onboarding.md)** | **Give to a partner’s team** — how to add the CID quote link (no internals) |
 | **[docs/CID_IP_AND_ACQUIRER_PROTECTION.md](./docs/CID_IP_AND_ACQUIRER_PROTECTION.md)** | **Partner Shared drive** — IP / AI-assisted build / what a buyer CIO purchases |
 | **[docs/CID_Overview.md](./docs/CID_Overview.md)** | **Partner Shared drive** — company overview (purpose, live footprint, SAFE, strategic outcome) |
+| **[docs/Distribution_Validation_Plan.md](./docs/Distribution_Validation_Plan.md)** | **Partner Shared drive** — SAFE capital: channel × vertical × state tests and scorecard |
 | **[docs/CID_INVESTMENT_THESIS.md](./docs/CID_INVESTMENT_THESIS.md)** | **Partner Shared drive** — investor thesis (Ray/Rick); auto-synced on push |
 | **[docs/00 PARTNER_README.md](./docs/00%20PARTNER_README.md)** | Partner Shared drive index |
 | **[docs/PARTNER_DOCS_SETUP.md](./docs/PARTNER_DOCS_SETUP.md)** | One-time Google service account + GitHub secrets for Drive sync (internal) |

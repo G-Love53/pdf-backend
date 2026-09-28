@@ -30,27 +30,29 @@ If a doc looks stale, ask Gerry — **Git is always the source of truth.** Setup
 ### Ray (counsel / diligence)
 
 1. **[CID_Overview.md](./CID_Overview.md)** — one-page company overview (purpose, live, SAFE, outcome)  
-2. **[CID_INVESTMENT_THESIS.md](./CID_INVESTMENT_THESIS.md)** — investor narrative, market, platform layers, exit thesis  
-3. **[CID_IP_AND_ACQUIRER_PROTECTION.md](./CID_IP_AND_ACQUIRER_PROTECTION.md)** — IP, AI-assisted build, what a buyer CIO/CTO purchases  
-4. **[AUDIT_READINESS.md](./AUDIT_READINESS.md)** — what is auditable today (S1–S6): submissions, timeline, R2 docs, bind trail  
-5. **[CID_ARCHITECTURE.md](./CID_ARCHITECTURE.md)** — single-backend rule, end-to-end pipeline, operator surfaces  
-6. **[compliance-roadmap.md](./compliance-roadmap.md)** — SOC 2 / security roadmap  
-7. **[partnership-gaps.md](./partnership-gaps.md)** — diligence backlog P0–P3  
-8. **[corporate-structure.md](./corporate-structure.md)** — legal entity, segment brands, partner narrative  
-9. **[partnerships.md](./partnerships.md)** — vendor/carrier registry and SOC vendor status  
+2. **[Distribution_Validation_Plan.md](./Distribution_Validation_Plan.md)** — SAFE: channel × vertical × state tests and scorecard  
+3. **[CID_INVESTMENT_THESIS.md](./CID_INVESTMENT_THESIS.md)** — investor narrative, market, platform layers, exit thesis  
+4. **[CID_IP_AND_ACQUIRER_PROTECTION.md](./CID_IP_AND_ACQUIRER_PROTECTION.md)** — IP, AI-assisted build, what a buyer CIO/CTO purchases  
+5. **[AUDIT_READINESS.md](./AUDIT_READINESS.md)** — what is auditable today (S1–S6): submissions, timeline, R2 docs, bind trail  
+6. **[CID_ARCHITECTURE.md](./CID_ARCHITECTURE.md)** — single-backend rule, end-to-end pipeline, operator surfaces  
+7. **[compliance-roadmap.md](./compliance-roadmap.md)** — SOC 2 / security roadmap  
+8. **[partnership-gaps.md](./partnership-gaps.md)** — diligence backlog P0–P3  
+9. **[corporate-structure.md](./corporate-structure.md)** — legal entity, segment brands, partner narrative  
+10. **[partnerships.md](./partnerships.md)** — vendor/carrier registry and SOC vendor status  
 
 Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-2026-06.md** (ConnectQuote product summary).
 
 ### Rick (ops / partner)
 
 1. **[CID_Overview.md](./CID_Overview.md)** — one-page company overview  
-2. **[CID_INVESTMENT_THESIS.md](./CID_INVESTMENT_THESIS.md)** — platform story, market, business model, team  
-3. **[connectquote-shipped-2026-06.md](./connectquote-shipped-2026-06.md)** — what shipped, CO geography, segments on marketing rail  
-4. **[corporate-structure.md](./corporate-structure.md)** — brands, domains, inboxes  
-5. **[partnerships.md](./partnerships.md)** — who we depend on (Coterie, Render, Instantly, etc.)  
-6. **[coterie-integration.md](./coterie-integration.md)** — Coterie API rail (technical, no secrets)  
-7. **[connectquote-build-day.md](./connectquote-build-day.md)** — demo walkthrough script  
-8. **[partner-layer-onboarding.md](./partner-layer-onboarding.md)** — give this to a trade/org team to add the CID quote link  
+2. **[Distribution_Validation_Plan.md](./Distribution_Validation_Plan.md)** — SAFE: channel × vertical × state tests  
+3. **[CID_INVESTMENT_THESIS.md](./CID_INVESTMENT_THESIS.md)** — platform story, market, business model, team  
+4. **[connectquote-shipped-2026-06.md](./connectquote-shipped-2026-06.md)** — what shipped, CO geography, segments on marketing rail  
+5. **[corporate-structure.md](./corporate-structure.md)** — brands, domains, inboxes  
+6. **[partnerships.md](./partnerships.md)** — who we depend on (Coterie, Render, Instantly, etc.)  
+7. **[coterie-integration.md](./coterie-integration.md)** — Coterie API rail (technical, no secrets)  
+8. **[connectquote-build-day.md](./connectquote-build-day.md)** — demo walkthrough script  
+9. **[partner-layer-onboarding.md](./partner-layer-onboarding.md)** — give this to a trade/org team to add the CID quote link  
 
 ---
 
@@ -59,6 +61,7 @@ Then as needed: **System_Flow.md** (one-page diagram), **connectquote-shipped-20
 | Document | Topic |
 |----------|--------|
 | **CID_Overview.md** | Company overview — purpose, live footprint, SAFE, strategic outcome |
+| **Distribution_Validation_Plan.md** | SAFE capital — channel × vertical × state tests and scorecard |
 | **CID_IP_AND_ACQUIRER_PROTECTION.md** | IP, AI-assisted development, buyer CIO/CTO protection  
 | **CID_INVESTMENT_THESIS.md** | Investment thesis — market, platform, exit, team |
 | **board-resolution-officer-titles-2026.md** | Board resolution — officer title amendment (Aug 2026) |

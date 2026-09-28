@@ -3,6 +3,7 @@
 # As of 2026-08-18
 
 docs/CID_Overview.md
+docs/Distribution_Validation_Plan.md
 docs/CID_IP_AND_ACQUIRER_PROTECTION.md
 docs/CID_INVESTMENT_THESIS.md
 docs/board-resolution-officer-titles-2026.md
