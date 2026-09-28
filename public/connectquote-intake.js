@@ -7,7 +7,7 @@
     "https://cid-pdf-api.onrender.com"
   ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260924b";
+  const ASSET_V = "20260928a";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -27,7 +27,6 @@
   const SEGMENTS_WITH_LONG_FORM = new Set([
     "plumber",
     "hvac",
-    "electrical",
     "fitness",
   ]);
 

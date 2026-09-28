@@ -209,7 +209,7 @@ export async function processConnectQuoteIntake(body, reqMeta = {}) {
       reason: "employee_not_owner",
       submission_public_id: submissionPublicId,
       message:
-        "Instant quotes are for business owners. Use our full application for employee / non-owner coverage.",
+        "Instant quotes are for business owners. Email our team for employee / non-owner coverage.",
     };
   }
 
