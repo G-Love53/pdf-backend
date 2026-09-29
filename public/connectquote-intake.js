@@ -1934,7 +1934,73 @@
     el.dataset.guardYearsBound = "1";
     el.addEventListener("input", () => {
       el.dataset.userEdited = "1";
+      syncGuardEmrVisibility();
     });
+    syncGuardEmrVisibility();
+  }
+
+  function syncGuardEmrVisibility() {
+    const wrap = $("guard-emr-wrap");
+    const yearsEl = $("guard-years");
+    if (!wrap || !yearsEl) return;
+    const years = Number(yearsEl.value);
+    wrap.hidden = Number.isFinite(years) && years > 0 && years < 3;
+  }
+
+  function guardExperienceModValue() {
+    const years = Number($("guard-years") && $("guard-years").value);
+    if (Number.isFinite(years) && years > 0 && years < 3) return undefined;
+    const el = $("guard-emr");
+    const raw = el && String(el.value || "").trim();
+    return raw || undefined;
+  }
+
+  function guardYearsEmrFieldsHtml() {
+    return (
+      '<div class="row">' +
+      "<div><label>Legal entity</label>" +
+      '<select id="guard-legal">' +
+      '<option value="LL">LLC</option>' +
+      '<option value="SolePrp">Sole proprietor</option>' +
+      '<option value="CP">Corporation</option>' +
+      '<option value="SS">S Corp</option>' +
+      "</select></div>" +
+      "<div><label>Years in business</label>" +
+      '<input id="guard-years" type="number" min="1" max="80" value="3"/></div>' +
+      "</div>" +
+      '<div id="guard-emr-wrap">' +
+      '<label>Experience mod <span class="guard-optional">(optional)</span></label>' +
+      '<input id="guard-emr" type="number" min="0.50" max="3" step="0.01" placeholder="Leave blank if unknown"/>' +
+      '<p class="guard-field-hint">Most owners do not know this. Leave blank and we send 1.00. Under 3 years always uses 1.00.</p>' +
+      "</div>"
+    );
+  }
+
+  function mountGuardCapitaButton(host, capita) {
+    if (!host) return;
+    let el = host.querySelector(".guard-capita-btn");
+    if (!capita || !capita.payUrl) {
+      if (el) el.remove();
+      return;
+    }
+    if (!el) {
+      el = document.createElement("a");
+      el.className = "guard-capita-btn";
+      el.target = "_blank";
+      el.rel = "noopener noreferrer";
+      host.appendChild(el);
+    }
+    el.href = capita.payUrl;
+    el.textContent = "Pay with GUARD / Capita";
+  }
+
+  function popupGuardKickout(message) {
+    const text =
+      message ||
+      "Based on the information given, an agent will follow up to finalize the quote.";
+    try {
+      window.alert(text);
+    } catch (_) {}
   }
 
   function validateEmailForQuote() {
@@ -2316,7 +2382,7 @@
       '<p class="guard-policy-code" id="guard-wc-ready-policy" hidden></p>' +
       '<p class="guard-wc-ready-kicker">Your <span class="guard-wc-em">Workers\u2019 Comp</span> quote is ready</p>' +
       '<p class="guard-wc-ready-amount" id="guard-wc-ready-amount"></p>' +
-      '<p class="guard-wc-ready-note">GUARD will send billing and payment options to you.</p>';
+      '<p class="guard-wc-ready-note">GUARD bills you directly. CID does not collect the card.</p>';
     const bindFields = $("guard-bind-fields");
     if (bindFields && bindFields.parentNode) {
       bindFields.parentNode.insertBefore(el, bindFields);
@@ -2336,12 +2402,12 @@
     el.innerHTML =
       '<p class="guard-wc-bound-kicker">Workers\u2019 Comp bound with GUARD</p>' +
       '<p class="guard-wc-bound-detail" id="guard-wc-bound-detail"></p>' +
-      '<p class="guard-wc-bound-note">Watch for payment instructions from GUARD. Your policies will appear in CID Connect once you sign up.</p>';
+      '<p class="guard-wc-bound-note">Pay with GUARD / Capita if the button is shown. CID does not collect the card. Your policies will appear in CID Connect once you sign up.</p>';
     box.appendChild(el);
     return el;
   }
 
-  function showGuardQuoteReady(box, premium, policyNumber) {
+  function showGuardQuoteReady(box, premium, policyNumber, capita) {
     const hero = ensureGuardWcReadyHero(box);
     const amtEl = hero.querySelector("#guard-wc-ready-amount");
     if (amtEl && premium != null) {
@@ -2358,6 +2424,7 @@
       }
     }
     hero.hidden = false;
+    mountGuardCapitaButton(hero, capita);
     const decision = box.querySelector("#guard-wc-decision");
     if (decision) decision.hidden = true;
     const quoteBtn = $("guard-quote-btn");
@@ -2396,9 +2463,7 @@
       "</p>" +
       '<p class="guard-wc-decision-note">' +
       (data.message ||
-        (isRefer
-          ? "This is not available to bind online."
-          : "GUARD is unable to offer coverage for this risk.")) +
+        "Based on the information given, an agent will follow up to finalize the quote.") +
       "</p>";
     el.hidden = false;
     const ready = box.querySelector("#guard-wc-ready");
@@ -2406,8 +2471,9 @@
     const bindBtn = $("guard-bind-btn");
     if (bindBtn) bindBtn.hidden = true;
     const referBtn = $("guard-refer-btn");
-    if (referBtn) referBtn.hidden = !isRefer;
+    if (referBtn) referBtn.hidden = true;
     guardWcStatus(box, "", "");
+    popupGuardKickout(data.message);
   }
 
   function showGuardBound(box, data) {
@@ -2422,6 +2488,7 @@
       detail.textContent = bits.join(" · ");
     }
     hero.hidden = false;
+    mountGuardCapitaButton(hero, data && data.capita);
     const ready = box.querySelector("#guard-wc-ready");
     if (ready) ready.hidden = true;
     const bindBtn = $("guard-bind-btn");
@@ -2526,17 +2593,7 @@
       "</select>" +
       '<div id="guard-wc-intent-detail" hidden>' +
       '<p class="guard-wc-intent-note">Separate policy through GUARD if you bind. Indication first — no card. You can still bind commercial coverage below without WC.</p>' +
-      '<div class="row">' +
-      "<div><label>Legal entity</label>" +
-      '<select id="guard-legal">' +
-      '<option value="LL">LLC</option>' +
-      '<option value="SolePrp">Sole proprietor</option>' +
-      '<option value="CP">Corporation</option>' +
-      '<option value="SS">S Corp</option>' +
-      "</select></div>" +
-      "<div><label>Years in business</label>" +
-      '<input id="guard-years" type="number" min="1" max="80" value="3"/></div>' +
-      "</div>" +
+      guardYearsEmrFieldsHtml() +
       "<label>Include owner on the WC policy?</label>" +
       '<select id="guard-owner"><option value="no">No — employees only</option><option value="yes">Yes — include me</option></select>' +
       '<div id="guard-officer-wrap" hidden>' +
@@ -2549,7 +2606,10 @@
     syncGuardYearsFromForm();
     $("guard-wc-intent").addEventListener("change", () => {
       $("guard-wc-intent-detail").hidden = !wcIntentSelected();
-      if (wcIntentSelected()) syncGuardYearsFromForm();
+      if (wcIntentSelected()) {
+        syncGuardYearsFromForm();
+        syncGuardEmrVisibility();
+      }
     });
     if ($("guard-owner")) {
       $("guard-owner").addEventListener("change", toggleGuardOfficerPayroll);
@@ -2580,17 +2640,7 @@
         "<p class=\"guard-wc-lead\">Shown alongside your commercial quote above. Indication only until you complete a few questions and FEIN. GUARD bills you directly if you bind.</p>"
       : "<h3>Would you like a <span class=\"guard-wc-em\">Workers\u2019 Comp</span> quote as well?</h3>" +
         "<p class=\"guard-wc-lead\">Same business we just quoted \u2014 indication first, no card. GUARD bills you directly if you bind.</p>" +
-        '<div class="row">' +
-        "<div><label>Legal entity</label>" +
-        '<select id="guard-legal">' +
-        '<option value="LL">LLC</option>' +
-        '<option value="SolePrp">Sole proprietor</option>' +
-        '<option value="CP">Corporation</option>' +
-        '<option value="SS">S Corp</option>' +
-        "</select></div>" +
-        "<div><label>Years in business</label>" +
-        '<input id="guard-years" type="number" min="1" max="80" value="3"/></div>' +
-        "</div>" +
+        guardYearsEmrFieldsHtml() +
         "<label>Include owner on the WC policy?</label>" +
         '<select id="guard-owner"><option value="no">No \u2014 employees only</option><option value="yes">Yes \u2014 include me</option></select>' +
         '<div id="guard-officer-wrap" hidden>' +
@@ -2655,6 +2705,7 @@
             submission_public_id: session.submission_public_id,
             legal_entity: $("guard-legal").value,
             fein: $("guard-fein").value,
+            experience_mod: guardExperienceModValue(),
             owner_on_wc: ownerOn,
             owner_payroll:
               ownerOn && officerEl && officerEl.value
@@ -2681,6 +2732,7 @@
             box,
             prem,
             data.guard && data.guard.policyNumber,
+            data.capita,
           );
         } else {
           showGuardDecision(box, data);
@@ -2716,6 +2768,7 @@
         showGuardBound(box, {
           guard: data.guard,
           premium: session.guardPremium,
+          capita: data.capita,
         });
       } catch (err) {
         guardWcStatus(box, "err", err.message || String(err));
@@ -2776,6 +2829,7 @@
           segment: SEGMENT,
           legal_entity: $("guard-legal").value,
           years_in_business: $("guard-years").value,
+          experience_mod: guardExperienceModValue(),
           owner_on_wc: $("guard-owner").value === "yes",
           owner_payroll:
             $("guard-owner").value === "yes" &&

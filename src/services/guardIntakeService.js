@@ -21,6 +21,14 @@ import {
   yearsInBusinessFromForm,
 } from "./guardService.js";
 import { finalizeGuardBind } from "./guardPolicyService.js";
+import { notifyGuardWcKickout } from "./agentNotificationService.js";
+import {
+  GUARD_REFER_APPLICANT_MESSAGE,
+  buildGuardCapitaPayUrl,
+  isGuardCapitaConfigured,
+  resolveGuardExperienceMod,
+  zipDigits,
+} from "../config/guardLaunch.js";
 
 function formFromSubmission(row) {
   const raw = row?.raw_submission_json || {};
@@ -93,7 +101,63 @@ export function getGuardOfferConfig(segment, state, businessClass) {
     digitalDecisionNote: entry?.digitalDecisionNote || null,
     indicationDisclaimer:
       "This is a premium indication, not a bindable quote. A few more questions (and FEIN) are required before bind.",
+    referApplicantMessage: GUARD_REFER_APPLICANT_MESSAGE,
+    capitaConfigured: isGuardCapitaConfigured(),
   };
+}
+
+function contactFromForm(form = {}) {
+  const first = form.first_name || form.applicant_first_name || "";
+  const last = form.last_name || form.applicant_last_name || "";
+  return {
+    clientName: [first, last].filter(Boolean).join(" ").trim() || null,
+    businessName:
+      form.business_name || form.applicant_name || form.insured_name || null,
+    email: form.contact_email || form.email || null,
+    phone: form.phone || form.contact_phone || form.business_phone || null,
+    zip:
+      zipDigits(
+        form.zip ||
+          form.mailing_zip ||
+          form.premise_zip ||
+          form.businessZip ||
+          form.location_zip,
+      ) || "",
+  };
+}
+
+function capitaFrom(row, session, parsed) {
+  const form = formFromSubmission(row);
+  const { zip } = contactFromForm(form);
+  const customerNumber =
+    parsed?.policyNumber || session?.policyNumber || null;
+  const payUrl = buildGuardCapitaPayUrl({ customerNumber, zip });
+  if (!payUrl) return null;
+  return { payUrl, customerNumber, zip };
+}
+
+async function emailGuardKickout({ row, session, parsed, uw }) {
+  if (session?.kickoutEmailedAt) return session;
+  const form = formFromSubmission(row);
+  const contact = contactFromForm(form);
+  try {
+    await notifyGuardWcKickout({
+      segment: row.segment || session?.parentSegment || session?.segment,
+      submissionPublicId: row.submission_public_id,
+      clientName: contact.clientName,
+      businessName: contact.businessName,
+      email: contact.email,
+      phone: contact.phone,
+      policyNumber: parsed?.policyNumber || session?.policyNumber || null,
+      premium: parsed?.fullTermAmt ?? session?.premium ?? null,
+      uwDecision: parsed?.uwDecision || uw,
+      rqUid: parsed?.rqUid || session?.rqUid || null,
+    });
+    return { ...session, kickoutEmailedAt: new Date().toISOString() };
+  } catch (err) {
+    console.error("[guard kickout email]", err.message || err);
+    return session;
+  }
 }
 
 function guardContextFrom(body, row, session) {
@@ -129,11 +193,8 @@ function applicantQuoteMessage(uw, bindable) {
   if (bindable) {
     return "Your Workers’ Comp quote is ready to bind.";
   }
-  if (uw === "refer") {
-    return "A GUARD underwriter needs to review this application. It is not available to bind online.";
-  }
-  if (uw === "decline") {
-    return "GUARD is unable to offer coverage for this risk.";
+  if (uw === "refer" || uw === "decline") {
+    return GUARD_REFER_APPLICANT_MESSAGE;
   }
   return "This application is not available to bind online.";
 }
@@ -207,13 +268,18 @@ export async function processGuardIndicate(body = {}) {
 
   const ownerPayroll = ownerPayrollFrom(body, ctx.form);
   const rqUid = crypto.randomUUID();
+  const numYrsInBusiness =
+    Number(body.years_in_business) || yearsInBusinessFromForm(ctx.form);
+  const experienceMod = resolveGuardExperienceMod({
+    yearsInBusiness: numYrsInBusiness,
+    explicit: body.experience_mod ?? body.experienceMod ?? null,
+  });
   const payload = buildRatingPayloadFromForm(ctx.form, ctx.guardLineKey, {
     legalEntityCd: body.legal_entity || body.legalEntityCd || "LL",
     ownerIncluded,
     ownerPayroll: ownerIncluded ? ownerPayroll : 0,
-    numYrsInBusiness:
-      Number(body.years_in_business) || yearsInBusinessFromForm(ctx.form),
-    experienceMod: body.experience_mod ?? body.experienceMod ?? null,
+    numYrsInBusiness,
+    experienceMod,
     ratingClassificationCd:
       body.rating_classification_cd || body.ratingClassificationCd || null,
     rqUid,
@@ -247,6 +313,7 @@ export async function processGuardIndicate(body = {}) {
     ownerIncluded,
     ownerPayroll: ownerIncluded ? ownerPayroll : 0,
     numYrsInBusiness: payload.numYrsInBusiness,
+    experienceMod,
     policyNumber: parsed.policyNumber,
     premium: parsed.fullTermAmt,
     policyStatusCd: parsed.policyStatusCd,
@@ -375,15 +442,20 @@ export async function processGuardQuote(body = {}) {
     };
   }
 
-  const payload = buildRatingPayloadFromForm(ctx.form, ctx.guardLineKey, {
-    legalEntityCd: body.legal_entity || session?.legalEntityCd || "LL",
-    ownerIncluded: session?.ownerIncluded === true,
-    numYrsInBusiness: session?.numYrsInBusiness,
-    experienceMod:
+  const experienceMod = resolveGuardExperienceMod({
+    yearsInBusiness: session?.numYrsInBusiness,
+    explicit:
       body.experience_mod ??
       body.experienceMod ??
       session?.experienceMod ??
       null,
+  });
+
+  const payload = buildRatingPayloadFromForm(ctx.form, ctx.guardLineKey, {
+    legalEntityCd: body.legal_entity || session?.legalEntityCd || "LL",
+    ownerIncluded: session?.ownerIncluded === true,
+    numYrsInBusiness: session?.numYrsInBusiness,
+    experienceMod,
     ratingClassificationCd:
       body.rating_classification_cd ||
       body.ratingClassificationCd ||
@@ -426,16 +498,25 @@ export async function processGuardQuote(body = {}) {
   const bindable = isGuardInstantBindable(parsed);
   const uw = normalizeGuardUwDecision(parsed.uwDecision);
 
-  const nextSession = {
+  let nextSession = {
     ...session,
     purpose: "NBS",
     policyNumber: parsed.policyNumber || session?.policyNumber,
     premium: parsed.fullTermAmt,
     policyStatusCd: parsed.policyStatusCd,
     uwDecision: parsed.uwDecision,
+    experienceMod,
     bindable,
     quotedAt: new Date().toISOString(),
   };
+  if (!bindable && (uw === "refer" || uw === "decline")) {
+    nextSession = await emailGuardKickout({
+      row,
+      session: nextSession,
+      parsed,
+      uw,
+    });
+  }
   await persistGuardSession(row.submission_id, nextSession);
 
   const eventType = bindable
@@ -453,12 +534,15 @@ export async function processGuardQuote(body = {}) {
     rqUid: parsed.rqUid,
   });
 
+  const capita = bindable ? capitaFrom(row, nextSession, parsed) : null;
+
   return {
     ok: true,
     bindable,
     decision: uw || (bindable ? "accept" : ""),
     canRefer: uw === "refer" && Boolean(parsed.policyNumber || session?.policyNumber),
     message: applicantQuoteMessage(uw, bindable),
+    popup: !bindable && (uw === "refer" || uw === "decline"),
     submission_public_id: submissionPublicId,
     guard: {
       policyNumber: parsed.policyNumber,
@@ -470,6 +554,7 @@ export async function processGuardQuote(body = {}) {
       carrier: parsed.carrier,
       rqUid: parsed.rqUid,
     },
+    ...(capita ? { capita } : {}),
   };
 }
 
@@ -574,6 +659,8 @@ export async function processGuardBind(body = {}) {
     }
   }
 
+  const capita = bound ? capitaFrom(row, session, parsed) : null;
+
   return {
     ok: true,
     bound,
@@ -584,8 +671,10 @@ export async function processGuardBind(body = {}) {
       msgStatusCd: parsed.msgStatusCd,
     },
     connect: connectPolicy,
-    message:
-      "Workers’ Comp bound with GUARD. Payment options will come from GUARD.",
+    ...(capita ? { capita } : {}),
+    message: capita
+      ? "Workers’ Comp bound with GUARD. Pay with GUARD / Capita — CID does not collect the card."
+      : "Workers’ Comp bound with GUARD. Payment is through GUARD — CID does not collect the card.",
   };
 }
 
@@ -623,11 +712,26 @@ export async function processGuardRefer(body = {}) {
     };
   }
 
+  const emailed = await emailGuardKickout({
+    row,
+    session: {
+      ...session,
+      purpose: "SBR",
+      policyStatusCd: parsed.policyStatusCd || session.policyStatusCd,
+      referredAt: new Date().toISOString(),
+    },
+    parsed: {
+      ...parsed,
+      policyNumber: parsed.policyNumber || session.policyNumber,
+    },
+    uw: "refer",
+  });
   await persistGuardSession(row.submission_id, {
     ...session,
     purpose: "SBR",
     policyStatusCd: parsed.policyStatusCd || session.policyStatusCd,
     referredAt: new Date().toISOString(),
+    kickoutEmailedAt: emailed?.kickoutEmailedAt || session.kickoutEmailedAt,
   });
   await appendGuardTimeline(row.submission_id, "guard.sbr", {
     policyNumber: parsed.policyNumber || session.policyNumber,
@@ -638,6 +742,7 @@ export async function processGuardRefer(body = {}) {
   return {
     ok: true,
     referred: true,
+    popup: true,
     submission_public_id: submissionPublicId,
     guard: {
       policyNumber: parsed.policyNumber || session.policyNumber,
@@ -645,7 +750,6 @@ export async function processGuardRefer(body = {}) {
       msgStatusCd: parsed.msgStatusCd,
       rqUid: parsed.rqUid,
     },
-    message:
-      "This application was sent to a GUARD underwriter. They will follow up — it is not bound.",
+    message: GUARD_REFER_APPLICANT_MESSAGE,
   };
 }

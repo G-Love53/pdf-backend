@@ -309,3 +309,55 @@ export async function notifyQuoteNeedsCid({
   });
 }
 
+/**
+ * GUARD WC Refer/Reject — CID agent follow-up (not the applicant).
+ */
+export async function notifyGuardWcKickout({
+  segment,
+  submissionPublicId,
+  clientName,
+  businessName,
+  email,
+  phone,
+  policyNumber,
+  premium,
+  uwDecision,
+  rqUid,
+}) {
+  const toEmail =
+    process.env.GUARD_REFER_EMAIL || "support@commercialinsurance-direct.com";
+  const uw = String(uwDecision || "refer").toLowerCase();
+  const kind =
+    uw.includes("declin") || uw.includes("reject") ? "Reject" : "Refer";
+  const seg = normalizeSegmentKey(segment);
+
+  const subject = buildSubject(
+    `[CID][GUARD][${kind}]`,
+    submissionPublicId,
+    clientName || businessName || "",
+  );
+
+  const lines = [
+    `GUARD Workers’ Comp ${kind} — follow up with the applicant.`,
+    "This is not bound. Applicant was told an agent will follow up.",
+    "",
+    submissionPublicId ? `Submission: ${submissionPublicId}` : "",
+    businessName ? `Business: ${businessName}` : "",
+    clientName ? `Contact: ${clientName}` : "",
+    email ? `Email: ${email}` : "",
+    phone ? `Phone: ${phone}` : "",
+    policyNumber ? `GUARD policy #: ${policyNumber}` : "",
+    premium != null && premium !== "" ? `Premium: ${premium}` : "",
+    uwDecision ? `UW decision: ${uwDecision}` : "",
+    rqUid ? `RqUID: ${rqUid}` : "",
+    seg ? `Segment: ${seg}` : "",
+  ].filter(Boolean);
+
+  await sendWithGmail({
+    to: [toEmail],
+    subject,
+    text: lines.join("\n"),
+    segment: seg || "plumber",
+  });
+}
+

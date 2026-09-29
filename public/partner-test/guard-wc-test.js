@@ -61,6 +61,49 @@
     return "$" + Number(n).toLocaleString();
   }
 
+  function guardExperienceModValue() {
+    const years = Number($("guard-years") && $("guard-years").value);
+    if (Number.isFinite(years) && years > 0 && years < 3) return undefined;
+    const el = $("guard-emr");
+    const raw = el && String(el.value || "").trim();
+    return raw || undefined;
+  }
+
+  function syncGuardEmrVisibility() {
+    const wrap = $("guard-emr-wrap");
+    const yearsEl = $("guard-years");
+    if (!wrap || !yearsEl) return;
+    const years = Number(yearsEl.value);
+    wrap.hidden = Number.isFinite(years) && years > 0 && years < 3;
+  }
+
+  function mountGuardCapitaButton(host, capita) {
+    if (!host) return;
+    let el = host.querySelector(".guard-capita-btn");
+    if (!capita || !capita.payUrl) {
+      if (el) el.remove();
+      return;
+    }
+    if (!el) {
+      el = document.createElement("a");
+      el.className = "guard-capita-btn";
+      el.target = "_blank";
+      el.rel = "noopener noreferrer";
+      host.appendChild(el);
+    }
+    el.href = capita.payUrl;
+    el.textContent = "Pay with GUARD / Capita";
+  }
+
+  function popupGuardKickout(message) {
+    const text =
+      message ||
+      "Based on the information given, an agent will follow up to finalize the quote.";
+    try {
+      window.alert(text);
+    } catch (_) {}
+  }
+
   function guardWcStatus(box, kind, text) {
     let el = box.querySelector(".guard-wc-status");
     if (!el) {
@@ -172,6 +215,11 @@
       "<div><label>Years in business</label>" +
       '<input id="guard-years" type="number" min="1" max="80" value="3"/></div>' +
       "</div>" +
+      '<div id="guard-emr-wrap">' +
+      '<label>Experience mod (optional)</label>' +
+      '<input id="guard-emr" type="number" min="0.50" max="3" step="0.01" placeholder="Leave blank if unknown"/>' +
+      '<p class="guard-field-hint">Leave blank if unknown — we send 1.00. Under 3 years always uses 1.00.</p>' +
+      "</div>" +
       "<label>Include owner on WC?</label>" +
       '<select id="guard-owner"><option value="no">No — employees only</option><option value="yes">Yes</option></select>' +
       '<div id="guard-officer-wrap" hidden>' +
@@ -222,11 +270,12 @@
       brandBlock(g.policyNumber) +
       '<p class="guard-wc-ready-kicker">Quote ready to bind</p>' +
       '<p class="guard-wc-ready-amount"></p>' +
-      '<p class="guard-wc-ready-note">GUARD sends billing separately.</p>';
+      '<p class="guard-wc-ready-note">GUARD bills you directly. CID does not collect the card.</p>';
     const bindFields = $("guard-bind-fields");
     if (bindFields) bindFields.insertAdjacentElement("beforebegin", hero);
     const amtEl = hero.querySelector(".guard-wc-ready-amount");
     if (amtEl && prem != null) amtEl.textContent = money(prem) + " / yr";
+    mountGuardCapitaButton(hero, data && data.capita);
     const bindBtn = $("guard-bind-btn");
     const referBtn = $("guard-refer-btn");
     if (bindBtn) bindBtn.hidden = false;
@@ -258,15 +307,14 @@
     if (note) {
       note.textContent =
         data.message ||
-        (isRefer
-          ? "This is not available to bind online."
-          : "GUARD is unable to offer coverage for this risk.");
+        "Based on the information given, an agent will follow up to finalize the quote.";
     }
     const bindBtn = $("guard-bind-btn");
     const referBtn = $("guard-refer-btn");
     if (bindBtn) bindBtn.hidden = true;
     if (referBtn) referBtn.hidden = !isRefer;
     guardWcStatus(box, "", "");
+    popupGuardKickout(data.message);
   }
 
   function showGuardBound(box, data) {
@@ -287,6 +335,7 @@
         (g.policyNumber ? "Policy " + g.policyNumber : "Bound") +
         (data.premium != null ? " · " + money(data.premium) + " / yr" : "");
     }
+    mountGuardCapitaButton(hero, data && data.capita);
     const bindBtn = $("guard-bind-btn");
     const referBtn = $("guard-refer-btn");
     if (bindBtn) bindBtn.hidden = true;
@@ -310,17 +359,23 @@
     if (note) {
       note.textContent =
         data.message ||
-        "A GUARD underwriter will review this application. It is not bound.";
+        "Based on the information given, an agent will follow up to finalize the quote.";
     }
     const referBtn = $("guard-refer-btn");
     if (referBtn) referBtn.hidden = true;
     guardWcStatus(box, "ok", "");
+    popupGuardKickout(data.message);
   }
 
   function wireGuardBox(box) {
     $("guard-owner").addEventListener("change", toggleOwnerPayroll);
     toggleOwnerPayroll();
     wireFeinInput();
+    const yearsEl = $("guard-years");
+    if (yearsEl) {
+      yearsEl.addEventListener("input", syncGuardEmrVisibility);
+      syncGuardEmrVisibility();
+    }
 
     $("guard-indicate-btn").addEventListener("click", () => executeIndicate(box));
     $("guard-quote-btn").addEventListener("click", async () => {
@@ -347,6 +402,7 @@
             submission_public_id: session.submission_public_id,
             legal_entity: $("guard-legal").value,
             fein: $("guard-fein").value,
+            experience_mod: guardExperienceModValue(),
             owner_on_wc: ownerOn,
             owner_payroll: ownerOn && officerEl && officerEl.value
               ? officerEl.value
@@ -395,7 +451,11 @@
         const data = await res.json();
         if (!data.ok) throw new Error(data.message || data.error || "Bind failed");
         session.guardWcBound = true;
-        showGuardBound(box, { guard: data.guard, premium: session.guardPremium });
+        showGuardBound(box, {
+          guard: data.guard,
+          premium: session.guardPremium,
+          capita: data.capita,
+        });
       } catch (err) {
         guardWcStatus(box, "err", err.message || String(err));
         btn.disabled = false;
@@ -442,6 +502,7 @@
           segment: session.segment,
           legal_entity: $("guard-legal").value,
           years_in_business: $("guard-years").value,
+          experience_mod: guardExperienceModValue(),
           owner_on_wc: ownerOn,
           owner_payroll: ownerOn && officerEl && officerEl.value
             ? officerEl.value

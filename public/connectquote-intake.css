@@ -482,6 +482,25 @@ select.cq-ext-field:required:invalid {
   margin-bottom: 4px;
 }
 
+.guard-optional {
+  font-weight: 400;
+  color: #6b7280;
+  font-size: .85em;
+}
+a.guard-capita-btn {
+  display: block;
+  margin-top: 14px;
+  background: #0d9488;
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 14px 18px;
+  border-radius: 8px;
+}
+a.guard-capita-btn:hover { background: #0f766e; color: #fff; }
+
 .guard-q { margin-top: 10px; }
 .guard-clickwrap {
   display: flex;
