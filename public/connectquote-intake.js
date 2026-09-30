@@ -2841,6 +2841,10 @@
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.message || data.error || "Indication failed");
+      if (data.popup || data.decision === "refer" || data.decision === "decline") {
+        showGuardDecision(box, data);
+        return;
+      }
       const prem = data.guard && data.guard.premium;
       const premEl = $("guard-premium");
       premEl.hidden = false;

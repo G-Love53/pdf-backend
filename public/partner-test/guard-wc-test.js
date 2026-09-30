@@ -511,6 +511,13 @@
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.message || data.error || "Indication failed");
+      if (data.popup || data.decision === "refer" || data.decision === "decline") {
+        if (data.guard && data.guard.policyNumber) {
+          session.policyNumber = data.guard.policyNumber;
+        }
+        showGuardDecision(box, data);
+        return;
+      }
       const premEl = $("guard-premium");
       premEl.hidden = false;
       const prem = data.guard && data.guard.premium;

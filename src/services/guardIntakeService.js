@@ -129,11 +129,14 @@ function contactFromForm(form = {}) {
 function capitaFrom(row, session, parsed) {
   const form = formFromSubmission(row);
   const { zip } = contactFromForm(form);
-  const customerNumber =
+  const policyNumber =
     parsed?.policyNumber || session?.policyNumber || null;
-  const payUrl = buildGuardCapitaPayUrl({ customerNumber, zip });
+  const payUrl = buildGuardCapitaPayUrl({
+    customerNumber: policyNumber,
+    zip,
+  });
   if (!payUrl) return null;
-  return { payUrl, customerNumber, zip };
+  return { payUrl, customerNumber: policyNumber, policyNumber, zip };
 }
 
 async function emailGuardKickout({ row, session, parsed, uw }) {
@@ -323,14 +326,35 @@ export async function processGuardIndicate(body = {}) {
     remarks: parsed.remarks,
     indicatedAt: new Date().toISOString(),
   };
-  await persistGuardSession(row.submission_id, session);
-  await appendGuardTimeline(row.submission_id, "guard.indicated", {
-    rqUid: session.rqUid,
-    policyNumber: parsed.policyNumber,
-    premium: parsed.fullTermAmt,
-    policyStatusCd: parsed.policyStatusCd,
-    msgStatusCd: parsed.msgStatusCd,
-  });
+
+  const uw = normalizeGuardUwDecision(parsed.uwDecision);
+  const kicked = uw === "refer" || uw === "decline";
+  let nextSession = session;
+  if (kicked) {
+    nextSession = await emailGuardKickout({
+      row,
+      session,
+      parsed,
+      uw,
+    });
+  }
+  await persistGuardSession(row.submission_id, nextSession);
+  await appendGuardTimeline(
+    row.submission_id,
+    kicked
+      ? uw === "decline"
+        ? "guard.rejected"
+        : "guard.referred"
+      : "guard.indicated",
+    {
+      rqUid: nextSession.rqUid,
+      policyNumber: parsed.policyNumber,
+      premium: parsed.fullTermAmt,
+      policyStatusCd: parsed.policyStatusCd,
+      msgStatusCd: parsed.msgStatusCd,
+      uwDecision: parsed.uwDecision,
+    },
+  );
 
   const sandbox = getGuardPublicConfig().sandbox;
   const emptyGuard =
@@ -349,9 +373,15 @@ export async function processGuardIndicate(body = {}) {
     ok: true,
     bindable: false,
     indication: true,
+    decision: uw || "",
+    popup: kicked,
+    canContinue: !kicked,
+    message: kicked
+      ? GUARD_REFER_APPLICANT_MESSAGE
+      : undefined,
     submission_public_id: submissionPublicId,
     guard: {
-      rqUid: session.rqUid,
+      rqUid: nextSession.rqUid,
       policyNumber: parsed.policyNumber,
       premium: parsed.fullTermAmt ? Number(parsed.fullTermAmt) : null,
       policyStatusCd: parsed.policyStatusCd,
@@ -370,8 +400,12 @@ export async function processGuardIndicate(body = {}) {
           }
         : {}),
     },
-    disclaimer:
-      "Indication only — not bindable until underwriting questions and FEIN are submitted.",
+    ...(kicked
+      ? {}
+      : {
+          disclaimer:
+            "Indication only — not bindable until underwriting questions and FEIN are submitted.",
+        }),
   };
 }
 

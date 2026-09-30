@@ -110,6 +110,14 @@ export function sanitizeInsuredName(name) {
     .slice(0, 35);
 }
 
+/** GUARD wants 1.0 not blank; integers as one decimal (1 → 1.0). */
+export function formatGuardModFactor(raw) {
+  const n = Number(raw);
+  const x = Number.isFinite(n) && n > 0 ? n : 1;
+  if (Number.isInteger(x)) return x.toFixed(1);
+  return String(x);
+}
+
 function firstTag(xml, name) {
   const re = new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`, "i");
   const m = String(xml || "").match(re);
@@ -479,16 +487,12 @@ export function buildWorkCompPolicyAddXml(purpose, payload, cfg) {
     })
     .join("\n    ");
 
-  const expMod = Number(payload.experienceMod);
-  const expModXml =
-    Number.isFinite(expMod) && expMod > 0
-      ? `<CreditOrSurcharge>
+  const expModXml = `<CreditOrSurcharge>
       <CreditSurchargeCd>EXP</CreditSurchargeCd>
       <NumericValue>
-        <FormatModFactor>${expMod}</FormatModFactor>
+        <FormatModFactor>${formatGuardModFactor(payload.experienceMod)}</FormatModFactor>
       </NumericValue>
-    </CreditOrSurcharge>`
-      : "";
+    </CreditOrSurcharge>`;
 
   const feinXml =
     purpose === "NBS" && payload.fein

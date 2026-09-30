@@ -3,7 +3,7 @@
  * EMR / Capita field names can change when Jon confirms the Data Directory.
  */
 
-export const GUARD_DEFAULT_EXPERIENCE_MOD = 1;
+export const GUARD_DEFAULT_EXPERIENCE_MOD = 1.0;
 export const GUARD_NEW_VENTURE_YEARS = 3;
 
 export const GUARD_REFER_APPLICANT_MESSAGE =
