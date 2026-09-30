@@ -658,4 +658,109 @@
   loadRegistry().catch((err) => {
     showErr($("start-err"), err.message || "Could not load segment registry.");
   });
+
+  function newPlacesSessionToken() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return String(Date.now());
+  }
+
+  function wrapStreetForPlaces(input) {
+    if (!input || input.closest(".cq-places-wrap")) return input.parentNode;
+    const wrap = document.createElement("div");
+    wrap.className = "cq-places-wrap";
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+    input.setAttribute("autocomplete", "off");
+    return wrap;
+  }
+
+  function wireAddressAutocomplete(streetId, cityId, stateId, zipId) {
+    const street = $(streetId);
+    if (!street || street.dataset.placesWired === "1") return;
+    street.dataset.placesWired = "1";
+    const wrap = wrapStreetForPlaces(street);
+    const list = document.createElement("div");
+    list.className = "cq-places-list";
+    list.hidden = true;
+    wrap.appendChild(list);
+    let timer = null;
+    let sessionToken = newPlacesSessionToken();
+    let seq = 0;
+    function hideList() {
+      list.hidden = true;
+      list.innerHTML = "";
+    }
+    street.addEventListener("input", () => {
+      const q = String(street.value || "").trim();
+      window.clearTimeout(timer);
+      if (q.length < 3) {
+        hideList();
+        return;
+      }
+      const mySeq = ++seq;
+      timer = window.setTimeout(async () => {
+        try {
+          const res = await fetch(apiUrl("/api/places/autocomplete"), {
+            method: "POST",
+            headers: partnerHeaders(),
+            body: JSON.stringify({ input: q, sessionToken }),
+          });
+          const data = await res.json();
+          if (mySeq !== seq) return;
+          const suggestions = data.ok ? data.suggestions || [] : [];
+          if (!suggestions.length) {
+            hideList();
+            return;
+          }
+          list.innerHTML = "";
+          suggestions.forEach((s) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "cq-places-item";
+            btn.textContent = s.text;
+            btn.addEventListener("mousedown", async (ev) => {
+              ev.preventDefault();
+              hideList();
+              const det = await fetch(apiUrl("/api/places/details"), {
+                method: "POST",
+                headers: partnerHeaders(),
+                body: JSON.stringify({ placeId: s.placeId, sessionToken }),
+              });
+              const out = await det.json();
+              sessionToken = newPlacesSessionToken();
+              if (!out.ok || !out.address) return;
+              street.value = out.address.street || street.value;
+              if ($(cityId)) $(cityId).value = out.address.city || "";
+              if ($(stateId)) $(stateId).value = out.address.state || "";
+              if ($(zipId)) $(zipId).value = out.address.zip || "";
+            });
+            list.appendChild(btn);
+          });
+          list.hidden = false;
+        } catch (_) {
+          if (mySeq === seq) hideList();
+        }
+      }, 280);
+    });
+    street.addEventListener("blur", () => window.setTimeout(hideList, 180));
+  }
+
+  fetch(apiUrl("/api/places/config"))
+    .then((r) => r.json())
+    .then((cfg) => {
+      if (!cfg || !cfg.enabled) return;
+      wireAddressAutocomplete(
+        "location_street",
+        "location_city",
+        "location_state",
+        "location_zip",
+      );
+      wireAddressAutocomplete(
+        "location2_street",
+        "location2_city",
+        "state",
+        "location2_zip",
+      );
+    })
+    .catch(() => {});
 })();

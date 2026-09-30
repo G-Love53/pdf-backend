@@ -7,7 +7,7 @@
     "https://cid-pdf-api.onrender.com"
   ).replace(/\/$/, "");
   const SEGMENT = cfg.segment || "electrical";
-  const ASSET_V = "20260928b";
+  const ASSET_V = "20260930c";
 
   /** Inbox for manual quotes when no long-form intake (see segmentAgentInbox.js). */
   const SEGMENT_AGENT_EMAIL = {
@@ -1887,6 +1887,15 @@
     if (o.contact_phone) {
       o.contact_phone = normalizeUsPhone(o.contact_phone) || String(o.contact_phone).replace(/\D+/g, "");
     }
+    if ($("cq-add-loc2") && $("cq-add-loc2").checked) {
+      o.add_location2 = "yes";
+    } else {
+      o.add_location2 = "no";
+      o.location2_street = "";
+      o.location2_city = "";
+      o.location2_state = "";
+      o.location2_zip = "";
+    }
     return o;
   }
 
@@ -2241,6 +2250,170 @@
     updatePremiumSummary();
     renderCoterieExclusions(session.exclusions);
     updatePayButtonLabel();
+  }
+
+  function newPlacesSessionToken() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === "x" ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
+
+  function injectSecondLocationFields() {
+    if ($("cq-loc2-wrap") || !$("zip")) return;
+    const zipRow = $("zip").closest(".row") || $("zip").parentNode;
+    const wrap = document.createElement("div");
+    wrap.id = "cq-loc2-wrap";
+    wrap.innerHTML =
+      '<label class="cq-check-row"><input type="checkbox" id="cq-add-loc2" name="add_location2" value="yes"/> Add a second location</label>' +
+      '<div id="cq-loc2-fields" hidden>' +
+      "<label>Second location street</label>" +
+      '<div class="cq-places-wrap"><input name="location2_street" id="location2_street" autocomplete="off"/></div>' +
+      '<div class="row">' +
+      "<div><label>City</label>" +
+      '<input name="location2_city" id="location2_city"/></div>' +
+      "<div><label>State</label>" +
+      '<input name="location2_state" id="location2_state" maxlength="2"/></div>' +
+      "</div>" +
+      "<label>ZIP</label>" +
+      '<input name="location2_zip" id="location2_zip" inputmode="numeric"/>' +
+      "</div>";
+    zipRow.insertAdjacentElement("afterend", wrap);
+    const box = $("cq-add-loc2");
+    const fields = $("cq-loc2-fields");
+    if (box && fields) {
+      box.addEventListener("change", () => {
+        fields.hidden = !box.checked;
+        if (box.checked && $("location2_state") && $("state") && !$("location2_state").value) {
+          $("location2_state").value = $("state").value || "CO";
+        }
+      });
+    }
+  }
+
+  function wrapStreetForPlaces(input) {
+    if (!input || input.closest(".cq-places-wrap")) return input.parentNode;
+    const wrap = document.createElement("div");
+    wrap.className = "cq-places-wrap";
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+    input.setAttribute("autocomplete", "off");
+    return wrap;
+  }
+
+  function wireAddressAutocomplete(streetId, cityId, stateId, zipId) {
+    const street = $(streetId);
+    if (!street || street.dataset.placesWired === "1") return;
+    street.dataset.placesWired = "1";
+    const wrap = wrapStreetForPlaces(street);
+    const list = document.createElement("div");
+    list.className = "cq-places-list";
+    list.hidden = true;
+    wrap.appendChild(list);
+
+    let timer = null;
+    let sessionToken = newPlacesSessionToken();
+    let seq = 0;
+
+    function hideList() {
+      list.hidden = true;
+      list.innerHTML = "";
+    }
+
+    async function pick(placeId) {
+      hideList();
+      try {
+        const res = await fetch(API + "/api/places/details", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ placeId, sessionToken }),
+        });
+        const data = await res.json();
+        sessionToken = newPlacesSessionToken();
+        if (!data.ok || !data.address) {
+          throw new Error(data.message || "Could not use that address.");
+        }
+        const a = data.address;
+        street.value = a.street || street.value;
+        if ($(cityId)) $(cityId).value = a.city || "";
+        if ($(stateId)) $(stateId).value = a.state || "";
+        if ($(zipId)) $(zipId).value = a.zip || "";
+        [street, $(cityId), $(stateId), $(zipId)].forEach((el) => {
+          if (el) el.classList.remove("prefilled");
+        });
+      } catch (err) {
+        list.hidden = false;
+        list.innerHTML =
+          '<div class="cq-places-err">' +
+          (err.message || "Address lookup failed.") +
+          "</div>";
+      }
+    }
+
+    street.addEventListener("input", () => {
+      const q = String(street.value || "").trim();
+      window.clearTimeout(timer);
+      if (q.length < 3) {
+        hideList();
+        return;
+      }
+      const mySeq = ++seq;
+      timer = window.setTimeout(async () => {
+        try {
+          const res = await fetch(API + "/api/places/autocomplete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ input: q, sessionToken }),
+          });
+          const data = await res.json();
+          if (mySeq !== seq) return;
+          const suggestions = data.ok ? data.suggestions || [] : [];
+          if (!suggestions.length) {
+            hideList();
+            return;
+          }
+          list.innerHTML = "";
+          suggestions.forEach((s) => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "cq-places-item";
+            btn.textContent = s.text;
+            btn.addEventListener("mousedown", (ev) => {
+              ev.preventDefault();
+              pick(s.placeId);
+            });
+            list.appendChild(btn);
+          });
+          list.hidden = false;
+        } catch (_) {
+          if (mySeq === seq) hideList();
+        }
+      }, 280);
+    });
+
+    street.addEventListener("blur", () => {
+      window.setTimeout(hideList, 180);
+    });
+  }
+
+  async function setupAddressLookup() {
+    injectSecondLocationFields();
+    try {
+      const r = await fetch(API + "/api/places/config");
+      const cfg = await r.json();
+      if (!cfg || !cfg.enabled) return;
+    } catch (_) {
+      return;
+    }
+    wireAddressAutocomplete("premise_street", "premise_city", "state", "zip");
+    wireAddressAutocomplete(
+      "location2_street",
+      "location2_city",
+      "location2_state",
+      "location2_zip",
+    );
   }
 
   async function loadConfig() {
@@ -3186,6 +3359,7 @@
     initEmployeeCountField();
     applyPrefill();
     applyPartnerDemoDefaults();
+    await setupAddressLookup().catch(() => {});
     await loadBusinessClasses();
     wireForm();
     await refreshDynamicForm();

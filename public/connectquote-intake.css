@@ -549,3 +549,46 @@ input.zip-needs-confirm {
   color: #334155;
 }
 .cid-partner-copy strong { color: #0f172a; }
+
+.cq-check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 8px;
+  font-weight: 600;
+}
+.cq-check-row input { width: auto; }
+.cq-places-wrap { position: relative; }
+.cq-places-list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 40;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  margin-top: 4px;
+  max-height: 240px;
+  overflow: auto;
+}
+.cq-places-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  color: #111;
+  border: 0;
+  border-radius: 0;
+  margin: 0;
+  padding: 10px 12px;
+  font-size: .92rem;
+  font-weight: 500;
+}
+.cq-places-item:hover { background: #f3f4f6; }
+.cq-places-err {
+  padding: 10px 12px;
+  color: #b91c1c;
+  font-size: .85rem;
+}

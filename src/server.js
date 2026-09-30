@@ -16,6 +16,7 @@ import operatorRoutes from "./routes/operatorRoutes.js";
 import webhooksRouter from "./routes/webhooks.js";
 import coterieRoutes from "./routes/coterieRoutes.js";
 import guardRoutes from "./routes/guardRoutes.js";
+import placesRoutes from "./routes/placesRoutes.js";
 import cqEventsRoutes, { startCqEventsBotJanitor } from "./routes/cqEventsRoutes.js";
 import partnerPublicRoutes from "./routes/partnerPublicRoutes.js";
 import { connectAuthMiddleware } from "./middleware/connectAuth.js";
@@ -1091,6 +1092,7 @@ APP.post("/submit-quote", async (req, res) => {
 
 APP.use(coterieRoutes);
 APP.use(guardRoutes);
+APP.use(placesRoutes);
 APP.use(partnerPublicRoutes);
 APP.use(documentRoutes);
 APP.use(operatorRoutes);

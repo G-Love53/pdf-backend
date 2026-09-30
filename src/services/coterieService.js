@@ -286,7 +286,7 @@ export function buildApplicationPayload(
     AKHash: akHash,
     email: form.contact_email || form.email || form.applicant_email,
     ...(phone ? { contactPhone: phone } : {}),
-    locations: [buildLocationRow(form)],
+    locations: buildLocationRows(form),
   };
 
   if (applicationExternalId) {
@@ -529,6 +529,31 @@ function parseBppLimit(form) {
   return Math.min(500000, Math.max(5000, Math.round(n)));
 }
 
+function buildLocationRows(form, { includeBopFields = false } = {}) {
+  const rows = [buildLocationRow(form, { includeBopFields })];
+  const street2 = String(form.location2_street || form.location2Street || "").trim();
+  if (!street2) return rows;
+  const city2 = String(form.location2_city || form.location2City || "").trim();
+  const state2 = String(
+    form.location2_state || form.location2State || form.state || "",
+  )
+    .trim()
+    .toUpperCase()
+    .slice(0, 2);
+  const zip2 = String(form.location2_zip || form.location2Zip || "")
+    .replace(/\D/g, "")
+    .slice(0, 5);
+  if (!city2 || !state2 || zip2.length !== 5) return rows;
+  rows.push({
+    street: street2,
+    city: city2,
+    state: state2,
+    zip: zip2,
+    isPrimaryLocation: false,
+  });
+  return rows;
+}
+
 function buildLocationRow(form, { includeBopFields = false } = {}) {
   const { street, city, state, zip } = buildMailingAddress(form);
   const row = {
@@ -590,7 +615,7 @@ export function buildBindableQuotePayload(
     mailingAddressState: state,
     mailingAddressZip: zip,
     numEmployees: Number(form.num_employees || form.numEmployees || 1),
-    locations: [buildLocationRow(form, { includeBopFields: includesBop })],
+    locations: buildLocationRows(form, { includeBopFields: includesBop }),
     glLimit,
     glAggregateLimit,
     glAggregatePcoLimit: glAggregateLimit,
