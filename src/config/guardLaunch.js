@@ -3,6 +3,8 @@
  * EMR / Capita field names can change when Jon confirms the Data Directory.
  */
 
+import { getCidSupportInboxEmail } from "./segmentAgentInbox.js";
+
 export const GUARD_DEFAULT_EXPERIENCE_MOD = 1.0;
 export const GUARD_NEW_VENTURE_YEARS = 3;
 
@@ -10,9 +12,7 @@ export const GUARD_REFER_APPLICANT_MESSAGE =
   "Based on the information given, an agent will follow up to finalize the quote.";
 
 export function guardReferInbox() {
-  return (
-    process.env.GUARD_REFER_EMAIL || "support@commercialinsurance-direct.com"
-  );
+  return getCidSupportInboxEmail();
 }
 
 export function zipDigits(zip) {

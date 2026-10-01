@@ -1,6 +1,6 @@
 import { getPool } from "../db.js";
 import { sendWithGmail } from "../email.js";
-import { getSegmentAgentInboxEmail } from "../config/segmentAgentInbox.js";
+import { getSegmentAgentInboxEmail, getCidSupportInboxEmail } from "../config/segmentAgentInbox.js";
 
 const BAR_AGENT_EMAIL = "quote@barinsurancedirect.com";
 
@@ -331,8 +331,7 @@ export async function notifyGuardWcKickout({
   followUpHint,
   flags,
 }) {
-  const toEmail =
-    process.env.GUARD_REFER_EMAIL || "support@commercialinsurance-direct.com";
+  const toEmail = getCidSupportInboxEmail();
   const uw = String(uwDecision || "refer").toLowerCase();
   const kind =
     uw.includes("declin") || uw.includes("reject") ? "Reject" : "Refer";

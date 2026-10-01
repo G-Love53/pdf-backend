@@ -1,6 +1,6 @@
 import { sendWithGmail } from "../email.js";
 import { createSignedBindLinkParams } from "../utils/bindLinkToken.js";
-import { getSegmentAgentInboxEmail } from "../config/segmentAgentInbox.js";
+import { getCidSupportInboxEmail } from "../config/segmentAgentInbox.js";
 
 const SEGMENT_DISPLAY = {
   bar: "Bar & Restaurant",
@@ -142,9 +142,8 @@ export function buildPacketEmailHtml({ segment, packetData, bodyOverride }) {
           return `${base}?source=email&t=${encodeURIComponent(signed.t)}&exp=${encodeURIComponent(signed.exp)}`;
         })()
       : null;
-  const questionsTo =
-    getSegmentAgentInboxEmail(seg) || `quotes@${seg}insurancedirect.com`;
-  const questionSubject = `Question re: Quote ${submissionId}`;
+  const questionsTo = getCidSupportInboxEmail();
+  const questionSubject = `Question re: ${seg} Quote ${submissionId}`;
   const questionBody = "My question about my quote: ";
   const questionMailto = `mailto:${encodeURIComponent(questionsTo)}?subject=${encodeURIComponent(questionSubject)}&body=${encodeURIComponent(questionBody)}`;
   const letterHtml = formatLetterHtml(packetData.sales_letter_text);
@@ -227,9 +226,8 @@ export function buildPacketEmailText({ segment, packetData, bodyOverride }) {
           return `${base}?source=email&t=${encodeURIComponent(signed.t)}&exp=${encodeURIComponent(signed.exp)}`;
         })()
       : null;
-  const questionsTo =
-    getSegmentAgentInboxEmail(seg) || `quotes@${seg}insurancedirect.com`;
-  const questionSubject = `Question re: Quote ${submissionId}`;
+  const questionsTo = getCidSupportInboxEmail();
+  const questionSubject = `Question re: ${seg} Quote ${submissionId}`;
   const questionBody = "My question about my quote: ";
   const questionMailto = `mailto:${encodeURIComponent(questionsTo)}?subject=${encodeURIComponent(questionSubject)}&body=${encodeURIComponent(questionBody)}`;
   const letterText = formatLetterText(packetData.sales_letter_text);

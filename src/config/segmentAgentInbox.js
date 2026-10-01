@@ -60,6 +60,21 @@ export const GMAIL_POLLER_SEGMENTS = [
 ];
 
 /**
+ * Applicant questions + GUARD Refer/Reject follow-up — one ops queue.
+ * Segment `quotes@` stays for carrier/poller pings.
+ */
+export const CID_SUPPORT_INBOX_DEFAULT =
+  "support@commercialinsurance-direct.com";
+
+export function getCidSupportInboxEmail() {
+  return (
+    process.env.CID_SUPPORT_EMAIL ||
+    process.env.GUARD_REFER_EMAIL ||
+    CID_SUPPORT_INBOX_DEFAULT
+  );
+}
+
+/**
  * @param {string} [segment] - submissions.segment / segment_type
  * @returns {string|null}
  */
