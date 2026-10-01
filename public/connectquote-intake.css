@@ -456,6 +456,15 @@ select.cq-ext-field:required:invalid {
   line-height: 1.45;
   color: rgba(255, 255, 255, 0.92);
 }
+.guard-ops-hint {
+  margin: 10px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: .78rem;
+  line-height: 1.4;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.82);
+}
 .guard-field-hint {
   margin: 4px 0 0;
   font-size: .8rem;

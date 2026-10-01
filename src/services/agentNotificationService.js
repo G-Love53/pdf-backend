@@ -323,6 +323,13 @@ export async function notifyGuardWcKickout({
   premium,
   uwDecision,
   rqUid,
+  purpose,
+  policyStatusCd,
+  remarks,
+  msgStatusDesc,
+  category,
+  followUpHint,
+  flags,
 }) {
   const toEmail =
     process.env.GUARD_REFER_EMAIL || "support@commercialinsurance-direct.com";
@@ -330,6 +337,30 @@ export async function notifyGuardWcKickout({
   const kind =
     uw.includes("declin") || uw.includes("reject") ? "Reject" : "Refer";
   const seg = normalizeSegmentKey(segment);
+  const step =
+    String(purpose || "").toUpperCase() === "NBS"
+      ? "Application (after Y/N questions)"
+      : String(purpose || "").toUpperCase() === "NBQ"
+        ? "Indication (before application questions)"
+        : purpose || "";
+  const remarkLines = Array.isArray(remarks)
+    ? remarks.filter(Boolean)
+    : remarks
+      ? [String(remarks)]
+      : [];
+  const flagLines = (flags || [])
+    .slice(0, 8)
+    .map((f) => {
+      const cd = f.questionCd ? ` (${f.questionCd})` : "";
+      const val = f.value != null && f.value !== "" ? ` = ${f.value}` : "";
+      return `- ${f.label || f.kind}${cd}${val}`;
+    });
+  const categoryLabel = {
+    possible_mistake: "Possible mistake (encoding / test / missing I Agree)",
+    appetite: "Appetite knockout from an answer",
+    carrier: "GUARD returned a reason",
+    unknown: "No reason text — Digital Decision only",
+  }[String(category || "")] || "";
 
   const subject = buildSubject(
     `[CID][GUARD][${kind}]`,
@@ -349,9 +380,19 @@ export async function notifyGuardWcKickout({
     policyNumber ? `GUARD policy #: ${policyNumber}` : "",
     premium != null && premium !== "" ? `Premium: ${premium}` : "",
     uwDecision ? `UW decision: ${uwDecision}` : "",
+    step ? `Step: ${step}` : "",
+    policyStatusCd ? `Policy status: ${policyStatusCd}` : "",
     rqUid ? `RqUID: ${rqUid}` : "",
     seg ? `Segment: ${seg}` : "",
-  ].filter(Boolean);
+    "",
+    categoryLabel ? `Why (CID read): ${categoryLabel}` : "",
+    followUpHint ? `Follow-up: ${followUpHint}` : "",
+    remarkLines.length ? "GUARD remarks:" : "",
+    ...remarkLines.map((r) => `- ${r}`),
+    msgStatusDesc ? `GUARD message: ${msgStatusDesc}` : "",
+    flagLines.length ? "Answers that matter:" : "",
+    ...flagLines,
+  ].filter((line) => line !== "");
 
   await sendWithGmail({
     to: [toEmail],

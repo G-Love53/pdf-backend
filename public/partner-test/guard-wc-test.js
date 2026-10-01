@@ -309,6 +309,12 @@
         data.message ||
         "Based on the information given, an agent will follow up to finalize the quote.";
     }
+    if (g.opsHint) {
+      const ops = document.createElement("p");
+      ops.className = "guard-ops-hint";
+      ops.textContent = "Ops: " + g.opsHint;
+      hero.appendChild(ops);
+    }
     const bindBtn = $("guard-bind-btn");
     const referBtn = $("guard-refer-btn");
     if (bindBtn) bindBtn.hidden = true;
@@ -360,6 +366,12 @@
       note.textContent =
         data.message ||
         "Based on the information given, an agent will follow up to finalize the quote.";
+    }
+    if (g.opsHint) {
+      const ops = document.createElement("p");
+      ops.className = "guard-ops-hint";
+      ops.textContent = "Ops: " + g.opsHint;
+      hero.appendChild(ops);
     }
     const referBtn = $("guard-refer-btn");
     if (referBtn) referBtn.hidden = true;

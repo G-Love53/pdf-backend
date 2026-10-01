@@ -23,6 +23,10 @@ import {
 import { finalizeGuardBind } from "./guardPolicyService.js";
 import { notifyGuardWcKickout } from "./agentNotificationService.js";
 import {
+  explainGuardKickout,
+  kickoutTimelinePayload,
+} from "./guardKickoutExplain.js";
+import {
   GUARD_REFER_APPLICANT_MESSAGE,
   buildGuardCapitaPayUrl,
   isGuardCapitaConfigured,
@@ -139,10 +143,27 @@ function capitaFrom(row, session, parsed) {
   return { payUrl, customerNumber: policyNumber, policyNumber, zip };
 }
 
-async function emailGuardKickout({ row, session, parsed, uw }) {
+async function emailGuardKickout({
+  row,
+  session,
+  parsed,
+  uw,
+  answers,
+  purpose,
+  digitalDecisionNote,
+}) {
   if (session?.kickoutEmailedAt) return session;
   const form = formFromSubmission(row);
   const contact = contactFromForm(form);
+  const step = purpose || session?.purpose || "";
+  const explain = explainGuardKickout({
+    parsed,
+    answers,
+    purpose: step,
+    uwDecision: parsed?.uwDecision || uw,
+    digitalDecisionNote:
+      digitalDecisionNote || session?.digitalDecisionNote || null,
+  });
   try {
     await notifyGuardWcKickout({
       segment: row.segment || session?.parentSegment || session?.segment,
@@ -155,8 +176,19 @@ async function emailGuardKickout({ row, session, parsed, uw }) {
       premium: parsed?.fullTermAmt ?? session?.premium ?? null,
       uwDecision: parsed?.uwDecision || uw,
       rqUid: parsed?.rqUid || session?.rqUid || null,
+      purpose: explain.purpose,
+      policyStatusCd: parsed?.policyStatusCd || session?.policyStatusCd || null,
+      remarks: explain.remarks,
+      msgStatusDesc: explain.msgStatusDesc,
+      category: explain.category,
+      followUpHint: explain.followUpHint,
+      flags: explain.flags,
     });
-    return { ...session, kickoutEmailedAt: new Date().toISOString() };
+    return {
+      ...session,
+      kickoutEmailedAt: new Date().toISOString(),
+      kickoutExplain: explain,
+    };
   } catch (err) {
     console.error("[guard kickout email]", err.message || err);
     return session;
@@ -324,18 +356,30 @@ export async function processGuardIndicate(body = {}) {
     msgStatusCd: parsed.msgStatusCd,
     requestStatusCd: parsed.requestStatusCd,
     remarks: parsed.remarks,
+    digitalDecisionNote: entry?.digitalDecisionNote || null,
     indicatedAt: new Date().toISOString(),
   };
 
   const uw = normalizeGuardUwDecision(parsed.uwDecision);
   const kicked = uw === "refer" || uw === "decline";
+  const indicateExplain = kicked
+    ? explainGuardKickout({
+        parsed,
+        answers: [],
+        purpose: "NBQ",
+        uwDecision: parsed.uwDecision,
+        digitalDecisionNote: entry?.digitalDecisionNote || null,
+      })
+    : null;
   let nextSession = session;
   if (kicked) {
     nextSession = await emailGuardKickout({
       row,
-      session,
+      session: { ...session, kickoutExplain: indicateExplain },
       parsed,
       uw,
+      purpose: "NBQ",
+      digitalDecisionNote: entry?.digitalDecisionNote || null,
     });
   }
   await persistGuardSession(row.submission_id, nextSession);
@@ -346,14 +390,16 @@ export async function processGuardIndicate(body = {}) {
         ? "guard.rejected"
         : "guard.referred"
       : "guard.indicated",
-    {
-      rqUid: nextSession.rqUid,
-      policyNumber: parsed.policyNumber,
-      premium: parsed.fullTermAmt,
-      policyStatusCd: parsed.policyStatusCd,
-      msgStatusCd: parsed.msgStatusCd,
-      uwDecision: parsed.uwDecision,
-    },
+    kicked
+      ? kickoutTimelinePayload(parsed, indicateExplain)
+      : {
+          rqUid: nextSession.rqUid,
+          policyNumber: parsed.policyNumber,
+          premium: parsed.fullTermAmt,
+          policyStatusCd: parsed.policyStatusCd,
+          msgStatusCd: parsed.msgStatusCd,
+          uwDecision: parsed.uwDecision,
+        },
   );
 
   const sandbox = getGuardPublicConfig().sandbox;
@@ -390,6 +436,12 @@ export async function processGuardIndicate(body = {}) {
       requestStatusCd: parsed.requestStatusCd,
       signonStatusCd: parsed.signonStatusCd,
       remarks: parsed.remarks,
+      ...(indicateExplain
+        ? {
+            opsHint: indicateExplain.followUpHint,
+            opsCategory: indicateExplain.category,
+          }
+        : {}),
       ...(sandbox && emptyGuard
         ? {
             debug: {
@@ -485,6 +537,9 @@ export async function processGuardQuote(body = {}) {
       null,
   });
 
+  const questionAnswers = mergeGuardQuestionAnswers(
+    Array.isArray(body.answers) ? body.answers : [],
+  );
   const payload = buildRatingPayloadFromForm(ctx.form, ctx.guardLineKey, {
     legalEntityCd: body.legal_entity || session?.legalEntityCd || "LL",
     ownerIncluded: session?.ownerIncluded === true,
@@ -501,9 +556,7 @@ export async function processGuardQuote(body = {}) {
         ? ownerPayrollFrom(body, ctx.form) ?? session?.ownerPayroll ?? null
         : 0,
     policyNumber: session?.policyNumber || null,
-    questionAnswers: mergeGuardQuestionAnswers(
-      Array.isArray(body.answers) ? body.answers : [],
-    ),
+    questionAnswers,
   });
 
   let parsed;
@@ -531,6 +584,17 @@ export async function processGuardQuote(body = {}) {
 
   const bindable = isGuardInstantBindable(parsed);
   const uw = normalizeGuardUwDecision(parsed.uwDecision);
+  const quoteExplain =
+    !bindable && (uw === "refer" || uw === "decline")
+      ? explainGuardKickout({
+          parsed,
+          answers: questionAnswers,
+          purpose: "NBS",
+          uwDecision: parsed.uwDecision,
+          digitalDecisionNote:
+            session?.digitalDecisionNote || ctx.line?.digitalDecisionNote,
+        })
+      : null;
 
   let nextSession = {
     ...session,
@@ -540,15 +604,19 @@ export async function processGuardQuote(body = {}) {
     policyStatusCd: parsed.policyStatusCd,
     uwDecision: parsed.uwDecision,
     experienceMod,
+    questionAnswers,
     bindable,
     quotedAt: new Date().toISOString(),
   };
-  if (!bindable && (uw === "refer" || uw === "decline")) {
+  if (quoteExplain) {
     nextSession = await emailGuardKickout({
       row,
-      session: nextSession,
+      session: { ...nextSession, kickoutExplain: quoteExplain },
       parsed,
       uw,
+      answers: questionAnswers,
+      purpose: "NBS",
+      digitalDecisionNote: nextSession.digitalDecisionNote,
     });
   }
   await persistGuardSession(row.submission_id, nextSession);
@@ -560,13 +628,19 @@ export async function processGuardQuote(body = {}) {
       : uw === "decline"
         ? "guard.rejected"
         : "guard.quoted";
-  await appendGuardTimeline(row.submission_id, eventType, {
-    policyNumber: parsed.policyNumber,
-    premium: parsed.fullTermAmt,
-    policyStatusCd: parsed.policyStatusCd,
-    uwDecision: parsed.uwDecision,
-    rqUid: parsed.rqUid,
-  });
+  await appendGuardTimeline(
+    row.submission_id,
+    eventType,
+    quoteExplain
+      ? kickoutTimelinePayload(parsed, quoteExplain)
+      : {
+          policyNumber: parsed.policyNumber,
+          premium: parsed.fullTermAmt,
+          policyStatusCd: parsed.policyStatusCd,
+          uwDecision: parsed.uwDecision,
+          rqUid: parsed.rqUid,
+        },
+  );
 
   const capita = bindable ? capitaFrom(row, nextSession, parsed) : null;
 
@@ -587,6 +661,12 @@ export async function processGuardQuote(body = {}) {
       remarks: parsed.remarks,
       carrier: parsed.carrier,
       rqUid: parsed.rqUid,
+      ...(quoteExplain
+        ? {
+            opsHint: quoteExplain.followUpHint,
+            opsCategory: quoteExplain.category,
+          }
+        : {}),
     },
     ...(capita ? { capita } : {}),
   };
