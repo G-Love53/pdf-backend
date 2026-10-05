@@ -451,6 +451,11 @@ export function buildWorkCompPolicyAddXml(purpose, payload, cfg) {
   const city = String(payload.city || "").slice(0, 30);
   const state = String(payload.state || "CO").slice(0, 2).toUpperCase();
   const zip = String(payload.zip || "").replace(/\D/g, "").slice(0, 9);
+  const mailingState = String(
+    payload.mailingState || payload.mailing_state || payload.state || "CO",
+  )
+    .slice(0, 2)
+    .toUpperCase();
   const classCd = payload.ratingClassificationCd;
   const locations = normalizeWorkCompLocations(payload);
   const ownerIncluded = payload.ownerIncluded === true;
@@ -542,7 +547,7 @@ export function buildWorkCompPolicyAddXml(purpose, payload, cfg) {
         <AddrTypeCd>MailingAddress</AddrTypeCd>
         <Addr1>${xmlEscape(street)}</Addr1>
         <City>${xmlEscape(city)}</City>
-        <StateProvCd>${xmlEscape(state)}</StateProvCd>
+        <StateProvCd>${xmlEscape(mailingState)}</StateProvCd>
         <PostalCode>${xmlEscape(zip)}</PostalCode>
       </Addr>
       <Communications>
@@ -870,6 +875,13 @@ export function buildRatingPayloadFromForm(form, segment, extras = {}) {
     city: form.city || form.mailing_city || form.premise_city || "",
     state: form.premise_state || form.state || form.businessState || "CO",
     zip: form.zip || form.mailing_zip || form.businessZip || form.premise_zip || "",
+    mailingState:
+      form.mailing_state ||
+      form.mailingState ||
+      form.premise_state ||
+      form.state ||
+      form.businessState ||
+      "CO",
     locationStreet: form.premise_street || form.address || "",
     locationCity: form.premise_city || form.city || "",
     locationState: form.premise_state || form.state || form.businessState || "CO",

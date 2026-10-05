@@ -29,6 +29,7 @@ import {
 import {
   GUARD_REFER_APPLICANT_MESSAGE,
   buildGuardCapitaPayUrl,
+  guardApplicantKickoutMessage,
   isGuardCapitaConfigured,
   resolveGuardExperienceMod,
   zipDigits,
@@ -224,12 +225,16 @@ function ownerPayrollFrom(body = {}, form = {}) {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-function applicantQuoteMessage(uw, bindable) {
+function applicantQuoteMessage(uw, bindable, parsed = {}) {
   if (bindable) {
     return "Your Workers’ Comp quote is ready to bind.";
   }
   if (uw === "refer" || uw === "decline") {
-    return GUARD_REFER_APPLICANT_MESSAGE;
+    return guardApplicantKickoutMessage({
+      uw,
+      remarks: parsed.remarks,
+      msgStatusDesc: parsed.msgStatusDesc,
+    });
   }
   return "This application is not available to bind online.";
 }
@@ -423,7 +428,11 @@ export async function processGuardIndicate(body = {}) {
     popup: kicked,
     canContinue: !kicked,
     message: kicked
-      ? GUARD_REFER_APPLICANT_MESSAGE
+      ? guardApplicantKickoutMessage({
+          uw,
+          remarks: parsed.remarks,
+          msgStatusDesc: parsed.msgStatusDesc,
+        })
       : undefined,
     submission_public_id: submissionPublicId,
     guard: {
@@ -436,12 +445,6 @@ export async function processGuardIndicate(body = {}) {
       requestStatusCd: parsed.requestStatusCd,
       signonStatusCd: parsed.signonStatusCd,
       remarks: parsed.remarks,
-      ...(indicateExplain
-        ? {
-            opsHint: indicateExplain.followUpHint,
-            opsCategory: indicateExplain.category,
-          }
-        : {}),
       ...(sandbox && emptyGuard
         ? {
             debug: {
@@ -649,7 +652,7 @@ export async function processGuardQuote(body = {}) {
     bindable,
     decision: uw || (bindable ? "accept" : ""),
     canRefer: uw === "refer" && Boolean(parsed.policyNumber || session?.policyNumber),
-    message: applicantQuoteMessage(uw, bindable),
+    message: applicantQuoteMessage(uw, bindable, parsed),
     popup: !bindable && (uw === "refer" || uw === "decline"),
     submission_public_id: submissionPublicId,
     guard: {
@@ -661,12 +664,6 @@ export async function processGuardQuote(body = {}) {
       remarks: parsed.remarks,
       carrier: parsed.carrier,
       rqUid: parsed.rqUid,
-      ...(quoteExplain
-        ? {
-            opsHint: quoteExplain.followUpHint,
-            opsCategory: quoteExplain.category,
-          }
-        : {}),
     },
     ...(capita ? { capita } : {}),
   };
@@ -864,6 +861,10 @@ export async function processGuardRefer(body = {}) {
       msgStatusCd: parsed.msgStatusCd,
       rqUid: parsed.rqUid,
     },
-    message: GUARD_REFER_APPLICANT_MESSAGE,
+    message: guardApplicantKickoutMessage({
+      uw: "refer",
+      remarks: parsed.remarks,
+      msgStatusDesc: parsed.msgStatusDesc,
+    }),
   };
 }

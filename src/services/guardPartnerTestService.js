@@ -108,18 +108,30 @@ function normalizePartnerForm(body = {}) {
   const mailingSame = truthyFlag(
     body.mailing_same ?? body.mailingSame ?? false,
   );
+  const locationState = String(
+    body.location_state || body.locationState || body.premise_state || state,
+  )
+    .trim()
+    .toUpperCase()
+    .slice(0, 2) || state;
   const mailingStreet = mailingSame
     ? locationStreet
     : body.mailing_street || body.mailingStreet || "";
   const mailingCity = mailingSame
     ? locationCity
-    : body.mailing_city || body.city || locationCity;
+    : body.mailing_city || body.mailingCity || locationCity;
   const mailingZip = mailingSame
     ? locationZip
-    : body.mailing_zip || body.zip || "80203";
+    : body.mailing_zip || body.mailingZip || "80203";
+  const mailingState = mailingSame
+    ? locationState
+    : String(body.mailing_state || body.mailingState || locationState)
+        .trim()
+        .toUpperCase()
+        .slice(0, 2) || locationState;
   const locations = partnerLocations(
     body,
-    state,
+    locationState,
     locationCity,
     locationZip,
     locationStreet,
@@ -134,11 +146,12 @@ function normalizePartnerForm(body = {}) {
     insured_name: body.insured_name || body.business_name || body.legal_business_name || "Demo Business LLC",
     premise_street: locationStreet,
     premise_city: locationCity,
-    premise_state: state,
+    premise_state: locationState,
     premise_zip: locationZip,
     street: mailingStreet || locationStreet || "PO Box 100",
     city: mailingCity,
-    state,
+    mailing_state: mailingState,
+    mailingState,
     zip: mailingZip || locationZip,
     mailing_same: mailingSame,
     locations,

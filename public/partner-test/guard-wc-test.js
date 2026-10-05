@@ -98,7 +98,7 @@
   function popupGuardKickout(message) {
     const text =
       message ||
-      "Based on the information given, an agent will follow up to finalize the quote.";
+      "NOTICE: This risk will require underwriting review.";
     try {
       window.alert(text);
     } catch (_) {}
@@ -307,13 +307,7 @@
     if (note) {
       note.textContent =
         data.message ||
-        "Based on the information given, an agent will follow up to finalize the quote.";
-    }
-    if (g.opsHint) {
-      const ops = document.createElement("p");
-      ops.className = "guard-ops-hint";
-      ops.textContent = "Ops: " + g.opsHint;
-      hero.appendChild(ops);
+        "NOTICE: This risk will require underwriting review.";
     }
     const bindBtn = $("guard-bind-btn");
     const referBtn = $("guard-refer-btn");
@@ -365,13 +359,7 @@
     if (note) {
       note.textContent =
         data.message ||
-        "Based on the information given, an agent will follow up to finalize the quote.";
-    }
-    if (g.opsHint) {
-      const ops = document.createElement("p");
-      ops.className = "guard-ops-hint";
-      ops.textContent = "Ops: " + g.opsHint;
-      hero.appendChild(ops);
+        "NOTICE: This risk will require underwriting review.";
     }
     const referBtn = $("guard-refer-btn");
     if (referBtn) referBtn.hidden = true;
@@ -629,10 +617,12 @@
         location_street: $("location_street").value,
         location_city: $("location_city").value,
         location_zip: $("location_zip").value,
+        location_state: $("location_state").value,
         mailing_same: mailingSame,
         mailing_street: mailingSame ? $("location_street").value : $("mailing_street").value,
         mailing_city: mailingSame ? $("location_city").value : $("mailing_city").value,
         mailing_zip: mailingSame ? $("location_zip").value : $("mailing_zip").value,
+        mailing_state: mailingSame ? $("location_state").value : $("mailing_state").value,
         city: $("location_city").value,
         num_employees: $("num_employees").value,
         payroll: $("payroll").value,
@@ -641,7 +631,7 @@
         body.location2_street = $("location2_street").value;
         body.location2_city = $("location2_city").value;
         body.location2_zip = $("location2_zip").value;
-        body.location2_state = $("state").value;
+        body.location2_state = $("location2_state").value || $("location_state").value || $("state").value;
       }
       const res = await fetch(apiUrl("/api/guard/wc/partner/start"), {
         method: "POST",
@@ -768,9 +758,15 @@
         "location_zip",
       );
       wireAddressAutocomplete(
+        "mailing_street",
+        "mailing_city",
+        "mailing_state",
+        "mailing_zip",
+      );
+      wireAddressAutocomplete(
         "location2_street",
         "location2_city",
-        "state",
+        "location2_state",
         "location2_zip",
       );
     })

@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>CID Partner Test — Workers' Comp (P-env)</title>
-  <link rel="stylesheet" href="/static/connectquote-intake.css?v=20261001a"/>
+  <link rel="stylesheet" href="/static/connectquote-intake.css?v=20261005a"/>
   <style>
     :root { --brand: #1B3A5F; --accent: #0d9488; }
     body { font-family: Arial, sans-serif; margin: 0; background: #f3f4f6; color: #111; }
@@ -114,7 +114,10 @@
             <label>Mailing ZIP</label>
             <input id="mailing_zip" value="80203"/>
           </div>
-          <div></div>
+          <div>
+            <label>Mailing state</label>
+            <input id="mailing_state" value="CO" maxlength="2"/>
+          </div>
         </div>
       </div>
 
@@ -138,7 +141,10 @@
             <label>Location 2 ZIP</label>
             <input id="location2_zip"/>
           </div>
-          <div></div>
+          <div>
+            <label>Location 2 state</label>
+            <input id="location2_state" value="CO" maxlength="2"/>
+          </div>
         </div>
       </div>
 
@@ -177,6 +183,6 @@ window.GUARD_PARTNER_TEST = {
   token: new URLSearchParams(location.search).get("token") || "",
 };
 </script>
-<script src="/partner-test/guard-wc-test.js?v=20261001a"></script>
+<script src="/partner-test/guard-wc-test.js?v=20261005a"></script>
 </body>
 </html>

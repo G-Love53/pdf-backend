@@ -11,6 +11,36 @@ export const GUARD_NEW_VENTURE_YEARS = 3;
 export const GUARD_REFER_APPLICANT_MESSAGE =
   "Based on the information given, an agent will follow up to finalize the quote.";
 
+export const GUARD_NOTICE_APPETITE =
+  "NOTICE: This risk does not meet the current underwriting appetite.";
+
+export const GUARD_NOTICE_UNDERWRITING_REVIEW =
+  "NOTICE: This risk will require underwriting review.";
+
+/**
+ * Applicant / partner-test copy: GUARD NOTICE only (no ops classification).
+ */
+export function guardApplicantKickoutMessage({
+  uw,
+  remarks,
+  msgStatusDesc,
+} = {}) {
+  const blobs = [
+    ...(Array.isArray(remarks) ? remarks : remarks ? [remarks] : []),
+    msgStatusDesc,
+  ]
+    .map((t) => String(t || "").replace(/^GUARD:\s*/i, "").trim())
+    .filter(Boolean);
+  const notice = blobs.find((t) => /NOTICE:\s*This risk/i.test(t));
+  if (notice) return notice;
+  const decision = String(uw || "").toLowerCase();
+  if (decision === "decline" || decision === "reject") {
+    return GUARD_NOTICE_APPETITE;
+  }
+  if (decision === "refer") return GUARD_NOTICE_UNDERWRITING_REVIEW;
+  return GUARD_REFER_APPLICANT_MESSAGE;
+}
+
 export function guardReferInbox() {
   return getCidSupportInboxEmail();
 }
