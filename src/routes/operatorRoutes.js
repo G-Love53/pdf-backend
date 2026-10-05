@@ -31,12 +31,6 @@ import {
   linkQuoteNeedsCidToSubmission,
 } from "../services/quoteIngestService.js";
 import { searchOperatorClient } from "../services/operatorClientSearchService.js";
-import multer from "multer";
-import {
-  GOLDEN_FITNESS_CLONE_USERS,
-  GOLDEN_FITNESS_POLICY_NUMBER,
-  seedGoldenFitnessConnect,
-} from "../services/goldenFitnessDemoService.js";
 
 const router = express.Router();
 const pool = getPool();
@@ -1256,97 +1250,4 @@ router.post(
   },
 );
 
-const goldenFitnessUpload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 15 * 1024 * 1024 },
-});
-
-router.get("/operator/maintenance/golden-fitness-demo", (_req, res) => {
-  const configured = Boolean(process.env.CID_MAINTENANCE_SECRET?.trim());
-  const emails = GOLDEN_FITNESS_CLONE_USERS.map((u) => u.email).join(", ");
-  const body = `
-<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"/><title>Golden Fitness Connect demo</title>
-<style>body{font-family:system-ui,sans-serif;max-width:40rem;margin:2rem auto;padding:0 1rem}
-code{background:#f6f6f6;padding:2px 6px;border-radius:4px} label{display:block;margin:0.75rem 0}</style></head><body>
-<h1>Golden Fitness Connect demo</h1>
-<p>Attaches bound policy <code>${GOLDEN_FITNESS_POLICY_NUMBER}</code> ($300 personal trainer) for Connect vault + Am I Covered, then clones for Rick and Ray.</p>
-${
-  configured
-    ? `<form method="post" action="/operator/maintenance/golden-fitness-demo" enctype="multipart/form-data">
-<label>Maintenance secret<br><input name="maintenance_secret" type="password" required autocomplete="off" style="width:100%;max-width:24rem"/></label>
-<label>Carrier policy number<br><input name="carrier_policy_number" value="${GOLDEN_FITNESS_POLICY_NUMBER}" style="width:100%;max-width:24rem"/></label>
-<label>Policy package PDF<br><input name="policy_pdf" type="file" accept="application/pdf" required/></label>
-<label>Clone emails (comma-separated)<br><input name="clone_emails" value="${emails}" style="width:100%"/></label>
-<p><button type="submit">Seed Connect demo</button></p>
-</form>`
-    : `<p><strong>Not available.</strong> Set <code>CID_MAINTENANCE_SECRET</code> on this service, redeploy, then reload.</p>`
-}
-</body></html>`;
-  res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.status(configured ? 200 : 503).send(body);
-});
-
-router.post(
-  "/operator/maintenance/golden-fitness-demo",
-  goldenFitnessUpload.single("policy_pdf"),
-  async (req, res) => {
-    const expected = process.env.CID_MAINTENANCE_SECRET?.trim();
-    res.setHeader("Content-Type", "text/html; charset=utf-8");
-    if (!expected) {
-      return res.status(503).send("<p>Set <code>CID_MAINTENANCE_SECRET</code> and redeploy.</p>");
-    }
-    const got = String(req.body?.maintenance_secret || "").trim();
-    if (!got || got !== expected) {
-      return res.status(401).send("<p>Unauthorized.</p>");
-    }
-    if (!req.file?.buffer?.length) {
-      return res.status(400).send("<p>Policy PDF is required.</p>");
-    }
-
-    const cloneEmails = String(req.body?.clone_emails || "")
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const cloneUsers = cloneEmails.length
-      ? cloneEmails.map((email, i) => {
-          const preset = GOLDEN_FITNESS_CLONE_USERS.find(
-            (u) => u.email.toLowerCase() === email.toLowerCase(),
-          );
-          if (preset) return preset;
-          const local = email.split("@")[0] || `USER${i + 1}`;
-          return {
-            email,
-            firstName: local,
-            lastName: "",
-            suffix:
-              local.replace(/[^A-Za-z0-9]+/g, "").toUpperCase().slice(0, 12) ||
-              `U${i + 1}`,
-          };
-        })
-      : GOLDEN_FITNESS_CLONE_USERS;
-
-    try {
-      const result = await seedGoldenFitnessConnect({
-        policyPdfBuffer: req.file.buffer,
-        policyPdfFilename: req.file.originalname || "PolicyPackage.pdf",
-        carrierPolicyNumber:
-          String(req.body?.carrier_policy_number || "").trim() ||
-          GOLDEN_FITNESS_POLICY_NUMBER,
-        cloneUsers,
-      });
-      return res.send(
-        `<pre>${escapeHtml(JSON.stringify(result, null, 2))}</pre>
-<p><a href="/operator/maintenance/golden-fitness-demo">Back</a></p>`,
-      );
-    } catch (err) {
-      console.error("[maintenance/golden-fitness-demo]", err);
-      return res
-        .status(500)
-        .send(`<p>Seed failed: ${escapeHtml(err.message)}</p>`);
-    }
-  },
-);
-
 export default router;
-
