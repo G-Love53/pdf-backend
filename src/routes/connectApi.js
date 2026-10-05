@@ -86,12 +86,31 @@ function requirePool(res) {
   return pool;
 }
 
+function formatUsdLimit(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return `$${n.toLocaleString("en-US")}`;
+}
+
 /** Map cid-postgres policy row → Connect Policy-like shape */
 function mapPolicy(row, supabaseUserId) {
   const cov =
     row.coverage_data && typeof row.coverage_data === "object"
       ? row.coverage_data
       : {};
+  const glEach =
+    cov.gl_limit ||
+    cov.general_liability_limit ||
+    cov.general_liability?.each_occurrence ||
+    null;
+  const propertyDoesNotApply =
+    String(cov.property_coverage || "").toLowerCase() === "does_not_apply";
+  const propertyLimit = propertyDoesNotApply
+    ? null
+    : cov.bpp_limit ||
+      cov.business_personal_property?.limit ||
+      cov.building?.limit ||
+      null;
   return {
     id: row.id,
     user_id: supabaseUserId || null,
@@ -107,8 +126,8 @@ function mapPolicy(row, supabaseUserId) {
       row.annual_premium != null ? Number(row.annual_premium) : 0,
     status: row.status,
     coverage_data: cov,
-    general_liability_limit: null,
-    property_limit: null,
+    general_liability_limit: formatUsdLimit(glEach),
+    property_limit: formatUsdLimit(propertyLimit),
     auto_limit: null,
     workers_comp_limit:
       (typeof cov.workers_comp_limit === "string" && cov.workers_comp_limit) ||

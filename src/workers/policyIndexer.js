@@ -147,7 +147,11 @@ async function upsertChunks(client, row, chunks) {
   }
 }
 
-async function fetchCandidateDocuments(pool, { backfill = false, limit = DEFAULT_LIMIT } = {}) {
+async function fetchCandidateDocuments(
+  pool,
+  { backfill = false, limit = DEFAULT_LIMIT, policyId = null } = {},
+) {
+  const policyFilter = policyId ? String(policyId) : null;
   if (backfill) {
     const { rows } = await pool.query(
       `
@@ -162,10 +166,11 @@ async function fetchCandidateDocuments(pool, { backfill = false, limit = DEFAULT
         WHERE d.policy_id IS NOT NULL
           AND d.storage_path IS NOT NULL
           AND d.document_role::text = ANY($1::text[])
+          AND ($3::uuid IS NULL OR d.policy_id = $3::uuid)
         ORDER BY d.created_at ASC
         LIMIT $2
       `,
-      [INDEXABLE_ROLES, limit],
+      [INDEXABLE_ROLES, limit, policyFilter],
     );
     return rows;
   }
@@ -190,6 +195,7 @@ async function fetchCandidateDocuments(pool, { backfill = false, limit = DEFAULT
       WHERE d.policy_id IS NOT NULL
         AND d.storage_path IS NOT NULL
         AND d.document_role::text = ANY($1::text[])
+        AND ($3::uuid IS NULL OR d.policy_id = $3::uuid)
         AND (
           idx.indexed_sha IS DISTINCT FROM d.sha256_hash
           OR COALESCE(idx.has_indexed, FALSE) = FALSE
@@ -197,7 +203,7 @@ async function fetchCandidateDocuments(pool, { backfill = false, limit = DEFAULT
       ORDER BY d.created_at ASC
       LIMIT $2
     `,
-    [INDEXABLE_ROLES, limit],
+    [INDEXABLE_ROLES, limit, policyFilter],
   );
   return rows;
 }
@@ -211,7 +217,8 @@ export async function runPolicyIndexer(options = {}) {
   }
 
   const limit = Math.max(1, Number(options.limit) || DEFAULT_LIMIT);
-  const docs = await fetchCandidateDocuments(pool, { backfill, limit });
+  const policyId = options.policyId || null;
+  const docs = await fetchCandidateDocuments(pool, { backfill, limit, policyId });
   if (!docs.length) {
     console.log("[policyIndexer] no candidate documents found.");
     return;
