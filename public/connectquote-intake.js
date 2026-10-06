@@ -1948,17 +1948,25 @@
     syncGuardEmrVisibility();
   }
 
+  function isNewVentureYears(years) {
+    const n = Number(years);
+    return Number.isFinite(n) && n >= 0 && n < 3;
+  }
+
   function syncGuardEmrVisibility() {
     const wrap = $("guard-emr-wrap");
     const yearsEl = $("guard-years");
     if (!wrap || !yearsEl) return;
-    const years = Number(yearsEl.value);
-    wrap.hidden = Number.isFinite(years) && years > 0 && years < 3;
+    wrap.hidden = isNewVentureYears(yearsEl.value);
+    if (wrap.hidden) {
+      const emr = $("guard-emr");
+      if (emr) emr.value = "";
+    }
   }
 
   function guardExperienceModValue() {
     const years = Number($("guard-years") && $("guard-years").value);
-    if (Number.isFinite(years) && years > 0 && years < 3) return undefined;
+    if (isNewVentureYears(years)) return undefined;
     const el = $("guard-emr");
     const raw = el && String(el.value || "").trim();
     return raw || undefined;
@@ -1975,12 +1983,12 @@
       '<option value="SS">S Corp</option>' +
       "</select></div>" +
       "<div><label>Years in business</label>" +
-      '<input id="guard-years" type="number" min="1" max="80" value="3"/></div>' +
+      '<input id="guard-years" type="number" min="0" max="80" value="3"/></div>' +
       "</div>" +
       '<div id="guard-emr-wrap">' +
       '<label>Experience mod <span class="guard-optional">(optional)</span></label>' +
       '<input id="guard-emr" type="number" min="0.50" max="3" step="0.01" placeholder="Leave blank if unknown"/>' +
-      '<p class="guard-field-hint">Most owners do not know this. Leave blank and we send 1.00. Under 3 years always uses 1.00.</p>' +
+      '<p class="guard-field-hint">Most owners do not know this. Leave blank and we send 1.00. 0–2 years always uses 1.00.</p>' +
       "</div>"
     );
   }

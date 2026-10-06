@@ -31,6 +31,7 @@ import {
   buildGuardCapitaPayUrl,
   guardApplicantKickoutMessage,
   isGuardCapitaConfigured,
+  parseGuardYearsInBusiness,
   resolveGuardExperienceMod,
   zipDigits,
 } from "../config/guardLaunch.js";
@@ -308,8 +309,9 @@ export async function processGuardIndicate(body = {}) {
 
   const ownerPayroll = ownerPayrollFrom(body, ctx.form);
   const rqUid = crypto.randomUUID();
+  const parsedYears = parseGuardYearsInBusiness(body.years_in_business);
   const numYrsInBusiness =
-    Number(body.years_in_business) || yearsInBusinessFromForm(ctx.form);
+    parsedYears != null ? parsedYears : yearsInBusinessFromForm(ctx.form);
   const experienceMod = resolveGuardExperienceMod({
     yearsInBusiness: numYrsInBusiness,
     explicit: body.experience_mod ?? body.experienceMod ?? null,

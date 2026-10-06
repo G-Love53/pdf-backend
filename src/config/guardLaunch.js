@@ -11,11 +11,20 @@ export const GUARD_NEW_VENTURE_YEARS = 3;
 export const GUARD_REFER_APPLICANT_MESSAGE =
   "Based on the information given, an agent will follow up to finalize the quote.";
 
+export const GUARD_AGENT_FOLLOW_UP = "An agent will follow up.";
+
 export const GUARD_NOTICE_APPETITE =
-  "NOTICE: This risk does not meet the current underwriting appetite.";
+  "NOTICE: This risk does not meet the current underwriting appetite. An agent will follow up.";
 
 export const GUARD_NOTICE_UNDERWRITING_REVIEW =
-  "NOTICE: This risk will require underwriting review.";
+  "NOTICE: This risk will require underwriting review. An agent will follow up.";
+
+function withAgentFollowUp(text) {
+  const t = String(text || "").trim();
+  if (!t) return GUARD_NOTICE_UNDERWRITING_REVIEW;
+  if (/agent will follow up/i.test(t)) return t;
+  return `${t.replace(/[.]*$/, ".")} ${GUARD_AGENT_FOLLOW_UP}`;
+}
 
 /**
  * Applicant / partner-test copy: GUARD NOTICE only (no ops classification).
@@ -32,7 +41,7 @@ export function guardApplicantKickoutMessage({
     .map((t) => String(t || "").replace(/^GUARD:\s*/i, "").trim())
     .filter(Boolean);
   const notice = blobs.find((t) => /NOTICE:\s*This risk/i.test(t));
-  if (notice) return notice;
+  if (notice) return withAgentFollowUp(notice);
   const decision = String(uw || "").toLowerCase();
   if (decision === "decline" || decision === "reject") {
     return GUARD_NOTICE_APPETITE;
@@ -50,17 +59,26 @@ export function zipDigits(zip) {
   return d.length >= 5 ? d.slice(0, 5) : "";
 }
 
+/** 0, 1, or 2 years — including a typed 0 (do not treat 0 as missing). */
+export function isGuardNewVentureYears(years) {
+  const n = Number(years);
+  return Number.isFinite(n) && n >= 0 && n < GUARD_NEW_VENTURE_YEARS;
+}
+
+/** Keep a typed 0. `Number(0) || fallback` would wrongly become 3. */
+export function parseGuardYearsInBusiness(raw, fallback = null) {
+  if (raw == null || String(raw).trim() === "") return fallback;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0) return fallback;
+  return Math.round(n);
+}
+
 /**
- * New venture (< 3 years) always 1.00.
+ * New venture (< 3 years, including 0) always 1.00 — ignore a typed mod.
  * Otherwise use a known factor if the applicant entered one; else 1.00.
  */
 export function resolveGuardExperienceMod({ yearsInBusiness, explicit } = {}) {
-  const years = Number(yearsInBusiness);
-  if (
-    Number.isFinite(years) &&
-    years > 0 &&
-    years < GUARD_NEW_VENTURE_YEARS
-  ) {
+  if (isGuardNewVentureYears(yearsInBusiness)) {
     return GUARD_DEFAULT_EXPERIENCE_MOD;
   }
   const n = Number(explicit);

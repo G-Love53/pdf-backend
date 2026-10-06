@@ -9,6 +9,7 @@ import {
   resolveGuardWcLine,
 } from "../config/guardRegistry.js";
 import { getGuardPublicConfig, isGuardConfigured } from "./guardService.js";
+import { parseGuardYearsInBusiness } from "../config/guardLaunch.js";
 
 const PARTNER_SOURCE = "guard-partner-test";
 
@@ -158,7 +159,7 @@ function normalizePartnerForm(body = {}) {
     num_employees: Number(body.num_employees || body.numEmployees || 2),
     annual_payroll: Number(body.annual_payroll || body.payroll || 80000),
     owner_payroll: body.owner_payroll || body.ownerPayroll || null,
-    years_in_business: Number(body.years_in_business || 3),
+    years_in_business: parseGuardYearsInBusiness(body.years_in_business, 3),
     traffic_source: PARTNER_SOURCE,
     campaign_id: body.campaign_id || "guard-partner-test",
   };
