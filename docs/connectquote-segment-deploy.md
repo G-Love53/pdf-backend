@@ -12,6 +12,7 @@
 - [ ] `https://{segment}insurancedirect.com/connectquote.html` loads branded intake
 - [ ] `GET /api/coterie/registry/{segment}` returns business classes
 - [ ] CO test quote returns a premium
+- [ ] *(When GUARD has confirmed class)* live URL WC indication → bindable **or** NOTICE
 - [ ] `quotes@{domain}` sends and receives mail
 - [ ] `GMAIL_REFRESH_TOKEN_{SEGKEY}` on **prod** CID-PDF-API
 - [ ] *(Optional)* Segment on **commercialinsurance-direct.com** (`segment-links.js`)
@@ -109,6 +110,7 @@ Verify: `curl -s https://cid-pdf-api.onrender.com/api/coterie/registry/{segment}
 1. Open ConnectQuote URL (owner, 1 employee, primary class, CO, leased, BPP ~$50k)
 2. Confirm premium + Stripe section
 3. *(Optional)* bind in sandbox/demo mode
+4. *(When WC is on for this segment)* unique name/ZIP/FEIN → Workers’ Comp opt-in → indication → bindable premium **or** GUARD NOTICE. Partner-test is not the launch smoke.
 
 ---
 
@@ -118,7 +120,30 @@ Verify: `curl -s https://cid-pdf-api.onrender.com/api/coterie/registry/{segment}
 
 - `segment-links.js` — domain, card, nav, footer
 - `privacy.html` — add domain
-- `index.html` — about copy if needed
+- `index.html` — about copy if needed. **No WC copy** on the marketing homepage until that segment’s live WC smoke is green.
+
+---
+
+## 9 — Workers’ Comp (GUARD) — after BOP/GL is live
+
+WC is **pdf-backend only**. Do not add operator/WC API code to `{segment}-pdf-backend`.
+
+**HOLD** until Jon confirms NCCI class + suffix for this trade/state. HVAC stays off. Painter / bar / roofer are not in the WC registry yet.
+
+1. `src/config/guardRegistry.js` — `wcEnabled: true` on that line; class code from GUARD (state suffix matters).
+2. Render **prod** `cid-pdf-api`:
+   - `GUARD_ENABLED_SEGMENTS` includes the segment
+   - `GUARD_PILOT_STATES` includes the state (`CO` until expansion)
+   - Prod `GUARD_API_BASE` / `GUARD_API_KEY` / `GUARD_API_SECRET` / `GUARD_CONTRACT_NUMBER` (not `PAFAKE10`)
+   - `GUARD_CAPITA_PAY_URL` when GUARD sends the pay link
+   - `GUARD_WEBHOOK_AUTH` before **16 October 2026** doc push
+3. Bump `{segment}` `Netlify/connectquote.html` `?v=`
+4. Smoke on **`https://{segment}insurancedirect.com/connectquote.html`** (not `/partner-test/guard-wc.html`)
+5. Then Instantly / homepage WC language
+
+Diligence + env table: [`guard-wc-rollout.md`](./guard-wc-rollout.md) · spec: [`guard-integration.md`](./guard-integration.md) · start-here: `~/GitHub/CID-docs/Workers_Comp.md`.
+
+**10 states:** Places allowlist is not WC expansion. Add states only via `GUARD_PILOT_STATES` + class suffix + smoke.
 
 ---
 

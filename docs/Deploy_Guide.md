@@ -261,9 +261,9 @@ Spec: [`coterie-integration.md`](./coterie-integration.md) · Shipped: [`connect
 
 **Static intake assets** (served from same Render service): `/static/connectquote-intake.js` and `.css` — segment Netlify pages load these with cache-bust query (e.g. `?v=20260821b`); **do not duplicate logic in segment repos**. After intake deploy, bump `?v=` on segment `connectquote.html` files so browsers pick up ZIP/email prefill fixes.
 
-### GUARD Workers’ Comp (live)
+### GUARD Workers’ Comp
 
-Optional second ConnectQuote line on the same submission. Spec: [`guard-integration.md`](./guard-integration.md) · Rollout: [`guard-wc-rollout.md`](./guard-wc-rollout.md).
+Optional second ConnectQuote line on the same submission. **CO Electrical is the first customer launch** (prod gated on GUARD credentials + Capita URL + live-URL smoke). Spec: [`guard-integration.md`](./guard-integration.md) · Rollout: [`guard-wc-rollout.md`](./guard-wc-rollout.md) · New-segment steps: [`connectquote-segment-deploy.md`](./connectquote-segment-deploy.md) §9 · Diligence start-here: `~/GitHub/CID-docs/Workers_Comp.md`.
 
 | Env var | Sandbox (P) | Prod |
 |---------|-------------|------|
@@ -273,9 +273,10 @@ Optional second ConnectQuote line on the same submission. Spec: [`guard-integrat
 | `GUARD_SP_NAME` | `com.commercialinsurance-direct` | Same |
 | `GUARD_ENABLED_SEGMENTS` | e.g. `beauty,cleaning,pet,fitness,plumber,electrical` | Same list after class confirm |
 | `GUARD_PILOT_STATES` | `CO` | `CO` until expansion |
-| `GUARD_WEBHOOK_AUTH` | Invent + share with GUARD when doc push enabled | Same pattern |
+| `GUARD_CAPITA_PAY_URL` | When GUARD sends pay-link template | Same; CID does not take the card |
+| `GUARD_WEBHOOK_AUTH` | Share with GUARD before **16 Oct 2026** doc push | Same pattern |
 
-P/test requires **Render outbound IPs whitelisted** by GUARD; prod does not whitelist. Intake is **`/static/connectquote-intake.js`** on Render — bump `?v=` on segment `connectquote.html` after intake changes. CID does **not** take WC payment — GUARD direct bill.
+P/test requires **Render outbound IPs whitelisted** by GUARD; prod does not whitelist. Intake is **`/static/connectquote-intake.js`** on Render — bump `?v=` on segment `connectquote.html` after intake changes. Policy PDFs land via GUARD webhook **16 October 2026** — not a bind blocker.
 
 ### Connect identity + CORS checks
 

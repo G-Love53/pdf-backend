@@ -123,4 +123,4 @@ Contractors section footnote: restrictions may apply in **New York** (CO pilot u
 
 - [ ] Update [`guard-integration.md`](./guard-integration.md) changelog + appetite table
 - [ ] CONNECT: second policy card when `bind_source: guard` (phase 4)
-- [ ] Doc webhook → R2 ingest (when GUARD enables push)
+- [ ] Doc webhook → R2 ingest (**16 October 2026**)

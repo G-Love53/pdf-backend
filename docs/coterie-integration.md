@@ -44,6 +44,7 @@ Campaign / organic → segment connectquote.html (URL prefill)
 
 - **Traditional rail** unchanged (full `*_INTAKE` bundle, BoldSign S6).
 - **`bind_source`:** `coterie` vs `boldsign` — Connect reads the same bridge.
+- **COI:** Carrier-issued for ConnectQuote. Spec: [`connect-coi-carrier.md`](./connect-coi-carrier.md). CID ACORD 25 is long-form only.
 - **No Coterie secrets** in segment repos or markdown.
 
 ### URL prefill (Aug 2026)

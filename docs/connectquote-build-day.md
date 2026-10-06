@@ -74,7 +74,7 @@
 1. **Morning:** Run bindable with full extended fields until `isSuccess: true`; capture response JSON → code against it.
 2. **Payment:** Use fields returned by bindable (client secret, session id, or payment URL) + Coterie Stripe pk — do not invent CID payment API.
 3. **Webhook:** Register `https://cid-pdf-api.onrender.com/webhooks/coterie` in Coterie dashboard if self-serve; else **demo finalize** after sandbox payment succeeds (poll or manual “I paid” with `applicationId` correlation).
-4. **COI:** Ignore Coterie insured COI for v1; Connect generates ACORD 25 from cid-postgres policy row.
+4. **COI:** **Superseded 2026-10-06** — ConnectQuote certs are **carrier-issued** (Coterie / GUARD). Connect stays the request + vault. Spec: [`connect-coi-carrier.md`](./connect-coi-carrier.md). CID ACORD 25 is **long-form only**.
 
 ---
 

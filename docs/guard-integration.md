@@ -135,6 +135,7 @@ submission_public_id
 - Timeline: `guard.session`, `guard.indicated`, `guard.quoted`, `guard.referred`, `guard.rejected`, `guard.bound`.
 - CONNECT: second policy card; fill `workers_comp_limit` from EL limits. Browser = anon only — quote/bind stays on CID-PDF-API.
 - Docs: GUARD push webhook → R2 → vault (mirror Coterie ingest).
+- **COI:** WC certificates are **GUARD-issued**, requested from Connect Instant COI — not CID ACORD 25. Spec: [`connect-coi-carrier.md`](./connect-coi-carrier.md). Adapter **after Electrical live**; confirm path with Jon then.
 
 Offer WC only if employees exist **or** owner elects inclusion (owner-only Coterie + 0 employees + owner excluded = nothing to rate).
 

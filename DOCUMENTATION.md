@@ -14,6 +14,11 @@
 | **[docs/partnership-gaps.md](./docs/partnership-gaps.md)** | **Dated** — diligence gaps P0–P3; segment carrier appointments; Ray inter-company |
 | **[docs/compliance-roadmap.md](./docs/compliance-roadmap.md)** | **Dated** — SOC 2 / security roadmap for founder & counsel review (download/share with Ray) |
 | **[docs/coterie-integration.md](./docs/coterie-integration.md)** | **Dated** — Coterie ConnectQuote technical spec (AKHash, API, prod CO segments, env — no secrets) |
+| **[docs/connect-coi-carrier.md](./docs/connect-coi-carrier.md)** | **Connect COI** — ConnectQuote partners (Coterie, GUARD) issue certs; long-form keeps CID ACORD 25 |
+| **[docs/guard-integration.md](./docs/guard-integration.md)** | **GUARD WC spec** — SOAP, NBQ/NBS/BND/SBR, Connect policy row |
+| **[docs/guard-wc-rollout.md](./docs/guard-wc-rollout.md)** | **GUARD WC launch** — registry + Render env + CO Electrical / new segment |
+| **[docs/guard-uat-runbook.md](./docs/guard-uat-runbook.md)** | **GUARD P-env / partner-test** |
+| **CID-docs `Workers_Comp.md`** | **Due diligence start-here** (Finder: `~/GitHub/CID-docs/`) — points at the three files above |
 | **[docs/connectquote-shipped-2026-06.md](./docs/connectquote-shipped-2026-06.md)** | **Dated** — ConnectQuote shipped summary (investor/handoff): architecture, segments, demo URLs, verification checklist |
 | **[docs/outreach-claude-playbook.md](./docs/outreach-claude-playbook.md)** | **Dated** — Instantly campaigns: list cleaning, attribution (`ch`/`src`/`cid`), HTML paste checklist, verified failure modes, **prefill policy** |
 | **[docs/localprospects-list-design.md](./docs/localprospects-list-design.md)** | **Dated** — LocalProspects CO pulls: dedupe, ZIP extraction, category allowlist, credit economics, Instantly upload |
