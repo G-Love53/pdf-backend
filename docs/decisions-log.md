@@ -34,6 +34,14 @@ Edit this file when a decision would change the next session. Specs stay in thei
 - David has been asked for Generate COI and Add Additional Insureds. Do not scrape `dashboard-v2`. Do not fall back to CID ACORD on `coterie` or `guard`.
 - Connect pet canonical domain is `petserviceinsurancedirect.com`.
 
+## 2026-10-06 — Am I Covered and endorsements (parked)
+
+Review and build only after Coterie sends the certificate / additional-insured document API. Do not start this on a guess.
+
+- Endorsements issued after bind must land in Connect as `endorsement`, get indexed, and be visible to Am I Covered.
+- The no-first check (equipment breakdown, flood, cyber, liquor) reads the policy summary today. An endorsement that adds a line has to count as present. A missing endorsement must still answer as not on the policy.
+- Keep Claude primary and Gemini as the outage fallback. Do not add Perplexity. Am I Covered answers from this policy and its endorsements, not from the web.
+
 ## 2026-10-06 — Geography
 
 - Places autocomplete: CO plus AZ, UT, NM, WY, NV, ID, KS, NE, OK, TX.

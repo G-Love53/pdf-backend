@@ -22,6 +22,7 @@ One operating picture. Specialist agents use a **lane** below. They still use th
 - Connect: `https://connect.commercialinsurance-direct.com`. Demo login `g@commercialinsurance-direct.com` (Gerry forwards the OTP).
 - Two-step demo: (1) fitness-demo sandbox quote, throw that policy away. (2) Connect golden Fitness policy `CSG-00507726-00`.
 - Instant COI today is CID ACORD 25. Carrier paper is [`connect-coi-carrier.md`](./connect-coi-carrier.md). David has been asked for Generate COI and Add Additional Insureds. Do not scrape the Coterie dashboard. Do not fall back to CID ACORD on `coterie` or `guard`.
+- Am I Covered stays Claude, then Gemini if Claude fails. When Coterie’s document API arrives, store post-bind endorsements and let Am I Covered read them. Do not add Perplexity. See the 2026-10-06 Am I Covered entry in the decisions log.
 
 ## What is not live
 
