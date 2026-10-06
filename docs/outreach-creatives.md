@@ -2,7 +2,7 @@
 
 > **Canonical tooling:** `pdf-backend/marketing/` + `pdf-backend/scripts/`  
 > **Hosted assets:** each `{segment}-pdf-backend/Netlify/email/` (segment domain CDN — not Render)  
-> **As of:** 2026-08-21 (America/Denver). Update when creatives or deploy methods change.
+> **As of:** 2026-08-21 creatives (America/Denver). Electrical Netlify deploy method updated 2026-10-06.
 
 ## Active creatives (2026-08-connect-v1)
 
@@ -24,8 +24,7 @@
 
 | Segment | Deploy method | Notes |
 |---------|---------------|-------|
-| **electrical** | **Netlify Drop** (manual) | Site is **not** Git-connected — `git push` does **not** update live assets. Drop the `Netlify/` folder after JPEG/HTML changes. |
-| **fitness, hvac, plumber, beauty, cleaning, pet, painter** | Git → Netlify auto-deploy | Commit JPEG + HTML under `Netlify/email/archive/2026-08-connect-v1/` and push. |
+| **electrical, fitness, hvac, plumber, beauty, cleaning, pet, painter** | Git → Netlify auto-deploy | Commit JPEG + HTML under `Netlify/email/archive/2026-08-connect-v1/` and push. Electrical linked 2026-10-06 (`electrical-pdf-backend`, publish directory `Netlify`). |
 
 Smoke: `curl -I` the archive JPEG URL → **200** before pasting into Instantly.
 

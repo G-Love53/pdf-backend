@@ -271,7 +271,7 @@ Shared client: `/static/connectquote-intake.js` · Schema API: `GET /api/coterie
 | Repo | What shipped |
 |------|----------------|
 | `pdf-backend` | Coterie adapter, registry, intake schema, routes, bind completion, static intake JS |
-| `electrical-pdf-backend` | `Netlify/connectquote.html` + index banner; **Netlify Drop** deploy (not git-connected) |
+| `electrical-pdf-backend` | `Netlify/connectquote.html` + index banner. Shipped via Netlify Drop; live site Git-connected 2026-10-06 |
 | `fitness-pdf-backend` | `Netlify/connectquote.html` + index banner |
 | `beauty-pdf-backend`, `cleaning-pdf-backend`, `pet-pdf-backend` | ConnectQuote shell + **`Netlify/email/archive/2026-08-connect-v1/`** creatives (Aug 2026) |
 | `hvac-pdf-backend` | `Netlify/connectquote.html` — owner copy, `/` → ConnectQuote |
