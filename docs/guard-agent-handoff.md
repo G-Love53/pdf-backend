@@ -6,16 +6,18 @@
 
 ---
 
-## Current status (2026-09-24)
+## Current status (2026-10-06)
+
+Read [`decisions-log.md`](./decisions-log.md) before asking Gerry to re-explain WC.
 
 | Area | State |
 |------|--------|
-| **Env** | **P/sandbox** API on `cid-pdf-api-sandbox.onrender.com`; prod keys **not** live yet |
-| **UAT pack** | Jon’s xlsm → `data/guard-uat-cases-v1.json` (16 cases) |
-| **Automation** | `POST /api/guard/wc/uat/run` + `node scripts/run-guard-uat.mjs` |
-| **Email to Jon** | Fixes for #3, #1, #7 and #7 multi-location **communicated**; **waiting on Jon** for **Contractors-8** CO question ID + **live/prod credentials** |
-| **Open UAT** | **Contractors-8** — expected Refer (above 15 ft); need GUARD’s CO `QuestionCd` (`56-9014_04`?) |
-| **Open product** | ConnectQuote WC on intake (`guardIntakeService`); partner-test now has optional L2 + mailing-same. Production ConnectQuote intake still **single location**. |
+| **Sandbox** | P-env signed off. `cid-pdf-api-sandbox` `offerWc: true` for beauty, cleaning, pet, fitness, plumber, electrical. Partner-test works. |
+| **Prod** | Code is on `cid-pdf-api`. `GUARD_API_BASE` is `gigezrate`. Segment list, `CO`, SP name, and webhook auth are set. **Key, secret, and contract number are not generated.** Live config returns `offerWc: false`. |
+| **Go-live** | Those three values come from GUARD. Do not copy sandbox or `PAFAKE10`. Leave `GUARD_CAPITA_PAY_URL` off. After the deploy is Live, smoke Electrical CO on the customer URL (unique name, ZIP, FEIN). |
+| **Webhook** | `POST /webhooks/guard-docs` acks. Connect ingest waits until **16 October 2026**. |
+| **COI** | GUARD cert adapter waits until Electrical WC is live on the customer URL. |
+| **Off** | HVAC `5537`. Painter, bar, roofer not in the registry. Bar and roofer stay long-form. |
 
 ---
 
@@ -81,12 +83,12 @@ Local GUARD packet (not in repo): `~/Downloads/` or Documents — **GUARD WC API
 
 ---
 
-## When Jon / prod unblocks
+## When GUARD issues production credentials
 
-1. **Contractors-8** — Apply Jon’s CO question ID; re-run case; update defect log.
-2. **Prod credentials** on **cid-pdf-api** (Render), not sandbox; smoke one CO case (partner test UI or intake).
-3. **Webhook** — doc delivery ingest (separate ticket); see `Document Delivery Guide` in packet.
-4. **Experience mod** — still ask GUARD which response field echoes `FormatModFactor`.
+1. Paste key, secret, and contract number on **cid-pdf-api** only. Confirm the deploy is Live.
+2. `GET /api/guard/wc/config?segment=electrical&state=CO` → `offerWc: true`, `sandbox: false`.
+3. Smoke Electrical CO on the live site (unique name, ZIP, FEIN), then the other five registry-on segments.
+4. Doc ingest into Connect on **16 October 2026**. Cert adapter after that Electrical smoke, not before.
 
 ---
 
@@ -104,9 +106,8 @@ Local GUARD packet (not in repo): `~/Downloads/` or Documents — **GUARD WC API
 Copy/paste:
 
 ```
-GUARD WC handoff — read pdf-backend/docs/guard-agent-handoff.md first.
+CID agent start — read pdf-backend/docs/agent-start.md and docs/decisions-log.md before asking Gerry anything.
 
-Working on: [Contractors-8 after Jon replies | prod key smoke | webhook | other].
-
-Constraints: pdf-backend only; Gerry already emailed Jon on UAT fixes — waiting on #8 question ID + live keys. No duplicate partner emails unless I ask.
+Lane: GUARD go-live.
+Working on: [prod credential smoke after GUARD sends the three values | 16 Oct doc ingest | COI adapter after Electrical is live].
 ```

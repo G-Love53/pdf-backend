@@ -1,8 +1,8 @@
 # CID × GUARD — Workers’ Comp (ConnectQuote second rail)
 
 > **Canonical location (RSS):** `pdf-backend/docs/guard-integration.md`  
-> **As of:** 2026-08-27 (America/Denver). **Status: live on ConnectQuote** (CO pilot) — main-form WC opt-in, NBQ indication, NBS/BND, `finalizeGuardBind()` → Connect policy row.  
-> **Pilot segments (`wcEnabled: true`):** beauty (hair / barber / nails), cleaning, pet, fitness (yoga / pilates / personal trainer), plumber, electrical (CO). HVAC **off** until roof/install appetite confirmed.  
+> **As of:** 2026-10-06 (America/Denver). **Status: built, sandbox signed off, not on the customer URL.** P-env (`cid-pdf-api-sandbox`) returns `offerWc: true`. Prod (`cid-pdf-api`) returns `wcEnabled: true` and `offerWc: false` because GUARD has not generated the production API key, secret, or contract number. Do not copy the sandbox trio onto prod. `GUARD_API_BASE` on prod is `gigezrate`. `GUARD_WEBHOOK_AUTH` is set; doc ingest is still ack-only until 16 October 2026. `GUARD_CAPITA_PAY_URL` stays unset until GUARD sends the real template.  
+> **Registry on:** beauty, cleaning, pet, fitness, plumber, electrical (CO). **Off:** HVAC `5537`. Painter, bar, and roofer are not in the registry.  
 > **Packet:** local `Downloads/GUARD WC API Documentation - 08.21.26` (not in repo).  
 > **Appetite supplement (Aug 2026):** local `Downloads/WC_Appetite_Supplement.pdf` — doc **WCAS081126**; marketing overview + eligible class buckets (not API truth; confirm NCCI + `[E]` with Jon / 60-Second Appetite Check in ASC).
 > **Related:** [`coterie-integration.md`](./coterie-integration.md) · [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md) · [`Deploy_Guide.md`](./Deploy_Guide.md) · [`AUDIT_READINESS.md`](./AUDIT_READINESS.md) · [`partnerships.md`](./partnerships.md) · [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md) · [`CID_IP_AND_ACQUIRER_PROTECTION.md`](./CID_IP_AND_ACQUIRER_PROTECTION.md) § multi-carrier roadmap
@@ -44,7 +44,7 @@ GUARD’s instant/auto-UW path is what **they** call **Digital Decision**. Inter
 
 | Layer | What it does |
 |-------|----------------|
-| **`GUARD_ENABLED_SEGMENTS`** (env) | Kill switch for a whole deploy (empty = WC off everywhere) |
+| **`GUARD_ENABLED_SEGMENTS`** (env) | Comma allowlist. Unset = every registry `wcEnabled` line. Empty string = WC off. A listed segment still needs `wcEnabled: true`. |
 | **`guardRegistry.js`** (code) | Per-segment `wcEnabled: true/false` + NCCI class. New segment launch defaults **off** until Rick/appetite says on |
 | **State gate** | `GUARD_PILOT_STATES` (CO first) — same pattern as Coterie |
 | **Runtime hide** | Confirmation CTA + CONNECT opt-in **do not render** if switch is off, class `[I]`, or no employees / owner excluded |
@@ -145,7 +145,7 @@ Offer WC only if employees exist **or** owner elects inclusion (owner-only Coter
 
 | Path | Role |
 |------|------|
-| `src/config/guardRegistry.js` | Per-segment **`wcEnabled`** (Plumber on; Electrical off), NCCI class, pilot states |
+| `src/config/guardRegistry.js` | Per-segment **`wcEnabled`**. On: plumber `518322`, electrical `519000`, fitness `9063`, beauty `9586`, cleaning `9014`, pet `0917`. Off: HVAC `5537`. |
 | `src/services/guardService.js` | SOAP client, XML escape, NBQ / NBS / BND / questions |
 | `src/services/guardIntakeService.js` | Prefill from submission; indication vs bindable; clickwrap on bind |
 | `src/routes/guardRoutes.js` | `/api/guard/wc/config` · `/indicate` · `/questions` · `/quote` · `/bind` · `/refer` (SBR) |
@@ -166,7 +166,7 @@ Offer WC only if employees exist **or** owner elects inclusion (owner-only Coter
 | `GUARD_SP_NAME` | Reverse domain (e.g. `com.commercialinsurance-direct`) |
 | `GUARD_CONTRACT_NUMBER` | Agency code |
 | `GUARD_WEBHOOK_AUTH` | `Authorization` value GUARD sends on doc push |
-| `GUARD_ENABLED_SEGMENTS` | Comma allowlist — **WC off** if unset/empty. Independent of Coterie segments |
+| `GUARD_ENABLED_SEGMENTS` | Comma allowlist. Unset allows every registry-on line. Empty string turns WC off. Independent of Coterie segments. Prod list: `beauty,cleaning,pet,fitness,plumber,electrical` |
 | `GUARD_PILOT_STATES` | `CO` until expansion |
 
 ---
@@ -252,3 +252,4 @@ Webhook auth (`GUARD_WEBHOOK_AUTH`) is **ours** to invent later and give GUARD f
 | 2026-08-21 | Routes mounted on Render (`guardRoutes.js`); intake post-bind WC box wired; env still empty — no live GUARD calls. |
 | 2026-08-26 | `finalizeGuardBind()` → `policies` row; `wcEnabled` for appetite segments; sandbox P-env smoke (plumber CO). |
 | 2026-09-04 | Partner test lane: `/partner-test/guard-wc.html` + `/api/guard/wc/registry` + `/api/guard/wc/partner/start` (WC-only, sandbox). |
+| 2026-10-06 | Prod still `offerWc: false`. Base, segment list, CO, SP name, and webhook auth are set. Key, secret, and contract number wait on GUARD. Capita URL stays absent. |

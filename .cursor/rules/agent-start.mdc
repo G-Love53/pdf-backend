@@ -1,0 +1,14 @@
+---
+description: CID operating picture for every new agent, including a specialist lane
+alwaysApply: true
+---
+
+# Agent start
+
+Before CID work, read `docs/agent-start.md` and `docs/decisions-log.md` in this repo (`~/GitHub/pdf-backend`).
+
+- Gerry sends partner email. Do not email Jon or David unless he asks.
+- Connect is not on Render. Operator, S4–S6, Coterie, and GUARD run in pdf-backend (CID-PDF-API).
+- No secrets in chat. No service role in the browser.
+- GUARD WC on the customer URL waits on a production key, secret, and contract number from GUARD. Do not copy sandbox. Do not add `GUARD_CAPITA_PAY_URL`. Do not rebuild Electrical WC.
+- A new carrier is a new adapter in pdf-backend on the same intake and Connect spine. Use the New carrier lane in `docs/agent-start.md`.

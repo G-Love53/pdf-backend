@@ -85,39 +85,39 @@ Given a `submission_public_id` or `quote_id`:
 - **Client / agent delivery** — Bind confirmation and welcome emails; attachments per `bindEmailService` / agent notifications. **PDF access for UI:** `GET /api/documents/:documentId/download` → presigned R2 redirect (not a public bucket URL requirement).
 - **Operator dashboard** — Counts and **`/operator/today/*`** lists use **UTC `CURRENT_DATE`** on the server; reconcile timestamps when comparing to local “today.”
 
-### ConnectQuote — Coterie instant bind (planned audit trail)
+### ConnectQuote — Coterie instant bind
 
-**Status:** Sandbox API validated (2026-06-04); **code + webhook not live** until CO producer license confirmed. Spec: [`coterie-integration.md`](./coterie-integration.md).
+**Status (2026-10-06):** Prod live on CO for electrical, plumber, HVAC, fitness, beauty, cleaning, pet, and painter. `bind_source: coterie`. Keys are on prod and sandbox. Fitness golden policy `CSG-00507726-00`. Instant COI in Connect is still CID ACORD 25 until Coterie exposes Generate COI and Add Additional Insureds. Spec: [`connect-coi-carrier.md`](./connect-coi-carrier.md) · [`coterie-integration.md`](./coterie-integration.md).
 
-**Target auditable artifacts (same spine as BoldSign S6):**
+**Auditable artifacts (same spine as BoldSign S6):**
 
 - `submissions.raw_submission_json` — includes `quote_rail`, `AKHash`, campaign prefill, Coterie `applicationId` when returned
-- Timeline events — e.g. `coterie.application.created`, `coterie.quote.bindable`, `coterie.policy.bound` (exact types TBD at implementation)
-- `policies` row via shared `createPolicy()` — distinguish **`bind_source: coterie`** (column or `coverage_data` metadata TBD)
+- Timeline events for application, bindable quote, and bound policy — cite the `coterie.*` names in code, not this list, if a data room needs the exact strings
+- `policies` row via `createPolicy()` with `bind_source: coterie`
 - Coterie webhook payload retained (event log table or `timeline_events.event_payload_json`) for premium, dates, policy id
 - Policy documents — Coterie doc URL ingested to R2 + `documents` for Connect retrieval
 - **No BoldSign** on this rail — bind/payment evidence is Coterie/Stripe + webhook, not `signed_bind_docs`
 
-**Gaps until implemented:** webhook handler, idempotent finalize, fixture tests, operator visibility for Coterie-bound policies.
+**Still open:** carrier-issued certificate API (asked of Coterie). Do not fall back to a CID ACORD 25 on a Coterie policy once that adapter is built.
 
-### ConnectQuote — GUARD Workers’ Comp (live)
+### ConnectQuote — GUARD Workers’ Comp (built, not on the customer URL)
 
-**Status:** Live on ConnectQuote (Aug 2026, CO pilot). Full path: main-form WC opt-in → Coterie BOP quote → GUARD NBQ indication → NBS/BND → `finalizeGuardBind()` → **`policies`** row (`bind_source: guard`). Spec: [`guard-integration.md`](./guard-integration.md).
+**Status (2026-10-06):** Code is on `cid-pdf-api`. Sandbox offers WC for beauty, cleaning, pet, fitness, plumber, and electrical. Prod `offerWc` is false until GUARD generates the production API key, secret, and contract number. Path when those land: WC opt-in → NBQ → NBS/BND → `finalizeGuardBind()` → **`policies`** (`bind_source: guard`). Spec: [`guard-integration.md`](./guard-integration.md).
 
 **Audit spine (same submission, second policy):**
 
 - Timeline `guard.indicated` / `guard.bound` + GUARD `PolicyNumber` as `carrier_quote_ref`
 - `policies` via `createPolicy()` with `coverage_data.bind_source = 'guard'`, `policy_type = WC`
-- Doc push webhook → R2 + `documents` (partner-hosted endpoint; GUARD origin IPs in packet) — **not wired**
-- Bind evidence is GUARD BND + **GUARD direct bill** — **not** CID card/ACH, **not** BoldSign
+- Doc push webhook → R2 + `documents` — route acks today; Connect ingest is scheduled **16 October 2026**
+- Bind evidence is GUARD BND + **GUARD direct bill** — **not** CID card/ACH, **not** BoldSign. `GUARD_CAPITA_PAY_URL` is unset on purpose
 
-**Gaps (ops):** doc webhook ingest → R2; multi-state class-code expansion as pilot grows.
+**Gaps (ops):** production key, secret, and contract number from GUARD; doc ingest on 16 October; Capita URL when GUARD sends the template. HVAC and painter stay off. `GUARD_PILOT_STATES` stays CO.
 
 ### Known operational gaps (audit awareness)
 
 - **Intake `X-API-Key`:** Netlify may send a key; server **does not enforce** it today — public intake by design unless optional middleware is added.
 - **Duplicate notifications:** Multiple webhook or redirect finalize attempts may produce duplicate emails in edge cases; timeline + `documents`/`policies` remain the source of truth for whether bind completed.
-- **ConnectQuote:** Coterie bind audit path not yet in production — traditional BoldSign trail remains canonical today.
+- **ConnectQuote:** Coterie BOP/GL is in production on CO. Traditional BoldSign remains the audit trail for long-form (bar, roofer, and kick-outs). GUARD WC is built and waiting on production credentials.
 
 ---
 

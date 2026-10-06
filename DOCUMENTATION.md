@@ -1,8 +1,16 @@
 # CID documentation
 
-**Deploy / Render / Netlify — canonical in this repo (RSS):** [`docs/Deploy_Guide.md`](./docs/Deploy_Guide.md) — **versioned with `pdf-backend`**; **no GitHub remote required** for a separate docs folder.
+**One editable home for pipeline, carriers, deploy, and partnerships:** this repo’s `docs/`. Connect the app in `cid-connect/docs/`. Decisions that must survive a new agent: [`docs/decisions-log.md`](./docs/decisions-log.md).
 
-**Optional local folder:** `~/GitHub/CID-docs/` may hold copies for convenience; **edit [`docs/Deploy_Guide.md`](./docs/Deploy_Guide.md) in `pdf-backend`** when procedures change, then refresh any local copy if you use one.
+`~/GitHub/CID-docs/` and any `*.md` in the home folder are **indexes**. They point here. Do not paste a second full copy. `/Volumes/CID_Master/docs-snapshots/` is a dated read-only archive. Do not edit `CID_MASTER_OLD_DO_NOT_USE`.
+
+## Rules (audit and sale)
+
+1. Change a procedure in `pdf-backend/docs/` (or `cid-connect/docs/` for the app). Commit it. That is the diligence copy.
+2. Status lines say what a customer URL does today. Sandbox signed-off is not “live.”
+3. When a call would change the next session, add a dated entry to `docs/decisions-log.md`.
+4. After a doc pass, copy `docs/` to `/Volumes/CID_Master/docs-snapshots/YYYY-MM-DD/`. That folder is not a working tree.
+5. Keep old filenames so links still open. Replace drifted duplicates with a pointer. Git history keeps the old text.
 
 | Document | Description |
 |----------|-------------|
@@ -14,11 +22,15 @@
 | **[docs/partnership-gaps.md](./docs/partnership-gaps.md)** | **Dated** — diligence gaps P0–P3; segment carrier appointments; Ray inter-company |
 | **[docs/compliance-roadmap.md](./docs/compliance-roadmap.md)** | **Dated** — SOC 2 / security roadmap for founder & counsel review (download/share with Ray) |
 | **[docs/coterie-integration.md](./docs/coterie-integration.md)** | **Dated** — Coterie ConnectQuote technical spec (AKHash, API, prod CO segments, env — no secrets) |
+| **[docs/agent-start.md](./docs/agent-start.md)** | **Start here for any agent** — live vs not live, plus lanes (general, new carrier, GUARD go-live, Connect, outreach) |
+| **[docs/decisions-log.md](./docs/decisions-log.md)** | Dated calls (GUARD prod, COI, NEXT, geography). No secrets |
 | **[docs/connect-coi-carrier.md](./docs/connect-coi-carrier.md)** | **Connect COI** — ConnectQuote partners (Coterie, GUARD) issue certs; long-form keeps CID ACORD 25 |
+| **[docs/Segment_Template.md](./docs/Segment_Template.md)** | What a segment repo is. Operator / S4–S6 stay in this repo |
+| **[docs/DEPLOY_SEGMENTS.md](./docs/DEPLOY_SEGMENTS.md)** | Long-form segment add on CID-PDF-API. ConnectQuote launches use `connectquote-segment-deploy.md` |
 | **[docs/guard-integration.md](./docs/guard-integration.md)** | **GUARD WC spec** — SOAP, NBQ/NBS/BND/SBR, Connect policy row |
 | **[docs/guard-wc-rollout.md](./docs/guard-wc-rollout.md)** | **GUARD WC launch** — registry + Render env + CO Electrical / new segment |
 | **[docs/guard-uat-runbook.md](./docs/guard-uat-runbook.md)** | **GUARD P-env / partner-test** |
-| **CID-docs `Workers_Comp.md`** | **Due diligence start-here** (Finder: `~/GitHub/CID-docs/`) — points at the three files above |
+| **[docs/Workers_Comp.md](./docs/Workers_Comp.md)** | **Due diligence start-here** for GUARD WC — points at the files above |
 | **[docs/connectquote-shipped-2026-06.md](./docs/connectquote-shipped-2026-06.md)** | **Dated** — ConnectQuote shipped summary (investor/handoff): architecture, segments, demo URLs, verification checklist |
 | **[docs/outreach-claude-playbook.md](./docs/outreach-claude-playbook.md)** | **Dated** — Instantly campaigns: list cleaning, attribution (`ch`/`src`/`cid`), HTML paste checklist, verified failure modes, **prefill policy** |
 | **[docs/localprospects-list-design.md](./docs/localprospects-list-design.md)** | **Dated** — LocalProspects CO pulls: dedupe, ZIP extraction, category allowlist, credit economics, Instantly upload |
@@ -36,11 +48,7 @@
 | **[docs/coterie-sandbox-fixtures.md](./docs/coterie-sandbox-fixtures.md)** | Redacted Coterie API + ConnectQuote intake examples (E0122, webhook TBD) |
 | **[docs/OPERATOR_DAILY_RUNBOOK.md](./docs/OPERATOR_DAILY_RUNBOOK.md)** | Operator quote → bind → policy flow; **S5 client email** preview/send expectations |
 | **[OPERATOR_SEGMENT_AUDIT.md](./OPERATOR_SEGMENT_AUDIT.md)** | Segment filter audit + **S5 email** behavior (shared backend) |
-| [CID-docs/README.md](../CID-docs/README.md) | Optional local index (if present) |
-| [CID-docs/AUDIT_READINESS.md](../CID-docs/AUDIT_READINESS.md) | Optional local copy — audit / S1–S6 |
-| [CID-docs/CID_ARCHITECTURE.md](../CID-docs/CID_ARCHITECTURE.md) | Optional local copy — architecture |
-| [CID-docs/DEPLOY_SEGMENTS.md](../CID-docs/DEPLOY_SEGMENTS.md) | Optional — new segment checklist |
-| [CID-docs/CID_CONNECT.md](../CID-docs/CID_CONNECT.md) | Optional — CID Connect (Famous vs API) |
+| [CID-docs/README.md](../CID-docs/README.md) | Finder index only. Each file there points back to this repo |
 
 ---
 

@@ -1,17 +1,18 @@
 # GUARD WC — post-Jon rollout checklist
 
-> **When to use:** After Jon/GUARD confirms P-env NBQ works (premium + `PolicyNumber`) and prod credentials are issued.  
-> **Spec:** [`guard-integration.md`](./guard-integration.md) · **Registry:** `src/config/guardRegistry.js`
+> **As of:** 2026-10-06. P-env is signed off. Prod customer URLs stay dark until GUARD generates the production key, secret, and contract number.  
+> **Spec:** [`guard-integration.md`](./guard-integration.md) · **Registry:** `src/config/guardRegistry.js` · **Decisions:** [`decisions-log.md`](./decisions-log.md)
 
 ---
 
 ## Gate (all environments)
 
-- [ ] P-env NBQ returns **`FullTermAmt`** + **`PolicyNumber`** on plumber CO (sandbox smoke)
-- [ ] Jon confirms **`RatingClassificationCd`** per class (plumber CO = **`518322`**)
-- [ ] Prod **ContractNumber** + API keys (not `PAFAKE10`)
-- [ ] Prod **`GUARD_API_BASE`** → `https://gigezrate.guard.com/dotnet/api/acordservice/acord.svc`
-- [ ] **`GUARD_WEBHOOK_AUTH`** set; doc push URL shared with GUARD (when ready)
+- [x] P-env signed off by Jon. Partner-test works. Sandbox `offerWc: true` for the six registry-on segments.
+- [x] Class codes in registry (plumber CO `518322`, electrical `519000`, fitness `9063`, beauty `9586`, cleaning `9014`, pet `0917`)
+- [ ] Prod **key, secret, and contract number** — GUARD generates these at go-live. Do not copy sandbox or `PAFAKE10`.
+- [x] Prod **`GUARD_API_BASE`** → `https://gigezrate.guard.com/dotnet/api/acordservice/acord.svc`
+- [x] **`GUARD_WEBHOOK_AUTH`** set on prod and sandbox. Ingest into Connect is still ack-only until **16 October 2026**.
+- [ ] **`GUARD_CAPITA_PAY_URL`** — leave the row off until GUARD sends the real template. An empty or placeholder value must not be saved.
 
 ---
 
@@ -28,7 +29,7 @@
 **Two switches per segment:**
 
 1. **`guardRegistry.js`** → `wcEnabled: true/false`
-2. **`GUARD_ENABLED_SEGMENTS`** on Render (comma list; empty = WC off everywhere)
+2. **`GUARD_ENABLED_SEGMENTS`** on Render (comma list). Unset = every registry-on line. Empty string = WC off. Prod is set to `beauty,cleaning,pet,fitness,plumber,electrical`.
 
 Both must allow the segment. CO only until **`GUARD_PILOT_STATES`** expands.
 

@@ -55,43 +55,56 @@ All adapters: **CID-PDF-API only.** No COI code in segment repos.
 
 ---
 
-## Coterie (BOP/GL) — from their public API docs
+## Coterie (BOP/GL)
 
-Coterie does **not** document a “create COI for this holder” POST. Certificates show up two ways:
+Two layers: **agent dashboard** (what Gerry walked on Demo Fitness `CSG-00507726-00`) vs **partner API** (what we can call). Instant COI in Connect must use the **API equivalent** of the dashboard. We do not log into `dashboard-v2.coterieinsurance.com` from CID-PDF-API.
 
-### 1. Additional insured **on the quote** (before bind)
+### Dashboard actions (2026-10-06)
 
-`endorsements.additionalInsureds[]` on `POST …/commercial/quotes` (their docs example):
+Policy toolbar: **Generate COI** · **Add Additional Insureds** · **Add Endorsements** · **Update Policy Info** · **Request Cancel**.
 
-`name`, `street`, `city`, `state`, `zip`, `email`, `description`
+Instant COI maps to the first two only. Endorsement packages (blanket AI, liquor, HNOA, limit changes, …) and “update business name” are **not** Instant COI — those stay a future Connect “policy change” product.
 
-That names a party **at quote**. It is **not** Instant COI after the policy is live (new landlord next month).
+| Connect Instant COI | Coterie dashboard | Instant? |
+|---------------------|-------------------|----------|
+| Type **standard** + holder name/address | **Generate COI** → Yes, add certificate holder (name, address, city, state, ZIP) → “Designated Additional Insured on the policy?” → Generate | **Yes** — PDF download |
+| Type **standard**, no holder | Generate COI → No certificate holder | Yes |
+| Type **waiver_subrogation** | **Add Additional Insureds** → Waiver of Rights of Recovery + AI type + effective date. Then Generate COI. | **No** — endorsement request (no backdate) |
+| Type **primary_noncontributory** | Add Additional Insureds → Primary and Non-Contributory + AI type. Then Generate COI. | **No** — same |
+| Type **special_wording** + notes / drag-drop | Generate COI has **no** file upload. AI form has “Additional information.” Landlord PDF stays on our `coi_requests` row. | Queue unless they take attachments |
+| Holder already an AI? | Generate COI “Designated Additional Insured?” = **Yes** only if they **already are**. Adding them is a different button. | Split |
 
-### 2. Retrieve issued documents (after bind)
+Coterie producer docs: Generate COI is a **download**. They do **not** email the cert. **CID emails** the PDF to Connect’s delivery address.
 
-| Source | Call | What we get |
-|--------|------|-------------|
-| **What we already use** (v1.6, vault ingest) | `GET /v1.6/commercial/policies/docs/links/{PolicyNumber}` | PDF URLs for issued docs |
-| **Public Documents API** | `GET /commercial/policies/{policyId}/documents` | Array: `documentId`, `type`, `url`, `contentType`. Example `type`: `Proposal`, `PolicyDeclaration`, **`CertificateOfInsurance`** |
+### Public API today (not the dashboard)
 
-Adapter v1 (once we smoke it on a live Coterie policy):
+- Quote-time AI: `endorsements.additionalInsureds[]` on `POST …/commercial/quotes` (pre-bind only).  
+- Retrieve: `GET /v1.6/commercial/policies/docs/links/{PolicyNumber}` (vault ingest we already run) and `GET /commercial/policies/{policyId}/documents` (`type`: `CertificateOfInsurance`).  
+- **No** documented POST for Generate COI or Add Additional Insureds.
 
-1. Resolve `coverage_data.coterie_policy_id` and/or carrier `PolicyNumber` (not `CID-POL-*`).  
-2. GET document list (prefer v1.6 `docs/links`; also try `{policyId}/documents` if links omit certs).  
-3. Pick `type === CertificateOfInsurance` (or filename/url that is clearly a cert).  
-4. Download PDF → R2 `documents.coi_generated` → email delivery address → `completed`.
+### Build process (once Coterie exposes dashboard APIs)
 
-**Standard Instant COI** can ship on that retrieve path if Coterie already puts a cert in the document list.
+Connect UI does not change. All of this is **CID-PDF-API**.
 
-**New holder / waiver / PNC / special wording:** public docs have **no** post-bind request endpoint. Queue those until Coterie confirms how to order a **new** cert. Do not invent CID ACORD 25.
+1. Insured submits Instant COI → `coi_requests` (`submitted` → `processing`).  
+2. Adapter reads `bind_source = coterie` and carrier `PolicyNumber` (e.g. `CSG-00507726-00`), not `CID-POL-*`.  
+3. **Standard** → call Coterie **Generate COI** (holder fields + designated-AI flag). Receive PDF bytes or URL.  
+4. **Waiver / PNC** → call **Add Additional Insureds** first (effective date = today, checkboxes, optional notes). Stay `processing` until that endorsement is issued. Then step 3.  
+5. Download PDF → R2 `documents.coi_generated` (vault) → Gmail to `delivery_email` (same file) → `completed`.  
+6. If Coterie also puts the cert on `docs/links`, existing ingest may duplicate — dedupe by URL/hash.  
+7. Drag-drop file is **ours** (requirements). Do not treat it as the cert. Pass a note/URL to Coterie only if their API accepts it.
 
-Sandbox note (their docs): issued policy documents are **not emailed** in sandbox for legal reasons. Smoke retrieve-by-API on prod or ask their insurance team for sample forms.
+**Do not** scrape the dashboard or reuse Gerry’s browser session. **Do not** fall back to CID ACORD 25.
 
-**Still confirm with Coterie (one email)**
+### Ask Coterie (blocker)
 
-- Does `docs/links` include `CertificateOfInsurance`, or only the `{policyId}/documents` route?  
-- Can we request a cert for a **new** holder after bind? If yes, method + payload.  
-- Waiver / PNC as endorsements vs cert-only.
+Partner API for the same two dashboard routes, authenticated with our existing secret key:
+
+1. Generate COI — payload: policy number, optional holder (name, street, city, state, ZIP), designated AI yes/no; response: PDF or URL.  
+2. Add Additional Insureds — payload: effective date, AI option, PNC, waiver, property interest, ACORD 28, notes, “send docs to AI.”  
+3. Confirm whether a generated COI also appears on `docs/links` / `{policyId}/documents`.
+
+Fixture they already have: Demo Fitness `CSG-00507726-00`.
 
 ---
 
@@ -134,10 +147,9 @@ Vault copy is the **carrier PDF**. Email copy is the same file. Requirements upl
 
 | Item | Owner | When |
 |------|--------|------|
-| Smoke `docs/links` + `{policyId}/documents` for `CertificateOfInsurance` on a live Coterie policy | CID | Next (Coterie first) |
-| Confirm new-holder / waiver / PNC with Coterie partner eng | Gerry | Before adapter v2 |
+| Partner API for dashboard **Generate COI** + **Add Additional Insureds** | Gerry → Coterie | Blocker |
+| Adapter: Connect Instant COI → those two calls → R2 + CID email | CID | After Coterie answers |
+| Stop auto ACORD 25 on `coterie` | Same PR | |
 | GUARD WC cert path | Gerry → Jon | **After Electrical live** |
-| Adapter split in `fulfillConnectCoiRequest` | CID | After Coterie retrieve smoke |
-| Stop auto ACORD 25 on `coterie` (and later `guard`) | Same PR | |
 
 **Not this spec:** sending insureds to carrier portals; CID ACORD 25 on ConnectQuote policies.
