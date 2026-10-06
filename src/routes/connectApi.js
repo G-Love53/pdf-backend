@@ -298,6 +298,7 @@ router.get(
        FROM documents
        WHERE policy_id = $1::uuid
          AND (client_id = $2::uuid OR client_id IS NULL)
+         AND document_role IS DISTINCT FROM 'coverage_summary_generated'
        ORDER BY created_at DESC`,
       [policyId, client_id],
     );
