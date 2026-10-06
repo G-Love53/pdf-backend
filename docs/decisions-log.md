@@ -12,7 +12,7 @@ Edit this file when a decision would change the next session. Specs stay in thei
 - **Edit** the Connect app in `cid-connect/docs/`.
 - `~/GitHub/CID-docs/` is an index. Those filenames stay so old links open. They point here. They are not a second copy.
 - Home-folder `*.md` files are pointers. Do not edit them as specs.
-- `/Volumes/CID_Master/docs-snapshots/YYYY-MM-DD/` is a read-only archive taken after a doc pass. Do not edit it. Do not use `CID_MASTER_OLD_DO_NOT_USE`. The January 2026 tree is not the working repo.
+- `/Volumes/CID_Master/docs-snapshots/YYYY-MM-DD/` is a read-only archive. A Mac job (`scripts/snapshot-docs-to-cid-master.sh`) writes a new dated folder weekly when the drive is mounted. Do not edit it. Do not use `CID_MASTER_OLD_DO_NOT_USE`. The January 2026 tree is not the working repo.
 
 ## 2026-10-06 — GUARD production
 

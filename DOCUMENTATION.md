@@ -9,7 +9,7 @@
 1. Change a procedure in `pdf-backend/docs/` (or `cid-connect/docs/` for the app). Commit it. That is the diligence copy.
 2. Status lines say what a customer URL does today. Sandbox signed-off is not “live.”
 3. When a call would change the next session, add a dated entry to `docs/decisions-log.md`.
-4. After a doc pass, copy `docs/` to `/Volumes/CID_Master/docs-snapshots/YYYY-MM-DD/`. That folder is not a working tree.
+4. Canonical docs copy themselves to `/Volumes/CID_Master/docs-snapshots/YYYY-MM-DD/` once a week (Monday 8:00 local, and on login if the last copy is older than 6 days). The job is `scripts/snapshot-docs-to-cid-master.sh`. That folder is not a working tree. If the drive is unplugged, the job skips and tries again next login.
 5. Keep old filenames so links still open. Replace drifted duplicates with a pointer. Git history keeps the old text.
 
 | Document | Description |
