@@ -170,6 +170,7 @@
           <option value="cleaning">Cleaning</option>
           <option value="pet">Pet</option>
           <option value="painter">Painter</option>
+          <option value="www">Homepage</option>
         </select>
         <label for="operator-window">Window</label>
         <select id="operator-window" aria-label="Metrics time window">
@@ -185,12 +186,12 @@
 
       <div class="grid">
         <div class="card">
-          <h2>Clicks</h2>
+          <h2 id="m-clicks-label">Clicks</h2>
           <div class="metric" id="m-clicks">—</div>
           <div class="hint">Human landings</div>
         </div>
         <div class="card">
-          <h2>Fills</h2>
+          <h2 id="m-fills-label">Fills</h2>
           <div class="metric" id="m-fills">—</div>
           <div class="hint" id="m-click-fill">—</div>
         </div>
@@ -433,12 +434,15 @@
           }
           $("page-error").style.display = "none";
           const f = data.funnel || {};
+          const homepage = data.segment === "www";
+          $("m-clicks-label").textContent = homepage ? "Visits" : "Clicks";
+          $("m-fills-label").textContent = homepage ? "Quote starts" : "Fills";
           $("m-clicks").textContent = fmt(f.clicks);
           $("m-fills").textContent = fmt(f.fills);
           $("m-quoted").textContent = fmt(f.quoted);
           $("m-binds").textContent = fmt(f.binds);
           $("m-click-bind").textContent = rate(f.click_to_bind);
-          $("m-click-fill").textContent = "of clicks " + rate(f.click_to_fill);
+          $("m-click-fill").textContent = (homepage ? "of visits " : "of clicks ") + rate(f.click_to_fill);
           $("m-fill-quote").textContent = "of fills " + rate(f.fill_to_quote);
           $("m-quote-bind").textContent = "of quotes " + rate(f.quote_to_bind);
           const wc = data.wc || {};

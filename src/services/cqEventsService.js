@@ -9,11 +9,13 @@ const ALLOWED_SEGMENTS = new Set([
   ...CONNECTQUOTE_MARKETING_READY,
   "bar",
   "roofer",
+  "www",
 ]);
 
 const ALLOWED_EVENTS = new Set([
   "page_view",
   "engaged",
+  "quote_start",
   "step_complete",
   "disqualified",
   "quote_requested",

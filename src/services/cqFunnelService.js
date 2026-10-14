@@ -7,7 +7,10 @@ import { parseOperatorWindow, sqlWindowFilter } from "./operatorWindow.js";
 const STALE_MINUTES = 30;
 
 function sqlCqEventsSegmentFilter(paramIndex = 2) {
-  return `AND ($${paramIndex}::text = 'all' OR e.segment = $${paramIndex})`;
+  return `AND (
+    ($${paramIndex}::text = 'all' AND e.segment <> 'www')
+    OR e.segment = $${paramIndex}
+  )`;
 }
 
 /**
@@ -47,6 +50,7 @@ export async function getCqFunnelBehavior(pool, opts = {}) {
         MAX(st) AS email_step,
         MAX(state) AS state,
         bool_or(event = 'page_view') AS has_page_view,
+        bool_or(event = 'quote_start') AS has_quote_start,
         bool_or(event = 'engaged') AS has_engaged,
         COUNT(*) FILTER (WHERE event = 'step_complete') AS step_count,
         bool_or(event = 'disqualified') AS has_disqualified,
@@ -93,6 +97,7 @@ export async function getCqFunnelBehavior(pool, opts = {}) {
     SELECT
       COUNT(*)::int AS sessions,
       COUNT(*) FILTER (WHERE has_page_view)::int AS landings,
+      COUNT(*) FILTER (WHERE has_quote_start)::int AS quote_starts,
       COUNT(*) FILTER (WHERE has_engaged)::int AS engaged_sessions,
       COUNT(*) FILTER (WHERE funnel_stage IN ('open', 'open_engaged'))::int AS open_sessions,
       COUNT(*) FILTER (WHERE funnel_stage = 'semi_filled')::int AS semi_filled,
@@ -151,6 +156,7 @@ export async function getCqFunnelBehavior(pool, opts = {}) {
       WHERE ${timeFilter}
         ${botFilter}
         AND ($${segParamIndex}::text = 'all')
+        AND e.segment <> 'www'
     ),
     agg AS (
       SELECT
@@ -214,6 +220,7 @@ export async function getCqFunnelBehavior(pool, opts = {}) {
     summary: {
       sessions: row.sessions ?? 0,
       landings: row.landings ?? 0,
+      quote_starts: row.quote_starts ?? 0,
       open: row.open_sessions ?? 0,
       semi_filled: row.semi_filled ?? 0,
       stale: row.stale ?? 0,

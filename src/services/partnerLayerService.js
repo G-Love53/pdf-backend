@@ -96,7 +96,10 @@ export async function getAttributionByChannel(pool, opts = {}) {
     WHERE ${evTime}
       AND e.event = 'page_view'
       AND NOT e.suspect_bot
-      AND ($${segParamIndex}::text = 'all' OR e.segment = $${segParamIndex})
+      AND (
+        ($${segParamIndex}::text = 'all' AND e.segment <> 'www')
+        OR e.segment = $${segParamIndex}
+      )
     GROUP BY 1
   `;
 

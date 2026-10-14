@@ -35,14 +35,21 @@ export async function getOperatorScoreboard(pool, opts = {}) {
     getWcAttachment(pool, { segment, window }),
   ]);
 
+  const homepage = segment === "www";
   const clicks = behavior?.summary?.landings ?? 0;
-  const fills = learning?.funnel?.submits ?? 0;
+  const fills = homepage
+    ? (behavior?.summary?.quote_starts ?? 0)
+    : (learning?.funnel?.submits ?? 0);
   const quoted = learning?.funnel?.quoted ?? 0;
   const binds = learning?.funnel?.bound ?? 0;
 
   const steps = [
-    { key: "click", label: "Click", hint: "Human landings (cq_events)", value: clicks },
-    { key: "fill", label: "Fill", hint: "ConnectQuote submits", value: fills },
+    homepage
+      ? { key: "click", label: "Visits", hint: "Homepage landings", value: clicks }
+      : { key: "click", label: "Click", hint: "Human landings (cq_events)", value: clicks },
+    homepage
+      ? { key: "fill", label: "Quote starts", hint: "Clicked a trade quote", value: fills }
+      : { key: "fill", label: "Fill", hint: "ConnectQuote submits", value: fills },
     { key: "quote", label: "Quote", hint: "Bindable premium returned", value: quoted },
     { key: "bind", label: "Bind", hint: "Policy row (Coterie)", value: binds },
   ];
@@ -101,7 +108,10 @@ async function getDailyFunnel(pool, { segment, window }) {
     WHERE ${evTime}
       AND e.event = 'page_view'
       AND NOT e.suspect_bot
-      AND ($${segParamIndex}::text = 'all' OR e.segment = $${segParamIndex})
+      AND (
+        ($${segParamIndex}::text = 'all' AND e.segment <> 'www')
+        OR e.segment = $${segParamIndex}
+      )
     GROUP BY 1
   `;
 
