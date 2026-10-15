@@ -108,6 +108,17 @@
     if (quoteBtn) quoteBtn.hidden = true;
   }
 
+  function partnerPayUrl(policyNumber) {
+    const policy = String(policyNumber || "").trim();
+    const zip = String(
+      ($("location_zip") && $("location_zip").value) || "",
+    ).replace(/\D/g, "").slice(0, 5);
+    const url = new URL("https://policyholder.guard.com/payment");
+    if (policy) url.searchParams.set("Identifier", policy);
+    if (zip) url.searchParams.set("ZipCode", zip);
+    return url.toString();
+  }
+
   function popupGuardKickout(message) {
     const text =
       message ||
@@ -350,11 +361,10 @@
         (g.policyNumber ? "Policy " + g.policyNumber : "Bound") +
         (data.premium != null ? " · " + money(data.premium) + " / yr" : "");
     }
+    const policyNumber = g.policyNumber || session.policyNumber || "";
     mountGuardCapitaButton(hero, {
-      payUrl:
-        (data && data.capita && data.capita.payUrl) ||
-        "https://policyholder.guard.com/payment",
-      label: "Pay now",
+      payUrl: partnerPayUrl(policyNumber),
+      label: policyNumber ? "Pay now · " + policyNumber : "Pay now",
     });
     const bindBtn = $("guard-bind-btn");
     const referBtn = $("guard-refer-btn");
