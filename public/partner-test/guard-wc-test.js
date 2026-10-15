@@ -100,7 +100,12 @@
       host.appendChild(el);
     }
     el.href = capita.payUrl;
-    el.textContent = "Pay with GUARD / Capita";
+    el.textContent = capita.label || "Pay now";
+  }
+
+  function hideSubmitButton() {
+    const quoteBtn = $("guard-quote-btn");
+    if (quoteBtn) quoteBtn.hidden = true;
   }
 
   function popupGuardKickout(message) {
@@ -289,6 +294,7 @@
     const referBtn = $("guard-refer-btn");
     if (bindBtn) bindBtn.hidden = false;
     if (referBtn) referBtn.hidden = true;
+    hideSubmitButton();
     guardWcStatus(box, "", "");
   }
 
@@ -344,11 +350,17 @@
         (g.policyNumber ? "Policy " + g.policyNumber : "Bound") +
         (data.premium != null ? " · " + money(data.premium) + " / yr" : "");
     }
-    mountGuardCapitaButton(hero, data && data.capita);
+    mountGuardCapitaButton(hero, {
+      payUrl:
+        (data && data.capita && data.capita.payUrl) ||
+        "https://policyholder.guard.com/payment",
+      label: "Pay now",
+    });
     const bindBtn = $("guard-bind-btn");
     const referBtn = $("guard-refer-btn");
     if (bindBtn) bindBtn.hidden = true;
     if (referBtn) referBtn.hidden = true;
+    hideSubmitButton();
     guardWcStatus(box, "ok", "Bind complete on P-env.");
   }
 
