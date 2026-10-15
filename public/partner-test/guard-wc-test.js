@@ -119,7 +119,8 @@
       el.className = "guard-wc-status";
       box.appendChild(el);
     }
-    el.className = "guard-wc-status" + (kind ? " " + kind : "");
+    var flag = kind === "ok" ? " is-ok" : kind === "err" ? " is-err" : "";
+    el.className = "guard-wc-status" + flag;
     el.textContent = text || "";
   }
 
@@ -499,6 +500,8 @@
       guardWcStatus(box, "err", "Need employees or owner on WC.");
       return;
     }
+    const btn = $("guard-indicate-btn");
+    if (btn) btn.disabled = true;
     guardWcStatus(box, "", "Getting your indication…");
     try {
       const officerEl = $("guard-officer-payroll");
@@ -518,7 +521,13 @@
         }),
       });
       const data = await res.json();
-      if (!data.ok) throw new Error(data.message || data.error || "Indication failed");
+      if (!data.ok) {
+        const msg = data.message || data.error || "Indication failed";
+        if (/no longer be modified/i.test(msg)) {
+          throw new Error("This test already reached GUARD. Refresh the page, click Start WC test once, then Get WC indication once.");
+        }
+        throw new Error(msg);
+      }
       if (data.popup || data.decision === "refer" || data.decision === "decline") {
         if (data.guard && data.guard.policyNumber) {
           session.policyNumber = data.guard.policyNumber;
@@ -557,6 +566,8 @@
       wireFeinInput();
     } catch (err) {
       guardWcStatus(box, "err", err.message || String(err));
+    } finally {
+      if (btn) btn.disabled = false;
     }
   }
 

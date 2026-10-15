@@ -28,6 +28,8 @@
     .err.show { display: block; }
     .ok { background: #ecfdf5; color: #065f46; padding: 12px; border-radius: 8px; margin-top: 12px; display: none; }
     .ok.show { display: block; }
+    .guard-wc-status.is-ok { color: #065f46; display: block; }
+    .guard-wc-status.is-err { color: #b91c1c; display: block; background: #fef2f2; padding: 12px; border-radius: 8px; }
     #wc-section { display: none; }
     #wc-section.show { display: block; }
     .footer { text-align: center; font-size: .82rem; color: #666; margin-top: 20px; }
@@ -183,6 +185,6 @@ window.GUARD_PARTNER_TEST = {
   token: new URLSearchParams(location.search).get("token") || "",
 };
 </script>
-<script src="/partner-test/guard-wc-test.js?v=20261006a"></script>
+<script src="/partner-test/guard-wc-test.js?v=20261015a"></script>
 </body>
 </html>
