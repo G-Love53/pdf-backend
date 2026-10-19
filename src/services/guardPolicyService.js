@@ -12,6 +12,7 @@ import {
 } from "../constants/postgresEnums.js";
 import { normalizeSegment } from "../utils/rss.js";
 import { uploadBuffer } from "./r2Service.js";
+import { attachPendingGuardDocs } from "./guardDocIngestService.js";
 
 /**
  * Minimal S4–S6 spine rows for GUARD WC instant bind (no BoldSign / packet PDF).
@@ -290,6 +291,30 @@ export async function finalizeGuardBind({
         },
       ],
     );
+
+    await client.query("SAVEPOINT guard_pending_docs");
+    try {
+      const attached = await attachPendingGuardDocs(client, {
+        policyId: policy.id,
+        policyNumber: guardPolicyNumber,
+        clientId: clientRow.client_id,
+        submissionId: submission.submission_id,
+        quoteId: pipeline.quote_id,
+      });
+      await client.query("RELEASE SAVEPOINT guard_pending_docs");
+      if (attached.length) {
+        console.log("[guardPolicyService] attached pending GUARD docs", {
+          policy_id: policy.id,
+          count: attached.length,
+        });
+      }
+    } catch (attachErr) {
+      await client.query("ROLLBACK TO SAVEPOINT guard_pending_docs");
+      console.error("[guardPolicyService] pending GUARD doc attach failed", {
+        policy_id: policy.id,
+        message: attachErr?.message || String(attachErr),
+      });
+    }
 
     await client.query("COMMIT");
 

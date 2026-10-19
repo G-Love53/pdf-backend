@@ -23,6 +23,7 @@ import {
   parseGuardDocWebhook,
   verifyGuardWebhookAuth,
 } from "../services/guardService.js";
+import { processGuardDocWebhook } from "../services/guardDocIngestService.js";
 import { getDocumentProperties } from "../services/boldsignService.js";
 import {
   DocumentRole,
@@ -797,7 +798,8 @@ router.post("/webhooks/coterie", async (req, res) => {
   }
 });
 
-// GUARD document push — POST /webhooks/guard-docs (JSON + base64 PDF). Ack only until ingest lands.
+// GUARD document push — POST /webhooks/guard-docs (JSON + base64 PDF).
+// Save first, then 200. Bad auth stays 401. Save failures stay 200 so GUARD does not retry.
 router.post("/webhooks/guard-docs", async (req, res) => {
   try {
     if (!verifyGuardWebhookAuth(req)) {
@@ -807,11 +809,27 @@ router.post("/webhooks/guard-docs", async (req, res) => {
     const payload = parseGuardDocWebhook(req);
     const policyNumber = payload?.policyNumber || null;
     const fileName = payload?.fileName || null;
-    console.log("[guard webhook] doc", { policyNumber, fileName });
-    return res.status(200).json({ ok: true, received: Boolean(policyNumber) });
+    const result = await processGuardDocWebhook(payload);
+    console.log("[guard webhook] doc", {
+      policyNumber,
+      fileName,
+      received: result.received,
+      saved: result.saved,
+      pending: result.pending,
+      duplicate: result.duplicate,
+      error: result.error || null,
+    });
+    return res.status(200).json({ ok: true, ...result });
   } catch (err) {
-    console.error("[guard webhook] error:", err);
-    return res.status(200).json({ ok: true });
+    console.error("[guard webhook] error:", err?.message || err);
+    return res.status(200).json({
+      ok: true,
+      received: false,
+      saved: false,
+      pending: false,
+      duplicate: false,
+      error: "handler_error",
+    });
   }
 });
 
