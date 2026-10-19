@@ -1,6 +1,7 @@
 # GUARD WC — post-Jon rollout checklist
 
-> **As of:** 2026-10-06. P-env is signed off. Prod customer URLs stay dark until GUARD generates the production key, secret, and contract number.  
+> **As of:** 2026-10-19. Colorado WC is live for beauty, cleaning, pet, fitness, plumber, and electrical. Prod `GUARD_ENABLED_SEGMENTS` is exactly `beauty,cleaning,pet,fitness,plumber,electrical`. Do not clear it.  
+> **Next state or trade:** [`agent-start.md`](./agent-start.md) New carrier lane, step 5. This file is the registry checklist.  
 > **Spec:** [`guard-integration.md`](./guard-integration.md) · **Registry:** `src/config/guardRegistry.js` · **Decisions:** [`decisions-log.md`](./decisions-log.md)
 
 ---
@@ -9,10 +10,10 @@
 
 - [x] P-env signed off by Jon. Partner-test works. Sandbox `offerWc: true` for the six registry-on segments.
 - [x] Class codes in registry (plumber CO `518322`, electrical `519000`, fitness `9063`, beauty `9586`, cleaning `9014`, pet `0917`)
-- [ ] Prod **key, secret, and contract number** — GUARD generates these at go-live. Do not copy sandbox or `PAFAKE10`.
-- [x] Prod **`GUARD_API_BASE`** → `https://gigezrate.guard.com/dotnet/api/acordservice/acord.svc`
-- [x] **`GUARD_WEBHOOK_AUTH`** set on prod and sandbox. Ingest into Connect is still ack-only until **16 October 2026**.
-- [ ] **`GUARD_CAPITA_PAY_URL`** — leave the row off until GUARD sends the real template. An empty or placeholder value must not be saved.
+- [x] Prod key, secret, and contract number are on `cid-pdf-api`. Jon’s green light to submit business was 16 October 2026. Do not copy sandbox or `PAFAKE10`. Do not write the values into git.
+- [x] Prod **`GUARD_API_BASE`** → `https://gigezrate.guard.com/dotnet/api/acordservice/acord.svc`. SP name `com.commercialinsurance-direct`.
+- [x] **`GUARD_WEBHOOK_AUTH`** set on prod and sandbox. PDF ingest is commit `25b97d0`. Behavior is New carrier lane step 3.
+- [x] **`GUARD_CAPITA_PAY_URL` stays unset.** GUARD emails pay info. Do not put the bare `https://policyholder.guard.com/payment` link on the customer confirmation. Do not save a placeholder.
 
 ---
 
@@ -115,13 +116,14 @@ Contractors section footnote: restrictions may apply in **New York** (CO pilot u
 | Service | `cid-pdf-api-sandbox` | `cid-pdf-api` |
 | GUARD host | `pgigezrate…` | `gigezrate…` |
 | Contract | `PAFAKE10` | Prod agency code |
-| IP whitelist | Render Oregon CIDRs (`74.220.48.0/24`, `74.220.56.0/24`) | Not required |
+| IP whitelist | Render Oregon CIDRs (`74.220.48.0/24`, `74.220.56.0/24`) | Same ranges (Jon, 14 October 2026) |
 | Demo bind | `COTERIE_DEMO_FINALIZE_ENABLED=true` | `false` |
 
 ---
 
 ## After rollout
 
-- [ ] Update [`guard-integration.md`](./guard-integration.md) changelog + appetite table
-- [ ] CONNECT: second policy card when `bind_source: guard` (phase 4)
-- [ ] Doc webhook → R2 ingest (**16 October 2026**)
+- [x] Colorado six trades live. Do not clear `GUARD_ENABLED_SEGMENTS`.
+- [x] CONNECT: own `policies` row on GUARD bind (`5d88d50`). It does not wait for a Coterie BOP.
+- [x] Doc webhook → R2 + documents (`25b97d0`)
+- [ ] Next state: Jon’s class suffix, one customer-URL smoke, then add that state to `GUARD_PILOT_STATES`. Autocomplete is not a bind state.

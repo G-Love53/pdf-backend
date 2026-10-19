@@ -257,26 +257,26 @@ When the instant rail is enabled on CID-PDF-API, set on **Render → CID-PDF-API
 
 **Interim prod (waiting on Coterie Stripe):** Keep **`COTERIE_API_BASE`** on prod for real quotes. Demo bind turns on automatically when **`COTERIE_STRIPE_PUBLISHABLE_KEY`** is still **`pk_test_`**, or set **`COTERIE_DEMO_FINALIZE_ENABLED=true`**. Insureds use **Complete bind — demo (no charge)** on ConnectQuote intake. When Coterie delivers **`pk_live_`**, set **`COTERIE_DEMO_FINALIZE_ENABLED=false`** for live card bind only.
 
-Spec: [`coterie-integration.md`](./coterie-integration.md) · Shipped: [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md). **ConnectQuote marketing (CO prod):** **Electrical**, **Fitness** (yoga / pilates / trainer), **HVAC**, **Plumber**, **Beauty**, **Cleaning**, **Pet**. **Bar / Roofer** — traditional only.
+Spec: [`coterie-integration.md`](./coterie-integration.md) · Shipped: [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md). **ConnectQuote marketing (CO prod):** **Electrical**, **Fitness** (yoga / pilates / trainer), **HVAC**, **Plumber**, **Beauty**, **Cleaning**, **Pet**, **Painter**. **Bar / Roofer** — traditional only. `COTERIE_PILOT_STATES` stays `CO`. The next 10 states are approved and are not bind states. See [`agent-start.md`](./agent-start.md).
 
 **Static intake assets** (served from same Render service): `/static/connectquote-intake.js` and `.css` — segment Netlify pages load these with cache-bust query (e.g. `?v=20260821b`); **do not duplicate logic in segment repos**. After intake deploy, bump `?v=` on segment `connectquote.html` files so browsers pick up ZIP/email prefill fixes.
 
 ### GUARD Workers’ Comp
 
-Optional second ConnectQuote line on the same submission. **CO Electrical is the first customer launch** (prod gated on GUARD credentials + Capita URL + live-URL smoke). Spec: [`guard-integration.md`](./guard-integration.md) · Rollout: [`guard-wc-rollout.md`](./guard-wc-rollout.md) · New-segment steps: [`connectquote-segment-deploy.md`](./connectquote-segment-deploy.md) §9 · Diligence start-here: `~/GitHub/CID-docs/Workers_Comp.md`.
+Optional second ConnectQuote line on the same submission. **Live on prod `cid-pdf-api` for Colorado** beauty, cleaning, pet, fitness, plumber, and electrical. Jon’s green light was 16 October 2026. Do not clear `GUARD_ENABLED_SEGMENTS`. A new carrier follows [`agent-start.md`](./agent-start.md) New carrier lane. Spec: [`guard-integration.md`](./guard-integration.md) · Rollout: [`guard-wc-rollout.md`](./guard-wc-rollout.md) · New-segment steps: [`connectquote-segment-deploy.md`](./connectquote-segment-deploy.md) §9 · Product note: [`Workers_Comp.md`](./Workers_Comp.md).
 
 | Env var | Sandbox (P) | Prod |
 |---------|-------------|------|
 | `GUARD_API_BASE` | `https://pgigezrate.guard.com/dotnet/api/acordservice/acord.svc` | `https://gigezrate.guard.com/dotnet/api/acordservice/acord.svc` |
-| `GUARD_API_KEY` / `GUARD_API_SECRET` | From Jon (P-env) | **Separate prod** pair |
-| `GUARD_CONTRACT_NUMBER` | `PAFAKE10` (sandbox) | Prod agency code |
+| `GUARD_API_KEY` / `GUARD_API_SECRET` | Sandbox pair. Do not copy onto prod | Separate prod pair. Already set. Do not write the values into git |
+| `GUARD_CONTRACT_NUMBER` | `PAFAKE10` | Prod agency code from GUARD. Do not copy `PAFAKE10` |
 | `GUARD_SP_NAME` | `com.commercialinsurance-direct` | Same |
-| `GUARD_ENABLED_SEGMENTS` | e.g. `beauty,cleaning,pet,fitness,plumber,electrical` | Same list after class confirm |
-| `GUARD_PILOT_STATES` | `CO` | `CO` until expansion |
-| `GUARD_CAPITA_PAY_URL` | When GUARD sends pay-link template | Same; CID does not take the card |
-| `GUARD_WEBHOOK_AUTH` | Share with GUARD before **16 Oct 2026** doc push | Same pattern |
+| `GUARD_ENABLED_SEGMENTS` | `beauty,cleaning,pet,fitness,plumber,electrical` | Same list. Do not clear it |
+| `GUARD_PILOT_STATES` | `CO` | `CO` until one state is class-checked and smoked |
+| `GUARD_CAPITA_PAY_URL` | Unset. Do not put `https://policyholder.guard.com/payment` on the customer confirmation | Same. GUARD emails pay info. CID does not collect the card |
+| `GUARD_WEBHOOK_AUTH` | Set. Do not write the value into git | Same. PDF ingest is commit `25b97d0` |
 
-P/test requires **Render outbound IPs whitelisted** by GUARD; prod does not whitelist. Intake is **`/static/connectquote-intake.js`** on Render — bump `?v=` on segment `connectquote.html` after intake changes. Policy PDFs land via GUARD webhook **16 October 2026** — not a bind blocker.
+Username and password are the Agency Service Center portal only, not env vars. Live and test IP whitelist use `74.220.48.0/24` and `74.220.56.0/24`. Intake is **`/static/connectquote-intake.js`** on Render — bump `?v=` on segment `connectquote.html` after intake changes. Policy PDFs: `POST /webhooks/guard-docs` (401 on bad auth, 200 after the save attempt). Live `https://cid-pdf-api.onrender.com/webhooks/guard-docs`. Sandbox `https://cid-pdf-api-sandbox.onrender.com/webhooks/guard-docs`. The PDF is not a bind blocker. The earlier sandbox file `SUWC781711` will not appear unless GUARD posts it again.
 
 ### Connect identity + CORS checks
 

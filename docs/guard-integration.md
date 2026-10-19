@@ -1,7 +1,7 @@
 # CID × GUARD — Workers’ Comp (ConnectQuote second rail)
 
 > **Canonical location (RSS):** `pdf-backend/docs/guard-integration.md`  
-> **As of:** 2026-10-06 (America/Denver). **Status: built, sandbox signed off, not on the customer URL.** P-env (`cid-pdf-api-sandbox`) returns `offerWc: true`. Prod (`cid-pdf-api`) returns `wcEnabled: true` and `offerWc: false` because GUARD has not generated the production API key, secret, or contract number. Do not copy the sandbox trio onto prod. `GUARD_API_BASE` on prod is `gigezrate`. `GUARD_WEBHOOK_AUTH` is set; doc ingest is still ack-only until 16 October 2026. `GUARD_CAPITA_PAY_URL` stays unset until GUARD sends the real template.  
+> **As of:** 2026-10-19 (America/Denver). **Status: live on the customer URL for six Colorado trades.** Prod `cid-pdf-api` `GUARD_ENABLED_SEGMENTS` is `beauty,cleaning,pet,fitness,plumber,electrical`. Do not clear it. Jon’s green light was 16 October 2026. Prod base is `gigezrate`. SP name is `com.commercialinsurance-direct`. Sandbox stays `pgigezrate` and `PAFAKE10`. Do not copy the sandbox key, secret, or `PAFAKE10` onto prod. `GUARD_CAPITA_PAY_URL` stays unset. GUARD emails pay info. Do not put the bare `https://policyholder.guard.com/payment` link on the customer confirmation. PDF ingest is commit `25b97d0`. Next carrier or next state: [`agent-start.md`](./agent-start.md) New carrier lane.  
 > **Registry on:** beauty, cleaning, pet, fitness, plumber, electrical (CO). **Off:** HVAC `5537`. Painter, bar, and roofer are not in the registry.  
 > **Packet:** local `Downloads/GUARD WC API Documentation - 08.21.26` (not in repo).  
 > **Appetite supplement (Aug 2026):** local `Downloads/WC_Appetite_Supplement.pdf` — doc **WCAS081126**; marketing overview + eligible class buckets (not API truth; confirm NCCI + `[E]` with Jon / 60-Second Appetite Check in ASC).
@@ -134,14 +134,14 @@ submission_public_id
 - Idempotent WC APIs keyed by `submission_public_id` (+ GUARD `PolicyNumber` once issued). Submission may be **WC-only** (no Coterie row) or Coterie-first.
 - Timeline: `guard.session`, `guard.indicated`, `guard.quoted`, `guard.referred`, `guard.rejected`, `guard.bound`.
 - CONNECT: second policy card; fill `workers_comp_limit` from EL limits. Browser = anon only — quote/bind stays on CID-PDF-API.
-- Docs: GUARD push webhook → R2 → vault (mirror Coterie ingest).
-- **COI:** WC certificates are **GUARD-issued**, requested from Connect Instant COI — not CID ACORD 25. Spec: [`connect-coi-carrier.md`](./connect-coi-carrier.md). Adapter **after Electrical live**; confirm path with Jon then.
+- Docs: `POST /webhooks/guard-docs` stores the carrier PDF (commit `25b97d0`). Same rules as New carrier lane step 3. Live: `https://cid-pdf-api.onrender.com/webhooks/guard-docs`. Sandbox: `https://cid-pdf-api-sandbox.onrender.com/webhooks/guard-docs`. The earlier sandbox file `SUWC781711` was discarded before this code and will not appear unless GUARD posts it again.
+- **COI:** WC certificates are **GUARD-issued**, requested from Connect Instant COI. Do not fall back to CID ACORD 25. The cert adapter is still not built. Spec: [`connect-coi-carrier.md`](./connect-coi-carrier.md).
 
 Offer WC only if employees exist **or** owner elects inclusion (owner-only Coterie + 0 employees + owner excluded = nothing to rate).
 
 ---
 
-## Code map (when we build — pdf-backend only)
+## Code map (pdf-backend only)
 
 | Path | Role |
 |------|------|
@@ -149,7 +149,7 @@ Offer WC only if employees exist **or** owner elects inclusion (owner-only Coter
 | `src/services/guardService.js` | SOAP client, XML escape, NBQ / NBS / BND / questions |
 | `src/services/guardIntakeService.js` | Prefill from submission; indication vs bindable; clickwrap on bind |
 | `src/routes/guardRoutes.js` | `/api/guard/wc/config` · `/indicate` · `/questions` · `/quote` · `/bind` · `/refer` (SBR) |
-| `src/routes/webhooks.js` | `POST /webhooks/guard-docs` (ack) |
+| `src/routes/webhooks.js` | `POST /webhooks/guard-docs` — auth, then R2 + documents (`25b97d0`) |
 | `public/connectquote-intake.js` | Post-bind WC panel (shown when config `offerWc`) |
 | cid-connect | Vault WC opt-in later; no carrier secrets |
 
@@ -178,8 +178,8 @@ Offer WC only if employees exist **or** owner elects inclusion (owner-only Coter
 | **0 Review** | Packet reviewed; Option B + hybrid doors; this doc | Done |
 | **1 Sandbox indication** | NBQ premium in P for one `[E]` class (no UI) | Done |
 | **2 Door B UI** | Post-bind WC indication on confirmation page | Done |
-| **3 NBS + BND** | Bindable quote + GUARD bill; `createPolicy()` `bind_source: guard` | Done (sandbox) |
-| **4 CONNECT** | Second policy + WC limit + later vault opt-in (either line) | Partial |
+| **3 NBS + BND** | Bindable quote + GUARD bill; own `policies` row `bind_source: guard` | Live on prod for the six CO trades (`5d88d50`) |
+| **4 CONNECT** | Own WC policy row + carrier PDF. Later vault opt-in stays later | Policy row and PDF ingest live (`25b97d0`) |
 | **5 Door A — intake WC intent** | Main-form opt-in before commercial quote | Done (2026-08-27) |
 | **6 WC-first (phase 2-ish)** | Standalone WC landing/test; after GUARD bind, offer Coterie BOP/GL. Same adapter; no Coterie prerequisite | Planned |
 
@@ -194,24 +194,17 @@ Offer WC only if employees exist **or** owner elects inclusion (owner-only Coter
 | **File a claim** | GUARD WC → routed to GUARD messaging; claim still stored in Connect. |
 | **Skipped WC at bind** | Policy Home **Add Workers' Comp** card → segment ConnectQuote. |
 
-**Still to wire:** ~~`createPolicy()` on GUARD BND~~ **Done (2026-08-26):** `finalizeGuardBind()` → `policies` row with GUARD policy number, `bind_source: guard`, `policy_type: WC`; chat index for Am I Covered.
+**Policy row:** `finalizeGuardBind()` writes the GUARD policy number, `bind_source: guard`, `policy_type: WC` (`5d88d50`). Am I Covered for GUARD uses the coverage summary saved at bind. The document indexer picks up declarations and policy PDFs. Claude, then Gemini. No Perplexity.
 
 ---
 
-## Sandbox access (P env — keys come from GUARD)
+## Sandbox access (P env — already open)
 
-GUARD does **not** put API keys in the packet. Their sequence (Arianna, Jul 2026): whitelist **our IPs** on P, then they issue credentials.
+Sandbox and prod both have GUARD credentials. Do not copy the sandbox key, secret, or `PAFAKE10` onto prod. Do not clear prod `GUARD_ENABLED_SEGMENTS`. The steps below are how P was opened. Gerry sends any new partner email.
 
-1. **Render env names** (CID-PDF-API **sandbox** first: `cid-pdf-api-sandbox`) — leave secrets blank until GUARD sends them. Safe to set now:  
-   `GUARD_API_BASE=https://pgigezrate.guard.com/dotnet/api/acordservice/acord.svc`  
-   `GUARD_SP_NAME=com.commercialinsurance-direct`  
-   `GUARD_ENABLED_SEGMENTS=plumber`  
-   `GUARD_PILOT_STATES=CO`  
-   Do **not** put dummy `GUARD_API_KEY` / `SECRET` / `CONTRACT_NUMBER` — fake values look “configured” and will 401.
-2. **IPs to send GUARD** (P whitelist only; prod does not whitelist):  
-   - Render **static outbound IPs** on `cid-pdf-api-sandbox` (Settings → Outbound / static IPs — paid on Render; otherwise the IP changes on restart).  
-   - Optional: Gerry’s office/home public IP for a laptop SOAP test.  
-3. **Email** Arianna.Ronci@guard.com, Jon.Baker@guard.com, john.masur@guard.com, API@guard.com — ask to whitelist those IPs and issue **P API key + secret + agency ContractNumber**.  
+1. **Sandbox Render env** (`cid-pdf-api-sandbox`): base `https://pgigezrate.guard.com/dotnet/api/acordservice/acord.svc`, SP name `com.commercialinsurance-direct`, contract `PAFAKE10`, `GUARD_PILOT_STATES=CO`. Do not put dummy keys in git. Fake values look configured and will 401.
+2. **IP whitelist** (Jon, 14 October 2026): live and test use the same Render ranges, `74.220.48.0/24` and `74.220.56.0/24`.  
+3. **Gerry sends partner email.** Do not email Jon or the API box unless Gerry asks for a draft and then sends it himself. Prod credentials are already live. Do not copy sandbox onto prod.  
 4. **Portal:** log into GUARD Agency Service Center **P** with those creds and **accept T&Cs** — required before the webservice works.  
 5. Paste key / secret / contract number into Render (sandbox). Redeploy.  
 6. Smoke: `GET /api/guard/wc/config?segment=plumber` → `offerWc: true`. Then a Plumber ConnectQuote bind → WC indication.
@@ -220,15 +213,15 @@ GUARD does **not** put API keys in the packet. Their sequence (Arianna, Jul 2026
 
 **Prod rollout (multi-segment):** [`guard-wc-rollout.md`](./guard-wc-rollout.md)
 
-Webhook auth (`GUARD_WEBHOOK_AUTH`) is **ours** to invent later and give GUARD for doc push — not needed for the first indication.
+Webhook auth (`GUARD_WEBHOOK_AUTH`) is set on prod and sandbox. Do not write the value into git. PDF ingest is live (`25b97d0`).
 
 ## Open with GUARD / Rick
 
 **GUARD (API / paper):**
 
-- [ ] P-env Render outbound IPs whitelisted; ASC T&Cs accepted
-- [ ] Agency code + API keys on Render
-- [ ] Confirm BND → GUARD-only billing (no CID payment)
+- [x] P-env signed off. Prod key, secret, and contract number are on `cid-pdf-api` (green light 16 October 2026). Do not copy sandbox or `PAFAKE10`
+- [x] Agency code + API keys on Render. Username and password are the Agency Service Center portal only, not env vars
+- [x] GUARD direct-bills. CID does not collect the card. `GUARD_CAPITA_PAY_URL` stays unset
 - [ ] Confirm Digital Decision bind: **I Agree / clickwrap enough**, or they require a signed PDF
 - [ ] Class+suffix encoding (table 4-digit vs samples 6-digit)
 - [ ] Location ≠ mailing workaround
@@ -253,3 +246,7 @@ Webhook auth (`GUARD_WEBHOOK_AUTH`) is **ours** to invent later and give GUARD f
 | 2026-08-26 | `finalizeGuardBind()` → `policies` row; `wcEnabled` for appetite segments; sandbox P-env smoke (plumber CO). |
 | 2026-09-04 | Partner test lane: `/partner-test/guard-wc.html` + `/api/guard/wc/registry` + `/api/guard/wc/partner/start` (WC-only, sandbox). |
 | 2026-10-06 | Prod still `offerWc: false`. Base, segment list, CO, SP name, and webhook auth are set. Key, secret, and contract number wait on GUARD. Capita URL stays absent. |
+| 2026-10-08 | Jon: early-week check-in (week of 13 October) before live credentials. Quick pay is `https://policyholder.guard.com/payment`. Insured types ZIP and policy number `XXWC123456`. Do not set `GUARD_CAPITA_PAY_URL` yet. |
+| 2026-10-14 | Jon: links and webhook by Friday 16 October. Check-in done. Live mail and credentials: `info@commercialinsurance-direct.com`. |
+| 2026-10-16 | Jon’s green light to submit business on the live API. Prod base `gigezrate`. SP name `com.commercialinsurance-direct`. |
+| 2026-10-19 | Colorado WC live for the six trades. Own policy row `5d88d50`. PDF ingest `25b97d0`. Next 10 states approved, pilot lists stay CO. |

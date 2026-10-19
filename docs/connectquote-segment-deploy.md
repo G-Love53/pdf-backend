@@ -126,24 +126,19 @@ Verify: `curl -s https://cid-pdf-api.onrender.com/api/coterie/registry/{segment}
 
 ## 9 — Workers’ Comp (GUARD) — after BOP/GL is live
 
-WC is **pdf-backend only**. Do not add operator/WC API code to `{segment}-pdf-backend`.
+WC is **pdf-backend only**. Do not add operator/WC API code to `{segment}-pdf-backend`. Colorado WC is already live for beauty, cleaning, pet, fitness, plumber, and electrical. A new trade or state follows [`agent-start.md`](./agent-start.md) New carrier lane, step 5. It is not a new integration.
 
-**HOLD** until Jon confirms NCCI class + suffix for this trade/state. HVAC stays off. Painter / bar / roofer are not in the WC registry yet.
+**HOLD** until Jon confirms NCCI class + suffix for this trade/state. HVAC stays off (`5537`). Painter, bar, and roofer are not in the WC registry.
 
 1. `src/config/guardRegistry.js` — `wcEnabled: true` on that line; class code from GUARD (state suffix matters).
-2. Render **prod** `cid-pdf-api`:
-   - `GUARD_ENABLED_SEGMENTS` includes the segment
-   - `GUARD_PILOT_STATES` includes the state (`CO` until expansion)
-   - Prod `GUARD_API_BASE` / `GUARD_API_KEY` / `GUARD_API_SECRET` / `GUARD_CONTRACT_NUMBER` (not `PAFAKE10`)
-   - `GUARD_CAPITA_PAY_URL` when GUARD sends the pay link
-   - `GUARD_WEBHOOK_AUTH` before **16 October 2026** doc push
+2. Render **prod** `cid-pdf-api`: add the segment to `GUARD_ENABLED_SEGMENTS`. Do not clear `beauty,cleaning,pet,fitness,plumber,electrical`. `GUARD_PILOT_STATES` stays `CO` until that one state is smoked. Leave `GUARD_CAPITA_PAY_URL` unset. Do not copy sandbox or `PAFAKE10`.
 3. Bump `{segment}` `Netlify/connectquote.html` `?v=`
-4. Smoke on **`https://{segment}insurancedirect.com/connectquote.html`** (not `/partner-test/guard-wc.html`)
+4. Smoke on the **customer URL** (not `/partner-test/guard-wc.html`)
 5. Then Instantly / homepage WC language
 
-Diligence + env table: [`guard-wc-rollout.md`](./guard-wc-rollout.md) · spec: [`guard-integration.md`](./guard-integration.md) · start-here: `~/GitHub/CID-docs/Workers_Comp.md`.
+Registry: [`guard-wc-rollout.md`](./guard-wc-rollout.md) · spec: [`guard-integration.md`](./guard-integration.md) · product note: [`Workers_Comp.md`](./Workers_Comp.md).
 
-**10 states:** Places allowlist is not WC expansion. Add states only via `GUARD_PILOT_STATES` + class suffix + smoke.
+**10 states:** Places allowlist is not a bind state. GUARD and Coterie approved AZ UT NM WY NV ID KS NE OK TX on 19 October 2026. Add a state only via class suffix, one smoke, then `GUARD_PILOT_STATES`.
 
 ---
 

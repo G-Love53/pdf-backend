@@ -1,4 +1,4 @@
-# GUARD WC — agent handoff (read first)
+# GUARD WC — agent handoff (code)
 
 > **Repo:** `pdf-backend` only (BAR segment). **Not** segment Netlify repos.  
 > **Partner:** Jon Baker (GUARD Digital Distribution) — Gerry sends email; **do not draft duplicate Jon mails** unless Gerry asks.  
@@ -6,18 +6,19 @@
 
 ---
 
-## Current status (2026-10-06)
+## Current status (2026-10-19)
 
-Read [`decisions-log.md`](./decisions-log.md) before asking Gerry to re-explain WC.
+Read [`agent-start.md`](./agent-start.md) and [`decisions-log.md`](./decisions-log.md) before asking Gerry to re-explain WC. Status lives there. This file is the code handoff.
 
 | Area | State |
 |------|--------|
-| **Sandbox** | P-env signed off. `cid-pdf-api-sandbox` `offerWc: true` for beauty, cleaning, pet, fitness, plumber, electrical. Partner-test works. |
-| **Prod** | Code is on `cid-pdf-api`. `GUARD_API_BASE` is `gigezrate`. Segment list, `CO`, SP name, and webhook auth are set. **Key, secret, and contract number are not generated.** Live config returns `offerWc: false`. |
-| **Go-live** | Those three values come from GUARD. Do not copy sandbox or `PAFAKE10`. Leave `GUARD_CAPITA_PAY_URL` off. After the deploy is Live, smoke Electrical CO on the customer URL (unique name, ZIP, FEIN). |
-| **Webhook** | `POST /webhooks/guard-docs` acks. Connect ingest waits until **16 October 2026**. |
-| **COI** | GUARD cert adapter waits until Electrical WC is live on the customer URL. |
-| **Off** | HVAC `5537`. Painter, bar, roofer not in the registry. Bar and roofer stay long-form. |
+| **Prod** | Live on `cid-pdf-api` for Colorado beauty, cleaning, pet, fitness, plumber, electrical. `GUARD_ENABLED_SEGMENTS` is that list. Do not clear it. Base is `gigezrate`. SP name is `com.commercialinsurance-direct`. Jon’s green light was 16 October 2026. |
+| **Sandbox** | P-env stays `pgigezrate` and `PAFAKE10`. Do not copy the sandbox key, secret, or `PAFAKE10` onto prod. Username and password are the Agency Service Center portal only, not env vars. |
+| **Pay** | `GUARD_CAPITA_PAY_URL` stays unset. GUARD emails pay info. Do not put the bare `https://policyholder.guard.com/payment` link on the customer confirmation. |
+| **Policy row** | `finalizeGuardBind` locks only the submission (`FOR UPDATE OF s`), commit `5d88d50`. The WC row does not wait for a Coterie BOP. |
+| **Webhook** | PDF ingest is commit `25b97d0` on prod and sandbox. Rules: New carrier lane step 3. |
+| **COI** | Carrier paper. Do not fall back to CID ACORD 25. The GUARD cert adapter is still not built. |
+| **Off** | HVAC `5537`. Painter, bar, roofer not in the registry. Bar and roofer stay long-form. Next 10 states are approved and not on the pilot lists. |
 
 ---
 
@@ -83,12 +84,9 @@ Local GUARD packet (not in repo): `~/Downloads/` or Documents — **GUARD WC API
 
 ---
 
-## When GUARD issues production credentials
+## Already live
 
-1. Paste key, secret, and contract number on **cid-pdf-api** only. Confirm the deploy is Live.
-2. `GET /api/guard/wc/config?segment=electrical&state=CO` → `offerWc: true`, `sandbox: false`.
-3. Smoke Electrical CO on the live site (unique name, ZIP, FEIN), then the other five registry-on segments.
-4. Doc ingest into Connect on **16 October 2026**. Cert adapter after that Electrical smoke, not before.
+Colorado WC for the six trades is on. Do not clear `GUARD_ENABLED_SEGMENTS`. A new state or a new carrier follows the **New carrier** lane in [`agent-start.md`](./agent-start.md). Smoke the customer URL, not partner-test, before marketing copy.
 
 ---
 
@@ -109,5 +107,5 @@ Copy/paste:
 CID agent start — read pdf-backend/docs/agent-start.md and docs/decisions-log.md before asking Gerry anything.
 
 Lane: GUARD go-live.
-Working on: [prod credential smoke after GUARD sends the three values | 16 Oct doc ingest | COI adapter after Electrical is live].
+Working on: [one sentence — new state smoke, or the New carrier lane].
 ```

@@ -6,6 +6,88 @@ Edit this file when a decision would change the next session. Specs stay in thei
 
 ---
 
+## 2026-10-19 — Colorado WC live, PDF ingest, next 10 states approved
+
+This is the current GUARD and next-carrier status. Earlier dated lines below are the calls as of that day. A new carrier follows the **New carrier** lane in [`agent-start.md`](./agent-start.md).
+
+- Colorado workers’ comp is live on production `cid-pdf-api` for beauty, cleaning, pet, fitness, plumber, and electrical. Prod `GUARD_ENABLED_SEGMENTS` is exactly `beauty,cleaning,pet,fitness,plumber,electrical`. Do not clear it. Live Colorado config returns `offerWc: true` and `sandbox: false` for those six. HVAC `wcEnabled` is false (class `5537`). Painter, bar, and roofer are not in the GUARD registry. `GUARD_PILOT_STATES` stays `CO`.
+- Jon’s green light to submit business on the live API was 16 October 2026. Prod base is `gigezrate` (no P). SP name is `com.commercialinsurance-direct`. Sandbox stays `pgigezrate` and `PAFAKE10`. Do not copy the sandbox key, secret, or `PAFAKE10` onto prod. Username and password are the Agency Service Center portal only, not env vars.
+- `GUARD_CAPITA_PAY_URL` stays unset. GUARD emails pay info. CID does not collect the card. Do not put the bare `https://policyholder.guard.com/payment` link on the customer confirmation.
+- `finalizeGuardBind` locks only the submission (`FOR UPDATE OF s`), commit `5d88d50`. A bound WC policy gets its own `policies` row. It does not wait for a Coterie BOP. Sandbox check: `CID-BTY-20261019-000302` bound as `CIWC782024` and wrote Connect policy `ec27e086-27e8-4064-a2ee-5c37ed2590a1`. The first bind, sent in the same second as the quote, was rejected by GUARD (`Policy is not in an acceptable status to bind`). The retry wrote the card.
+- Webhook PDF ingest is built and pushed, commit `25b97d0`, on prod and sandbox. `POST /webhooks/guard-docs` checks auth (401 if bad). Then it saves the carrier PDF to R2 and a documents row on the policy, matched by policy number, any state. The same file twice is one document. A different file is a second document. If the policy row does not exist yet, the PDF is stored pending and attached when bind finishes. Every case except bad auth returns 200. Live: `https://cid-pdf-api.onrender.com/webhooks/guard-docs`. Sandbox: `https://cid-pdf-api-sandbox.onrender.com/webhooks/guard-docs`. The earlier sandbox file `SUWC781711` was discarded before this code and will not appear unless GUARD posts it again.
+- Do not fall back to CID ACORD 25 on `coterie` or `guard` policies. Instant COI for long-form (`boldsign`) remains CID ACORD 25.
+- GUARD and Coterie both approved the next 10 states on 19 October 2026: AZ, UT, NM, WY, NV, ID, KS, NE, OK, TX. Places autocomplete already allows them. They are not bind states. `GUARD_PILOT_STATES` and `COTERIE_PILOT_STATES` stay `CO` until a state is added one at a time: Jon’s class suffix for workers’ comp, one smoke, then add the state to the pilot list. New Hampshire and Maine need an officer date of birth or SSN before any test. They are not in this ten.
+
+## 2026-10-16 — GUARD green light
+
+- Jon gave the official green light on 16 October 2026 to submit business on the live API. The live webhook is released.
+- When that card write is fixed, turn on `beauty,cleaning,pet,fitness,plumber,electrical` in Colorado only. HVAC, painter, bar, and roofer stay off. Leave `GUARD_CAPITA_PAY_URL` unset. Done 19 October 2026. See the entry above.
+- New states: confirm class codes with Jon first. New Hampshire and Maine need an officer date of birth or SSN before a test. Do not add those states on a guess.
+
+## 2026-10-15 — GUARD live credentials, connectivity only
+
+- Jon sent the live key, secret, and agency code on 15 October 2026 for a connectivity test. This is not the green light to submit business. The webhook still has to be deployed.
+- Prod `GUARD_SP_NAME` stays `com.commercialinsurance-direct`. Jon confirmed Live is set up with the same SP name as P.
+- Prod base URL stays `gigezrate` (no P). Sandbox stays on `pgigezrate` and `PAFAKE10`. Do not copy the sandbox trio onto prod.
+- The access key and secret key are `GUARD_API_KEY` and `GUARD_API_SECRET`. The agency code is `GUARD_CONTRACT_NUMBER`. The username and password are the portal login. Do not write those values into git.
+- Leave `GUARD_ENABLED_SEGMENTS` empty when the keys are saved, so customer sites do not offer workers’ comp. Leave `GUARD_CAPITA_PAY_URL` unset.
+
+## 2026-10-14 — Website legal line matches the filing
+
+- The marketing site uses **All Access Insurance LLC dba Commercial Insurance Direct**, CO license **#6784587**. That is the DBA on file. **Commercial Insurance Direct, Inc.** stays in the next sentence as the technology platform, and it is not an insurer.
+- **CID Insurance Services** remains the 12 October launch line. It is not on the website until that DBA is on the Colorado filing. Do not rewrite the Instantly email footer.
+- Homepage phone is **(720) 677-6227**. The older agency collateral number stays off the site.
+
+## 2026-10-14 — Coterie Generate COI, David’s answers
+
+- Generate COI is on the API and the dashboard. David pointed at the policy docs page, `https://docs.coterieinsurance.com/#b83d7476-e7e0-43cf-bc54-a088f219ba27`. We already download issued files with `GET /v1.6/commercial/policies/docs/links/{PolicyNumber}`. The open point is the call that creates a new holder certificate, not the download.
+- He believes the holder is named on the ACORD. No file upload for landlord or GC wording. Sandbox can generate a certificate.
+- Still with his team: unlimited holder-specific certificates at no extra cost, and whether “Designated Additional Insured = Yes” requires Add Additional Insureds first.
+- Do not build the adapter on this reply. Do not scrape the dashboard. Do not fall back to CID ACORD 25 on a Coterie policy.
+
+## 2026-10-14 — PolicySweet contacts
+
+- First contact for the Commercial API is **Josh Robinson**, Alternative Distribution at Great American. Email **`jlrobinson@gaig.com`**. Phone **513-369-5919**. The middle initial is required. `jrobinson@gaig.com` is not his address.
+- Great American’s directory lists him as Digital Marketing Director. Their marketing contacts list him as Marketing Director. His own profile says Director of Digital Distribution, APIs and agency relationships for quote-to-bind.
+- **Kristen Mielcarek** is Divisional VP of Operations for that team. **`kmielcarek@gaig.com`**, 860-298-2513. General box: `PolicySweet@policysweet.com`.
+- No prior email with Josh. Gerry sends it. The ask stays the Commercial API, not PolicySweet Pro.
+
+## 2026-10-14 — Agency NPN and Rick’s producer NPN
+
+- **6784587** is the All Access agency NPN. Jon (GUARD) could not use it for an individual because it is already tied to the agency.
+- The individual producer NPN, when a carrier needs a person, is **Richard P. Cline, 6762689**. Gerry sent that to Jon on 14 October 2026.
+- The launch line and Instantly footer still print **6784587** as the Colorado license. Do not rewrite customer copy until Gerry asks.
+
+## 2026-10-14 — Jon: links and webhook by Friday
+
+- Today is Wednesday 14 October 2026. Jon said the links and the webhook should arrive by the end of the week, Friday 16 October 2026.
+- The early-week check-in is done. Gerry replied the same day. Live credentials and policy mail go to `info@commercialinsurance-direct.com`. Customers buy direct, so a submission does not carry another producer.
+- Live IP whitelist: the same Render ranges as test, `74.220.48.0/24` and `74.220.56.0/24`.
+- The three production values still come from GUARD. Do not copy sandbox or `PAFAKE10`. Leave `GUARD_CAPITA_PAY_URL` unset.
+
+## 2026-10-13 — Hartford appointment
+
+- All Access holds a Hartford appointment and an IVANS account today. When the other licenses move, the Hartford appointment moves with them to CID. It does not stay behind at All Access.
+- Confirm the producer code, that All Access owns the renewals, and that commission is on paper.
+- Hartford Download can send Spectrum BOP and workers’ comp transactions, commercial policy PDFs, billing alerts, and audit messages to that IVANS mailbox. Connect does not read IVANS yet.
+- Small-commercial Spectrum quoting is the EBC portal unless the Hartford rep confirms an API. Do not build a Hartford adapter while GUARD production credentials are the launch.
+
+## 2026-10-12 — Launch name: CID Insurance Services
+
+- For this launch, insurance is offered through **All Access Insurance LLC dba CID Insurance Services**, CO license **#6784587**.
+- The extra DBA is there because “Direct” in the insurance name can be a licensing problem in some states. Segment domains stay as they are.
+- Older carrier paperwork still says All Access Insurance dba Commercial Insurance Direct. That filing is unchanged until Gerry says otherwise.
+- The live Instantly footer still reads “All Access Insurance LLC, License #6784587” and still names Commercial Insurance Direct, Inc. as the technology platform. Do not rewrite customer copy until Gerry asks.
+
+## 2026-10-08 — Jon on live credentials and quick pay
+
+- Check in early the week of 13 October 2026 to confirm the 16 October document webhook is on track. Live API key, secret, and contract number are a conversation after that check-in.
+- Those three values still come from GUARD. Do not copy sandbox or `PAFAKE10`.
+- GUARD already emails the customer the payment info and the pay link. They asked to put that same link on our bind confirmation.
+- The public page is `https://policyholder.guard.com/payment` (BHGUARD - Payment). It does not fill the policy number or ZIP from the link. On a phone the page takes the screen, so the customer loses the number.
+- Gerry told Jon that on 2026-10-08. A smooth confirmation-page handoff has to come from GUARD: a prefill link or a one-time pay link. CID does not collect the card.
+- Leave `GUARD_CAPITA_PAY_URL` unset. Do not add the bare link to the confirmation page. Quote and bind do not wait on pay. GUARD’s email is the pay path until they send a link that opens already filled in.
+
 ## 2026-10-06 — Where documents live
 
 - **Edit** pipeline, carrier, deploy, and partnership specs in `pdf-backend/docs/`.

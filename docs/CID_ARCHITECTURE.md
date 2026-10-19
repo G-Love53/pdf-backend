@@ -31,7 +31,7 @@
 
 ### ConnectQuote rail (Coterie API — CO prod)
 
-Parallel **instant** path for eligible SMB risks (**CO marketing**: Electrical, Fitness, HVAC, Plumber, Beauty, Cleaning, Pet). Does not replace steps 3–6 for traditional email-carrier flow.
+Parallel **instant** path for eligible SMB risks (**CO bind**: Electrical, Fitness, HVAC, Plumber, Beauty, Cleaning, Pet, Painter). Does not replace steps 3–6 for traditional email-carrier flow. Bar and roofer stay long-form. `COTERIE_PILOT_STATES` stays `CO`.
 
 1. Segment `connectquote.html` (campaign URL prefill — **`parseUsZip` + email validation**, name optional until bind) → business class → **`AKHash`**
 2. CID-PDF-API → Coterie `POST /v1.6/commercial/applications` then `POST /v1.6/commercial/quotes/bindable`
@@ -45,7 +45,11 @@ Shared intake: `/static/connectquote-intake.js` on Render. Lists: **`pull-localp
 
 ### ConnectQuote second line (GUARD WC — live)
 
-Workers’ Comp **alongside** Coterie BOP/GL — same `submission_public_id`; main-form WC opt-in → commercial quote → WC indication/bind. **Per-segment WC switch** (`guardRegistry.js` + `GUARD_ENABLED_SEGMENTS`). CID-PDF-API **`/api/guard/wc/*`**. GUARD **direct bill** (CID not MoR). Bind → `finalizeGuardBind()` → shared **`policies`** spine. Spec: [`guard-integration.md`](./guard-integration.md).
+Workers’ Comp **alongside** Coterie BOP/GL — same `submission_public_id`; main-form WC opt-in → commercial quote → WC indication/bind. **Live on production `cid-pdf-api` for Colorado** beauty, cleaning, pet, fitness, plumber, and electrical. Prod `GUARD_ENABLED_SEGMENTS` is that list. Do not clear it. HVAC class `5537` is off. Painter, bar, and roofer are not in the registry. CID-PDF-API **`/api/guard/wc/*`**. GUARD **direct bill** (CID not merchant of record). `GUARD_CAPITA_PAY_URL` stays unset. Bind → `finalizeGuardBind()` → its own **`policies`** row (`5d88d50`). It does not wait for a Coterie BOP. Carrier PDF: `POST /webhooks/guard-docs` (`25b97d0`). `GUARD_PILOT_STATES` stays `CO`. Spec: [`guard-integration.md`](./guard-integration.md).
+
+### Next carrier
+
+A new carrier is a new adapter in **pdf-backend** on this same intake and Connect spine. Segment repos stay Netlify intake. The checklist is the **New carrier** lane in [`agent-start.md`](./agent-start.md). GUARD workers’ comp is the worked example: six gates, own `policies` row, carrier PDF ingest, carrier paper for the COI, state expansion by pilot list plus one smoke. Gerry sends the partner email.
 
 ## Current Production Invariants
 

@@ -1,7 +1,7 @@
 # CID — Corporate structure and segment brands
 
 > **Canonical location (RSS):** `pdf-backend/docs/corporate-structure.md` — versioned with **CID-PDF-API** (`main`).  
-> **As of:** 2026-08-21 (America/Denver). Update when segments, domains, governance, or partner-facing narrative change.
+> **As of:** 2026-10-19 (America/Denver). Update when segments, domains, governance, or partner-facing narrative change.
 >
 > **Purpose:** One reference for **legal entity**, **umbrella vs segment brands**, **domains and ops inboxes**, and **what we tell partners** (e.g. carriers, MGAs) vs internal stack details. For deploy steps see [`Deploy_Guide.md`](./Deploy_Guide.md). For vendors see [`VENDORS_S1_S6_CONNECT.md`](./VENDORS_S1_S6_CONNECT.md).
 
@@ -14,14 +14,16 @@
 | **Legal entity (agency of record)** | **All Access Insurance** |
 | **State of incorporation / domicile** | **Colorado (CO)** |
 | **DBA (good standing)** | **Commercial Insurance Direct** (CID) — registered DBA of All Access Insurance |
-| **Named producer (appointment)** | Rick Cline |
+| **Named producer (appointment)** | Richard P. Cline |
+| **Agency NPN** | 6784587 |
+| **Producer NPN** | 6762689 |
 | **Agency phone (ACORD / collateral)** | (303) 932-1700 |
 | **Agency email (general)** | info@commercialinsurance-direct.com |
 | **Corporate site** | [commercialinsurancedirect.com](https://www.commercialinsurancedirect.com/) |
 
 **On carrier paperwork and ACORD/COI:** use **All Access Insurance, dba Commercial Insurance Direct** (or the exact string carriers require). Customers and campaigns use the **Commercial Insurance Direct** brand and **segment** domains; ops mail uses **`quotes@…`** per trade. **`info@commercialinsurance-direct.com`** is the general agency contact.
 
-**ConnectQuote marketing geography (Aug 2026):** **Colorado only.** CID enforces via `COTERIE_PILOT_STATES`; Coterie enforces producer licensing (`E0122`) and AKHash appetite. See [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) § Marketing geography.
+**ConnectQuote bind geography:** **Colorado only.** CID enforces via `COTERIE_PILOT_STATES` and `GUARD_PILOT_STATES`. Coterie also enforces producer licensing (`E0122`) and AKHash appetite. Places autocomplete already allows AZ, UT, NM, WY, NV, ID, KS, NE, OK, and TX. Both carriers approved that ten on 19 October 2026. They are not bind states. Add one state at a time. See [`agent-start.md`](./agent-start.md).
 
 ---
 
@@ -91,7 +93,7 @@ Keep in sync with `src/config/segmentBranding.js` and `src/config/segmentAgentIn
 
 | Layer | Host / repo | Role |
 |-------|-------------|------|
-| **CID-PDF-API** | `cid-pdf-api.onrender.com` · `pdf-backend` | Single operator, S4–S6, poller, `/submit-quote`, Connect bridge `/api/connect/*`, webhooks (e.g. future `/webhooks/coterie`) |
+| **CID-PDF-API** | `cid-pdf-api.onrender.com` · `pdf-backend` | Single operator, S4–S6, poller, `/submit-quote`, Connect bridge `/api/connect/*`, live webhooks including `/webhooks/coterie` and `/webhooks/guard-docs`. Connect is not on Render |
 | **Segment repos** | `*-pdf-backend` on GitHub + Netlify | Intake HTML/CSS only; no duplicated operator stack |
 | **Templates** | **CID_HomeBase** (submodule) | SUPP_*, ACORD assets and mapping |
 | **Pipeline DB** | Render Postgres (`DATABASE_URL` / cid-postgres) | Submissions, quotes, policies, segment enum |
@@ -106,8 +108,8 @@ Segment GitHub repos and Netlify sites are **wrappers**. Operational truth lives
 | Rail | When | Customer sees |
 |------|------|-----------------|
 | **Traditional** | Full supplement + carrier quote + S5 packet + S6 (BoldSign) | Segment brand through bind; agency ops via segment inbox |
-| **ConnectQuote (Coterie API)** | Segment passes appetite gate + **AKHash**; **CO prod live** (Electrical, Fitness, HVAC, Plumber, **Beauty**, **Cleaning**, **Pet**) | Segment `connectquote.html` + prefill → Coterie bind/pay → **Connect** same day — see [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) |
-| **ConnectQuote WC (GUARD)** | Optional second line on the same submission; **live** (CO pilot) | Main-form WC opt-in → indication → bind; **GUARD bills insured** — [`guard-integration.md`](./guard-integration.md) |
+| **ConnectQuote (Coterie API)** | Segment passes appetite gate + **AKHash**; **CO prod live** (Electrical, Fitness, HVAC, Plumber, Beauty, Cleaning, Pet, Painter). Bar and roofer are long-form only | Segment `connectquote.html` + prefill → Coterie bind/pay → **Connect** same day — see [`connectquote-shipped-2026-06.md`](./connectquote-shipped-2026-06.md) |
+| **ConnectQuote WC (GUARD)** | Optional own `policies` row on the same submission. **Live on CO** for beauty, cleaning, pet, fitness, plumber, electrical. HVAC off. Painter, bar, and roofer are not in the registry | Main-form WC opt-in → indication → bind; **GUARD bills the insured**. Next carrier: [`agent-start.md`](./agent-start.md) |
 
 Both Coterie and GUARD should write the **same policy shape** in cid-postgres (`bind_source` distinguishes origin: `coterie` \| `guard` \| `boldsign`). Segment **`quotes@…`** remains the ops story even when bind is API-driven (contact, BCC, attribution).
 
@@ -156,3 +158,4 @@ Use this with partners who do **not** need product architecture detail.
 | 2026-06-10 | Legal structure: All Access Insurance (CO) · Commercial Insurance Direct DBA; Rick Cline appointment. |
 | 2026-08-18 | **CID Inc. officer titles:** Ray → Executive Chairman; Gerry → CEO; Rick → CRO (unchanged). Board resolution recorded; see `board-resolution-officer-titles-2026.md`. |
 | 2026-08-21 | **Seven CO Instantly campaigns** (ConnectQuote segments); LocalProspects list pipeline; URL prefill quality (ZIP/email). |
+| 2026-10-19 | Colorado WC live for six trades. Coterie CO list includes painter. Next 10 states approved, pilot lists stay CO. Next carrier checklist is `agent-start.md`. |

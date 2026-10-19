@@ -1,6 +1,6 @@
 # Connect COI — carrier-issued (ConnectQuote partners)
 
-> **As of:** 2026-10-06. **Status:** spec only — not built.  
+> **As of:** 2026-10-19. **Status:** carrier-paper spec. The Coterie create-certificate call and the GUARD cert adapter are not built. WC bind and PDF ingest are live. Do not fall back to CID ACORD 25 on `coterie` or `guard`.  
 > **Supersedes:** ConnectQuote v1 “ignore Coterie COI; CID generates ACORD 25.”  
 > **Related:** [`coterie-integration.md`](./coterie-integration.md) · [`guard-integration.md`](./guard-integration.md) · Instant COI UX is unchanged in cid-connect.
 
@@ -80,7 +80,7 @@ Coterie producer docs: Generate COI is a **download**. They do **not** email the
 
 - Quote-time AI: `endorsements.additionalInsureds[]` on `POST …/commercial/quotes` (pre-bind only).  
 - Retrieve: `GET /v1.6/commercial/policies/docs/links/{PolicyNumber}` (vault ingest we already run) and `GET /commercial/policies/{policyId}/documents` (`type`: `CertificateOfInsurance`).  
-- **No** documented POST for Generate COI or Add Additional Insureds.
+- **No** documented POST for Generate COI or Add Additional Insureds in our notes as of 2026-10-06. On 2026-10-14 David said Generate COI is on the API and the dashboard, and that sandbox can generate. He linked the policy docs page. That retrieve path is the one we already call. The create-certificate call is still the open point.
 
 ### Build process (once Coterie exposes dashboard APIs)
 
@@ -108,11 +108,11 @@ Fixture they already have: Demo Fitness `CSG-00507726-00`.
 
 ---
 
-## GUARD (WC) — after Electrical is live
+## GUARD (WC)
 
-Do **not** build a GUARD cert adapter until CO Electrical is live. Instant COI on a GUARD policy **queues** until then.
+Colorado WC bind and PDF ingest are live. The GUARD certificate adapter is still not built. Instant COI on a GUARD policy stays `processing` until that adapter exists.
 
-WC certificates are not a GL ACORD 25. Path (API / portal / email) is an ask for **Jon after launch**. Same rule: no CID-drafted WC cert.
+WC certificates are not a GL ACORD 25. The path (API / portal / email) is still an ask. Gerry sends it. Same rule: no CID-drafted WC cert. Do not fall back to CID ACORD 25.
 
 ---
 
@@ -147,9 +147,9 @@ Vault copy is the **carrier PDF**. Email copy is the same file. Requirements upl
 
 | Item | Owner | When |
 |------|--------|------|
-| Partner API for dashboard **Generate COI** + **Add Additional Insureds** | Gerry → Coterie | Blocker |
+| Partner API for dashboard **Generate COI** + **Add Additional Insureds** | Gerry → Coterie | 2026-10-14: David says API and dashboard, sandbox can generate, no file upload. Still open: create-call path, unlimited certs at no cost, Designated AI vs Add Additional Insureds. |
 | Adapter: Connect Instant COI → those two calls → R2 + CID email | CID | After Coterie answers |
 | Stop auto ACORD 25 on `coterie` | Same PR | |
-| GUARD WC cert path | Gerry → Jon | **After Electrical live** |
+| GUARD WC cert path | Gerry sends the ask | WC bind is live. Adapter is still not built |
 
 **Not this spec:** sending insureds to carrier portals; CID ACORD 25 on ConnectQuote policies.

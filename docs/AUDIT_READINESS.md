@@ -87,7 +87,7 @@ Given a `submission_public_id` or `quote_id`:
 
 ### ConnectQuote — Coterie instant bind
 
-**Status (2026-10-06):** Prod live on CO for electrical, plumber, HVAC, fitness, beauty, cleaning, pet, and painter. `bind_source: coterie`. Keys are on prod and sandbox. Fitness golden policy `CSG-00507726-00`. Instant COI in Connect is still CID ACORD 25 until Coterie exposes Generate COI and Add Additional Insureds. Spec: [`connect-coi-carrier.md`](./connect-coi-carrier.md) · [`coterie-integration.md`](./coterie-integration.md).
+**Status (2026-10-19):** Prod live on CO for electrical, plumber, HVAC, fitness, beauty, cleaning, pet, and painter. `bind_source: coterie`. Keys are on prod and sandbox. Fitness golden policy `CSG-00507726-00`. Instant COI for long-form (`boldsign`) is CID ACORD 25. Do not fall back to CID ACORD 25 on a Coterie policy. David (14 October 2026) pointed at the policy-docs retrieve we already call. The create-certificate call, unlimited holder certs, and Designated Additional Insured vs Add Additional Insureds are still open. Do not build that adapter. Do not scrape the dashboard. Spec: [`connect-coi-carrier.md`](./connect-coi-carrier.md) · [`coterie-integration.md`](./coterie-integration.md).
 
 **Auditable artifacts (same spine as BoldSign S6):**
 
@@ -98,26 +98,26 @@ Given a `submission_public_id` or `quote_id`:
 - Policy documents — Coterie doc URL ingested to R2 + `documents` for Connect retrieval
 - **No BoldSign** on this rail — bind/payment evidence is Coterie/Stripe + webhook, not `signed_bind_docs`
 
-**Still open:** carrier-issued certificate API (asked of Coterie). Do not fall back to a CID ACORD 25 on a Coterie policy once that adapter is built.
+**Still open:** the create-certificate call. Do not build the adapter on the 14 October reply. Do not fall back to a CID ACORD 25 on a Coterie policy.
 
-### ConnectQuote — GUARD Workers’ Comp (built, not on the customer URL)
+### ConnectQuote — GUARD Workers’ Comp (live on the customer URL)
 
-**Status (2026-10-06):** Code is on `cid-pdf-api`. Sandbox offers WC for beauty, cleaning, pet, fitness, plumber, and electrical. Prod `offerWc` is false until GUARD generates the production API key, secret, and contract number. Path when those land: WC opt-in → NBQ → NBS/BND → `finalizeGuardBind()` → **`policies`** (`bind_source: guard`). Spec: [`guard-integration.md`](./guard-integration.md).
+**Status (2026-10-19):** Live on production `cid-pdf-api` for Colorado beauty, cleaning, pet, fitness, plumber, and electrical. Prod `GUARD_ENABLED_SEGMENTS` is exactly `beauty,cleaning,pet,fitness,plumber,electrical`. Do not clear it. Jon’s green light was 16 October 2026. Path: WC opt-in → NBQ → NBS/BND → `finalizeGuardBind()` → its own **`policies`** row (`bind_source: guard`). It does not wait for a Coterie BOP. Spec: [`guard-integration.md`](./guard-integration.md). Next carrier: [`agent-start.md`](./agent-start.md) New carrier lane.
 
-**Audit spine (same submission, second policy):**
+**Audit spine (same submission, own WC policy):**
 
 - Timeline `guard.indicated` / `guard.bound` + GUARD `PolicyNumber` as `carrier_quote_ref`
-- `policies` via `createPolicy()` with `coverage_data.bind_source = 'guard'`, `policy_type = WC`
-- Doc push webhook → R2 + `documents` — route acks today; Connect ingest is scheduled **16 October 2026**
-- Bind evidence is GUARD BND + **GUARD direct bill** — **not** CID card/ACH, **not** BoldSign. `GUARD_CAPITA_PAY_URL` is unset on purpose
+- `policies` via `finalizeGuardBind()` (`FOR UPDATE OF s` only), commit `5d88d50`, `coverage_data.bind_source = 'guard'`, `policy_type = WC`
+- Doc push `POST /webhooks/guard-docs` → R2 + `documents`, commit `25b97d0`. Auth failure is 401. Every other case returns 200 after the save attempt. Same file twice is one document. A different file is a second document. If the policy row is not there yet, the PDF is stored pending and attached when bind finishes. Live: `https://cid-pdf-api.onrender.com/webhooks/guard-docs`. Sandbox: `https://cid-pdf-api-sandbox.onrender.com/webhooks/guard-docs`
+- Bind evidence is GUARD BND + **GUARD direct bill** — **not** CID card/ACH, **not** BoldSign. `GUARD_CAPITA_PAY_URL` stays unset. Do not put the bare `https://policyholder.guard.com/payment` link on the customer confirmation
 
-**Gaps (ops):** production key, secret, and contract number from GUARD; doc ingest on 16 October; Capita URL when GUARD sends the template. HVAC and painter stay off. `GUARD_PILOT_STATES` stays CO.
+**Still off:** HVAC class `5537`. Painter, bar, and roofer are not in the GUARD registry. `GUARD_PILOT_STATES` stays CO. The next 10 states (AZ, UT, NM, WY, NV, ID, KS, NE, OK, TX) were approved on 19 October 2026 and are not bind states. Do not fall back to CID ACORD 25 on a GUARD policy.
 
 ### Known operational gaps (audit awareness)
 
 - **Intake `X-API-Key`:** Netlify may send a key; server **does not enforce** it today — public intake by design unless optional middleware is added.
 - **Duplicate notifications:** Multiple webhook or redirect finalize attempts may produce duplicate emails in edge cases; timeline + `documents`/`policies` remain the source of truth for whether bind completed.
-- **ConnectQuote:** Coterie BOP/GL is in production on CO. Traditional BoldSign remains the audit trail for long-form (bar, roofer, and kick-outs). GUARD WC is built and waiting on production credentials.
+- **ConnectQuote:** Coterie BOP/GL is in production on CO (electrical, plumber, HVAC, fitness, beauty, cleaning, pet, painter). Traditional BoldSign remains the audit trail for long-form (bar, roofer, and kick-outs). GUARD WC is live on CO for beauty, cleaning, pet, fitness, plumber, and electrical.
 
 ---
 
@@ -130,7 +130,7 @@ Given a `submission_public_id` or `quote_id`:
 ### 2026-08-27 readiness updates
 
 - GUARD WC sandbox E2E on `cid-pdf-api-sandbox`: main-form WC intent, post-quote indication card, NBS/BND, `finalizeGuardBind()` → Connect policy row.
-- Prod GUARD credentials and CO class codes **pending Jon** — do not enable on `cid-pdf-api` until confirmed.
+- Prod GUARD credentials and CO class codes were pending Jon on this date. Superseded 2026-10-19: Colorado WC is live for the six trades. See the GUARD status section above.
 
 ### 2026-08-21 readiness updates
 
