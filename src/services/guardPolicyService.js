@@ -197,7 +197,7 @@ export async function finalizeGuardBind({
         FROM submissions s
         LEFT JOIN clients c ON c.client_id = s.client_id
         WHERE s.submission_public_id = $1
-        FOR UPDATE
+        FOR UPDATE OF s
       `,
       [submissionPublicId],
     );
