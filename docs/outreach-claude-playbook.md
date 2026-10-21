@@ -250,17 +250,11 @@ Template includes **intro line + segment friction line** (spam score / word bala
 
 ## C. Verified Instantly failure modes (Aug 2026)
 
-### 1. Editor strips anchor tags on paste — ALWAYS re-apply
+### 1. Editor strips anchor tags on paste — August 2026
 
-**#1 silent failure.** Pasting `instantly_html_step.html` into `<>` mode **always strips** `<a href="{{connectquote_url}}">` from the image and CTA (observed on every Fitness + Electrical build). The email looks fine; links are dead. **Always assume stripped; verify before save.**
+**Superseded 21 October 2026.** New campaigns follow [§D](#d-instantly-html-21-october-2026). The editor cannot link an image. A bare `href="{{connectquote_url}}"` is stripped. Do not tell the next session to click the image and paste a merge variable.
 
-**Required after every paste:**
-1. Click image → link icon → paste `{{connectquote_url}}`
-2. Highlight `START MY QUOTE →` → link icon → paste `{{connectquote_url}}`
-
-**Visual check:** live links render **blue** in the editor. If the CTA is black while unsubscribe is blue, anchors were stripped.
-
-The table-wrapped orange button may flatten to plain text on paste — **acceptable**; the creative JPEG includes a button. Do not fight with more HTML.
+What August proved, and what is still true: pasting HTML into `<>` mode strips an anchor whose `href` does not start with `http://` or `https://`. The email looks fine and the link is dead. Live links render blue. If the button text is black while unsubscribe is blue, the anchor was stripped.
 
 ### 2. Missing merge variables → empty strings
 
@@ -320,15 +314,125 @@ Manual editor paste does not scale (8 segments × many states). **Instantly API 
 
 ---
 
+## D. Instantly HTML (21 October 2026)
+
+Learned on Colorado Electrical workers’ comp. This is the current campaign build. §C.1’s “click the image and paste the merge variable” step is retired.
+
+### Image hosting
+
+Instantly does not host images. The image dialog takes an `https://` URL and rejects anything else. There is no upload.
+
+Creatives live on the segment site:
+
+```text
+{segment}-pdf-backend/Netlify/email/archive/<version>/<filename>.jpg
+→ https://<segment-domain>/email/archive/<version>/<filename>.jpg
+```
+
+The version folder is dated and named for the campaign (`2026-08-connect-v1`, `2026-10-wc-v1`). It holds the JPEG and the HTML fragments that use it. Do not delete a folder a live campaign still references.
+
+Electrical, and the other ConnectQuote segment sites, are Git-connected. A push publishes the site. Drag-drop is a fallback, and it must be the whole `Netlify` folder. Dropping one file replaces the site.
+
+Strip download suffixes before the push. `CID_Electrical_WC_Creative (1).jpg` becomes `%20(1)` in every URL. Load the URL in a private window and confirm the JPEG before opening Instantly.
+
+Electrical workers’ comp image:
+
+`https://electricalinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Electrical_WC_Creative.jpg`
+
+### The sanitizer
+
+Any `href` that does not start with `http://` or `https://` is stripped. The anchor becomes:
+
+```html
+<span data-campaign-unlinked-url="...">LINK TEXT</span>
+```
+
+`href="{{cq_url_s2}}"` does not survive a paste. Typing it in code view and saving does the same thing.
+
+| Route | How | Trade-off |
+|-------|-----|-----------|
+| Editor link tool | Select text → chain icon → `{{merge_var}}` | Text only. Manual each time. |
+| https-prefixed href | `href="https://domain/path?{{qs_var}}"` | Survives paste. The list column is the query string only, not the full URL. |
+
+The editor cannot link an image. It will not hold an image selection, and the image dialog only inserts a new image. An https-prefixed `href` on the image is the way to make the creative tappable.
+
+Do not draw a button inside the JPEG unless that image is actually linked. A button that does nothing is worse than no button. The electrical workers’ comp creative has no button in the picture. The only button is the HTML one.
+
+### Paste
+
+1. Open the `.html` in Cursor. Word turns quotes curly. TextEdit shows the page instead of the source.
+2. Select all and copy. The copy must start with `<div` or `<table`.
+3. In Instantly, click the step body, then `<>` code view. Pasting into the visual editor leaves plain text.
+4. Paste. Exit code view.
+5. Link each text control with the chain icon.
+6. Delete the unsubscribe placeholder. With the cursor there: **+ → Insert Unsubscribe Link**.
+7. Save, reopen code view, and confirm the `href`s that should have survived are still there.
+
+Ship the fragment with no `href` attributes. Then the sanitizer has nothing to strip, and the manual step is linking the text.
+
+No blank lines inside the markup. The editor turns whitespace between elements into `<br>`, which adds dead space above the card.
+
+A live link renders blue. Button text may need to be set back to white after linking.
+
+Put the padding and the font on the `<td>`, not the `<a>`:
+
+```html
+<td align="center" bgcolor="#ff8c1a" style="background:#ff8c1a;border-radius:7px;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:18px;line-height:22px;font-weight:bold;">SEE MY OPTIONS &rarr;</td>
+```
+
+If the sanitizer eats the anchor, the cell still looks like a button and only the link is re-applied.
+
+### Attribution
+
+`ch` and `src` stay the same value. They are the channel. Only `cid` changes per step.
+
+```text
+...&ch=instantly-co-electrical&src=instantly-co-electrical&cid=electrical-co-2026-10-s1
+```
+
+`cid` is stored as `campaign_id` inside `submissions.raw_submission_json`. It is not a column. Read it with `raw_submission_json->>'campaign_id'`. `/operator/funnel` By channel rolls up on `ch` / `src` only. Operator Home shows it as the second line of `src / cid`. Fixing the funnel later still sees sends that already landed.
+
+### Campaign settings
+
+| Setting | Value | Why |
+|---------|-------|-----|
+| Send emails as text-only | OFF | Strips HTML from every step |
+| Send first email as text-only | ON | Protects Step 1 only |
+| Stop sending on reply | ON | |
+| Open tracking | ON | |
+| Link tracking | OFF | Routes links through `inreg1.net`, URIBL-listed, about +1.7 spam score |
+| Duplicate check on upload | OFF | The list is already deduped. Checking Campaigns skips leads from an earlier campaign |
+| Verify leads | ON on the first upload only | Credits are spent only when this is ticked |
+| Gap between steps | 3 days | Same on every segment, so a comparison is the copy, not the cadence |
+| Subject, steps 2 and 3 | Empty | Threads under Step 1 |
+
+Link tracking off means Instantly shows no clicks. Click data comes from ConnectQuote landings. A zero in Instantly’s click column is expected.
+
+### Throughput
+
+The daily limit caps total sends across all steps, not each step. 1,625 leads × 3 steps is about 4,875 sends. At 50 a day that is about 97 days, whatever the gap between steps is.
+
+The step gap does not change how long the campaign runs. The daily limit and the number of sending inboxes do.
+
+A new inbox needs 2–3 weeks of warmup before it joins a campaign. It shares domain reputation with the inbox already sending. An unwarmed inbox damages the domain.
+
+### List build
+
+Re-uploading leads resets everyone to Step 1 and drops verification results. To add columns without verifying again: export the verified leads from Instantly, merge the new columns onto that export, and re-upload with **Verify leads** unchecked.
+
+Map these as custom variables: the per-step URL columns, `displayName`, `licenseExpiration`. City, ZIP, and county ride inside the URL and do not need their own columns.
+
+Remove government and institutional rows by hand (school districts, municipal airports). They pass the filters and they do not buy this coverage.
+
+Do not rewrite the Instantly license footer until Gerry asks.
+
+---
+
 ## Instantly HTML step setup (after paste)
 
-1. Open `archive/{version}/instantly_html_step.html` from segment repo — copy all.
-2. Instantly → **HTML step** (Step 2 in text→HTML pattern) → `<>` mode → paste.
-3. **Re-apply both links** (§C.1) — do not skip.
-4. Footer license is pre-filled (**#6784587**); insert unsubscribe via editor.
-5. Campaign custom variables: **`connectquote_url`** + **`displayName`** ← CSV columns.
+Follow [§D](#d-instantly-html-21-october-2026). Do not re-apply a merge variable onto the image. The editor cannot link an image.
 
-**Do not** use Instantly built-in prefill — CSV prefill is richer and matches Ops attribution.
+Footer license stays as already shipped. Insert unsubscribe with the editor control, not a typed URL.
 
 ---
 
@@ -380,5 +484,6 @@ open "https://electricalinsurancedirect.com/connectquote.html?fn=Demo&em=demo@ex
 
 | Date | Change |
 |------|--------|
+| 2026-10-21 | **Instantly HTML (Electrical WC).** Images stay on the segment site. Bare merge `href`s are stripped. The editor cannot link an image. Link tracking off. Step gap 3 days. Do not re-upload a verified list. §D. |
 | 2026-08-21 | **7 CO Instantly campaigns live** (electrical, fitness, hvac, plumber, beauty, cleaning, pet). **ZIP prefill fix** (`parseUsZip.js` — last match + CO validation). **Email prefill validation** on intake. **Name optional until bind.** LP pull/clean scripts + list design doc. Beauty JPEG committed (`CID_Beauty_Creative.jpg`). Custom vars: `connectquote_url` + `displayName`. |
 | 2026-08-10 | Instantly pipeline: `displayName`, marketing-ready gate, verified paste failure modes. |

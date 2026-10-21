@@ -48,6 +48,8 @@ Netlify/email/
 
 Never delete archive folders referenced by live Instantly campaigns.
 
+Electrical workers’ comp (21 October 2026) is `Netlify/email/archive/2026-10-wc-v1/`: `CID_Electrical_WC_Creative.jpg`, `instantly_electrical_wc_step2.html`, `instantly_electrical_wc_step3.html`. Public image: `https://electricalinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Electrical_WC_Creative.jpg`. Clean filenames only. A push of `electrical-pdf-backend` publishes it. Paste rules: [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) §D.
+
 ## JPEG spec
 
 | Property | Value |
@@ -61,7 +63,7 @@ Extract with `extract-creative-jpg.mjs` — verify hosted `src` is `https://`, n
 
 ## Instantly paste checklist
 
-See **`outreach-claude-playbook.md` §C** — re-apply `{{connectquote_url}}` on image + CTA after every paste.
+See **`outreach-claude-playbook.md` §D** (21 October 2026). Do not re-apply a merge variable onto the image. Confirm the JPEG URL in a private window before the Instantly image dialog.
 
 ## Scripts
 

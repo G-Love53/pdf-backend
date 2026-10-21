@@ -34,7 +34,7 @@
 | **[docs/guard-uat-runbook.md](./docs/guard-uat-runbook.md)** | **GUARD P-env / partner-test** |
 | **[docs/Workers_Comp.md](./docs/Workers_Comp.md)** | **Due diligence start-here** for GUARD WC — points at the files above |
 | **[docs/connectquote-shipped-2026-06.md](./docs/connectquote-shipped-2026-06.md)** | **Dated** — ConnectQuote shipped summary (investor/handoff): architecture, segments, demo URLs, verification checklist |
-| **[docs/outreach-claude-playbook.md](./docs/outreach-claude-playbook.md)** | **Dated** — Instantly campaigns: list cleaning, attribution (`ch`/`src`/`cid`), HTML paste checklist, verified failure modes, **prefill policy** |
+| **[docs/outreach-claude-playbook.md](./docs/outreach-claude-playbook.md)** | **Dated** — Instantly campaigns. §D (21 Oct 2026) is the HTML build: image URL on the segment site, sanitizer, link tracking off, 3-day gap |
 | **[docs/localprospects-list-design.md](./docs/localprospects-list-design.md)** | **Dated** — LocalProspects CO pulls: dedupe, ZIP extraction, category allowlist, credit economics, Instantly upload |
 | **[docs/outreach-creatives.md](./docs/outreach-creatives.md)** | **Dated** — Segment email JPEG + HTML registry; Netlify deploy methods (Drop vs git) |
 | **[docs/connectquote-operator-learning.md](./docs/connectquote-operator-learning.md)** | **Dated** — ConnectQuote C&F metrics; **Click → Bind** at `/operator/funnel` |
