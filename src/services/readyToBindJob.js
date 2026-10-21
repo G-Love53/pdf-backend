@@ -23,7 +23,6 @@ import {
   prepareLeaveBehind,
   readyToBindReturnUrl,
   readyToBindSender,
-  renderReadyToBindPdf,
   renderReturnPage,
   tradeLabel,
 } from "./readyToBindLeaveBehind.js";
@@ -297,21 +296,12 @@ export async function runReadyToBindLeaveBehind(opts = {}) {
         skipped += 1;
         continue;
       }
-      const pdf = await renderReadyToBindPdf({
-        businessName: snap.businessName,
-        trade: snap.trade,
-        quoteDate: prepared.quoteDate,
-        lines: prepared.decision.openLines,
-        returnUrl,
-        kind: prepared.decision.action,
-      });
       const sender = readyToBindSender();
       await sendMail({
         to: snap.email,
         subject: email.subject,
         html: email.html,
         text: email.text,
-        attachments: [{ filename: "Quote-summary.pdf", buffer: pdf }],
         segment: null,
         fromOverride: sender.from,
         replyToOverride: sender.replyTo,

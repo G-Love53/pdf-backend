@@ -127,6 +127,24 @@ Given a `submission_public_id` or `quote_id`:
 - **ZIP prefill:** wrong ZIP worse than blank — `parseUsZip.js` + intake validation (deployed 2026-08-21).
 - **List tooling** in `pdf-backend` only; segment repos host creatives + `connectquote.html` shell.
 
+### ConnectQuote ready-to-bind note (unbound quote)
+
+This is separate from S5 packet mail and from Instantly. Given a `submission_public_id`:
+
+1. Resolve `submission_id` from `submissions`.
+2. Read `timeline_events` for that submission. The append-only types are:
+   - `connectquote.ready_to_bind.link` — the return token. The raw token is the lookup key. The optional unique index is `migrations/017_ready_to_bind_link.sql`.
+   - `connectquote.ready_to_bind.sent` — first note, about an hour after a bindable price.
+   - `connectquote.ready_to_bind.day1` — next-day note.
+   - `connectquote.ready_to_bind.day3` — day-three note.
+   - `connectquote.ready_to_bind.expiry` — only when a carrier valid-through date was real.
+   - `connectquote.ready_to_bind.code` — a code was sent. The payload stores `codeHash` and `expiresAt`. It does not store the 6-digit code.
+   - `connectquote.ready_to_bind.verified` — the code matched. Payload stores a short-lived proof, not the code.
+3. The email body is not stored as a `documents` row. There is no PDF. Reconstruct who was mailed from the event time, the submission’s email, and the open coverage on the quote session at that time (`coterie.bindable_quote`, `guard.quoted`).
+4. Header on the send is `X-CID-Origin: connectquote-ready-to-bind`. From and reply-to are the support address in [`Deploy_Guide.md`](./Deploy_Guide.md).
+
+A bound coverage is `coterie.policy.bound` or `guard.policy.created`, or a `policies` row. Later notes must not include a coverage that is already bound.
+
 ### 2026-08-27 readiness updates
 
 - GUARD WC sandbox E2E on `cid-pdf-api-sandbox`: main-form WC intent, post-quote indication card, NBS/BND, `finalizeGuardBind()` → Connect policy row.

@@ -12,8 +12,8 @@ One operating picture. Specialist agents use a **lane** below. They still use th
 - Connect is not on Render. Operator, S4–S6, Coterie, and GUARD run in **pdf-backend** (CID-PDF-API on Render).
 - Connect auth is Famous. Browser gets the anon key only. Never put `SUPABASE_SERVICE_ROLE_KEY` in Connect.
 - RSS: Reliable, Scalable, Sellable. No secrets in chat or in git.
-- Public website insurance line: **Insurance offered through All Access Insurance LLC dba Commercial Insurance Direct · CO License #6784587.** That is the DBA on file. **Commercial Insurance Direct, Inc.** is the platform, not the agency. The Oct 12 launch line **CID Insurance Services** stays off the website until that DBA is on the Colorado filing. Do not rewrite the Instantly email footer until Gerry asks. Site phone: **(720) 677-6227**.
-- **6784587** is the All Access agency NPN. Richard P. Cline’s producer NPN is **6762689**. Use the producer number when a carrier needs a person. Gerry sent it to Jon on 14 October 2026. Do not rewrite the license line until Gerry asks.
+- Colorado trade name **CID Insurance Services** is effective. Secretary of State ID **20268251529**, filed **8 October 2026**, registrant **Rick P Cline Agency dba All Access Insurance LLC**. The ready-to-bind note says **Insurance offered through All Access Insurance LLC dba CID Insurance Services · CO License #6784587.** Do not put **Commercial Insurance Direct** on that license line. **Commercial Insurance Direct, Inc.** stays in the next sentence as the technology platform, and it is not an insurer. The public website and the Instantly footer still use the older line. Do not rewrite them until Gerry asks. Site phone: **(720) 677-6227**.
+- **6784587** is the All Access agency NPN. Richard P. Cline’s producer NPN is **6762689**. Use the producer number when a carrier needs a person. Gerry sent it to Jon on 14 October 2026.
 - All Access has a Hartford appointment and IVANS. Connect does not read that feed yet. Small-commercial Spectrum quoting is the EBC portal unless the Hartford rep confirms an API. An embed or a required carrier portal is a no-go. Do not build a Hartford adapter on a guess.
 
 ## What is live
@@ -24,6 +24,7 @@ One operating picture. Specialist agents use a **lane** below. They still use th
 - A bound WC policy gets its own `policies` row. `finalizeGuardBind` locks only the submission (`FOR UPDATE OF s`), commit `5d88d50`. It does not wait for a Coterie BOP.
 - Webhook PDF ingest is built and pushed, commit `25b97d0`, on prod and sandbox. `POST /webhooks/guard-docs` checks auth (401 if bad), then saves the carrier PDF to R2 and a documents row on the policy, matched by policy number, any state. The same file twice is one document. A different file is a second document. If the policy row does not exist yet, the PDF is stored pending and attached when bind finishes. Every case except bad auth returns 200. Live: `https://cid-pdf-api.onrender.com/webhooks/guard-docs`. Sandbox: `https://cid-pdf-api-sandbox.onrender.com/webhooks/guard-docs`. The earlier sandbox file `SUWC781711` was discarded before this code and will not appear unless GUARD posts it again.
 - `GUARD_CAPITA_PAY_URL` stays unset. GUARD emails pay info. CID does not collect the card. Do not put the bare `https://policyholder.guard.com/payment` link on the customer confirmation.
+- A ConnectQuote price that is ready to bind and still open gets one email about an hour later, then a note the next day and on day three. A last note goes out only when the carrier sent a real valid-through date. No PDF. Bar and roofer are skipped. An indication is not a trigger. From `support@commercialinsurance-direct.com`. Not Instantly. Flow: [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md). Runtime: [`Deploy_Guide.md`](./Deploy_Guide.md).
 - Bar and roofer are long-form only.
 - Instant COI for long-form (`boldsign`) is CID ACORD 25. Coterie and GUARD use carrier paper. Do not fall back to CID ACORD on those policies. David (14 October 2026) pointed at the policy-docs retrieve we already call. The create-certificate call, unlimited holder certs, and Designated Additional Insured vs Add Additional Insureds are still open. Do not build that adapter. Do not scrape the Coterie dashboard. Spec: [`connect-coi-carrier.md`](./connect-coi-carrier.md).
 - Am I Covered stays Claude, then Gemini if Claude fails. GUARD chat uses the coverage summary saved at bind. The existing document indexer picks up declarations and policy PDFs. No Perplexity.
@@ -48,6 +49,7 @@ One operating picture. Specialist agents use a **lane** below. They still use th
 | Coterie | [`coterie-integration.md`](./coterie-integration.md) |
 | Connect app | `cid-connect/docs/ARCHITECTURE.md`, `WORKFLOW_HANDOFF.md` |
 | Outreach | [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) |
+| Unbound quote note | [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md), [`Deploy_Guide.md`](./Deploy_Guide.md), [`AUDIT_READINESS.md`](./AUDIT_READINESS.md) |
 
 `~/GitHub/CID-docs/` and home-folder `*.md` files are pointers. `/Volumes/CID_Master/docs-snapshots/` is a read-only archive. Do not edit `CID_MASTER_OLD_DO_NOT_USE`.
 

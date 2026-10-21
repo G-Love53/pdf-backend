@@ -47,6 +47,17 @@ Shared intake: `/static/connectquote-intake.js` on Render. Lists: **`pull-localp
 
 Workers’ Comp **alongside** Coterie BOP/GL — same `submission_public_id`; main-form WC opt-in → commercial quote → WC indication/bind. **Live on production `cid-pdf-api` for Colorado** beauty, cleaning, pet, fitness, plumber, and electrical. Prod `GUARD_ENABLED_SEGMENTS` is that list. Do not clear it. HVAC class `5537` is off. Painter, bar, and roofer are not in the registry. CID-PDF-API **`/api/guard/wc/*`**. GUARD **direct bill** (CID not merchant of record). `GUARD_CAPITA_PAY_URL` stays unset. Bind → `finalizeGuardBind()` → its own **`policies`** row (`5d88d50`). It does not wait for a Coterie BOP. Carrier PDF: `POST /webhooks/guard-docs` (`25b97d0`). `GUARD_PILOT_STATES` stays `CO`. Spec: [`guard-integration.md`](./guard-integration.md).
 
+### Ready to bind, not bound
+
+When a ConnectQuote customer leaves a bindable price unbound, CID-PDF-API emails the address on the application. This is not Instantly, and it is not the S5 packet. The email is the handout. There is no PDF attachment.
+
+1. **Who.** ConnectQuote segments only. Bar and roofer are skipped. Coterie: a business-policy price (Business Owners Policy or General Liability) that is not bound. GUARD: a full quote (`NBS`) that is instant-bindable and not bound. An indication (`NBQ`) is not a line. A workers’ comp policy that already bound is not a line. One email lists every coverage that is still open. If one coverage binds, later notes list only the open line. No address on the quote means no email.
+2. **When.** The first note waits one hour after the last bindable price, and it is not sent if that price is more than seven days old. Binding during that hour sends nothing. One reminder goes the next day, and one on day three, measured from the first note. A last note goes only when the carrier returned a real valid-through date, in the three days before that date. A date is not invented. There is no note a week later.
+3. **The link.** One link per submission: `https://cid-pdf-api.onrender.com/q/{token}`. **FINISH AND BIND** opens that page. Opening it does not bind and does not call the carrier. The page does not reprice. If the start date has passed, the page says so. A 6-digit code, emailed to the address already on the quote, lasts 15 minutes. The code is not in the quote email. Only the hash is stored. A correct code confirms that page for 30 minutes.
+4. **The words.** Subject: `Your quote for {business} — one step left`. Coverage and price only. No carrier names. From and reply-to `support@commercialinsurance-direct.com`. License line: Insurance offered through All Access Insurance LLC dba CID Insurance Services · CO License #6784587. The next sentence says Commercial Insurance Direct, Inc. is a technology platform and is not an insurer.
+
+The check runs every 15 minutes on CID-PDF-API. Code: `src/services/readyToBindLeaveBehind.js`, `src/services/readyToBindJob.js`, `src/routes/readyToBindRoutes.js`. Runtime and env: [`Deploy_Guide.md`](./Deploy_Guide.md). Trail: [`AUDIT_READINESS.md`](./AUDIT_READINESS.md).
+
 ### Next carrier
 
 A new carrier is a new adapter in **pdf-backend** on this same intake and Connect spine. Segment repos stay Netlify intake. The checklist is the **New carrier** lane in [`agent-start.md`](./agent-start.md). GUARD workers’ comp is the worked example: six gates, own `policies` row, carrier PDF ingest, carrier paper for the COI, state expansion by pilot list plus one smoke. Gerry sends the partner email.

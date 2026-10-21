@@ -15,6 +15,16 @@ This is the daily operating flow for CID-PDF-API operator queues.
 - Mint a partner URL on the same page. Sendable instructions: [`partner-layer-onboarding.md`](./partner-layer-onboarding.md).
 - Home still has ConnectQuote number tiles; use Funnel for graphs and drop-off.
 
+## 0c) Unbound ConnectQuote note
+
+This send is automatic. Do not send it from the operator packet screen, and do not put it in Instantly.
+
+- It goes to the email on the application about an hour after a bindable price, if they have not bound.
+- One note lists every coverage still open. Binding one coverage stops the notes for that line only.
+- An indication is not enough. Bar and roofer do not get this note.
+- The customer opens **FINISH AND BIND**, then enters a code sent to that same email. The page does not bind by itself.
+- There is no PDF to resend. Forwarding the email is the handoff.
+
 ## 1) Quote email arrives (carrier reply) -> S4
 
 - **System does automatically**

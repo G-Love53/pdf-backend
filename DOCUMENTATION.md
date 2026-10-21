@@ -23,6 +23,8 @@
 | **[docs/compliance-roadmap.md](./docs/compliance-roadmap.md)** | **Dated** — SOC 2 / security roadmap for founder & counsel review (download/share with Ray) |
 | **[docs/coterie-integration.md](./docs/coterie-integration.md)** | **Dated** — Coterie ConnectQuote technical spec (AKHash, API, prod CO segments, env — no secrets) |
 | **[docs/agent-start.md](./docs/agent-start.md)** | **Start here for any agent** — live vs not live, plus lanes (general, new carrier, GUARD go-live, Connect, outreach) |
+| **[docs/CID_ARCHITECTURE.md](./docs/CID_ARCHITECTURE.md)** | S1–S6 plus ConnectQuote. Includes the unbound-quote note (email only, one link, hour / next day / day three) |
+| **[docs/AUDIT_READINESS.md](./docs/AUDIT_READINESS.md)** | What is reconstructable: submissions, timeline, R2, and the ready-to-bind events (code hash only) |
 | **[docs/decisions-log.md](./docs/decisions-log.md)** | Dated calls (GUARD prod, COI, NEXT, geography). No secrets |
 | **[docs/connect-coi-carrier.md](./docs/connect-coi-carrier.md)** | **Connect COI** — ConnectQuote partners (Coterie, GUARD) issue certs; long-form keeps CID ACORD 25 |
 | **[docs/Segment_Template.md](./docs/Segment_Template.md)** | What a segment repo is. Operator / S4–S6 stay in this repo |

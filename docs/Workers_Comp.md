@@ -18,6 +18,7 @@ Optional **second line** on the same ConnectQuote submission as Coterie BOP/GL.
 - Bind writes its own `policies` row (`bind_source: guard`). It does not wait for a Coterie BOP. `finalizeGuardBind` locks only the submission (`FOR UPDATE OF s`), commit `5d88d50`.
 - Policy PDFs: `POST /webhooks/guard-docs` stores the carrier PDF (commit `25b97d0`). The policy card does not wait on PDFs. Ingest rules are step 3 of the New carrier lane.
 - **COI:** WC certs are GUARD paper, requested in Connect. Do not fall back to CID ACORD 25. The cert adapter is still not built. Spec: [`connect-coi-carrier.md`](./connect-coi-carrier.md).
+- **Left unbound.** A full WC quote (`NBS`) that is instant-bindable and not bound is a line on the ready-to-bind note. An indication (`NBQ`) is not. Flow: [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md).
 
 **Do not** put operator / S4–S6 / WC API code in segment repos. WC runs only on **CID-PDF-API** (`pdf-backend`).
 

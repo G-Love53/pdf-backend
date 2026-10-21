@@ -713,6 +713,19 @@ Details and division of labor (Famous vs `pdf-backend`): [CID_CONNECT.md](./CID_
 
 ---
 
+## Ready-to-bind note (unbound ConnectQuote)
+
+CID-PDF-API emails the address on the application when a ConnectQuote price is ready to bind and still open. The product rules are in [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md). This section is how it runs.
+
+- **Where.** `src/services/readyToBindJob.js` on CID-PDF-API (prod and sandbox). Not a segment repo. Not Instantly. Not the S5 packet sender.
+- **Clock.** If `ENABLE_FOLLOWUP_SCHEDULER=true`, the note runs at the end of that scheduler (default every 15 minutes, floor 5). Otherwise a dedicated timer starts 30 seconds after boot and then every 15 minutes.
+- **Each pass.** Newest 200 submissions in a ConnectQuote segment, status not `closed_lost` or `rejected`, with a candidate timeline event in the last 60 days. A send error is logged and skipped. It does not stop the pass.
+- **From.** `READY_TO_BIND_FROM_EMAIL`, else `CID_SUPPORT_EMAIL`, else `support@commercialinsurance-direct.com`. Reply-To is that same address. Gmail auth stays the existing `GMAIL_USER` account. That account must be allowed to send as the From address, or the send fails and is logged.
+- **Link host.** `PUBLIC_API_BASE_URL`, else `CID_API_BASE_URL`, else `https://cid-pdf-api.onrender.com`, plus `/q/{token}`.
+- **No attachment.** Do not add a PDF back onto this note.
+- **Index.** `migrations/017_ready_to_bind_link.sql` is optional. The app runs before it. Apply with `node scripts/run-migration.mjs migrations/017_ready_to_bind_link.sql` when a database URL is available. Do not print that URL.
+- **Check.** `npm run test:ready-to-bind`. After a push, `GET /__version` on prod and sandbox should show the new commit. The job will mail real quote addresses that are between one hour and seven days old and still unbound. That is the feature.
+
 ## What not to do
 
 - Do not commit `.env` or keys.
@@ -743,3 +756,4 @@ Details and division of labor (Famous vs `pdf-backend`): [CID_CONNECT.md](./CID_
 | 2026-08-04 | **New segment domain + email launch playbook** (Netlify NS, manual Gmail MX, SPF/DKIM/DMARC/Postmaster, 2SV backup-code workaround, OAuth via Playground + Render — beauty/cleaning/pet validated). |
 | 2026-08-21 | **ConnectQuote intake deploy** (`connectquote-intake.js` `20260821b`): ZIP/email prefill validation, name at bind; bump `?v=` on segment `connectquote.html` after Render push. **Seven CO Instantly campaigns** live. LP scripts: `pull-localprospects-instantly.mjs`, `clean-localprospects-instantly.mjs`. |
 | 2026-09-24 | **Click → Bind** `/operator/funnel` + Partner Layer (`ch=partner-{id}`). Intake `?v=20260924b`. Sendable: `docs/partner-layer-onboarding.md`. |
+| 2026-10-21 | Ready-to-bind note for an unbound ConnectQuote price. Email only, no PDF. Scheduler, From address, link host, optional migration `017`. |

@@ -403,7 +403,7 @@ function footerLines(quoteDate) {
   const shown = formatLongDate(quoteDate) || formatLongDate(new Date());
   return [
     `Quote summary, not a binder. Coverage is not in force until bound and paid. Pricing shown as of ${shown}.`,
-    "Insurance offered through All Access Insurance LLC dba Commercial Insurance Direct · CO License #6784587. Commercial Insurance Direct, Inc. is a technology platform and is not an insurer. Coverage is subject to underwriting approval, policy terms, conditions, and exclusions.",
+    "Insurance offered through All Access Insurance LLC dba CID Insurance Services · CO License #6784587. Commercial Insurance Direct, Inc. is a technology platform and is not an insurer. Coverage is subject to underwriting approval, policy terms, conditions, and exclusions.",
     "Commercial Insurance Direct · 9200 West Cross Drive #515, Littleton, CO 80123",
   ];
 }
@@ -436,7 +436,7 @@ export function buildReadyToBindEmail({
 }) {
   const name = String(businessName || "your business").trim() || "your business";
   const url = safeHttpUrl(returnUrl);
-  const subject = `Your quote for ${name} is ready to bind`;
+  const subject = `Your quote for ${name} — one step left`;
   const openLines = (lines || []).filter((line) => line.status !== "bound");
   const lineText = openLines.map(formatCoverageLine);
   const reminder = kind === "expiry" ? expirySentence(openLines) : null;
@@ -455,10 +455,11 @@ export function buildReadyToBindEmail({
   textParts.push(
     "The link picks up right where you left off, on any device. Your pricing is re-checked when you return, and coverage isn't in force until you bind.",
     "",
-    "If something stopped you, just reply and tell me what — I'll sort it out.",
+    "Questions on the pricing or the coverage? Reply to this email and we'll help.",
     "",
-    "— Gerry",
-    "Commercial Insurance Direct",
+    "Forward this email if someone else signs off.",
+    "",
+    "— Commercial Insurance Direct",
     "",
     ...foot,
   );
@@ -491,8 +492,9 @@ export function buildReadyToBindEmail({
     ${reminderHtml}
     ${button}
     <p style="margin:0 0 14px 0;font-size:15px;line-height:1.5;">The link picks up right where you left off, on any device. Your pricing is re-checked when you return, and coverage isn't in force until you bind.</p>
-    <p style="margin:0 0 14px 0;font-size:15px;line-height:1.5;">If something stopped you, just reply and tell me what — I'll sort it out.</p>
-    <p style="margin:18px 0 0 0;font-size:15px;line-height:1.4;">— Gerry<br>Commercial Insurance Direct</p>
+    <p style="margin:0 0 14px 0;font-size:15px;line-height:1.5;">Questions on the pricing or the coverage? Reply to this email and we'll help.</p>
+    <p style="margin:0 0 14px 0;font-size:15px;line-height:1.5;">Forward this email if someone else signs off.</p>
+    <p style="margin:18px 0 0 0;font-size:15px;line-height:1.4;">— Commercial Insurance Direct</p>
   </div>
   <div style="max-width:560px;margin:12px auto 0 auto;padding:0 8px 12px 8px;">
     ${footHtml}
@@ -782,14 +784,20 @@ export async function renderReadyToBindPdf({
     6,
   );
   drawWrapped(
-    "If something stopped you, just reply and tell me what — I'll sort it out.",
+    "Questions on the pricing or the coverage? Reply to this email and we'll help.",
+    10,
+    font,
+    INK,
+    6,
+  );
+  drawWrapped(
+    "Send this page along if someone else signs off.",
     10,
     font,
     INK,
     8,
   );
-  drawWrapped("— Gerry", 11, font, INK, 0);
-  drawWrapped("Commercial Insurance Direct", 11, fontBold, NAVY, 10);
+  drawWrapped("— Commercial Insurance Direct", 11, fontBold, NAVY, 10);
 
   for (const line of footerLines(quoteDate)) {
     drawWrapped(line, 8, font, MUTED, 3);

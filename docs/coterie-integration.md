@@ -141,6 +141,10 @@ Full mapping: local file `Coterie AKHash 06-04-2026-V2-10.xlsx` — sheet **BOP 
 
 ---
 
+## Left unbound
+
+A Coterie business-policy price that is not bound is a line on the ready-to-bind note. The note goes to the email on the application about an hour later. It is not Instantly, and it does not attach a PDF. If workers’ comp on the same submission is also ready to bind, that is a second line on the same email and the same link. Flow: [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md).
+
 ## Post-bind (Connect)
 
 1. Coterie policy webhook → `/webhooks/coterie`

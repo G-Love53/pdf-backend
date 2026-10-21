@@ -89,6 +89,8 @@ Prefill from ConnectQuote: name, business, address, email, employees, payroll, s
 | **If they like it (NBS)** | **~12–15 questions** + FEIN | ~10 policy-level + 2–5 class Y/Ns. Then pick GUARD pay plan |
 | **Bind (BND)** | Confirm | API is policy number only |
 
+An indication is not the ready-to-bind note. That note starts only after NBS, when the quote is instant-bindable and still unbound. Flow: [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md).
+
 Policy-level knockouts (examples): temp/leased labor **Yes = Decline**; PEO / volunteer / hazmat / aircraft / transport 5+ = Refer; subcontract >10% = Refer.
 
 ---
@@ -237,6 +239,7 @@ Webhook auth (`GUARD_WEBHOOK_AUTH`) is set on prod and sandbox. Do not write the
 
 | Date | Change |
 |------|--------|
+| 2026-10-21 | Unbound NBS quote (instant-bindable, not bound) is a line on the ready-to-bind note. NBQ is not. |
 | 2026-08-20 | Planning spec from 08.19.26 packet + ConnectQuote Coterie pattern. Option B first; CID not MoR. |
 | 2026-08-20 | Per-segment WC on/off (code + env). GUARD “Digital Decision” = their auto-quote name; not used in CID UX. |
 | 2026-08-20 | Signatures: prefer ConnectQuote-style clickwrap; **GUARD** confirms if e-sign is required. |

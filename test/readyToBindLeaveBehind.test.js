@@ -371,6 +371,11 @@ test("customer html and pdf text do not name the carrier", async () => {
   ]) {
     assertNoCarrier(body, label);
   }
+  assert.match(prepared.email.html, /All Access Insurance LLC dba CID Insurance Services/);
+  assert.doesNotMatch(prepared.email.html, /dba Commercial Insurance Direct/);
+  assert.doesNotMatch(prepared.email.html, /attached/i);
+  assert.match(text, /All Access Insurance LLC dba CID Insurance Services/);
+  assert.doesNotMatch(text, /dba Commercial Insurance Direct/);
   assert.match(codeMail.html, /918273/);
   assert.doesNotMatch(prepared.email.html, /918273/);
   assert.doesNotMatch(text, /918273/);

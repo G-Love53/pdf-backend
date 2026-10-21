@@ -6,6 +6,18 @@ Edit this file when a decision would change the next session. Specs stay in thei
 
 ---
 
+## 2026-10-21 — Unbound ConnectQuote gets one note, then two reminders
+
+A price that is ready to bind, and is still open, gets an email about an hour later. The full flow is in [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md). Runtime is in [`Deploy_Guide.md`](./Deploy_Guide.md). The audit trail is in [`AUDIT_READINESS.md`](./AUDIT_READINESS.md).
+
+- ConnectQuote segments only. Bar and roofer are skipped. Coterie-only trades get one line. A dual quote gets a line for each coverage that is still open.
+- Coterie trigger: a business-policy price that is not bound. GUARD trigger: a full quote (NBS) that is instant-bindable and not bound. An indication is not a trigger. A workers’ comp policy that already bound is not a trigger.
+- Timing: first note from one hour to seven days after that price. Then one note the next day, and one on day three. A last note only when the carrier sent a real valid-through date, in the three days before that date. No invented date. No note a week later. Binding a line stops later notes for that line.
+- One link per submission. The button opens the quote page. A 6-digit code, sent to the email on the application, is required before that page will treat them as confirmed. The code is not in the email. The page does not call the carrier and does not reprice.
+- The note is the email only. No PDF. From and reply-to `support@commercialinsurance-direct.com`. Not Instantly.
+- License line: **All Access Insurance LLC dba CID Insurance Services**, CO license **#6784587**. Colorado trade name **CID Insurance Services**, Secretary of State ID **20268251529**, effective **8 October 2026**, registrant **Rick P Cline Agency dba All Access Insurance LLC**. **Commercial Insurance Direct** stays off that license line. The next sentence still says Commercial Insurance Direct, Inc. is a technology platform and is not an insurer.
+- The public website and the Instantly footer were not changed. Do not rewrite them until Gerry asks.
+
 ## 2026-10-19 — Colorado WC live, PDF ingest, next 10 states approved
 
 This is the current GUARD and next-carrier status. Earlier dated lines below are the calls as of that day. A new carrier follows the **New carrier** lane in [`agent-start.md`](./agent-start.md).
