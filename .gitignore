@@ -5,6 +5,7 @@ node_modules/
 *.pdf
 # --- Local artifacts (RSS clean) ---
 *.png
+!src/assets/brand/cid-logo-full-color.png
 *.log
 .DS_Store
 tmp/

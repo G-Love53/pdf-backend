@@ -10,6 +10,7 @@ import { recordSubmission, getPool } from "./db.js";
 import { DocumentRole, DocumentType, StorageProvider } from "./constants/postgresEnums.js";
 import { startGmailPoller } from "./jobs/gmailPoller.js";
 import { runFollowupScheduler } from "./jobs/followupScheduler.js";
+import { runReadyToBindLeaveBehind } from "./services/readyToBindJob.js";
 import { startPolicyIndexer } from "./workers/policyIndexer.js";
 import documentRoutes from "./routes/documentRoutes.js";
 import operatorRoutes from "./routes/operatorRoutes.js";
@@ -19,6 +20,7 @@ import guardRoutes from "./routes/guardRoutes.js";
 import placesRoutes from "./routes/placesRoutes.js";
 import cqEventsRoutes, { startCqEventsBotJanitor } from "./routes/cqEventsRoutes.js";
 import partnerPublicRoutes from "./routes/partnerPublicRoutes.js";
+import readyToBindRoutes from "./routes/readyToBindRoutes.js";
 import { connectAuthMiddleware } from "./middleware/connectAuth.js";
 import connectApiRouter from "./routes/connectApi.js";
 import { renewalPrefillHandler } from "./routes/renewalIntakePublic.js";
@@ -1092,6 +1094,7 @@ APP.post("/submit-quote", async (req, res) => {
 
 APP.use(coterieRoutes);
 APP.use(guardRoutes);
+APP.use(readyToBindRoutes);
 APP.use(placesRoutes);
 APP.use(partnerPublicRoutes);
 APP.use(documentRoutes);
@@ -1117,6 +1120,19 @@ if (process.env.ENABLE_FOLLOWUP_SCHEDULER === "true") {
       console.error("[followupScheduler] error:", err),
     );
   }, intervalMs);
+} else {
+  const readyMs = 15 * 60 * 1000;
+  console.log("[readyToBind] Checking every 15 minutes.");
+  setTimeout(() => {
+    runReadyToBindLeaveBehind().catch((err) =>
+      console.error("[readyToBind] error:", err?.message || err),
+    );
+  }, 30_000);
+  setInterval(() => {
+    runReadyToBindLeaveBehind().catch((err) =>
+      console.error("[readyToBind] error:", err?.message || err),
+    );
+  }, readyMs);
 }
 
 const PORT = process.env.PORT || 8080;

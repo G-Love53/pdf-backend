@@ -1,5 +1,6 @@
 import pg from "pg";
 import { sendWithGmail } from "../email.js";
+import { runReadyToBindLeaveBehind } from "../services/readyToBindJob.js";
 
 const { Pool } = pg;
 
@@ -319,5 +320,10 @@ export async function runFollowupScheduler() {
   await carrierFollowups();
   await clientFollowups();
   await expireSubmissions();
+  try {
+    await runReadyToBindLeaveBehind();
+  } catch (err) {
+    console.error("[readyToBind] error:", err?.message || err);
+  }
 }
 
