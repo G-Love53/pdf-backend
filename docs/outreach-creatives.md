@@ -48,7 +48,7 @@ Netlify/email/
 
 Never delete archive folders referenced by live Instantly campaigns.
 
-Electrical workers’ comp (21 October 2026) is `Netlify/email/archive/2026-10-wc-v1/`: `CID_Electrical_WC_Creative.jpg`, `instantly_electrical_wc_step2.html`, `instantly_electrical_wc_step3.html`. Public image: `https://electricalinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Electrical_WC_Creative.jpg`. Clean filenames only. A push of `electrical-pdf-backend` publishes it. Paste rules: [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) §D.
+Electrical workers’ comp image, current file: `https://electricalinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Electrical_WC_Creative_v2.jpg`. Fragments in that folder: `CID_Instantly_Step2_Ready.html`, `CID_Instantly_Step3_Ready.html`. A new picture gets a new filename. Gmail caches the old URL. A push of `electrical-pdf-backend` publishes it. Paste rules: [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) §D.
 
 ## JPEG spec
 

@@ -18,12 +18,26 @@ A price that is ready to bind, and is still open, gets an email about an hour la
 - License line: **All Access Insurance LLC dba CID Insurance Services**, CO license **#6784587**. Colorado trade name **CID Insurance Services**, Secretary of State ID **20268251529**, effective **8 October 2026**, registrant **Rick P Cline Agency dba All Access Insurance LLC**. **Commercial Insurance Direct** stays off that license line. The next sentence still says Commercial Insurance Direct, Inc. is a technology platform and is not an insurer.
 - The public website and the Instantly footer were not changed. Do not rewrite them until Gerry asks.
 
+## 2026-10-22 — Instantly paste correction
+
+Corrects the 21 October line that said a merge-variable `href` is always stripped. Detail stays in [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) §D.
+
+- An Active campaign is read-only. Pause, edit, Resume. A paused campaign sends nothing.
+- Pasting into a paused campaign’s code view kept `{{cq_url_s2}}` on the text and on the image. Confirm in code view. Use the link tool only for a link that did not survive. Keep full URL columns on the list. A query-string-only column is not required.
+- The editor still cannot link an image through its UI. The image link has to be in the pasted markup.
+- Clear the step in code view (select all, delete) before pasting. The visual editor leaves wrapper tags.
+- Gmail caches images by URL. A replacement creative is a new filename. Mail already sent keeps the old picture. Send a fresh test after the push.
+- A local rename is not a deploy. Electrical publishes on git push. No spaces in filenames.
+- The image cell does not use `font-size:0`. Alt text has to stay readable if the image is blocked.
+- Test send is the **⋮** menu. It sends the step in focus. Open **Edit variant A** on that step first.
+- Still no button drawn inside the JPEG until a real inbox shows the image itself is clickable.
+
 ## 2026-10-21 — Instantly HTML build
 
 The working process is [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) §D. It replaces the August instruction to click the image and paste a merge variable.
 
-- Instantly does not host images. The JPEG is on the segment site. Electrical workers’ comp: `https://electricalinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Electrical_WC_Creative.jpg`. Confirm it in a private window before the image dialog. Electrical publishes by git push, not by dropping one file.
-- A `href` that does not start with `https://` is stripped on paste. The editor cannot link an image. Ship the fragment with no `href`, then link the text with the chain icon.
+- Instantly does not host images. The JPEG is on the segment site. Current electrical workers’ comp file: `https://electricalinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Electrical_WC_Creative_v2.jpg`. Confirm it in a private window before the image dialog. Electrical publishes by git push, not by dropping one file.
+- A `href` that does not start with `https://` was stripped on 21 October. Corrected the next day: a paused code-view paste can keep `{{cq_url_sN}}`. See the 22 October entry. The editor still cannot link an image through its UI.
 - Do not put a button in the JPEG unless the image itself is linked.
 - Link tracking stays off. Clicks are counted on the ConnectQuote landing, not in Instantly.
 - `ch` and `src` stay the channel. `cid` is the step. It is stored as `raw_submission_json->>'campaign_id'`.

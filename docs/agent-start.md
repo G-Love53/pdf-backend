@@ -99,7 +99,7 @@ Famous auth, insurance data through CID-PDF-API `/api/connect/*`. Do not deploy 
 
 ### Outreach
 
-Lists and Instantly CSV vars are `pdf-backend/scripts/` and [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) §D for HTML (21 October 2026). `ch=` and `src=` are the same value. `cid` is the step and lives in `raw_submission_json`. Do not use Zywave. Do not host campaign images on Render or in Instantly. Link tracking stays off.
+Lists and Instantly CSV vars are `pdf-backend/scripts/` and [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) §D. Pause an Active campaign before editing it, then Resume. Paste merge hrefs in code view and confirm they survived. A new creative JPEG needs a new filename. `ch=` and `src=` are the same value. `cid` is the step and lives in `raw_submission_json`. Do not use Zywave. Do not host campaign images on Render or in Instantly. Link tracking stays off.
 
 ---
 

@@ -252,9 +252,7 @@ Template includes **intro line + segment friction line** (spam score / word bala
 
 ### 1. Editor strips anchor tags on paste — August 2026
 
-**Superseded 21 October 2026.** New campaigns follow [§D](#d-instantly-html-21-october-2026). The editor cannot link an image. A bare `href="{{connectquote_url}}"` is stripped. Do not tell the next session to click the image and paste a merge variable.
-
-What August proved, and what is still true: pasting HTML into `<>` mode strips an anchor whose `href` does not start with `http://` or `https://`. The email looks fine and the link is dead. Live links render blue. If the button text is black while unsubscribe is blue, the anchor was stripped.
+**Superseded.** New campaigns follow [§D](#d-instantly-html-21-october-2026). Do not click the image and paste a merge variable. The editor still cannot link an image through its UI. On 22 October 2026 a paused campaign kept `href="{{cq_url_s2}}"` through a code-view paste, including the anchor around the image. Verify in code view after every paste. Live links render blue. If the button text is black while unsubscribe is blue, the anchor was stripped.
 
 ### 2. Missing merge variables → empty strings
 
@@ -314,9 +312,9 @@ Manual editor paste does not scale (8 segments × many states). **Instantly API 
 
 ---
 
-## D. Instantly HTML (21 October 2026)
+## D. Instantly HTML (21 October 2026, corrected 22 October)
 
-Learned on Colorado Electrical workers’ comp. This is the current campaign build. §C.1’s “click the image and paste the merge variable” step is retired.
+Learned on Colorado Electrical workers’ comp. This is the current campaign build. §C.1’s “click the image and paste the merge variable” step is retired. The 22 October correction is that a merge-variable `href` can survive a paste into a paused campaign.
 
 ### Image hosting
 
@@ -331,56 +329,68 @@ Creatives live on the segment site:
 
 The version folder is dated and named for the campaign (`2026-08-connect-v1`, `2026-10-wc-v1`). It holds the JPEG and the HTML fragments that use it. Do not delete a folder a live campaign still references.
 
-Electrical, and the other ConnectQuote segment sites, are Git-connected. A push publishes the site. Drag-drop is a fallback, and it must be the whole `Netlify` folder. Dropping one file replaces the site.
+Electrical, and the other ConnectQuote segment sites, are Git-connected. Renaming a file in the working folder does nothing until it is pushed. A push publishes the site. Drag-drop is a fallback, and it must be the whole `Netlify` folder. Dropping one file replaces the site.
 
-Strip download suffixes before the push. `CID_Electrical_WC_Creative (1).jpg` becomes `%20(1)` in every URL. Load the URL in a private window and confirm the JPEG before opening Instantly.
+No spaces or download suffixes in filenames. `CID_Electrical_WC_Creative (1).jpg` and `CID_Electrical_WC_Creative No Click.jpg` both put `%20` in every URL.
+
+Gmail caches remote images by URL through `ci3.googleusercontent.com`. Replacing a file at the same path can keep serving the old image. A new creative gets a new filename (`..._v2.jpg`). Mail already sent keeps the old `src`. After a creative change, send a fresh test. The copy already in an inbox will not update.
+
+Load the new URL in a private window before the test send.
 
 Electrical workers’ comp image:
 
-`https://electricalinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Electrical_WC_Creative.jpg`
+`https://electricalinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Electrical_WC_Creative_v2.jpg`
+
+### A live campaign is read-only
+
+An Active campaign hides the editing toolbar. No `+`, no link icon, no `<>` code view. Clicking the body does not bring them back.
+
+Pause, edit, then Resume. The toggle is at the top right. A paused campaign sends nothing.
 
 ### The sanitizer
 
-Any `href` that does not start with `http://` or `https://` is stripped. The anchor becomes:
+On 21 October, a `href` that did not start with `http://` or `https://` was stripped to:
 
 ```html
 <span data-campaign-unlinked-url="...">LINK TEXT</span>
 ```
 
-`href="{{cq_url_s2}}"` does not survive a paste. Typing it in code view and saving does the same thing.
+On 22 October that did not hold. Pasting a fragment with three `{{cq_url_sN}}` hrefs into a **paused** campaign’s code view kept all three, including the anchor around the image. The image was clickable in the delivered email.
 
-| Route | How | Trade-off |
-|-------|-----|-----------|
-| Editor link tool | Select text → chain icon → `{{merge_var}}` | Text only. Manual each time. |
-| https-prefixed href | `href="https://domain/path?{{qs_var}}"` | Survives paste. The list column is the query string only, not the full URL. |
+Practical rule: paste the HTML with the merge-variable hrefs already in it, while the campaign is paused, then reopen code view and confirm they are still there. Use the link tool only for a link that did not survive. A query-string-only column (`?{{cq_qs_s2}}`) is not required. Keep the full URL columns on the list.
 
-The editor cannot link an image. It will not hold an image selection, and the image dialog only inserts a new image. An https-prefixed `href` on the image is the way to make the creative tappable.
+The editor still cannot link an image through its UI. It will not hold an image selection, and the image dialog only inserts a new image. The image link has to arrive in the pasted markup.
 
-Do not draw a button inside the JPEG unless that image is actually linked. A button that does nothing is worse than no button. The electrical workers’ comp creative has no button in the picture. The only button is the HTML one.
+Do not draw a button inside the JPEG. The electrical workers’ comp creative has no button in the picture. The only button is the HTML one. An in-image button can come back only after a real inbox shows the image itself is clickable, and it must match the HTML button.
 
 ### Paste
 
-1. Open the `.html` in Cursor. Word turns quotes curly. TextEdit shows the page instead of the source.
-2. Select all and copy. The copy must start with `<div` or `<table`.
-3. In Instantly, click the step body, then `<>` code view. Pasting into the visual editor leaves plain text.
-4. Paste. Exit code view.
-5. Link each text control with the chain icon.
-6. Delete the unsubscribe placeholder. With the cursor there: **+ → Insert Unsubscribe Link**.
-7. Save, reopen code view, and confirm the `href`s that should have survived are still there.
-
-Ship the fragment with no `href` attributes. Then the sanitizer has nothing to strip, and the manual step is linking the text.
+1. Pause the campaign.
+2. Open the `.html` in Cursor. Word turns quotes curly. TextEdit shows the page instead of the source.
+3. Select all and copy. The copy must start with `<div` or `<table`.
+4. In Instantly, open `<>` code view. Click into the code pane, select all, and delete. The pane must be empty. Clearing the visual editor leaves wrapper tags behind.
+5. Paste. Exit code view.
+6. Reopen code view and confirm the `href`s are still there. Link with the chain icon only what was stripped.
+7. Delete the unsubscribe placeholder. With the cursor there: **+ → Insert Unsubscribe Link**.
+8. Save. Resume the campaign.
 
 No blank lines inside the markup. The editor turns whitespace between elements into `<br>`, which adds dead space above the card.
 
 A live link renders blue. Button text may need to be set back to white after linking.
 
-Put the padding and the font on the `<td>`, not the `<a>`:
+The image cell is `padding:0` only. Do not add `font-size:0` or `line-height:0`. `display:block` on the image already closes the gap. `font-size:0` also hides the alt text, so a blocked image collapses to a blank.
+
+Put the padding and the font on the button `<td>`, not the `<a>`:
 
 ```html
 <td align="center" bgcolor="#ff8c1a" style="background:#ff8c1a;border-radius:7px;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:18px;line-height:22px;font-weight:bold;">SEE MY OPTIONS &rarr;</td>
 ```
 
 If the sanitizer eats the anchor, the cell still looks like a button and only the link is re-applied.
+
+### Test send
+
+The test send is the **⋮** menu at the top right, next to Launch / Pause. It sends the step that is in focus. Click **Edit variant A** on that step first, or the test is Step 1.
 
 ### Attribution
 
@@ -430,7 +440,7 @@ Do not rewrite the Instantly license footer until Gerry asks.
 
 ## Instantly HTML step setup (after paste)
 
-Follow [§D](#d-instantly-html-21-october-2026). Do not re-apply a merge variable onto the image. The editor cannot link an image.
+Follow [§D](#d-instantly-html-21-october-2026). Pause first. Paste into an empty code view with the merge hrefs already in the markup. Confirm them in code view before Resume. The editor cannot add an image link through its UI.
 
 Footer license stays as already shipped. Insert unsubscribe with the editor control, not a typed URL.
 
@@ -484,6 +494,7 @@ open "https://electricalinsurancedirect.com/connectquote.html?fn=Demo&em=demo@ex
 
 | Date | Change |
 |------|--------|
-| 2026-10-21 | **Instantly HTML (Electrical WC).** Images stay on the segment site. Bare merge `href`s are stripped. The editor cannot link an image. Link tracking off. Step gap 3 days. Do not re-upload a verified list. §D. |
+| 2026-10-22 | **Instantly correction.** An Active campaign is read-only: Pause, edit, Resume. A paused code-view paste kept `{{cq_url_sN}}` hrefs, including the image link. New JPEG filename when the picture changes (Gmail caches the URL). No `font-size:0` on the image cell. §D. |
+| 2026-10-21 | **Instantly HTML (Electrical WC).** Images stay on the segment site. Link tracking off. Step gap 3 days. Do not re-upload a verified list. §D. The “href always stripped” line was corrected the next day. |
 | 2026-08-21 | **7 CO Instantly campaigns live** (electrical, fitness, hvac, plumber, beauty, cleaning, pet). **ZIP prefill fix** (`parseUsZip.js` — last match + CO validation). **Email prefill validation** on intake. **Name optional until bind.** LP pull/clean scripts + list design doc. Beauty JPEG committed (`CID_Beauty_Creative.jpg`). Custom vars: `connectquote_url` + `displayName`. |
 | 2026-08-10 | Instantly pipeline: `displayName`, marketing-ready gate, verified paste failure modes. |
