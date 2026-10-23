@@ -252,7 +252,7 @@ Template includes **intro line + segment friction line** (spam score / word bala
 
 ### 1. Editor strips anchor tags on paste — August 2026
 
-**Superseded.** New campaigns follow [§D](#d-instantly-html-21-october-2026). Do not click the image and paste a merge variable. The editor still cannot link an image through its UI. On 22 October 2026 a paused campaign kept `href="{{cq_url_s2}}"` through a code-view paste, including the anchor around the image. Verify in code view after every paste. Live links render blue. If the button text is black while unsubscribe is blue, the anchor was stripped.
+**Superseded.** New campaigns follow [§D](#d-instantly-html-21-october-2026-corrected-22-october-example-23-october). Do not click the image and paste a merge variable. The editor still cannot link an image through its UI. On 22 October 2026 a paused campaign kept `href="{{cq_url_s2}}"` through a code-view paste, including the anchor around the image. Verify in code view after every paste. Live links render blue. If the button text is black while unsubscribe is blue, the anchor was stripped.
 
 ### 2. Missing merge variables → empty strings
 
@@ -312,9 +312,9 @@ Manual editor paste does not scale (8 segments × many states). **Instantly API 
 
 ---
 
-## D. Instantly HTML (21 October 2026, corrected 22 October)
+## D. Instantly HTML (21 October 2026, corrected 22 October, example 23 October)
 
-Learned on Colorado Electrical workers’ comp. This is the current campaign build. §C.1’s “click the image and paste the merge variable” step is retired. The 22 October correction is that a merge-variable `href` can survive a paste into a paused campaign.
+Learned on Colorado Electrical workers’ comp. Beauty on 23 October is the copy-from example: same shell, test email looked right. §C.1’s “click the image and paste the merge variable” step is retired. The 22 October correction is that a merge-variable `href` can survive a paste into a paused campaign.
 
 ### Image hosting
 
@@ -337,9 +337,37 @@ Gmail caches remote images by URL through `ci3.googleusercontent.com`. Replacing
 
 Load the new URL in a private window before the test send.
 
-Electrical workers’ comp image:
+Electrical workers’ comp image (one picture for both steps):
 
 `https://electricalinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Electrical_WC_Creative_v2.jpg`
+
+Fragments: `electrical-pdf-backend/Netlify/email/archive/2026-10-wc-v1/CID_Instantly_Step2_Ready.html` and `CID_Instantly_Step3_Ready.html`.
+
+### Worked example — Beauty, 23 October 2026
+
+Copy these two files for the next segment. They use the electrical line breaks, and the test email matched that campaign.
+
+| Step | HTML | Image |
+|------|------|-------|
+| 2 | `beauty-pdf-backend/Netlify/email/archive/2026-10-wc-v1/CID_Beauty_Instantly_Step2.html` | `https://beautyinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Beauty_WC_Creative2.jpg` |
+| 3 | `.../CID_Beauty_Instantly_Step3.html` | `https://beautyinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Beauty_Certificate_Creative3.jpg` |
+
+`CID_Beauty_WC_Creative3.jpg` does not exist. A mixed name loads nothing. The editor can still show a picture from an earlier preview. The test email shows a blank.
+
+### Next segment
+
+Same shell for every ConnectQuote segment. Workers’ comp sentences only where WC is live: beauty, cleaning, pet, fitness, plumber, electrical. HVAC and painter stay off that line.
+
+1. Copy the two Beauty HTML files into `{segment}-pdf-backend/Netlify/email/archive/2026-10-wc-v1/`.
+2. Change the sentences, the alt text, and the image `src`. Leave the line breaks, the paddings, and the three `href`s. Step 2 stays `{{cq_url_s2}}`. Step 3 stays `{{cq_url_s3}}`.
+3. The `src` is the filename that will be pushed. Beauty step 3 is `CID_Beauty_Certificate_Creative3.jpg`, not a WC name with a 3 on it.
+4. Push that repo. A push publishes. Confirm each JPEG with `curl -I` until it is **200** and the byte size matches the file.
+5. Pause the campaign. Open code view, select all, delete until the pane is empty, paste the whole file.
+6. Reopen code view. The text, the picture, and the orange button each still have their `href`. Add a link only if one is missing.
+7. Click **Edit** on that step, then send the test. The preview can show a picture while the test is still Step 1, which is text only and has no picture.
+8. Leave the visual editor alone after the paste. It wraps each row in a `div` and inserts `<br>`, which is the spacing that did not match Electrical.
+
+The unsubscribe line in these files is the electrical one: `https://UNSUBSCRIBE_INSTANTLY.ai`. Leave it.
 
 ### A live campaign is read-only
 
@@ -370,11 +398,11 @@ Do not draw a button inside the JPEG. The electrical workers’ comp creative ha
 3. Select all and copy. The copy must start with `<div` or `<table`.
 4. In Instantly, open `<>` code view. Click into the code pane, select all, and delete. The pane must be empty. Clearing the visual editor leaves wrapper tags behind.
 5. Paste. Exit code view.
-6. Reopen code view and confirm the `href`s are still there. Link with the chain icon only what was stripped.
-7. Delete the unsubscribe placeholder. With the cursor there: **+ → Insert Unsubscribe Link**.
-8. Save. Resume the campaign.
+6. Reopen code view and confirm the three `href`s are still there (text, picture, orange button). Link with the chain icon only what was stripped. Do not add them again when they survived.
+7. Leave the unsubscribe anchor that is already in the file (`https://UNSUBSCRIBE_INSTANTLY.ai`). That is the electrical line, and it is the beauty line.
+8. Save. Click **Edit** on that step. Send the test. Resume when the test matches Electrical.
 
-No blank lines inside the markup. The editor turns whitespace between elements into `<br>`, which adds dead space above the card.
+Keep the blank line between row groups that the Beauty files already have. That is the Electrical spacing. Do not add more. Do not remove them to “tighten” the file. The visual editor is what turns gaps into a stack of `<br>`.
 
 A live link renders blue. Button text may need to be set back to white after linking.
 
@@ -440,9 +468,9 @@ Do not rewrite the Instantly license footer until Gerry asks.
 
 ## Instantly HTML step setup (after paste)
 
-Follow [§D](#d-instantly-html-21-october-2026). Pause first. Paste into an empty code view with the merge hrefs already in the markup. Confirm them in code view before Resume. The editor cannot add an image link through its UI.
+Follow [§D](#d-instantly-html-21-october-2026-corrected-22-october-example-23-october). Copy the Beauty step 2 and step 3 files. Pause first. Paste into an empty code view. The three `href`s are already in the file. Confirm them. Add a link only if one is missing.
 
-Footer license stays as already shipped. Insert unsubscribe with the editor control, not a typed URL.
+Footer license stays as already shipped. The unsubscribe anchor stays the one in the Beauty file.
 
 ---
 
@@ -471,7 +499,7 @@ Config: `marketing/segmentEmailConfig.js`
 - Put list tooling in segment repos.
 - Suggest Zywave.
 - Break legacy Fitness URL: `https://fitnessinsurancedirect.com/email/CID_Fitness_Creative.jpg`.
-- Tell Rick links are pre-wired after Instantly paste without re-apply step.
+- Tell Gerry to re-apply every link after a code-view paste. Confirm the three `href`s. Add one only if it is missing.
 
 ---
 

@@ -6,6 +6,16 @@ Edit this file when a decision would change the next session. Specs stay in thei
 
 ---
 
+## 2026-10-23 — Beauty Instantly steps are the copy-from example
+
+Electrical supplied the shell. Beauty is the run that tested clean on 23 October. The repeat steps are in [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) §D. The files are in [`outreach-creatives.md`](./outreach-creatives.md).
+
+- Copy `CID_Beauty_Instantly_Step2.html` and `CID_Beauty_Instantly_Step3.html`. Change the copy, the image address, and nothing else. Keep those line breaks. Step 2 links are `{{cq_url_s2}}`. Step 3 links are `{{cq_url_s3}}`. The text, the picture, and the orange button already have them.
+- Push the segment repo, then confirm each JPEG returns 200. Beauty step 2: `https://beautyinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Beauty_WC_Creative2.jpg`. Beauty step 3: `https://beautyinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Beauty_Certificate_Creative3.jpg`. `CID_Beauty_WC_Creative3.jpg` is not a file. The editor can still paint a picture. The test email cannot.
+- Pause. Code view. Select all, delete, paste the whole file. Do not add the links afterward unless code view shows one is gone. Do not edit the step in the visual editor. That editor wraps rows in divs and inserts blank lines, which is what broke the spacing.
+- Open **Edit** on that step, then send the test. A test taken while Step 1 is in focus is the text-only email.
+- The Instantly footer stays on the older license line. Do not rewrite it.
+
 ## 2026-10-21 — Unbound ConnectQuote gets one note, then two reminders
 
 A price that is ready to bind, and is still open, gets an email about an hour later. The full flow is in [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md). Runtime is in [`Deploy_Guide.md`](./Deploy_Guide.md). The audit trail is in [`AUDIT_READINESS.md`](./AUDIT_READINESS.md).

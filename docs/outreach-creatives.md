@@ -48,7 +48,19 @@ Netlify/email/
 
 Never delete archive folders referenced by live Instantly campaigns.
 
-Electrical workers’ comp image, current file: `https://electricalinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Electrical_WC_Creative_v2.jpg`. Fragments in that folder: `CID_Instantly_Step2_Ready.html`, `CID_Instantly_Step3_Ready.html`. A new picture gets a new filename. Gmail caches the old URL. A push of `electrical-pdf-backend` publishes it. Paste rules: [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) §D.
+## Workers’ comp creatives (2026-10-wc-v1)
+
+Copy the Beauty HTML for the next segment. Electrical is the shell those files were matched to. Paste rules: [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) §D.
+
+| Segment | Step | HTML in the segment repo | Public JPEG |
+|---------|------|--------------------------|-------------|
+| **electrical** | 2 and 3 | `CID_Instantly_Step2_Ready.html`, `CID_Instantly_Step3_Ready.html` | [CID_Electrical_WC_Creative_v2.jpg](https://electricalinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Electrical_WC_Creative_v2.jpg) |
+| **beauty** | 2 | `CID_Beauty_Instantly_Step2.html` | [CID_Beauty_WC_Creative2.jpg](https://beautyinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Beauty_WC_Creative2.jpg) |
+| **beauty** | 3 | `CID_Beauty_Instantly_Step3.html` | [CID_Beauty_Certificate_Creative3.jpg](https://beautyinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Beauty_Certificate_Creative3.jpg) |
+
+Both live under `Netlify/email/archive/2026-10-wc-v1/`. A push publishes. The `img` src has to be the filename that was pushed. `CID_Beauty_WC_Creative3.jpg` is not a file.
+
+Still to build from the Beauty files: cleaning, pet, fitness, plumber. HVAC and painter use the same shell and do not get a workers’ comp line. A new picture gets a new filename. Gmail caches the old URL.
 
 ## JPEG spec
 
@@ -63,7 +75,7 @@ Extract with `extract-creative-jpg.mjs` — verify hosted `src` is `https://`, n
 
 ## Instantly paste checklist
 
-See **`outreach-claude-playbook.md` §D** (21 October 2026). Do not re-apply a merge variable onto the image. Confirm the JPEG URL in a private window before the Instantly image dialog.
+See **`outreach-claude-playbook.md` §D**. Copy the Beauty step file. Empty code view, paste the whole file, confirm the three `href`s. Confirm the JPEG URL returns 200 before the test send.
 
 ## Scripts
 
