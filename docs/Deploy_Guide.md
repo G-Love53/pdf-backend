@@ -61,7 +61,7 @@ ORDER BY enumsortorder;
 
 ### Dockerfile (summary)
 
-- Base: `node:20-bullseye`.
+- Base: `node:22.23.4-bookworm`. Node 20 does not receive the October 2026 certificate and TLS patches.
 - Installs Chrome (Puppeteer) and deps.
 - `WORKDIR /app`; copy `package*.json` → `npm ci` / `npm install`.
 - **CID_HomeBase:** Render does not run submodule fetch by default; Dockerfile clones CID_HomeBase into `./CID_HomeBase` during build so templates exist at runtime.
