@@ -6,6 +6,18 @@ Edit this file when a decision would change the next session. Specs stay in thei
 
 ---
 
+## 2026-10-28 — Coterie certificate follow-up sent
+
+Gerry sent the follow-up. Do not draft that email again. Do not build the adapter.
+
+- Still waiting: the request that creates a certificate (method, path, sample body), whether holder certificates are unlimited at no charge, and whether “Designated Additional Insured = Yes” requires Add Additional Insureds first.
+- Already answered on 14 October: Generate COI is on the API and the dashboard, sandbox can generate, no file upload, and the holder name is on the ACORD. The link he sent is the download we already call.
+- `CSG-00507726-00` is the sandbox Fitness policy. It is not a question about policy-number format.
+
+## 2026-10-27 — Workers’ comp Instantly creatives for the remaining live WC trades
+
+Plumber (26 October, pictures replaced the same day at the same URLs), cleaning, pet, and fitness. Addresses are in [`outreach-creatives.md`](./outreach-creatives.md). The image `src` must start with `https://`. Cleaning’s first HTML omitted it and the picture did not load.
+
 ## 2026-10-23 — Beauty Instantly steps are the copy-from example
 
 Electrical supplied the shell. Beauty is the run that tested clean on 23 October. The repeat steps are in [`outreach-claude-playbook.md`](./outreach-claude-playbook.md) §D. The files are in [`outreach-creatives.md`](./outreach-creatives.md).

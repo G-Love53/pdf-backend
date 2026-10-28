@@ -360,7 +360,7 @@ Same shell for every ConnectQuote segment. Workers’ comp sentences only where 
 
 1. Copy the two Beauty HTML files into `{segment}-pdf-backend/Netlify/email/archive/2026-10-wc-v1/`.
 2. Change the sentences, the alt text, and the image `src`. Leave the line breaks, the paddings, and the three `href`s. Step 2 stays `{{cq_url_s2}}`. Step 3 stays `{{cq_url_s3}}`.
-3. The `src` is the filename that will be pushed. Beauty step 3 is `CID_Beauty_Certificate_Creative3.jpg`, not a WC name with a 3 on it.
+3. The `src` starts with `https://` and is the filename that will be pushed. A host with no `https://` does not load. Beauty step 3 is `CID_Beauty_Certificate_Creative3.jpg`, not a WC name with a 3 on it. Plumber, cleaning, pet, and fitness were published 26–27 October. Their addresses are in [`outreach-creatives.md`](./outreach-creatives.md). HVAC and painter are the segments still without this folder, and they do not get a workers’ comp line.
 4. Push that repo. A push publishes. Confirm each JPEG with `curl -I` until it is **200** and the byte size matches the file.
 5. Pause the campaign. Open code view, select all, delete until the pane is empty, paste the whole file.
 6. Reopen code view. The text, the picture, and the orange button each still have their `href`. Add a link only if one is missing.

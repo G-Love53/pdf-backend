@@ -57,10 +57,18 @@ Copy the Beauty HTML for the next segment. Electrical is the shell those files w
 | **electrical** | 2 and 3 | `CID_Instantly_Step2_Ready.html`, `CID_Instantly_Step3_Ready.html` | [CID_Electrical_WC_Creative_v2.jpg](https://electricalinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Electrical_WC_Creative_v2.jpg) |
 | **beauty** | 2 | `CID_Beauty_Instantly_Step2.html` | [CID_Beauty_WC_Creative2.jpg](https://beautyinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Beauty_WC_Creative2.jpg) |
 | **beauty** | 3 | `CID_Beauty_Instantly_Step3.html` | [CID_Beauty_Certificate_Creative3.jpg](https://beautyinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Beauty_Certificate_Creative3.jpg) |
+| **plumber** | 2 | `CID_Plumber_Instantly_Step2.html` | [CID_Plumber_Creative2.jpg](https://plumberinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Plumber_Creative2.jpg) |
+| **plumber** | 3 | `CID_Plumber_Instantly_Step3.html` | [CID_Plumber_Creative3.jpg](https://plumberinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Plumber_Creative3.jpg) |
+| **cleaning** | 2 | `CID_Cleaning_Instantly_Step2.html` | [CID_Cleaning_Creative2.jpg](https://cleaninginsurancedirect.com/email/archive/2026-10-wc-v1/CID_Cleaning_Creative2.jpg) |
+| **cleaning** | 3 | `CID_Cleaning_Instantly_Step3.html` | [CID_Cleaning_Creative3.jpg](https://cleaninginsurancedirect.com/email/archive/2026-10-wc-v1/CID_Cleaning_Creative3.jpg) |
+| **pet** | 2 | `CID_Pet_Instantly_Step2.html` | [CID_Pet_Creative2.jpg](https://petserviceinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Pet_Creative2.jpg) |
+| **pet** | 3 | `CID_Pet_Instantly_Step3.html` | [CID_Pet_Creative3.jpg](https://petserviceinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Pet_Creative3.jpg) |
+| **fitness** | 2 | `CID_Fitness_Instantly_Step2.html` | [CID_Fitness_Creative2.jpg](https://fitnessinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Fitness_Creative2.jpg) |
+| **fitness** | 3 | `CID_Fitness_Instantly_Step3.html` | [CID_Fitness_Creative3.jpg](https://fitnessinsurancedirect.com/email/archive/2026-10-wc-v1/CID_Fitness_Creative3.jpg) |
 
-Both live under `Netlify/email/archive/2026-10-wc-v1/`. A push publishes. The `img` src has to be the filename that was pushed. `CID_Beauty_WC_Creative3.jpg` is not a file.
+All live under `Netlify/email/archive/2026-10-wc-v1/`. A push publishes. The `img` src must start with `https://` and must be the filename that was pushed. `CID_Beauty_WC_Creative3.jpg` and `CID_Plumber_WC_Creative.jpg` are not those files. Plumber’s pictures were replaced on 26 October at the same two addresses.
 
-Still to build from the Beauty files: cleaning, pet, fitness, plumber. HVAC and painter use the same shell and do not get a workers’ comp line. A new picture gets a new filename. Gmail caches the old URL.
+HVAC and painter still need the shell, and they do not get a workers’ comp line. A new picture gets a new filename. Gmail caches the old URL.
 
 ## JPEG spec
 
