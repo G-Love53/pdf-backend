@@ -6,6 +6,10 @@ Edit this file when a decision would change the next session. Specs stay in thei
 
 ---
 
+## 2026-11-02 — Quote-page visits now reach the landing counter
+
+The six workers’ comp campaign sites, plus HVAC and painter, posted `/api/cq/events` to their own domain. That path was a 404, so Instantly’s click column and the operator landing tiles could both read zero while the form still opened. Each site now proxies `/api/*` to CID-PDF-API. Visits before this deploy are not backfilled. A landing still drops off the tile if the visitor does not scroll, tap, or click within 60 seconds. Instantly link tracking stays off.
+
 ## 2026-10-28 — Coterie certificate follow-up sent
 
 Gerry sent the follow-up. Do not draft that email again. Do not build the adapter.
