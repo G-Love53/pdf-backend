@@ -162,6 +162,7 @@
         is_mobile: /Mobi|Android/i.test(navigator.userAgent || ""),
         ts: new Date().toISOString(),
         email: readVisitEmail() || null,
+        display_name: readVisitName() || null,
       };
       const subId = this.submissionPublicId();
       if (subId) payload.submission_public_id = subId;
@@ -385,6 +386,12 @@
       return { ok: false, reason: "sentry_wix" };
     }
     return { ok: true };
+  }
+
+  function readVisitName() {
+    const typed = String($("insured_name")?.value || "").trim();
+    const fromUrl = new URLSearchParams(location.search).get("bn") || "";
+    return (typed || String(fromUrl).trim()).slice(0, 120);
   }
 
   function readVisitEmail() {

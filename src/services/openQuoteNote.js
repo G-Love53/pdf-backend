@@ -4,6 +4,8 @@
  */
 
 import { buildConnectQuoteUrl } from "../config/connectQuoteLinks.js";
+import { SEGMENT_BRANDING } from "../config/segmentBranding.js";
+import { normalizeDisplayName } from "../../marketing/normalizeDisplayName.js";
 import { validateOutreachEmail } from "../outreach/outreachEmailValidation.js";
 import { isLeaveBehindSegment, readyToBindSender } from "./readyToBindLeaveBehind.js";
 
@@ -19,6 +21,17 @@ export function normalizeVisitEmail(raw) {
   const check = validateOutreachEmail(raw);
   if (!check.ok) return null;
   return String(raw).trim().toLowerCase().slice(0, 254);
+}
+
+export function normalizeVisitName(raw) {
+  const cleaned = normalizeDisplayName(raw);
+  return cleaned ? cleaned.slice(0, 45) : null;
+}
+
+export function segmentBrandName(segment) {
+  const brand = SEGMENT_BRANDING[String(segment || "").toLowerCase()];
+  const name = String(brand?.segmentBrandName || "").trim();
+  return name || null;
 }
 
 /**
@@ -80,26 +93,35 @@ function safeHttpUrl(url) {
   }
 }
 
-export function buildOpenQuoteNoteEmail({ returnUrl }) {
+export function buildOpenQuoteNoteEmail({ returnUrl, displayName, segment }) {
   const url = safeHttpUrl(returnUrl);
-  const subject = "Your no-obligation quote is one minute away";
-  const lead = "You were less than a minute from a no-obligation quote.";
-  const ask = "If you have any questions, just reply to this email.";
-  const textParts = [lead, ""];
+  const name = normalizeVisitName(displayName);
+  const brand = segmentBrandName(segment) || "the quote page";
+  const hello = name ? `Hi ${name},` : "Hi,";
+  const stopped = `You stopped by ${brand} a little while ago and left before the price came back.`;
+  const obligation =
+    "No obligation on it — the quote runs under a minute, and nothing binds until you decide to.";
+  const ask = "If you have a question, just reply to this email.";
+  const subject = "You left before the price came back";
+  const textParts = [hello, "", stopped, "", obligation, ""];
   if (url) textParts.push(`SEE MY QUOTE → ${url}`, "");
-  textParts.push(ask, "", "— Commercial Insurance Direct", "", LICENSE, ADDRESS);
+  textParts.push(ask, "", LICENSE, ADDRESS);
 
+  const paragraphs = [hello, stopped, obligation, ask]
+    .map(
+      (line) =>
+        `<p style="margin:0 0 14px 0;font-size:16px;line-height:1.5;color:#1f2933;">${escapeHtml(line)}</p>`,
+    )
+    .join("");
   const button = url
-    ? `<p style="margin:22px 0;"><a href="${escapeHtml(url)}" style="display:inline-block;background:#f58220;color:#ffffff;text-decoration:none;font-weight:700;letter-spacing:0.04em;padding:12px 18px;border-radius:4px;">SEE MY QUOTE</a></p>`
+    ? `<p style="margin:8px 0 18px 0;"><a href="${escapeHtml(url)}" style="display:inline-block;background:#f58220;color:#ffffff;text-decoration:none;font-weight:700;letter-spacing:0.04em;padding:12px 18px;border-radius:4px;">SEE MY QUOTE</a></p>`
     : "";
   const html = `<!DOCTYPE html>
 <html>
 <body style="margin:0;padding:24px;background:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#1f2933;">
   <div style="max-width:560px;margin:0 auto;background:#ffffff;padding:28px 28px 20px 28px;">
-    <p style="margin:0 0 16px 0;font-size:18px;line-height:1.45;color:#0b3a5b;">${escapeHtml(lead)}</p>
+    ${paragraphs}
     ${button}
-    <p style="margin:0 0 14px 0;font-size:15px;line-height:1.5;">${escapeHtml(ask)}</p>
-    <p style="margin:18px 0 0 0;font-size:15px;line-height:1.4;">— Commercial Insurance Direct</p>
   </div>
   <div style="max-width:560px;margin:12px auto 0 auto;padding:0 8px 12px 8px;">
     <p style="margin:0 0 8px 0;font-size:12px;line-height:1.45;color:#667085;">${escapeHtml(LICENSE)}</p>

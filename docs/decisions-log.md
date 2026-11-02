@@ -8,7 +8,7 @@ Edit this file when a decision would change the next session. Specs stay in thei
 
 ## 2026-11-02 — One note when a quote page is opened and no price comes back
 
-Someone who opens a ConnectQuote page and moves on it, and still has no price an hour later, gets one email. Subject: `Your no-obligation quote is one minute away`. It says they were less than a minute from a no-obligation quote, and they can reply with a question. The link returns them to that segment’s quote page. One address gets it once. It is not sent if a price already exists or the form was submitted after the visit. That case stays on the ready-to-bind note. Bar and roofer are skipped. A visit with no movement is skipped. The note is not sent if the visit is older than a day. From `support@commercialinsurance-direct.com`. Not Instantly.
+Someone who opens a ConnectQuote page and moves on it, and still has no price an hour later, gets one email. Subject: `You left before the price came back`. It greets the business name on the link, names the segment they opened, and says there is no obligation and nothing binds until they decide. They can reply with a question. The link returns them to that segment’s quote page. One address gets it once. It is not sent if a price already exists or the form was submitted after the visit. That case stays on the ready-to-bind note. Bar and roofer are skipped. A visit with no movement is skipped. The note is not sent if the visit is older than a day. From `support@commercialinsurance-direct.com`. Not Instantly.
 
 ## 2026-11-02 — Quote-page visits now reach the landing counter
 

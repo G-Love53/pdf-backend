@@ -734,7 +734,7 @@ CID-PDF-API emails the address on a ConnectQuote visit when the person moved on 
 - **Once.** `cq_open_notes` holds one row per address. The job creates the table. `migrations/018_cq_open_notes.sql` is the same statement. A failed send deletes the unsent row so the next pass can retry inside the day.
 - **Stopped by a price.** A form submitted after the visit, a quote request on that visit, or an open bindable price in the last seven days skips this note. The ready-to-bind note sends instead.
 - **From.** The same support address as the ready-to-bind note. Header `X-CID-Origin: connectquote-open-note`.
-- **Check.** `npm run test:open-quote-note`. The page has to be loading `connectquote-intake.js?v=20261102a` or the visit will not keep the address.
+- **Check.** `npm run test:open-quote-note`. The page has to be loading `connectquote-intake.js?v=20261102b` or the visit will not keep the address and the business name.
 
 ## What not to do
 

@@ -124,6 +124,7 @@ export async function runOpenQuoteNote(opts = {}) {
         e.cid,
         e.st,
         lower(e.meta->>'email') AS email,
+        e.meta->>'display_name' AS display_name,
         e.created_at
       FROM cq_events e
       WHERE e.event = 'engaged'
@@ -190,7 +191,11 @@ export async function runOpenQuoteNote(opts = {}) {
         cid: row.cid,
         seq: row.st,
       });
-      const message = buildOpenQuoteNoteEmail({ returnUrl });
+      const message = buildOpenQuoteNoteEmail({
+        returnUrl,
+        displayName: row.display_name,
+        segment: row.segment,
+      });
       await sendMail({
         to: email,
         subject: message.subject,

@@ -64,7 +64,7 @@ When someone opens a ConnectQuote page, moves on it, and an hour later there is 
 
 1. **Who.** ConnectQuote segments only. Bar and roofer are skipped. The visit has to include a real movement (scroll, tap, or click) and a usable email. One address gets this note once. A visit older than a day is skipped.
 2. **A price stops it.** If they submitted the form after the visit, or a bindable price is already open, this note does not send. The ready-to-bind note is the one that goes. If this note already went and they later get a price, the ready-to-bind note still goes.
-3. **The words.** Subject: `Your no-obligation quote is one minute away`. They were less than a minute from a no-obligation quote. **SEE MY QUOTE** returns them to that segment’s quote page. Questions: reply to the email. No carrier names. No price. From and reply-to `support@commercialinsurance-direct.com`. Same license line as the ready-to-bind note.
+3. **The words.** Subject: `You left before the price came back`. Greeting uses the business name on the link. Body: they stopped by that segment a little while ago and left before the price came back. No obligation. The quote runs under a minute, and nothing binds until they decide. A question is a reply. **SEE MY QUOTE** returns them to that segment’s quote page. No carrier names. No price. From and reply-to `support@commercialinsurance-direct.com`. Same license line as the ready-to-bind note.
 
 The same 15-minute check sends it. Code: `src/services/openQuoteNote.js`, `src/services/openQuoteNoteJob.js`. The address is kept on the visit. Visits from before this note do not have it.
 
