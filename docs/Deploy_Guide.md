@@ -726,6 +726,16 @@ CID-PDF-API emails the address on the application when a ConnectQuote price is r
 - **Index.** `migrations/017_ready_to_bind_link.sql` is optional. The app runs before it. Apply with `node scripts/run-migration.mjs migrations/017_ready_to_bind_link.sql` when a database URL is available. Do not print that URL.
 - **Check.** `npm run test:ready-to-bind`. After a push, `GET /__version` on prod and sandbox should show the new commit. The job will mail real quote addresses that are between one hour and seven days old and still unbound. That is the feature.
 
+## Opened the page, no price yet
+
+CID-PDF-API emails the address on a ConnectQuote visit when the person moved on the page and an hour later there is still no price. The product rules are in [`CID_ARCHITECTURE.md`](./CID_ARCHITECTURE.md).
+
+- **Where.** `src/services/openQuoteNoteJob.js` on the same 15-minute clock as the ready-to-bind note. Not Instantly. Not the S5 packet sender.
+- **Once.** `cq_open_notes` holds one row per address. The job creates the table. `migrations/018_cq_open_notes.sql` is the same statement. A failed send deletes the unsent row so the next pass can retry inside the day.
+- **Stopped by a price.** A form submitted after the visit, a quote request on that visit, or an open bindable price in the last seven days skips this note. The ready-to-bind note sends instead.
+- **From.** The same support address as the ready-to-bind note. Header `X-CID-Origin: connectquote-open-note`.
+- **Check.** `npm run test:open-quote-note`. The page has to be loading `connectquote-intake.js?v=20261102a` or the visit will not keep the address.
+
 ## What not to do
 
 - Do not commit `.env` or keys.

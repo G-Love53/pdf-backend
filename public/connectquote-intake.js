@@ -161,6 +161,7 @@
         referrer: document.referrer || null,
         is_mobile: /Mobi|Android/i.test(navigator.userAgent || ""),
         ts: new Date().toISOString(),
+        email: readVisitEmail() || null,
       };
       const subId = this.submissionPublicId();
       if (subId) payload.submission_public_id = subId;
@@ -384,6 +385,12 @@
       return { ok: false, reason: "sentry_wix" };
     }
     return { ok: true };
+  }
+
+  function readVisitEmail() {
+    const typed = normalizePrefillEmail($("contact_email")?.value || "");
+    if (typed) return typed;
+    return normalizePrefillEmail(new URLSearchParams(location.search).get("em") || "");
   }
 
   function normalizePrefillEmail(raw) {

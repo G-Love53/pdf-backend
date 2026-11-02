@@ -12,7 +12,8 @@
     "indexer:policy-docs:backfill": "node src/workers/policyIndexer.js --backfill",
     "guard:uat:parse": "python3 scripts/parse-guard-uat-pack.py",
     "guard:uat:run": "node scripts/run-guard-uat.mjs",
-    "test:ready-to-bind": "node --test test/readyToBindLeaveBehind.test.js"
+    "test:ready-to-bind": "node --test test/readyToBindLeaveBehind.test.js",
+    "test:open-quote-note": "node --test test/openQuoteNote.test.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.708.0",

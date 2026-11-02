@@ -145,6 +145,10 @@ This is separate from S5 packet mail and from Instantly. Given a `submission_pub
 
 A bound coverage is `coterie.policy.bound` or `guard.policy.created`, or a `policies` row. Later notes must not include a coverage that is already bound.
 
+### ConnectQuote open-page note (no price)
+
+Separate from the ready-to-bind note and from Instantly. One row in `cq_open_notes` per address (`migrations/018_cq_open_notes.sql`). `sent_at` is when it went out. The email body is not stored. Reconstruct the recipient from that row and the visit’s `cq_events.meta.email` on the `engaged` event. Header on the send is `X-CID-Origin: connectquote-open-note`. A price on the application means this note must not be the one that sent.
+
 ### 2026-08-27 readiness updates
 
 - GUARD WC sandbox E2E on `cid-pdf-api-sandbox`: main-form WC intent, post-quote indication card, NBS/BND, `finalizeGuardBind()` → Connect policy row.

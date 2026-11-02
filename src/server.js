@@ -11,6 +11,7 @@ import { DocumentRole, DocumentType, StorageProvider } from "./constants/postgre
 import { startGmailPoller } from "./jobs/gmailPoller.js";
 import { runFollowupScheduler } from "./jobs/followupScheduler.js";
 import { runReadyToBindLeaveBehind } from "./services/readyToBindJob.js";
+import { runOpenQuoteNote } from "./services/openQuoteNoteJob.js";
 import { startPolicyIndexer } from "./workers/policyIndexer.js";
 import documentRoutes from "./routes/documentRoutes.js";
 import operatorRoutes from "./routes/operatorRoutes.js";
@@ -1127,10 +1128,16 @@ if (process.env.ENABLE_FOLLOWUP_SCHEDULER === "true") {
     runReadyToBindLeaveBehind().catch((err) =>
       console.error("[readyToBind] error:", err?.message || err),
     );
+    runOpenQuoteNote().catch((err) =>
+      console.error("[openQuoteNote] error:", err?.message || err),
+    );
   }, 30_000);
   setInterval(() => {
     runReadyToBindLeaveBehind().catch((err) =>
       console.error("[readyToBind] error:", err?.message || err),
+    );
+    runOpenQuoteNote().catch((err) =>
+      console.error("[openQuoteNote] error:", err?.message || err),
     );
   }, readyMs);
 }

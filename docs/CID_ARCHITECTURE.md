@@ -58,6 +58,16 @@ When a ConnectQuote customer leaves a bindable price unbound, CID-PDF-API emails
 
 The check runs every 15 minutes on CID-PDF-API. Code: `src/services/readyToBindLeaveBehind.js`, `src/services/readyToBindJob.js`, `src/routes/readyToBindRoutes.js`. Runtime and env: [`Deploy_Guide.md`](./Deploy_Guide.md). Trail: [`AUDIT_READINESS.md`](./AUDIT_READINESS.md).
 
+### Opened the page, no price yet
+
+When someone opens a ConnectQuote page, moves on it, and an hour later there is still no price, CID-PDF-API sends one email to the address on the link. This is not Instantly, and it is not the ready-to-bind note.
+
+1. **Who.** ConnectQuote segments only. Bar and roofer are skipped. The visit has to include a real movement (scroll, tap, or click) and a usable email. One address gets this note once. A visit older than a day is skipped.
+2. **A price stops it.** If they submitted the form after the visit, or a bindable price is already open, this note does not send. The ready-to-bind note is the one that goes. If this note already went and they later get a price, the ready-to-bind note still goes.
+3. **The words.** Subject: `Your no-obligation quote is one minute away`. They were less than a minute from a no-obligation quote. **SEE MY QUOTE** returns them to that segment’s quote page. Questions: reply to the email. No carrier names. No price. From and reply-to `support@commercialinsurance-direct.com`. Same license line as the ready-to-bind note.
+
+The same 15-minute check sends it. Code: `src/services/openQuoteNote.js`, `src/services/openQuoteNoteJob.js`. The address is kept on the visit. Visits from before this note do not have it.
+
 ### Next carrier
 
 A new carrier is a new adapter in **pdf-backend** on this same intake and Connect spine. Segment repos stay Netlify intake. The checklist is the **New carrier** lane in [`agent-start.md`](./agent-start.md). GUARD workers’ comp is the worked example: six gates, own `policies` row, carrier PDF ingest, carrier paper for the COI, state expansion by pilot list plus one smoke. Gerry sends the partner email.

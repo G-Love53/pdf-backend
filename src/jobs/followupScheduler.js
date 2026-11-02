@@ -1,6 +1,7 @@
 import pg from "pg";
 import { sendWithGmail } from "../email.js";
 import { runReadyToBindLeaveBehind } from "../services/readyToBindJob.js";
+import { runOpenQuoteNote } from "../services/openQuoteNoteJob.js";
 
 const { Pool } = pg;
 
@@ -324,6 +325,11 @@ export async function runFollowupScheduler() {
     await runReadyToBindLeaveBehind();
   } catch (err) {
     console.error("[readyToBind] error:", err?.message || err);
+  }
+  try {
+    await runOpenQuoteNote();
+  } catch (err) {
+    console.error("[openQuoteNote] error:", err?.message || err);
   }
 }
 

@@ -4,6 +4,7 @@ import {
   parseSequenceStep,
   readChannelFromParams,
 } from "../outreach/attributionParams.js";
+import { normalizeVisitEmail } from "./openQuoteNote.js";
 
 const ALLOWED_SEGMENTS = new Set([
   ...CONNECTQUOTE_MARKETING_READY,
@@ -162,6 +163,13 @@ export async function recordCqEvent(body, headers = {}) {
     meta = { ...meta, submission_public_id: String(body.submission_public_id).slice(0, 64) };
   } else if (body.submission_public_id && !meta) {
     meta = { submission_public_id: String(body.submission_public_id).slice(0, 64) };
+  }
+
+  const visitEmail = normalizeVisitEmail(body.email);
+  if (visitEmail) {
+    meta = { ...(meta || {}), email: visitEmail };
+  } else if (meta && Object.prototype.hasOwnProperty.call(meta, "email")) {
+    delete meta.email;
   }
 
   let suspectBot = isScannerUserAgent(userAgent);
