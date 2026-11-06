@@ -65,6 +65,9 @@
       <div class="sub">
         <%= typeof segmentLabel !== "undefined" && segmentLabel ? segmentLabel : "All segments" %> · <%= typeof windowLabel !== "undefined" && windowLabel ? windowLabel : "Last 7 days" %> · same window as Operator Home
       </div>
+      <% if (typeof note !== "undefined" && note) { %>
+      <div class="sub" style="margin-top: 6px; max-width: 720px; line-height: 1.45"><%= note %></div>
+      <% } %>
       <%- include('../partials/operator-nav', { segmentQuery: typeof segmentQuery !== 'undefined' ? segmentQuery : '', segment: typeof segment !== 'undefined' ? segment : 'all' }) %>
     </header>
     <main>

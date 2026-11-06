@@ -365,3 +365,112 @@ export async function getConnectQuoteLearning(pool, opts = {}) {
 }
 
 export { isDemoSubmission, sqlIsConnectQuoteSubmission };
+
+/** Same filters as the ConnectQuote pipeline tiles on Operator Home. */
+export const CQ_PIPELINE_LISTS = {
+  submits: { title: "CQ submits" },
+  quoted: { title: "CQ quoted" },
+  bound: { title: "CQ bound" },
+  "open-premium": { title: "Open quoted premium" },
+  "bound-premium": { title: "Bound premium" },
+  requotes: { title: "With requotes" },
+};
+
+function sqlPipelineClientName(alias = "s") {
+  return `
+    COALESCE(
+      NULLIF(TRIM(${alias}.raw_submission_json->>'business_name'), ''),
+      NULLIF(TRIM(CONCAT_WS(' ', c.first_name, c.last_name)), ''),
+      c.primary_email
+    )
+  `;
+}
+
+/**
+ * Submissions behind one ConnectQuote pipeline tile.
+ * @param {import('pg').Pool} pool
+ * @param {string} metric
+ * @param {{ segment?: string, window?: unknown, days?: number|string }} opts
+ */
+export async function listConnectQuotePipeline(pool, metric, opts = {}) {
+  const spec = CQ_PIPELINE_LISTS[String(metric || "")];
+  if (!spec) return null;
+
+  const segment = String(opts.segment || "all").toLowerCase();
+  const window = parseOperatorWindow(opts.window ?? opts.days ?? "7");
+  const segParam = segment === "all" ? "all" : segment;
+  const daysParamIndex = 1;
+  const segParamIndex = window.isToday ? 1 : 2;
+  const params = window.isToday ? [segParam] : [window.days, segParam];
+  const key = String(metric);
+
+  let extra = "";
+  if (key === "quoted" || key === "open-premium" || key === "requotes") {
+    extra += ` AND ${sqlQuotedExists("s")}`;
+  }
+  if (key === "open-premium") {
+    extra += ` AND NOT EXISTS (SELECT 1 FROM policies px WHERE px.submission_id = s.submission_id)`;
+  }
+  if (key === "requotes") {
+    extra += ` AND ${sqlRequoteCount("s")} > 1`;
+  }
+  if (key === "bound" || key === "bound-premium") {
+    extra += ` AND EXISTS (SELECT 1 FROM policies px WHERE px.submission_id = s.submission_id)`;
+  }
+
+  const sql = `
+    SELECT
+      s.submission_public_id,
+      s.segment::text AS segment,
+      s.submitted_at,
+      c.primary_email AS client_email,
+      ${sqlPipelineClientName("s")} AS client_name,
+      s.raw_submission_json->>'traffic_source' AS src,
+      s.raw_submission_json->>'campaign_id' AS cid,
+      ${sqlConnectQuoteStatus("s")} AS cq_status,
+      ${sqlLastQuotedPremium("s")} AS last_quoted_premium,
+      GREATEST(${sqlRequoteCount("s")} - 1, 0)::int AS requote_changes,
+      (
+        SELECT string_agg(p.policy_number, ', ' ORDER BY p.bound_at DESC NULLS LAST)
+        FROM policies p
+        WHERE p.submission_id = s.submission_id
+      ) AS policy_numbers,
+      (
+        SELECT SUM(p.annual_premium)
+        FROM policies p
+        WHERE p.submission_id = s.submission_id
+      ) AS bound_premium,
+      (
+        SELECT MAX(p.bound_at)
+        FROM policies p
+        WHERE p.submission_id = s.submission_id
+      ) AS bound_at
+    FROM submissions s
+    JOIN clients c ON c.client_id = s.client_id
+    WHERE ${sqlCqBaseFilter("s", window, daysParamIndex)}
+      ${sqlSegmentFilter("s", segParamIndex)}
+      ${extra}
+    ORDER BY COALESCE(
+      (
+        SELECT MAX(p.bound_at)
+        FROM policies p
+        WHERE p.submission_id = s.submission_id
+      ),
+      s.submitted_at
+    ) DESC
+    LIMIT 200
+  `;
+
+  const result = await pool.query(sql, params);
+  return {
+    title: spec.title,
+    window,
+    segment: segParam,
+    rows: result.rows.map((row) => ({
+      ...row,
+      last_quoted_premium:
+        row.last_quoted_premium != null ? Number(row.last_quoted_premium) : null,
+      bound_premium: row.bound_premium != null ? Number(row.bound_premium) : null,
+    })),
+  };
+}

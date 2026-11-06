@@ -375,35 +375,53 @@
         <strong style="color:#d1d5db">Recent submissions</strong> includes submit-only and in-Coterie rows (quote may exist only in Coterie agent UI).
       </p>
       <div class="grid" id="cq-funnel-metrics">
-        <div class="card">
-          <h2>CQ submits <span class="metric-window-suffix">(7 days)</span></h2>
-          <div class="metric" id="cq-metric-submits">—</div>
-        </div>
-        <div class="card">
-          <h2>CQ quoted</h2>
-          <div class="metric" id="cq-metric-quoted">—</div>
-          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-quote-rate">—</div>
-        </div>
-        <div class="card">
-          <h2>CQ bound</h2>
-          <div class="metric" id="cq-metric-bound">—</div>
-          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-bind-rate">—</div>
-        </div>
-        <div class="card">
-          <h2>Open quoted premium</h2>
-          <div class="metric" id="cq-metric-open-premium-sum">—</div>
-          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-open-premium-avg">—</div>
-        </div>
-        <div class="card">
-          <h2>Bound premium</h2>
-          <div class="metric" id="cq-metric-bound-premium-sum">—</div>
-          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-bound-premium-avg">—</div>
-        </div>
-        <div class="card">
-          <h2>With requotes</h2>
-          <div class="metric" id="cq-metric-requotes">—</div>
-          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-traditional">—</div>
-        </div>
+        <a class="card-metric-link" href="/operator/cq-list/submits" data-metric-path="/operator/cq-list/submits" title="Open list: ConnectQuote submits in selected window" aria-label="CQ submits: open full list">
+          <div class="card">
+            <h2>CQ submits <span class="metric-window-suffix">(7 days)</span></h2>
+            <div class="metric" id="cq-metric-submits">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/cq-list/quoted" data-metric-path="/operator/cq-list/quoted" title="Open list: ConnectQuote quotes in selected window" aria-label="CQ quoted: open full list">
+          <div class="card">
+            <h2>CQ quoted</h2>
+            <div class="metric" id="cq-metric-quoted">—</div>
+            <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-quote-rate">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/cq-list/bound" data-metric-path="/operator/cq-list/bound" title="Open list: ConnectQuote binds in selected window" aria-label="CQ bound: open full list">
+          <div class="card">
+            <h2>CQ bound</h2>
+            <div class="metric" id="cq-metric-bound">—</div>
+            <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-bind-rate">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/cq-list/open-premium" data-metric-path="/operator/cq-list/open-premium" title="Open list: quoted premium still open" aria-label="Open quoted premium: open full list">
+          <div class="card">
+            <h2>Open quoted premium</h2>
+            <div class="metric" id="cq-metric-open-premium-sum">—</div>
+            <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-open-premium-avg">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/cq-list/bound-premium" data-metric-path="/operator/cq-list/bound-premium" title="Open list: bound premium in selected window" aria-label="Bound premium: open full list">
+          <div class="card">
+            <h2>Bound premium</h2>
+            <div class="metric" id="cq-metric-bound-premium-sum">—</div>
+            <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-bound-premium-avg">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/cq-list/requotes" data-metric-path="/operator/cq-list/requotes" title="Open list: submissions with a requote" aria-label="With requotes: open full list">
+          <div class="card">
+            <h2>With requotes</h2>
+            <div class="metric" id="cq-metric-requotes">—</div>
+            <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-metric-traditional">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
       </div>
 
       <div class="section-title" style="margin-top: 8px">
@@ -411,37 +429,56 @@
       </div>
       <p style="font-size: 12px; color: #6b7280; margin: 0 0 10px; line-height: 1.45; max-width: 920px">
         Pre-submit behavior from segment landing pages (excludes <code style="color:#cbd5e1">suspect_bot</code>).
+        Open a number to see who is in that box.
         <strong style="color:#d1d5db">Stale</strong> = no quote/bind and last activity &gt;30 min ago.
         <strong style="color:#d1d5db">Quoted unbound (page)</strong> = saw premium, no bind click;
         <strong style="color:#d1d5db">confirmed</strong> = same + no policy row yet.
       </p>
       <div class="grid" id="cq-behavior-metrics">
-        <div class="card">
-          <h2>Landings</h2>
-          <div class="metric" id="cq-beh-landings">—</div>
-          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-beh-engage-rate">—</div>
-        </div>
-        <div class="card">
-          <h2>Semi-filled</h2>
-          <div class="metric" id="cq-beh-semi">—</div>
-        </div>
-        <div class="card">
-          <h2>Stale</h2>
-          <div class="metric" id="cq-beh-stale">—</div>
-        </div>
-        <div class="card">
-          <h2>Quote on page</h2>
-          <div class="metric" id="cq-beh-quoted">—</div>
-        </div>
-        <div class="card">
-          <h2>Quoted, not bound</h2>
-          <div class="metric" id="cq-beh-unbound">—</div>
-          <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-beh-unbound-premium">—</div>
-        </div>
-        <div class="card">
-          <h2>Bind clicked</h2>
-          <div class="metric" id="cq-beh-bind-click">—</div>
-        </div>
+        <a class="card-metric-link" href="/operator/visits/landings" data-metric-path="/operator/visits/landings" title="Open list: landing visits in selected window" aria-label="Landings: open full list">
+          <div class="card">
+            <h2>Landings</h2>
+            <div class="metric" id="cq-beh-landings">—</div>
+            <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-beh-engage-rate">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/visits/semi-filled" data-metric-path="/operator/visits/semi-filled" title="Open list: semi-filled visits" aria-label="Semi-filled: open full list">
+          <div class="card">
+            <h2>Semi-filled</h2>
+            <div class="metric" id="cq-beh-semi">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/visits/stale" data-metric-path="/operator/visits/stale" title="Open list: stale visits" aria-label="Stale: open full list">
+          <div class="card">
+            <h2>Stale</h2>
+            <div class="metric" id="cq-beh-stale">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/visits/quote-on-page" data-metric-path="/operator/visits/quote-on-page" title="Open list: visits that saw a price" aria-label="Quote on page: open full list">
+          <div class="card">
+            <h2>Quote on page</h2>
+            <div class="metric" id="cq-beh-quoted">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/visits/quoted-unbound" data-metric-path="/operator/visits/quoted-unbound" title="Open list: priced visits with no policy yet" aria-label="Quoted, not bound: open full list">
+          <div class="card">
+            <h2>Quoted, not bound</h2>
+            <div class="metric" id="cq-beh-unbound">—</div>
+            <div style="font-size: 11px; color: #6b7280; margin-top: 4px" id="cq-beh-unbound-premium">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
+        <a class="card-metric-link" href="/operator/visits/bind-clicked" data-metric-path="/operator/visits/bind-clicked" title="Open list: visits that clicked bind" aria-label="Bind clicked: open full list">
+          <div class="card">
+            <h2>Bind clicked</h2>
+            <div class="metric" id="cq-beh-bind-click">—</div>
+            <div class="card-metric-cta">Open list →</div>
+          </div>
+        </a>
       </div>
 
       <div class="section-title">Recent ConnectQuote submissions</div>

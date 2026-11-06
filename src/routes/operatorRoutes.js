@@ -13,8 +13,12 @@ import {
   segmentQuerySuffix,
   sqlSegmentFilter,
 } from "../utils/operatorSegment.js";
-import { getConnectQuoteLearning, sqlIsConnectQuoteSubmission } from "../services/connectQuoteLearningService.js";
-import { getCqFunnelBehavior } from "../services/cqFunnelService.js";
+import {
+  getConnectQuoteLearning,
+  listConnectQuotePipeline,
+  sqlIsConnectQuoteSubmission,
+} from "../services/connectQuoteLearningService.js";
+import { getCqFunnelBehavior, listCqFunnelSessions } from "../services/cqFunnelService.js";
 import { getOperatorScoreboard } from "../services/operatorScoreboardService.js";
 import {
   mintPartnerConnectQuoteUrl,
@@ -1051,6 +1055,161 @@ router.get("/operator/today/:metric", async (req, res) => {
   } catch (err) {
     console.error("[operator/today] error:", err.message || err);
     res.status(500).send("internal_error");
+  }
+});
+
+function operatorListFrame(req) {
+  const segment = parseOperatorSegmentQuery(req.query.segment);
+  const window = parseOperatorWindow(req.query);
+  const segmentLabel =
+    segment === "all"
+      ? "All segments"
+      : `${segment.charAt(0).toUpperCase() + segment.slice(1)} segment`;
+  const segmentQuery =
+    segment === "all"
+      ? operatorWindowQuerySuffix("", window)
+      : operatorWindowQuerySuffix(`?segment=${encodeURIComponent(segment)}`, window);
+  return {
+    segment,
+    window,
+    segmentLabel,
+    segmentQuery,
+    segmentKey: segment === "all" ? "all" : segment,
+  };
+}
+
+function fmtListMoney(n) {
+  if (n == null || n === "") return "—";
+  const x = Number(n);
+  if (!Number.isFinite(x)) return "—";
+  return (
+    "$" +
+    x.toLocaleString("en-US", {
+      maximumFractionDigits: 0,
+    })
+  );
+}
+
+function renderOperatorList(res, frame, { title, columns, rows, note }) {
+  const windowTitle = frame.window.isToday
+    ? "today"
+    : `last ${frame.window.days} days`;
+  res.render("operator/today-metric", {
+    title: `${title} (${windowTitle})`,
+    columns,
+    rows,
+    note: note || "",
+    segmentLabel: frame.segmentLabel,
+    segmentQuery: frame.segmentQuery,
+    segment: frame.segmentKey,
+    windowLabel: frame.window.label,
+  });
+}
+
+router.get("/operator/visits/:stage", async (req, res) => {
+  if (!pool) {
+    return res.status(503).send("database_not_configured");
+  }
+  const frame = operatorListFrame(req);
+  try {
+    const data = await listCqFunnelSessions(pool, req.params.stage, {
+      segment: frame.segment,
+      window: frame.window,
+    });
+    if (!data) return res.status(404).send("Unknown metric");
+    const rows = data.rows.map((row) => ({
+      client_name: row.client_name || "No name yet",
+      email: row.email || "—",
+      segment: row.segment || "—",
+      state: row.state || "—",
+      campaign: [row.campaign, row.cid].filter(Boolean).join(" · ") || "—",
+      engaged: row.has_engaged ? "Yes" : "No",
+      steps: row.step_count ?? 0,
+      last_at: row.last_at ? new Date(row.last_at).toISOString() : "—",
+      submission_public_id: row.submission_public_id || "—",
+      premium:
+        row.quoted_premium != null ? fmtListMoney(row.quoted_premium) : "—",
+    }));
+    const capped = rows.length >= 200 ? " Showing the latest 200." : "";
+    return renderOperatorList(res, frame, {
+      title: data.title,
+      note:
+        "Name and email are stored when the campaign link or the contact step had them. A bare landing shows the trade, state, and time." +
+        capped,
+      columns: [
+        { key: "client_name", label: "Name" },
+        { key: "email", label: "Email" },
+        { key: "segment", label: "Trade" },
+        { key: "state", label: "State" },
+        { key: "campaign", label: "Campaign" },
+        { key: "engaged", label: "Engaged" },
+        { key: "steps", label: "Steps" },
+        { key: "last_at", label: "Last activity (UTC)" },
+        { key: "submission_public_id", label: "Submission" },
+        { key: "premium", label: "Premium on page" },
+      ],
+      rows,
+    });
+  } catch (err) {
+    console.error("[operator/visits] error:", err.message || err);
+    return res.status(500).send("internal_error");
+  }
+});
+
+router.get("/operator/cq-list/:metric", async (req, res) => {
+  if (!pool) {
+    return res.status(503).send("database_not_configured");
+  }
+  const frame = operatorListFrame(req);
+  try {
+    const data = await listConnectQuotePipeline(pool, req.params.metric, {
+      segment: frame.segment,
+      window: frame.window,
+    });
+    if (!data) return res.status(404).send("Unknown metric");
+    const boundList =
+      req.params.metric === "bound" || req.params.metric === "bound-premium";
+    const rows = data.rows.map((row) => ({
+      submission_public_id: row.submission_public_id || "—",
+      client_name: row.client_name || "—",
+      client_email: row.client_email || "—",
+      segment: row.segment || "—",
+      cq_status: row.cq_status || "—",
+      premium: fmtListMoney(
+        boundList ? row.bound_premium : row.last_quoted_premium,
+      ),
+      policy_numbers: row.policy_numbers || "—",
+      when: boundList
+        ? row.bound_at
+          ? new Date(row.bound_at).toISOString()
+          : "—"
+        : row.submitted_at
+          ? new Date(row.submitted_at).toISOString()
+          : "—",
+      campaign: [row.src, row.cid].filter(Boolean).join(" · ") || "—",
+      requotes: row.requote_changes ?? 0,
+    }));
+    const capped = rows.length >= 200 ? " Showing the latest 200." : "";
+    return renderOperatorList(res, frame, {
+      title: data.title,
+      note: "ConnectQuote submissions in this window." + capped,
+      columns: [
+        { key: "submission_public_id", label: "Submission" },
+        { key: "client_name", label: "Client" },
+        { key: "client_email", label: "Email" },
+        { key: "segment", label: "Trade" },
+        { key: "cq_status", label: "Status" },
+        { key: "premium", label: boundList ? "Bound premium" : "Last premium" },
+        { key: "policy_numbers", label: "Policy" },
+        { key: "when", label: boundList ? "Bound (UTC)" : "Submitted (UTC)" },
+        { key: "requotes", label: "Requotes" },
+        { key: "campaign", label: "src / cid" },
+      ],
+      rows,
+    });
+  } catch (err) {
+    console.error("[operator/cq-list] error:", err.message || err);
+    return res.status(500).send("internal_error");
   }
 });
 

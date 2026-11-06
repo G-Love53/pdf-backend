@@ -13,21 +13,39 @@ function sqlCqEventsSegmentFilter(paramIndex = 2) {
   )`;
 }
 
-/**
- * @param {import('pg').Pool} pool
- * @param {{ segment?: string, window?: unknown, days?: number|string, includeBots?: boolean }} opts
- */
-export async function getCqFunnelBehavior(pool, opts = {}) {
-  const segment = String(opts.segment || "all").toLowerCase();
-  const window = parseOperatorWindow(opts.window ?? opts.days ?? "7");
-  const includeBots = opts.includeBots === true;
-  const daysParamIndex = 1;
-  const segParamIndex = window.isToday ? 1 : 2;
-  const params = window.isToday ? [segment] : [window.days, segment];
-  const timeFilter = sqlWindowFilter("e.created_at", window, daysParamIndex);
-  const botFilter = includeBots ? "" : "AND NOT e.suspect_bot";
+/** Same stage rules as the Operator Home page-funnel tiles. */
+export const CQ_VISIT_LISTS = {
+  landings: {
+    title: "Landings",
+    where: "c.has_page_view",
+  },
+  "semi-filled": {
+    title: "Semi-filled",
+    where: "c.funnel_stage = 'semi_filled'",
+  },
+  stale: {
+    title: "Stale",
+    where:
+      "c.is_stale AND c.funnel_stage IN ('open', 'open_engaged', 'semi_filled')",
+  },
+  "quote-on-page": {
+    title: "Quote on page",
+    where: "c.has_quote_returned",
+  },
+  "quoted-unbound": {
+    title: "Quoted, not bound",
+    where: `c.funnel_stage = 'quoted_unbound'
+      AND c.submission_public_id IS NOT NULL
+      AND NOT c.is_bound`,
+  },
+  "bind-clicked": {
+    title: "Bind clicked",
+    where: "c.has_bind_clicked",
+  },
+};
 
-  const summarySql = `
+function sqlClassifiedSessions(timeFilter, botFilter, segParamIndex) {
+  return `
     WITH ev AS (
       SELECT
         e.session_id,
@@ -37,6 +55,9 @@ export async function getCqFunnelBehavior(pool, opts = {}) {
         e.segment,
         e.st,
         e.state,
+        e.cid,
+        e.src,
+        e.ch,
         e.created_at
       FROM cq_events e
       WHERE ${timeFilter}
@@ -59,6 +80,16 @@ export async function getCqFunnelBehavior(pool, opts = {}) {
         bool_or(event = 'quote_error') AS has_quote_error,
         bool_or(event = 'bind_clicked') AS has_bind_clicked,
         MAX(NULLIF(meta->>'submission_public_id', '')) AS submission_public_id,
+        (ARRAY_AGG(NULLIF(meta->>'email', '') ORDER BY created_at DESC)
+          FILTER (WHERE NULLIF(meta->>'email', '') IS NOT NULL))[1] AS visit_email,
+        (ARRAY_AGG(NULLIF(meta->>'display_name', '') ORDER BY created_at DESC)
+          FILTER (WHERE NULLIF(meta->>'display_name', '') IS NOT NULL))[1] AS visit_name,
+        (ARRAY_AGG(NULLIF(ch, '') ORDER BY created_at DESC)
+          FILTER (WHERE NULLIF(ch, '') IS NOT NULL))[1] AS ch,
+        (ARRAY_AGG(NULLIF(src, '') ORDER BY created_at DESC)
+          FILTER (WHERE NULLIF(src, '') IS NOT NULL))[1] AS src,
+        (ARRAY_AGG(NULLIF(cid, '') ORDER BY created_at DESC)
+          FILTER (WHERE NULLIF(cid, '') IS NOT NULL))[1] AS cid,
         MAX(
           NULLIF(COALESCE(meta->>'premium_annual', meta->>'premium'), '')::numeric
         ) FILTER (WHERE event = 'quote_returned') AS quoted_premium,
@@ -94,6 +125,25 @@ export async function getCqFunnelBehavior(pool, opts = {}) {
         ) AS is_stale
       FROM agg a
     )
+  `;
+}
+
+/**
+ * @param {import('pg').Pool} pool
+ * @param {{ segment?: string, window?: unknown, days?: number|string, includeBots?: boolean }} opts
+ */
+export async function getCqFunnelBehavior(pool, opts = {}) {
+  const segment = String(opts.segment || "all").toLowerCase();
+  const window = parseOperatorWindow(opts.window ?? opts.days ?? "7");
+  const includeBots = opts.includeBots === true;
+  const daysParamIndex = 1;
+  const segParamIndex = window.isToday ? 1 : 2;
+  const params = window.isToday ? [segment] : [window.days, segment];
+  const timeFilter = sqlWindowFilter("e.created_at", window, daysParamIndex);
+  const botFilter = includeBots ? "" : "AND NOT e.suspect_bot";
+
+  const summarySql = `
+    ${sqlClassifiedSessions(timeFilter, botFilter, segParamIndex)}
     SELECT
       COUNT(*)::int AS sessions,
       COUNT(*) FILTER (WHERE has_page_view)::int AS landings,
@@ -248,5 +298,69 @@ export async function getCqFunnelBehavior(pool, opts = {}) {
       quoted_unbound: r.quoted_unbound,
       stale: r.stale,
     })),
+  };
+}
+
+/**
+ * Sessions behind one Operator Home page-funnel tile.
+ * @param {import('pg').Pool} pool
+ * @param {string} stage
+ * @param {{ segment?: string, window?: unknown, days?: number|string, includeBots?: boolean }} opts
+ */
+export async function listCqFunnelSessions(pool, stage, opts = {}) {
+  const spec = CQ_VISIT_LISTS[String(stage || "")];
+  if (!spec) return null;
+
+  const segment = String(opts.segment || "all").toLowerCase();
+  const window = parseOperatorWindow(opts.window ?? opts.days ?? "7");
+  const includeBots = opts.includeBots === true;
+  const daysParamIndex = 1;
+  const segParamIndex = window.isToday ? 1 : 2;
+  const params = window.isToday ? [segment] : [window.days, segment];
+  const timeFilter = sqlWindowFilter("e.created_at", window, daysParamIndex);
+  const botFilter = includeBots ? "" : "AND NOT e.suspect_bot";
+
+  const sql = `
+    ${sqlClassifiedSessions(timeFilter, botFilter, segParamIndex)}
+    SELECT *
+    FROM (
+      SELECT DISTINCT ON (c.session_id)
+        c.session_id,
+        c.segment,
+        NULLIF(c.state, '') AS state,
+        c.funnel_stage,
+        c.has_engaged,
+        c.step_count,
+        c.quoted_premium,
+        c.submission_public_id,
+        c.first_at,
+        c.last_at,
+        COALESCE(
+          NULLIF(TRIM(b.business_name), ''),
+          NULLIF(TRIM(c.visit_name), ''),
+          NULLIF(TRIM(CONCAT_WS(' ', cl.first_name, cl.last_name)), ''),
+          NULLIF(TRIM(s.raw_submission_json->>'insured_name'), ''),
+          NULLIF(TRIM(s.raw_submission_json->>'business_name'), '')
+        ) AS client_name,
+        COALESCE(NULLIF(c.visit_email, ''), NULLIF(cl.primary_email, '')) AS email,
+        COALESCE(NULLIF(c.ch, ''), NULLIF(c.src, '')) AS campaign,
+        NULLIF(c.cid, '') AS cid
+      FROM classified c
+      LEFT JOIN submissions s ON s.submission_public_id = c.submission_public_id
+      LEFT JOIN businesses b ON b.business_id = s.business_id
+      LEFT JOIN clients cl ON cl.client_id = s.client_id
+      WHERE ${spec.where}
+      ORDER BY c.session_id, c.last_at DESC
+    ) visits
+    ORDER BY last_at DESC
+    LIMIT 200
+  `;
+
+  const result = await pool.query(sql, params);
+  return {
+    title: spec.title,
+    window,
+    segment,
+    rows: result.rows,
   };
 }
