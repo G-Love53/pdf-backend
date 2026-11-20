@@ -8,7 +8,7 @@ import {
 
 const returned = [
   {
-    questionCd: "CANNABISOPERATIONS",
+    questionCd: "com.guard_QUESTIONCANNABISOPERATIONS",
     questionText: "Any cannabis operations?",
     type: "SelectOne",
     options: [
@@ -46,7 +46,7 @@ test("a live quote sends cannabis as No and leaves the class question to the cus
     onlyHidden: true,
   });
   const byCd = Object.fromEntries(answers.map((a) => [a.questionCd, a.response]));
-  assert.equal(byCd.CANNABISOPERATIONS, "N");
+  assert.equal(byCd["com.guard_QUESTIONCANNABISOPERATIONS"], "N");
   assert.equal(byCd["com.guard_CLASS_ABOVE15"], undefined);
   assert.equal(byCd["com.guard_PAYROLL"], undefined);
   for (const def of GUARD_DEFAULT_ACORD_ANSWERS) {
@@ -59,7 +59,7 @@ test("the test pack answers every yes/no GUARD returned, and a case answer wins"
     { questionCd: "com.guard_CLASS_ABOVE15", response: "Y" },
   ]);
   const byCd = Object.fromEntries(answers.map((a) => [a.questionCd, a.response]));
-  assert.equal(byCd.CANNABISOPERATIONS, "N");
+  assert.equal(byCd["com.guard_QUESTIONCANNABISOPERATIONS"], "N");
   assert.equal(byCd["com.guard_CLASS_ABOVE15"], "Y");
   assert.equal(byCd["com.guard_PAYROLL"], undefined);
 });

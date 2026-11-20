@@ -228,7 +228,7 @@ export function isCannabisGuardQuestion(questionOrCd) {
   )
     .trim()
     .toUpperCase();
-  return cd === "CANNABISOPERATIONS" || cd.endsWith("_CANNABISOPERATIONS");
+  return cd.includes("CANNABISOPERATIONS");
 }
 
 /** Policy questions we answer for the customer. Class questions stay on the form. */
