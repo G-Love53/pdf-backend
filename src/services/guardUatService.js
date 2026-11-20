@@ -470,6 +470,7 @@ export async function runGuardUatCase(caseDef) {
       remarks: nbsParsed.remarks,
     },
     acordDefaultsUsed: GUARD_DEFAULT_ACORD_ANSWERS.length,
+    questionCdsSent: questionAnswers.map((a) => a.questionCd),
     classQuestionsAnswered: matched.length,
     classQuestionCds: matched.map((a) => a.questionCd),
     ownerPayrollSent: ownerIncluded ? ownerPayroll : 0,
