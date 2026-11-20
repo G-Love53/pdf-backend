@@ -14,9 +14,10 @@ import {
   guardIndicate,
   guardSubmitNbs,
   guardSubmitSbr,
+  customerGuardQuestions,
+  fillUnansweredGuardQuestions,
   isGuardConfigured,
   isGuardInstantBindable,
-  mergeGuardQuestionAnswers,
   normalizeGuardUwDecision,
   yearsInBusinessFromForm,
 } from "./guardService.js";
@@ -497,16 +498,21 @@ export async function processGuardQuestions(body = {}) {
     };
   }
 
+  const guardQuestions = parsed.questions || [];
   if (row?.submission_id) {
     await appendGuardTimeline(row.submission_id, "guard.questions", {
-      count: parsed.questions?.length || 0,
+      count: guardQuestions.length,
+    });
+    await persistGuardSession(row.submission_id, {
+      ...(session || {}),
+      guardQuestions,
     });
   }
 
   return {
     ok: true,
     submission_public_id: submissionPublicId || null,
-    questions: parsed.questions || [],
+    questions: customerGuardQuestions(guardQuestions),
   };
 }
 
@@ -542,8 +548,10 @@ export async function processGuardQuote(body = {}) {
       null,
   });
 
-  const questionAnswers = mergeGuardQuestionAnswers(
+  const questionAnswers = fillUnansweredGuardQuestions(
+    session?.guardQuestions || [],
     Array.isArray(body.answers) ? body.answers : [],
+    { onlyHidden: true },
   );
   const payload = buildRatingPayloadFromForm(ctx.form, ctx.guardLineKey, {
     legalEntityCd: body.legal_entity || session?.legalEntityCd || "LL",

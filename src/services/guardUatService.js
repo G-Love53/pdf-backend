@@ -10,12 +10,12 @@ import {
 import {
   GUARD_DEFAULT_ACORD_ANSWERS,
   buildRatingPayloadFromForm,
+  fillUnansweredGuardQuestions,
   guardFetchQuestions,
   guardIndicate,
   guardSubmitNbs,
   isGuardConfigured,
   isGuardInstantBindable,
-  mergeGuardQuestionAnswers,
   normalizeWorkCompLocations,
 } from "./guardService.js";
 
@@ -397,10 +397,10 @@ export async function runGuardUatCase(caseDef) {
   const unmatched = classAnswers.filter((a) => a._unmatched);
   const matched = classAnswers.filter((a) => a.questionCd);
 
-  const questionAnswers = mergeGuardQuestionAnswers([
-    ...acordOverrides(caseDef),
-    ...matched,
-  ]);
+  const questionAnswers = fillUnansweredGuardQuestions(
+    questionsParsed.questions,
+    [...acordOverrides(caseDef), ...matched],
+  );
 
   const nbsPayload = buildRatingPayloadFromForm(form, lineKey, {
     legalEntityCd: caseDef.entity || "LL",

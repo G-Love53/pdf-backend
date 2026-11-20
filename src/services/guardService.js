@@ -220,6 +220,87 @@ export function mergeGuardQuestionAnswers(custom = []) {
   return merged;
 }
 
+export function isCannabisGuardQuestion(questionOrCd) {
+  const cd = String(
+    typeof questionOrCd === "string"
+      ? questionOrCd
+      : questionOrCd?.questionCd || "",
+  )
+    .trim()
+    .toUpperCase();
+  return cd === "CANNABISOPERATIONS" || cd.endsWith("_CANNABISOPERATIONS");
+}
+
+/** Policy questions we answer for the customer. Class questions stay on the form. */
+export function isHiddenGuardQuestion(question) {
+  const cd = String(question?.questionCd || "").trim();
+  if (!cd) return false;
+  if (isCannabisGuardQuestion(cd)) return true;
+  return GUARD_DEFAULT_ACORD_ANSWERS.some((a) => a.questionCd === cd);
+}
+
+export function customerGuardQuestions(questions) {
+  return (questions || []).filter(
+    (q) => q?.questionCd && !isHiddenGuardQuestion(q),
+  );
+}
+
+export function guardNoResponse(question) {
+  for (const opt of question?.options || []) {
+    const val = String(opt.value || "").trim().toLowerCase();
+    const lab = String(opt.label || "").trim().toLowerCase();
+    if (val === "n" || val === "no" || lab === "no" || lab.startsWith("no")) {
+      return String(opt.value || "N");
+    }
+  }
+  return "N";
+}
+
+function isYesNoGuardQuestion(question) {
+  if (isCannabisGuardQuestion(question)) return true;
+  const type = String(question?.type || "").toLowerCase();
+  if (type === "number" || type === "percentage") return false;
+  const options = question?.options || [];
+  if (!options.length) return isHiddenGuardQuestion(question);
+  return options.some((opt) => {
+    const val = String(opt.value || "").trim().toLowerCase();
+    const lab = String(opt.label || "").trim().toLowerCase();
+    return (
+      val === "y" ||
+      val === "n" ||
+      val === "yes" ||
+      val === "no" ||
+      lab.startsWith("yes") ||
+      lab.startsWith("no")
+    );
+  });
+}
+
+/**
+ * Answer yes/no questions GUARD returned and the caller did not.
+ * Cannabis is No. A caller answer wins. Number questions are left unanswered.
+ * onlyHidden limits the fill to policy questions the customer does not see.
+ */
+export function fillUnansweredGuardQuestions(
+  guardQuestions,
+  explicit = [],
+  options = {},
+) {
+  const onlyHidden = options.onlyHidden === true;
+  const base = mergeGuardQuestionAnswers(explicit);
+  const have = new Set(base.map((a) => a.questionCd));
+  const extras = [];
+  for (const q of guardQuestions || []) {
+    const cd = String(q?.questionCd || "").trim();
+    if (!cd || have.has(cd)) continue;
+    if (onlyHidden && !isHiddenGuardQuestion(q)) continue;
+    if (!isYesNoGuardQuestion(q)) continue;
+    extras.push({ questionCd: cd, response: guardNoResponse(q) });
+    have.add(cd);
+  }
+  return mergeGuardQuestionAnswers([...extras, ...explicit]);
+}
+
 export function parseGuardResponse(acordXml) {
   const xml = String(acordXml || "");
   const questions = [];
